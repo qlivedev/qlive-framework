@@ -8,7 +8,7 @@
   },
   "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "dev": "concurrently -k -n backend,frontend -c blue,green \"./mvnw -f fullstack-app spring-boot:run\" \"pnpm --filter fullstack-app-frontend dev\"",
+    "dev": "concurrently -k -n backend,frontend -c blue,green \"./mvnw -f qlive-test spring-boot:run\" \"pnpm --filter @quinscape/qlive-test-frontend dev\"",
     "build": "./mvnw install",
     "test": "./mvnw test && pnpm -r test"
   },

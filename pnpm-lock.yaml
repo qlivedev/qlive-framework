@@ -12,27 +12,11 @@ importers:
         specifier: ^9.0.0
         version: 9.2.4
 
-  frontend-lib:
+  qlive-test/frontend:
     dependencies:
-      react:
-        specifier: ^18.3.0
-        version: 18.3.1
-    devDependencies:
-      '@types/react':
-        specifier: ^18.3.3
-        version: 18.3.31
-      typescript:
-        specifier: ^5.5.4
-        version: 5.9.3
-      vitest:
-        specifier: ^2.0.5
-        version: 2.1.9(jsdom@24.1.3)
-
-  fullstack-app/frontend:
-    dependencies:
-      '@qlive/frontend-lib':
+      '@quinscape/qlive-ts':
         specifier: workspace:*
-        version: link:../../frontend-lib
+        version: link:../../qlive-ts
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -58,6 +42,22 @@ importers:
       vite:
         specifier: ^5.4.0
         version: 5.4.21
+      vitest:
+        specifier: ^2.0.5
+        version: 2.1.9(jsdom@24.1.3)
+
+  qlive-ts:
+    dependencies:
+      react:
+        specifier: ^18.3.0
+        version: 18.3.1
+    devDependencies:
+      '@types/react':
+        specifier: ^18.3.3
+        version: 18.3.31
+      typescript:
+        specifier: ^5.5.4
+        version: 5.9.3
       vitest:
         specifier: ^2.0.5
         version: 2.1.9(jsdom@24.1.3)

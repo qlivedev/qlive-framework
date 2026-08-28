@@ -4,20 +4,20 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>dev.qlive</groupId>
+  <groupId>com.dataciders</groupId>
   <artifactId>qlive-framework-parent</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>qlive-framework (parent)</name>
   <description>
-    Maven reactor for the qlive framework developer monorepo. Builds backend-lib
-    and fullstack-app from source in one pass, no publishing required.
+    Maven reactor for the qlive framework developer monorepo. Builds qlive
+    and qlive-test from source in one pass, no publishing required.
   </description>
 
   <modules>
-    <module>backend-lib</module>
-    <module>fullstack-app</module>
+    <module>qlive</module>
+    <module>qlive-test</module>
   </modules>
 
   <properties>

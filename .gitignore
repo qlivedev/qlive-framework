@@ -7,7 +7,7 @@ node_modules/
 dist/
 .pnpm-store/
 # Node/pnpm binaries downloaded locally by frontend-maven-plugin
-fullstack-app/frontend/node/
+qlive-test/frontend/node/
 
 # IDE
 .idea/

@@ -1,0 +1,18 @@
+# Java / Maven
+target/
+*.class
+
+# Node / pnpm
+node_modules/
+dist/
+.pnpm-store/
+# Node/pnpm binaries downloaded locally by frontend-maven-plugin
+fullstack-app/frontend/node/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store

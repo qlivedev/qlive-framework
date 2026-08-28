@@ -1,0 +1,3 @@
+packages:
+  - "frontend-lib"
+  - "fullstack-app/frontend"

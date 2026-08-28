@@ -44,9 +44,9 @@ its `.ts` source, not a `dist/`).
 
 ## Toolchain
 
-- Java 17 (`mvnw`/`mvnw.cmd` pin Maven 3.9.12 itself). `JAVA_HOME` must point
+- Java 25 (`mvnw`/`mvnw.cmd` pin Maven 3.9.12 itself). `JAVA_HOME` must point
   at a full JDK, not a JRE-only install — a JRE has no `javac`, and the
-  compiler plugin will fail with a confusing "release version 17 not
+  compiler plugin will fail with a confusing "release version 25 not
   supported" instead of a missing-compiler error.
 - Node 22.23.2 (`.nvmrc`; also pinned in `qlive-test/pom.xml`'s
   `frontend-maven-plugin` config so `mvn install` uses the same Node

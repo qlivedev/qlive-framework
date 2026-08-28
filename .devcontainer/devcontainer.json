@@ -1,6 +1,6 @@
 {
   "name": "qlive-framework-dev",
-  "image": "mcr.microsoft.com/devcontainers/java:1-17-bookworm",
+  "image": "mcr.microsoft.com/devcontainers/java:25-bookworm",
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "22.23.2"

@@ -49,7 +49,48 @@
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-web</artifactId>
+      <artifactId>spring-boot-starter-webmvc</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jooq</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>de.quinscape.domainql</groupId>
+      <artifactId>domainql</artifactId>
+      <version>0.3.1-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.validation</groupId>
+      <artifactId>jakarta.validation-api</artifactId>
+      <version>3.0.2</version>
+    </dependency>
+
+    <dependency>
+      <groupId>de.quinscape</groupId>
+      <artifactId>spring-jsview</artifactId>
+      <version>1.2-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jetbrains</groupId>
+      <artifactId>annotations</artifactId>
+      <version>24.0.0</version>
+      <scope>compile</scope>
     </dependency>
 
     <dependency>
@@ -60,15 +101,26 @@
 
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-resttestclient</artifactId>
+      <artifactId>spring-boot-starter-jooq-test</artifactId>
       <scope>test</scope>
     </dependency>
 
-    <!-- spring-boot-resttestclient doesn't pull this in transitively (spring-projects/spring-boot#48588),
-         but TestRestTemplateTestAutoConfiguration needs RestTemplateBuilder from it. -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-restclient</artifactId>
+      <artifactId>spring-boot-starter-security-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webmvc-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>2.0.17</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -153,6 +205,112 @@
             <goals>
               <goal>repackage</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <!-- Specify the maven code generator plugin -->
+        <!-- Use org.jooq                for the Open Source Edition
+                 org.jooq.pro            for commercial editions with Java 17 support,
+                 org.jooq.pro-java-11    for commercial editions with Java 11 support,
+                 org.jooq.pro-java-8     for commercial editions with Java 8 support,
+                 org.jooq.trial          for the free trial edition with Java 17 support,
+                 org.jooq.trial-java-11  for the free trial edition with Java 11 support,
+                 org.jooq.trial-java-8   for the free trial edition with Java 8 support
+
+             Note: Only the Open Source Edition is hosted on Maven Central.
+                   Install the others locally using the provided scripts, or access them from here: https://repo.jooq.org -->
+        <groupId>org.jooq</groupId>
+        <artifactId>jooq-codegen-maven</artifactId>
+        <version>3.19.30</version>
+
+        <!-- The plugin should hook into the generate goal -->
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+
+        <!-- Manage the plugin's dependency. In this example, we'll use a PostgreSQL database -->
+        <dependencies>
+          <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.10</version>
+          </dependency>
+        </dependencies>
+
+        <!-- Specify the plugin configuration.
+             The configuration format is the same as for the standalone code generator -->
+        <configuration>
+          <!-- JDBC connection parameters -->
+          <jdbc>
+            <driver>org.postgresql.Driver</driver>
+            <url>jdbc:postgresql://localhost/qlivetest</url>
+            <user>qlivetest</user>
+            <password>qlivetest</password>
+          </jdbc>
+
+          <!-- Generator parameters -->
+          <generator>
+            <database>
+              <name>org.jooq.meta.postgres.PostgresDatabase</name>
+              <includes>.*</includes>
+              <excludes></excludes>
+              <inputSchema>public</inputSchema>
+            </database>
+            <target>
+              <packageName>com.dataciders.qlivetest.domain</packageName>
+              <directory>src/main/java</directory>
+            </target>
+            <generate>
+              <pojos>true</pojos>
+              <records>true</records>
+              <generatedAnnotation>true</generatedAnnotation>
+              <validationAnnotations>true</validationAnnotations>
+              <jpaAnnotations>true</jpaAnnotations>
+              <springAnnotations>true</springAnnotations>
+              <javaTimeTypes>false</javaTimeTypes>
+            </generate>
+            <strategy>
+              <name>
+                de.quinscape.domainql.jooq.DomainObjectGeneratorStrategy
+              </name>
+            </strategy>
+          </generator>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.5.0</version>
+        <executions>
+          <!-- Update DomainQL type documentation from Java source -->
+          <execution>
+            <id>update-typedocs</id>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <phase>generate-sources</phase>
+            <configuration>
+              <mainClass>de.quinscape.domainql.docs.DocsExtractor</mainClass>
+              <arguments>
+                <argument>--sourceRoot</argument>
+                <argument>${project.basedir}/src/main/java</argument>
+
+                <argument>--package</argument>
+                <argument>com.dataciders.qlivetest.runtime.logic</argument>
+
+                <argument>--output</argument>
+                <argument>${project.basedir}/src/main/resources/source-typedocs.json</argument>
+
+                <argument>--pretty</argument>
+              </arguments>
+            </configuration>
           </execution>
         </executions>
       </plugin>

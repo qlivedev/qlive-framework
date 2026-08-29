@@ -1,0 +1,83 @@
+package com.dataciders.qlive.model.condition;
+
+import jakarta.validation.constraints.NotNull;
+import org.svenson.JSONTypeHint;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class Operation
+    extends ValueNode
+    implements FunctionNode
+{
+
+    private String name;
+
+    private List<CNode> operands;
+
+
+    @Override
+    @NotNull
+    public String getName()
+    {
+        return name;
+    }
+
+
+    @Override
+    public void setName(String name)
+    {
+        this.name = name;
+    }
+
+
+    @Override
+    @NotNull
+    public List<CNode> getOperands()
+    {
+        return operands;
+    }
+
+
+    @Override
+    @JSONTypeHint(CNode.class)
+    public void setOperands(List<CNode> operands)
+    {
+        this.operands = operands;
+    }
+
+
+    @Override
+    public <D> Object accept(ConditionVisitor<D> visitor, D data)
+    {
+        visitor.visit(this,  data);
+        return null;
+    }
+
+    /// Intermal method to create a name operation node.
+    ///
+    /// @param name         name of the operation
+    /// @param operands     additional operands of the operation besides <code>this</code>
+    ///
+    /// @return operation node
+    static Operation create(String name, CNode... operands)
+    {
+        final Operation operation = new Operation();
+        operation.setName(name);
+        final ArrayList<CNode> allOperands = new ArrayList<>();
+        Collections.addAll(allOperands, operands);
+        operation.setOperands(allOperands);
+        return operation;
+    }
+
+
+    @Override
+    public String toString()
+    {
+        return super.toString() + ": "
+               + "name = '" + name + '\''
+               + ", operands = " + operands
+            ;
+    }
+}

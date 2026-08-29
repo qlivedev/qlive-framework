@@ -1,0 +1,53 @@
+[
+    {
+        "name": "Foo",
+        "description": "Example domain type",
+        "fieldDocs": [
+            {
+                "name": "created",
+                "description": "Foo create timestamp",
+                "paramDocs": []
+            },
+            {
+                "name": "description",
+                "description": "Foo description'",
+                "paramDocs": []
+            },
+            {
+                "name": "flag",
+                "description": "Boolean example",
+                "paramDocs": []
+            },
+            {
+                "name": "id",
+                "description": "",
+                "paramDocs": []
+            },
+            {
+                "name": "name",
+                "description": "Foo name",
+                "paramDocs": []
+            },
+            {
+                "name": "num",
+                "description": "Number example",
+                "paramDocs": []
+            },
+            {
+                "name": "owner",
+                "description": "Embedded owner object",
+                "paramDocs": []
+            },
+            {
+                "name": "ownerId",
+                "description": "owner foreign key",
+                "paramDocs": []
+            },
+            {
+                "name": "type",
+                "description": "type foreign key",
+                "paramDocs": []
+            }
+        ]
+    }
+]

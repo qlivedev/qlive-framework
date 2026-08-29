@@ -1,0 +1,214 @@
+[
+  {
+    "name":"AllScalars",
+    "description":"Test type containing all standard scalar types",
+    "fieldDocs":[
+      
+    ]
+  },
+  {
+    "name":"AppLogin",
+    "description":"Database storage for spring security's remember-me feature",
+    "fieldDocs":[
+      {
+        "name":"lastUsed",
+        "description":"Last access of the login",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"series",
+        "description":"Token series",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"token",
+        "description":"Token",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"username",
+        "description":"User name of the login",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"AppUser",
+    "description":"Application users. Used to authenticate users by spring security. Can have additional fields/relations (See UserInfoService)",
+    "fieldDocs":[
+      {
+        "name":"created",
+        "description":"Creation date of the user entry",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"disabled",
+        "description":"true if the user account was disabled",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"id",
+        "description":"user database id",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"lastLogin",
+        "description":"last login of the user",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"login",
+        "description":"User name / login",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"password",
+        "description":"encrypted password",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"roles",
+        "description":"Spring security roles of the user within the application",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"CNode",
+    "description":"Abstract base class for all types in the FilterDSL condition hierarchy.",
+    "fieldDocs":[
+      
+    ]
+  },
+  {
+    "name":"ConditionParser",
+    "description":"Specialized JSONParser setup to parse a FilterDSL node hierarchy into\nthe correct types.",
+    "fieldDocs":[
+      
+    ]
+  },
+  {
+    "name":"ConditionVisitor",
+    "description":"Visitor for FilterDSL condition hierarchies.",
+    "fieldDocs":[
+      
+    ]
+  },
+  {
+    "name":"FunctionNode",
+    "description":"Implemented by operation and condition nodes which are all just defined by their name and their operands.",
+    "fieldDocs":[
+      
+    ]
+  },
+  {
+    "name":"ModuleFunctionReferences",
+    "description":"Encapsulates the detected static function calls within one module.",
+    "fieldDocs":[
+      {
+        "name":"module",
+        "description":"Module name (without leading \"./\")",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"requires",
+        "description":"Map of variable names mapping to",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"QueryConfig",
+    "description":"Generalized query configuration",
+    "fieldDocs":[
+      {
+        "name":"offset",
+        "description":"Returns the query offset",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"pageSize",
+        "description":"Returns the page size / limit",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"sortFields",
+        "description":"Field sort expressions",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"QueryDocument",
+    "description":"Container for [T] queries",
+    "fieldDocs":[
+      {
+        "name":"config",
+        "description":"query config for this document",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"rows",
+        "description":"List of [T] objects",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"type",
+        "description":"Runtime payload type (always '[T]')",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"RsPackManifest",
+    "description":"POJO implementation for rspack/rspack-manifest-plugin's manifest. Accepts any key, ensures the values are strings.",
+    "fieldDocs":[
+      
+    ]
+  },
+  {
+    "name":"TrackUsageData",
+    "description":"Encapsulates the information contained within a <code>track-usage.json<\/code> file on the java side.\n\nIt contains the results of JavaScript code analysis that detects statically analyzable calls within the application\nreact components and other modules.",
+    "fieldDocs":[
+      
+    ]
+  }
+]

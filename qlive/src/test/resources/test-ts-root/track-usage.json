@@ -1,0 +1,17 @@
+{
+    "usages": {
+        "./sub/Q_Test": {
+            "requires": ["@quinscape/qlive-js"],
+            "calls": {
+                "GraphQLQuery": [
+                    [
+                        "query Q_Test($config: QueryConfig!) {\n        queryTestFooDocument(config: $config) {\n            type\n            config\n            rows {\n                name\n                owner {\n                    login\n                }\n            }\n        }\n    }"
+                    ]
+                ]
+            },
+            "indexes": {
+                "GraphQLQuery": [[76, 390]]
+            }
+        }
+    }
+}

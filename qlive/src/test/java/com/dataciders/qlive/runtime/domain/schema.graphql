@@ -1,0 +1,125 @@
+schema {
+    query: QueryType
+    mutation: MutationType
+}
+
+"This directive allows results to be deferred during execution"
+directive @defer(
+    "Deferred behaviour is controlled by this argument"
+    if: Boolean! = true,
+    "A unique label that represents the fragment being deferred"
+    label: String
+) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"Marks the node, argument, input node or enum value as deprecated"
+directive @deprecated(
+    "The reason for the deprecation"
+    reason: String! = "No longer supported"
+) on FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM_VALUE | INPUT_FIELD_DEFINITION
+
+"This directive disables error propagation when a non nullable node returns null for the given operation."
+directive @experimental_disableErrorPropagation on QUERY | MUTATION | SUBSCRIPTION
+
+"Directs the executor to include this node or fragment only when the `if` argument is true"
+directive @include(
+    "Included when true."
+    if: Boolean!
+) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"Indicates an Input Object is a OneOf Input Object."
+directive @oneOf on INPUT_OBJECT
+
+"Directs the executor to skip this node or fragment when the `if` argument is true."
+directive @skip(
+    "Skipped when true."
+    if: Boolean!
+) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"Exposes a URL that specifies the behaviour of this scalar."
+directive @specifiedBy(
+    "The URL that specifies the behaviour of this scalar."
+    url: String!
+) on SCALAR
+
+"Auto-generated from TestLogic"
+type MutationType {
+    mDummy: Boolean
+}
+
+"Auto-generated from TestLogic"
+type QueryType {
+    queryTestFooDocument(config: QueryConfig! = null): TestFooDocument
+    queryTestUserDocument(config: QueryConfig! = null): TestUserDocument
+}
+
+"Generated from public.test_foo"
+type TestFoo {
+    "DB column 'created'"
+    created: Timestamp!
+    "DB column 'description'"
+    description: String
+    "DB column 'flag'"
+    flag: Boolean!
+    "Target of 'type'"
+    fooType: TestFooType!
+    "DB column 'id'"
+    id: String!
+    "DB column 'name'"
+    name: String!
+    "DB column 'num'"
+    num: Int!
+    "Target of 'owner_id'"
+    owner: TestUser!
+    "DB foreign key column 'owner_id'"
+    ownerId: String!
+    "DB foreign key column 'type'"
+    type: String!
+}
+
+"Generated for de.quinscape.qlive.model.QueryDocument<TestFoo>"
+type TestFooDocument {
+    config: QueryConfig!
+    rows: [TestFoo]!
+    type: String!
+}
+
+"Generated from public.test_foo_type"
+type TestFooType {
+    "DB column 'name'"
+    name: String!
+    "DB column 'ordinal'"
+    ordinal: Int!
+}
+
+"Generated from public.test_user"
+type TestUser {
+    "DB column 'created'"
+    created: Timestamp!
+    "DB column 'disabled'"
+    disabled: Boolean
+    "DB column 'id'"
+    id: String!
+    "DB column 'last_login'"
+    lastLogin: Timestamp
+    "DB column 'login'"
+    login: String!
+    "DB column 'password'"
+    password: String!
+    "DB column 'roles'"
+    roles: String!
+    "Many-to-many objects from test_foo.owner_id"
+    testFoos: [TestFoo]!
+}
+
+"Generated for de.quinscape.qlive.model.QueryDocument<TestUser>"
+type TestUserDocument {
+    config: QueryConfig!
+    rows: [TestUser]!
+    type: String!
+}
+
+"Generalized query configuration"
+scalar QueryConfig
+
+"SQL timestamp equivalent"
+scalar Timestamp

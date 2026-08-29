@@ -1,0 +1,15 @@
+[
+  {
+    "name":"QueryType",
+    "description":null,
+    "fieldDocs":[
+      {
+        "name":"queryDocument",
+        "description":"Queries [T] objects based on the given query config",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  }
+]

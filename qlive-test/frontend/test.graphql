@@ -1,0 +1,31 @@
+query Q_Foo($config: QueryConfig!) {
+    queryFooDocument(config: $config) {
+        type
+        config
+        rows {
+
+            id
+            name
+            description
+
+            owner {
+                login
+                foos {
+                    name
+                }
+            }
+            fooType {
+                id: name
+                ordinal
+            }
+        }
+    }
+}
+#{
+#    "config": {
+#        "condition": {"type": "Condition", "name": "or", "operands": [{"type": "Condition", "name": "eq", "operands": [{"type": "Field", "name": "name"}, {"type": "Value", "scalarType": "String", "value": "Foo #1"}]}, {"type": "Condition", "name": "eq", "operands": [{"type": "Field", "name": "owner.login"}, {"type": "Value", "scalarType": "String", "value": "admin"}]}]},
+#        "offset" : 0,
+#        "pageSize": 20,
+#        "sortFields" : ["id"]
+#    }
+#}

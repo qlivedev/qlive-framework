@@ -6,12 +6,9 @@ import trackUsage from "./plugins/track-usage-vite-plugin";
 const rootDir = fileURLToPath(new URL("../..", import.meta.url));
 const frontendSrcDir = fileURLToPath(new URL("./src/", import.meta.url));
 
-// TODO: placeholder tracked-function config - replace with real functions to
-// analyze once the project has established analysis targets. Demonstrates
-// tracking createFrameworkConfig(...) calls (statically-evaluable object-literal
-// args) - e.g. the call in src/framework-wiring/App.tsx.
 const trackedFunctions = {
-  frameworkConfig: { module: "@quinscape/qlive-ts", fn: "createFrameworkConfig" },
+  inject: { module: "@quinscape/qlive-ts", fn: "inject" },
+  GraphQLQuery: { module: "@quinscape/qlive-ts", fn: "GraphQLQuery" },
 };
 
 export default defineConfig({

@@ -13,21 +13,16 @@ qlive-test/                Spring Boot app, depends on qlive as a SNAPSHOT
 `qlive-test` is both the framework's integration/regression test target
 and the source the end-user template gets extracted from later.
 
-On the frontend, it's split into two layers that must stay decoupled:
-
-- `framework-wiring` (`qlive-test/frontend/src/framework-wiring`) —
-  minimal bootstrap/config/provider setup. Builds and runs standalone as
-  a "hello world" of the framework.
-- `test-scenarios` (`qlive-test/frontend/src/test-scenarios`) — edge
-  cases, fixtures, multiple auth strategies, deliberately broken states.
-  Exists purely to stress-test the framework and must never be imported
-  by `framework-wiring`.
+The frontend (`qlive-test/frontend/src/...`) mirrors the demo app
+migrated from the framework's previous incarnation: a Home page using
+`FilterDSL`/`inject`, a typed `GraphQLQuery` (`Q_Foo`), and the generated
+`types.d.ts`. It isn't split along wiring/scenarios lines.
 
 The Java side (`qlive-test/src/main/java/com/dataciders/qlivetest/...`)
 mirrors the demo app migrated from the framework's previous incarnation:
 GraphQL/DomainQL config, jOOQ-backed auth and domain model, and query
-logic exercising `qlive`. It isn't yet split along the same
-wiring/scenarios lines as the frontend.
+logic exercising `qlive`. Neither side is split along wiring/scenarios
+lines.
 
 ## One-command entry points
 

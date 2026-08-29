@@ -19,12 +19,31 @@ import {init, QLiveConfig} from "./config";
 //     resolve: (path: string) => void
 // }
 
-export function startup() : void {
+export async function startup() : Promise<void> {
 
     const elem = document.getElementById("root-data");
-    const data = !!elem && JSON.parse(elem.innerHTML)
+    const text = elem?.textContent;
 
-    init(data as QLiveConfig);
+    let data : QLiveConfig | undefined;
+
+    // In production, ViteIndexController has spliced the current QLiveConfig into the
+    // placeholder. In `vite dev`, nobody touches that placeholder, so it stays empty --
+    // fall back to fetching the same data live in that case (or if it's there but somehow
+    // didn't parse).
+    if (!import.meta.env.DEV && text) {
+        try {
+            data = JSON.parse(text) as QLiveConfig;
+        } catch (e) {
+            // fall through to the live fetch below
+        }
+    }
+
+    if (!data) {
+        const response = await fetch("/api/bootstrap");
+        data = await response.json() as QLiveConfig;
+    }
+
+    init(data);
 
     // return webpackCtx("./Home.tsx").then(result => {
     //        console.log("STARTUP", result)

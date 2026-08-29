@@ -1,16 +1,11 @@
 package com.dataciders.qlivetest.runtime.config;
 
-import de.quinscape.domainql.DomainQL;
-import com.dataciders.qlive.runtime.config.QLiveViewDataProvider;
-import com.dataciders.qlive.runtime.util.RsPackAssetProvider;
-import de.quinscape.spring.jsview.JsViewResolver;
-import de.quinscape.spring.jsview.loader.ResourceLoader;
-import jakarta.servlet.ServletContext;
+import com.dataciders.qlive.runtime.config.QLiveConfigService;
+import com.dataciders.qlive.runtime.config.ViteIndexController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.CacheControl;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.concurrent.TimeUnit;
@@ -19,58 +14,19 @@ import java.util.concurrent.TimeUnit;
 public class WebConfiguration
     implements WebMvcConfigurer
 {
-    private final ServletContext servletContext;
-
-    private final ResourceLoader resourceLoader;
-
-    private final QLiveViewDataProvider qLiveViewDataProvider;
-
-    private final DomainQL domainQL;
+    private final QLiveConfigService qLiveConfigService;
 
 
-    public WebConfiguration(
-        ServletContext servletContext,
-        ResourceLoader resourceLoader,
-        QLiveViewDataProvider qLiveViewDataProvider,
-        DomainQL domainQL
-    )
+    public WebConfiguration(QLiveConfigService qLiveConfigService)
     {
-        this.servletContext = servletContext;
-        this.resourceLoader = resourceLoader;
-        this.qLiveViewDataProvider = qLiveViewDataProvider;
-        this.domainQL = domainQL;
+        this.qLiveConfigService = qLiveConfigService;
     }
 
 
     @Bean
-    public JsViewController jsViewController()
+    public ViteIndexController viteIndexController()
     {
-        return new JsViewController();
-    }
-
-
-    @Override
-    public void configureViewResolvers(ViewResolverRegistry registry)
-    {
-        registry.viewResolver(
-            JsViewResolver.newResolver(servletContext, "WEB-INF/template.html")
-                .withResourceLoader(resourceLoader)
-                .withAssetProvider(
-                    new RsPackAssetProvider(
-                        resourceLoader,
-                        "/static/manifest.json",
-                        "/static/")
-                )
-                .withViewDataProvider(
-                    qLiveViewDataProvider
-                )
-                .withViewDataProvider(
-                    ctx -> {
-                        ctx.setPlaceholderValue("TITLE", "QLive Test: " + ctx.getJsView().getEntryPoint());
-                    }
-                )
-                .build()
-        );
+        return new ViteIndexController(qLiveConfigService);
     }
 
 

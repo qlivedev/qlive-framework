@@ -27,9 +27,9 @@ public class QLiveConfiguration
     }
     
     @Bean
-    public QLiveViewDataProvider qlLiveViewDataProvider(DomainQL domainQL) throws IOException
+    public QLiveConfigService qLiveConfigService(DomainQL domainQL) throws IOException
     {
-        return new QLiveViewDataProvider(servletContext, domainQL);
+        return new QLiveConfigService(servletContext, domainQL);
     }
 
 

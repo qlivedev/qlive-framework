@@ -20,6 +20,8 @@ public class SecurityConfiguration
         {
             "/",
             "/app/**",
+            "/api/bootstrap",
+            "/assets/**",
             "/index.jsp",
             "/static/**",
             "/index.jsp",

@@ -1,21 +1,18 @@
 package com.dataciders.qlive.runtime.config;
 
+import com.dataciders.qlive.model.bootstrap.QLiveConfig;
 import de.quinscape.domainql.DomainQL;
-import de.quinscape.spring.jsview.JsViewContext;
-import de.quinscape.spring.jsview.JsViewProvider;
 import jakarta.servlet.ServletContext;
 import org.springframework.context.annotation.Lazy;
 
-public class QLiveViewDataProvider
-    implements JsViewProvider
+public class QLiveConfigService
 {
-
     private final ServletContext servletContext;
 
     private final DomainQL domainQL;
 
 
-    public QLiveViewDataProvider(
+    public QLiveConfigService(
         ServletContext servletContext, @Lazy DomainQL domainQL
     )
     {
@@ -24,10 +21,11 @@ public class QLiveViewDataProvider
     }
 
 
-    @Override
-    public void provide(JsViewContext ctx) throws Exception
+    public QLiveConfig provideConfig()
     {
-        ctx.provideViewData("contextPath", servletContext.getContextPath());
-        ctx.provideViewData("meta", domainQL.getMetaData());
+        QLiveConfig config = new QLiveConfig();
+        config.setContextPath(servletContext.getContextPath());
+        config.setMeta(domainQL.getMetaData());
+        return config;
     }
 }

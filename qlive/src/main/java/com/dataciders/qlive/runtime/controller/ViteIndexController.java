@@ -1,5 +1,6 @@
 package com.dataciders.qlive.runtime.controller;
 
+import com.dataciders.qlive.model.bootstrap.QLiveConfig;
 import com.dataciders.qlive.runtime.service.QLiveConfigService;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.slf4j.Logger;
@@ -45,8 +46,14 @@ public class ViteIndexController
     @GetMapping("/api/bootstrap")
     public ResponseEntity<String> bootstrap()
     {
+        final QLiveConfig qlConfig = qLiveConfigService.provideConfig();
+        if (qlConfig == null)
+        {
+            return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
+        }
+
         return new ResponseEntity<>(
-            JSONUtil.DEFAULT_GENERATOR.forValue(qLiveConfigService.provideConfig()),
+            JSONUtil.DEFAULT_GENERATOR.forValue(qlConfig),
             HttpStatus.OK
         );
     }
@@ -68,7 +75,10 @@ public class ViteIndexController
             return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
         }
 
-        final String data = JSONUtil.DEFAULT_GENERATOR.forValue(qLiveConfigService.provideConfig());
+        final QLiveConfig qlConfig = qLiveConfigService.provideConfig();
+
+        // we replace a null config with "" to trigger
+        final String data = qlConfig != null ? JSONUtil.DEFAULT_GENERATOR.forValue(qlConfig) :"";
         final String html = template.replace(
             PLACEHOLDER,
             "<script id=\"root-data\" type=\"x-application/view-data\">" + data + "</script>"

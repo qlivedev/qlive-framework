@@ -11,8 +11,18 @@ const trackedFunctions = {
   GraphQLQuery: { module: "@quinscape/qlive-ts", fn: "GraphQLQuery" },
 };
 
+const backendOrigin = "http://localhost:8080";
+
 export default defineConfig({
-  plugins: [react(), trackUsage({ trackedFunctions, sourceRoot: frontendSrcDir, debug: false })],
+  plugins: [
+    react(),
+    trackUsage({
+      trackedFunctions,
+      sourceRoot: frontendSrcDir,
+      debug: false,
+      pushUrl: `${backendOrigin}/_dev/track-usage`,
+    }),
+  ],
   build: {
     outDir: "dist",
   },
@@ -24,7 +34,7 @@ export default defineConfig({
     },
     proxy: {
       "/api": {
-        target: "http://localhost:8080",
+        target: backendOrigin,
         changeOrigin: true,
       },
     },

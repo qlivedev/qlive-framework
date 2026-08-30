@@ -2,10 +2,9 @@ package com.dataciders.qlivetest.runtime.config;
 
 import de.quinscape.domainql.DomainQL;
 import com.dataciders.qlive.runtime.controller.GraphQLController;
+import com.dataciders.qlive.runtime.controller.TrackUsageDevController;
 import com.dataciders.qlive.runtime.domain.GraphQLQueryTypingService;
 import com.dataciders.qlive.model.ts.TrackUsageData;
-import com.dataciders.qlive.runtime.util.ResourceConverterInterceptor;
-import de.quinscape.spring.jsview.loader.FileResourceHandle;
 import de.quinscape.spring.jsview.loader.JSONResourceConverter;
 import de.quinscape.spring.jsview.loader.ResourceHandle;
 import de.quinscape.spring.jsview.loader.ResourceLoader;
@@ -48,30 +47,10 @@ public class DevConfiguration
 
     @Profile("dev")
     @Bean
-    public ResourceHandle<TrackUsageData> staticFunctionReferencesResourceHandle(GraphQLQueryTypingService graphQLQueryTypingService) throws IOException
+    public TrackUsageDevController trackUsageDevController(GraphQLQueryTypingService graphQLQueryTypingService)
     {
-
-        final ResourceHandle<TrackUsageData> resourceHandle = resourceLoader.getResourceHandle(
-            TRACK_USAGE,
-            // wrap JSON converter to notify the service
-            new ResourceConverterInterceptor<>(
-                new JSONResourceConverter<>(TrackUsageData.class),
-                graphQLQueryTypingService::triggerDebouncedUpdate
-            )
-        );
-
-        if (resourceHandle instanceof FileResourceHandle<TrackUsageData> fh)
-        {
-            // we need an eager handle so our service gets notified right away
-            fh.setEager(true);
-        }
-
-        // read content to trigger service
-        resourceHandle.getContent();
-
-        return resourceHandle;
+        return new TrackUsageDevController(graphQLQueryTypingService);
     }
-
 
 
     @Profile("prod")

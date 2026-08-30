@@ -25,6 +25,13 @@ export interface TrackUsagePluginOptions {
   seedFile?: string;
   /** Default: "track-usage.json". */
   outputFileName?: string;
+  /**
+   * Absolute URL of a backend dev endpoint that live track-usage snapshots get POSTed to
+   * as they change. `vite build` writes track-usage.json to disk for the backend to read,
+   * but `vite dev` never touches disk, so this is dev mode's only way to get fresh data to
+   * a backend that needs it live (e.g. for codegen). Omit to skip pushing entirely.
+   */
+  pushUrl?: string;
 }
 
 interface UsageSnapshot {
@@ -91,6 +98,33 @@ export default function trackUsage(options: TrackUsagePluginOptions): Plugin {
     }
   }
 
+  let pushWarned = false;
+
+  function pushToServer(): void {
+    if (!options.pushUrl) {
+      return;
+    }
+    fetch(options.pushUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(devData),
+    })
+      .then((res) => {
+        if (!res.ok && !pushWarned) {
+          console.warn(`[track-usage] push to ${options.pushUrl} failed: ${res.status} ${res.statusText}`);
+          pushWarned = true;
+        } else if (res.ok) {
+          pushWarned = false;
+        }
+      })
+      .catch((e) => {
+        if (!pushWarned) {
+          console.warn(`[track-usage] could not reach ${options.pushUrl} (is the backend running?)`, e);
+          pushWarned = true;
+        }
+      });
+  }
+
   return {
     name: "track-usage",
     enforce: "pre",
@@ -106,6 +140,7 @@ export default function trackUsage(options: TrackUsagePluginOptions): Plugin {
       runBabelOnFile(id, code, options);
       if (command === "serve") {
         mergeIntoDevData(id);
+        pushToServer();
       }
       return null;
     },
@@ -125,15 +160,7 @@ export default function trackUsage(options: TrackUsagePluginOptions): Plugin {
       } catch {
         devData = { usages: {} };
       }
-
-      server.middlewares.use((req, res, next) => {
-        if (req.url === "/" + outputFileName) {
-          res.setHeader("Content-Type", "application/json");
-          res.end(JSON.stringify(devData));
-          return;
-        }
-        next();
-      });
+      pushToServer();
 
       // Only "change" is handled live - adding, renaming or deleting a tracked
       // file requires a dev server restart to be reflected.
@@ -144,6 +171,7 @@ export default function trackUsage(options: TrackUsagePluginOptions): Plugin {
         const code = fs.readFileSync(file, "utf-8");
         runBabelOnFile(file, code, options);
         mergeIntoDevData(file);
+        pushToServer();
         server.ws.send({ type: "full-reload" });
       });
     },

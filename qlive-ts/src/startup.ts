@@ -1,4 +1,5 @@
 import {init, QLiveConfig} from "./config";
+import delay from "./util/delay";
 
 // Webpack/rspack-specific dynamic-import mechanism (`import.meta.webpackContext`),
 // used here to lazily load a page component by name at runtime. It has no
@@ -18,6 +19,20 @@ import {init, QLiveConfig} from "./config";
 //     keys: () => string[]
 //     resolve: (path: string) => void
 // }
+
+// Server responds 503 while it isn't ready to provide a complete QLiveConfig yet (e.g.
+// booting, or -- in dev -- waiting on the first push from a Vite dev server that hasn't
+// started). Retry until it is, rather than starting up with incomplete data.
+async function fetchBootstrap() : Promise<QLiveConfig> {
+    for (;;) {
+        const response = await fetch("/api/bootstrap");
+        if (response.ok) {
+            return await response.json() as QLiveConfig;
+        }
+        await delay(500);
+    }
+}
+
 
 export async function startup() : Promise<void> {
 
@@ -39,8 +54,7 @@ export async function startup() : Promise<void> {
     }
 
     if (!data) {
-        const response = await fetch("/api/bootstrap");
-        data = await response.json() as QLiveConfig;
+        data = await fetchBootstrap();
     }
 
     init(data);

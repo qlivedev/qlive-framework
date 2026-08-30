@@ -129,6 +129,8 @@ export function init(config: QLiveConfig)
     theConfig = config
 
     console.log("INIT ", config)
+
+    return Promise.resolve()
 }
 
 export default function config(): QLiveConfig {

@@ -65,7 +65,7 @@ export async function startup(): Promise<void>
         data = await fetchBootstrap();
     }
 
-    init(data);
+    return init(data);
 
     // return webpackCtx("./Home.tsx").then(result => {
     //        console.log("STARTUP", result)

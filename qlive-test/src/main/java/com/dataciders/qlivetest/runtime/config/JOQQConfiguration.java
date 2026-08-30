@@ -26,7 +26,8 @@ public class JOQQConfiguration
                 .derive(SQLDialect.POSTGRES)
         );
 
-        log.info("Created DSLContext: {}", defaultDSLContext);
+        log.info("Created DSLContext");
+        log.debug("DSLContext: {}", defaultDSLContext);
 
         return defaultDSLContext;
     }

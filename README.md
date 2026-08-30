@@ -53,6 +53,6 @@ its `.ts` source, not a `dist/`).
 - Node 22.23.2 (`.nvmrc`; also pinned in `qlive-test/pom.xml`'s
   `frontend-maven-plugin` config so `mvn install` uses the same Node
   regardless of what's on `PATH`)
-- pnpm 9.15.0 (`packageManager` field in the root `package.json`; enable via
+- pnpm 11.24.0 (`packageManager` field in the root `package.json`; enable via
   `corepack enable`)
 - `.devcontainer/devcontainer.json` pins all three together, optional

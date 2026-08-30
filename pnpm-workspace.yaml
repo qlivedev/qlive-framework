@@ -1,3 +1,5 @@
 packages:
   - "qlive-ts"
   - "qlive-test/frontend"
+allowBuilds:
+  esbuild: true

@@ -6,7 +6,7 @@
   "engines": {
     "node": ">=22.23.2 <23"
   },
-  "packageManager": "pnpm@9.15.0",
+  "packageManager": "pnpm@11.24.0",
   "scripts": {
     "dev": "concurrently -k -n backend,frontend -c blue,green \"./mvnw -f qlive-test spring-boot:run\" \"wait-on tcp:8080 && pnpm --filter @quinscape/qlive-test-frontend dev\"",
     "build": "./mvnw install",

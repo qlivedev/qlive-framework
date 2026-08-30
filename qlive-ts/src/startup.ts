@@ -23,10 +23,13 @@ import delay from "./util/delay";
 // Server responds 503 while it isn't ready to provide a complete QLiveConfig yet (e.g.
 // booting, or -- in dev -- waiting on the first push from a Vite dev server that hasn't
 // started). Retry until it is, rather than starting up with incomplete data.
-async function fetchBootstrap() : Promise<QLiveConfig> {
-    for (;;) {
+async function fetchBootstrap(): Promise<QLiveConfig>
+{
+    for (; ;)
+    {
         const response = await fetch("/api/bootstrap");
-        if (response.ok) {
+        if (response.ok)
+        {
             return await response.json() as QLiveConfig;
         }
         await delay(500);
@@ -34,26 +37,31 @@ async function fetchBootstrap() : Promise<QLiveConfig> {
 }
 
 
-export async function startup() : Promise<void> {
+export async function startup(): Promise<void>
+{
 
     const elem = document.getElementById("root-data");
     const text = elem?.textContent;
 
-    let data : QLiveConfig | undefined;
+    let data: QLiveConfig | undefined;
 
     // In production, ViteIndexController has spliced the current QLiveConfig into the
     // placeholder. In `vite dev`, nobody touches that placeholder, so it stays empty --
     // fall back to fetching the same data live in that case (or if it's there but somehow
     // didn't parse).
-    if (!import.meta.env.DEV && text) {
-        try {
+    if (!import.meta.env.DEV && text)
+    {
+        try
+        {
             data = JSON.parse(text) as QLiveConfig;
-        } catch (e) {
+        } catch (e)
+        {
             // fall through to the live fetch below
         }
     }
 
-    if (!data) {
+    if (!data)
+    {
         data = await fetchBootstrap();
     }
 

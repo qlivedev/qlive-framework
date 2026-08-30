@@ -1,19 +1,18 @@
-
 /**
  * Meta-information about types that are generic types on the Java side.
  *
  * For example, de.quinscape.qlive.model.QueryDocument<T> is the generic Java class for query documents. In the GraphQL
  * world, the same type is called FooDocument with Foo replacing the generic T.
  */
-type GenericTypeInfo  = {
+type GenericTypeInfo = {
     /**
      * GraphQL Type name
      */
     type: string,
-        /**
-         * TypeParameters as GraphQL type names
-         */
-        typeParameters: string[]
+    /**
+     * TypeParameters as GraphQL type names
+     */
+    typeParameters: string[]
     /**
      * Full-qualified Java class name of the original generic class. Mostly useful as constant in the TS world
      */
@@ -67,14 +66,14 @@ type RelationInfo = {
 }
 
 type SourceField =
-    /**
+/**
  * Ignore field for source type.
  */
     "NONE" |
 
     /**
- * Define a scalar GraphQL field for the key itself (e.g. fooId : string)
- */
+     * Define a scalar GraphQL field for the key itself (e.g. fooId : string)
+     */
     "SCALAR" |
 
     /**
@@ -84,23 +83,23 @@ type SourceField =
 
     /**
      *  Define a field for the key iteself *and* define an embedded object.
-     *  
+     *
      *  This is useful in situations where you want the embedded object in some cases, but in others you
      *  want to save one level of querying because all you need is the target id.
      */
     "OBJECT_AND_SCALAR"
 
 type TargetField =
-    /**
+/**
  * Do nothing on target side.
  */
     "NONE" |
     /**
- * Assume the foreign key to represent a one-to-one relationship and embed a single object as back reference.
- */
+     * Assume the foreign key to represent a one-to-one relationship and embed a single object as back reference.
+     */
     "ONE" |
     /** Assume the foreign key to represent a many-to-one relationship and embed a list of back references.*/
-    "MANY" 
+    "MANY"
 
 export type QLiveConfig = {
     /**
@@ -123,8 +122,7 @@ type DomainQLMeta = {
 }
 
 
-
-let theConfig : QLiveConfig | null = null
+let theConfig: QLiveConfig | null = null
 
 export function init(config: QLiveConfig)
 {
@@ -133,8 +131,7 @@ export function init(config: QLiveConfig)
     console.log("INIT ", config)
 }
 
-export default function config() : QLiveConfig
-{
+export default function config(): QLiveConfig {
     if (!theConfig)
     {
         throw new Error("Config not initialized")

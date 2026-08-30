@@ -10,8 +10,7 @@ import {field, value} from "./FilterDSL";
  *
  * @returns injected Value
  */
-export default function inject<T>(query : GraphQLQuery<T>, params : GraphQLParams) : T
-{
+export default function inject<T>(query: GraphQLQuery<T>, params: GraphQLParams): T {
     const data = {
         config: {
             offset: 0,

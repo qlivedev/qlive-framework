@@ -1,10 +1,11 @@
 import React from "react";
 
-class InjectionAPI {
+class InjectionAPI
+{
 
-    resolve(name : string) : any
+    resolve(name: string): any
     {
-        
+
     }
 }
 

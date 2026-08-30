@@ -1,4 +1,4 @@
-import { ConditionNode, FieldNode, RawValue } from "./FilterDSL"
+import {ConditionNode, FieldNode, RawValue} from "./FilterDSL"
 
 type Scalar = boolean | number | string | bigint;
 
@@ -17,7 +17,7 @@ type GenericComputedValue = {
     scalarType: "ComputedValue"
     value: {
         name: string,
-        args: [ Scalar ]
+        args: [Scalar]
     }
 }
 
@@ -64,7 +64,7 @@ type GenericTimestamp = {
 }
 
 /**
- * Generic scalar wrapper for GraphQL. 
+ * Generic scalar wrapper for GraphQL.
  */
 export type GenericScalar = GenericBigDecimal | GenericByte | GenericComputedValue | GenericCondition | GenericDate |
     GenericDomainObject | GenericFieldExpression | GenericJSONB | GenericLong | GenericTimestamp

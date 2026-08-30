@@ -1,6 +1,6 @@
 import * as React from "react";
-import { createRoot } from "react-dom/client";
-import { startup } from "@quinscape/qlive-ts";
+import {createRoot} from "react-dom/client";
+import {startup} from "@quinscape/qlive-ts";
 
 document.addEventListener("DOMContentLoaded", async () => {
 

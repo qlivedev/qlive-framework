@@ -1,7 +1,7 @@
-import { test } from "vitest"
-import { FilterDSL } from "@quinscape/qlive-ts"
+import {test} from "vitest"
+import {FilterDSL} from "@quinscape/qlive-ts"
 
-const { field, value, or } = FilterDSL
+const {field, value, or} = FilterDSL
 
 // Ported verbatim from the old repo's test.test.ts, which has no
 // assertions -- just logs a FilterDSL.or(...) expression. The old

@@ -1,18 +1,21 @@
-declare module "babel-plugin-track-usage" {
-  import type { PluginObj, PluginPass } from "@babel/core";
+declare module "babel-plugin-track-usage"
+{
+    import type {PluginObj, PluginPass} from "@babel/core";
 
-  export default function trackUsage(babelCore: typeof import("@babel/core")): PluginObj<PluginPass>;
+    export default function trackUsage(babelCore: typeof import("@babel/core")): PluginObj<PluginPass>;
 }
 
-declare module "babel-plugin-track-usage/data" {
-  interface TrackUsageSnapshot {
-    usages: Record<string, unknown>;
-  }
+declare module "babel-plugin-track-usage/data"
+{
+    interface TrackUsageSnapshot
+    {
+        usages: Record<string, unknown>;
+    }
 
-  const data: {
-    clear(): void;
-    get(): TrackUsageSnapshot;
-  };
+    const data: {
+        clear(): void;
+        get(): TrackUsageSnapshot;
+    };
 
-  export default data;
+    export default data;
 }

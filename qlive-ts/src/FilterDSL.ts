@@ -31,7 +31,7 @@ export interface ConditionNode
 /**
  * JSON value equivalent
  */
-export type RawValue = null | string | number | boolean | RawValue[] | { [key: string] : RawValue };
+export type RawValue = null | string | number | boolean | RawValue[] | { [key: string]: RawValue };
 
 /**
  * Value node. Represents a single runtime-typed value.
@@ -118,7 +118,7 @@ type Typed = { type: string };
  *
  * @param value
  */
-export function isCondition(value : Typed): value is CNode
+export function isCondition(value: Typed): value is CNode
 {
     if (!isConditionObject(value))
         return false;
@@ -133,12 +133,12 @@ export function isCondition(value : Typed): value is CNode
  * @param {CNode} operand
  * @return {CNode} negated condition
  */
-export function not(operand : CNode): CNode
+export function not(operand: CNode): CNode
 {
     if (isConditionObject(operand))
     {
         const cond = new Condition("not");
-        cond.operands = [ operand ];
+        cond.operands = [operand];
         return cond;
     }
 
@@ -153,18 +153,18 @@ export function not(operand : CNode): CNode
  * @param {... CNode} operands
  * @return {CNode} ORed condition
  */
-export const or: (...args : CNode[]) => (null | ConditionNode) = buildLogical("or");
+export const or: (...args: CNode[]) => (null | ConditionNode) = buildLogical("or");
 /**
  * Logical and condition. Will ignore falsy operands. An empty and collapses to null.
  *
  * @param {... CNode} operands
  * @return {CNode} ANDed condition
  */
-export const and: (...args : CNode[]) => (null | ConditionNode) = buildLogical("and");
+export const and: (...args: CNode[]) => (null | ConditionNode) = buildLogical("and");
 
-function buildLogical(name : string) : (... args : CNode[]) => ConditionNode | null
+function buildLogical(name: string): (...args: CNode[]) => ConditionNode | null
 {
-    return function (... args : CNode[]) : ConditionNode | null {
+    return function (...args: CNode[]): ConditionNode | null {
 
         const operands = [];
 
@@ -199,11 +199,11 @@ function buildLogical(name : string) : (... args : CNode[]) => ConditionNode | n
  * @param name      condition name
  * @param numArgs   number of arguments for the condition
  */
-function buildFn(name : string, numArgs : number) : (... args: CNode[]) => CNode
+function buildFn(name: string, numArgs: number): (...args: CNode[]) => CNode
 {
-    return function (... args: CNode[]) : CNode {
+    return function (...args: CNode[]): CNode {
         const cond = new Condition(name);
-        cond.operands = [ this, ... args.slice(0, numArgs) ];
+        cond.operands = [this, ...args.slice(0, numArgs)];
         return cond;
     }
 }
@@ -213,119 +213,119 @@ function buildFn(name : string, numArgs : number) : (... args: CNode[]) => CNode
  * @param name      condition name
  * @param numArgs   number of arguments for the condition
  */
-function buildOpFn(name: string, numArgs : number)  : (... args: CNode[]) => CNode
+function buildOpFn(name: string, numArgs: number): (...args: CNode[]) => CNode
 {
-    return function (... args: CNode[]) : CNode {
+    return function (...args: CNode[]): CNode {
         const op = new Field(name);
         op.type = "Operation";
-        op.operands = [ this, ... args.slice(0, numArgs) ];
+        op.operands = [this, ...args.slice(0, numArgs)];
         return op;
     }
 }
 
 const FIELD_CONDITIONS = {
-    "greaterOrEqual":1,
-    "lessOrEqual":1,
-    "lt":1,
-    "notBetweenSymmetric":2,
-    "notEqualIgnoreCase":1,
-    "betweenSymmetric":2,
-    "lessThan":1,
-    "equalIgnoreCase":1,
-    "isDistinctFrom":1,
-    "between":2,
-    "ge":1,
-    "greaterThan":1,
-    "isNotNull":0,
-    "notLikeRegex":1,
-    "notBetween":2,
-    "notEqual":1,
-    "isFalse":0,
-    "containsIgnoreCase":1,
-    "eq":1,
-    "gt":1,
-    "equal":1,
-    "likeRegex":1,
-    "isTrue":0,
-    "contains":1,
-    "notContainsIgnoreCase":1,
-    "notContains":1,
-    "ne":1,
-    "isNull":0,
-    "endsWith":1,
-    "le":1,
-    "isNotDistinctFrom":1,
-    "startsWith":1,
+    "greaterOrEqual": 1,
+    "lessOrEqual": 1,
+    "lt": 1,
+    "notBetweenSymmetric": 2,
+    "notEqualIgnoreCase": 1,
+    "betweenSymmetric": 2,
+    "lessThan": 1,
+    "equalIgnoreCase": 1,
+    "isDistinctFrom": 1,
+    "between": 2,
+    "ge": 1,
+    "greaterThan": 1,
+    "isNotNull": 0,
+    "notLikeRegex": 1,
+    "notBetween": 2,
+    "notEqual": 1,
+    "isFalse": 0,
+    "containsIgnoreCase": 1,
+    "eq": 1,
+    "gt": 1,
+    "equal": 1,
+    "likeRegex": 1,
+    "isTrue": 0,
+    "contains": 1,
+    "notContainsIgnoreCase": 1,
+    "notContains": 1,
+    "ne": 1,
+    "isNull": 0,
+    "endsWith": 1,
+    "le": 1,
+    "isNotDistinctFrom": 1,
+    "startsWith": 1,
     // 1 collection arg
-    "in" : 1
+    "in": 1
 };
 
 const CONDITION_METHODS = {
-    "not":0,
-    "or":1,
-    "orNot":1,
-    "and":1,
-    "andNot":1
+    "not": 0,
+    "or": 1,
+    "orNot": 1,
+    "and": 1,
+    "andNot": 1
 };
 
 const FIELD_OPERATIONS = {
-    "bitNand":1,
-    "mod":1,
-    "div":1,
-    "neg":0,
-    "rem":1,
-    "add":1,
-    "subtract":1,
-    "plus":1,
-    "bitAnd":1,
-    "bitXor":1,
-    "shl":1,
-    "unaryMinus":0,
-    "bitNor":1,
-    "shr":1,
-    "modulo":1,
-    "bitXNor":1,
-    "bitNot":0,
-    "sub":1,
-    "minus":1,
-    "mul":1,
-    "bitOr":1,
-    "times":1,
-    "pow":1,
-    "divide":1,
-    "power":1,
-    "multiply":1,
-    "unaryPlus":0,
-    "lower":0,
-    "upper":0,
+    "bitNand": 1,
+    "mod": 1,
+    "div": 1,
+    "neg": 0,
+    "rem": 1,
+    "add": 1,
+    "subtract": 1,
+    "plus": 1,
+    "bitAnd": 1,
+    "bitXor": 1,
+    "shl": 1,
+    "unaryMinus": 0,
+    "bitNor": 1,
+    "shr": 1,
+    "modulo": 1,
+    "bitXNor": 1,
+    "bitNot": 0,
+    "sub": 1,
+    "minus": 1,
+    "mul": 1,
+    "bitOr": 1,
+    "times": 1,
+    "pow": 1,
+    "divide": 1,
+    "power": 1,
+    "multiply": 1,
+    "unaryPlus": 0,
+    "lower": 0,
+    "upper": 0,
     "concat": 1,
 
     // toString is special and gets translated into a cast(String.class)
-    "toString":0,
+    "toString": 0,
 
     // for sort order fields
-    "asc":0,
-    "desc":0
+    "asc": 0,
+    "desc": 0
 };
 
 /**
  * Automatically creates a builder function for the given name and number of arguments. All conditions are the same, all
  * operations are the same and differ only in name and number of arguments they accept. Both group only differ in type
- * discriminator field. 
+ * discriminator field.
  */
-type FunctionFactory = (name: string, numArgs : number) => (... args: CNode[]) => CNode
+type FunctionFactory = (name: string, numArgs: number) => (...args: CNode[]) => CNode
 
 /**
  * Enriches the given prototype with builder functions created from the given raw method map.
  *
  * @param proto         Prototype
  * @param methodsMap    Maps a condition or operation name to the number of arguments it accepts.
- * @param factory       factory function 
+ * @param factory       factory function
  */
 function buildProto(
-    proto : object,
-    methodsMap : { [name: string] : number | undefined },
-    factory : FunctionFactory
+    proto: object,
+    methodsMap: { [name: string]: number | undefined },
+    factory: FunctionFactory
 )
 {
     for (let name in methodsMap)
@@ -344,7 +344,7 @@ function buildProto(
  * @param name
  * @constructor
  */
-function Field(name : string)
+function Field(name: string)
 {
     this.type = "Field";
     this.name = name;
@@ -358,7 +358,7 @@ buildProto(Field.prototype, FIELD_OPERATIONS, buildOpFn);
  * @param name
  * @constructor
  */
-export function Condition(name : string)
+export function Condition(name: string)
 {
     this.type = "Condition";
     this.name = name;
@@ -366,7 +366,7 @@ export function Condition(name : string)
 
 buildProto(Condition.prototype, CONDITION_METHODS, buildFn);
 
-export function isConditionObject(value : any) : boolean
+export function isConditionObject(value: any): boolean
 {
     return value && typeof value === "object";
 }
@@ -378,7 +378,7 @@ export function isConditionObject(value : any) : boolean
  * @param {Array<CNode>} operands   operands
  * @return {CNode}
  */
-export function condition(name : string , operands : CNode[] = []): CNode
+export function condition(name: string, operands: CNode[] = []): CNode
 {
     const condition = new Condition(name);
     condition.operands = operands
@@ -390,7 +390,7 @@ export function condition(name : string , operands : CNode[] = []): CNode
  * @param name
  * @param operands
  */
-export function operation(name : string, operands : CNode[] = []): CNode
+export function operation(name: string, operands: CNode[] = []): CNode
 {
     const op = new Field(name);
     op.type = "Operation";
@@ -405,7 +405,7 @@ export function operation(name : string, operands : CNode[] = []): CNode
  * @param {String} name     field name (e.g. "name", "owner.name")
  * @return {Field}
  */
-export function field(name : string): Field
+export function field(name: string): Field
 {
     return new Field(name);
 }
@@ -436,7 +436,7 @@ export function component(id: string, condition: CNode): ComponentNode
  * @param value     raw value
  * @constructor
  */
-function Value(type : string, value : RawValue)
+function Value(type: string, value: RawValue)
 {
     this.type = "Value";
     this.scalarType = type;
@@ -448,12 +448,12 @@ buildProto(Value.prototype, FIELD_OPERATIONS, buildOpFn);
 
 /**
  * Values node.
- * 
+ *
  * @param type      scalar type
  * @param values    raw value array
  * @constructor
  */
-function Values(type : string, values: RawValue[])
+function Values(type: string, values: RawValue[])
 {
     this.type = "Values";
     this.scalarType = type;
@@ -466,25 +466,21 @@ function Values(type : string, values: RawValue[])
  * for some
  * @param value
  */
-function getDefaultType(value : any ) : string
+function getDefaultType(value: any): string
 {
     if (typeof value === "string")
     {
         return "String"
-    }
-    else if (typeof value === "number")
+    } else if (typeof value === "number")
     {
         return "Int"
-    }
-    else if (typeof value === "boolean")
+    } else if (typeof value === "boolean")
     {
         return "Boolean"
-    }
-    else if (value instanceof Temporal.Instant)
+    } else if (value instanceof Temporal.Instant)
     {
         return "Timestamp"
-    }
-    else
+    } else
     {
         throw new Error(
             "Could not determine scalar type for value: " + value + ".\n" +
@@ -502,7 +498,7 @@ function getDefaultType(value : any ) : string
  *
  * @return {ValueNode} value node
  */
-export function value(value : RawValue, type: string = getDefaultType(value)): ValueNode
+export function value(value: RawValue, type: string = getDefaultType(value)): ValueNode
 {
     return new Value(type, value);
 }
@@ -515,7 +511,7 @@ export function value(value : RawValue, type: string = getDefaultType(value)): V
  *
  * @return {ValuesNode} values node
  */
-export function values(type : string, ... values : RawValue[]) : ValuesNode
+export function values(type: string, ...values: RawValue[]): ValuesNode
 {
     return new Values(type, values);
 }
@@ -527,7 +523,7 @@ export function values(type : string, ... values : RawValue[]) : ValuesNode
  *
  * @return {number} number of value arguments expected
  */
-export function getConditionArgCount(name : Function | string): number
+export function getConditionArgCount(name: Function | string): number
 {
     if (typeof name === "function")
     {
@@ -548,7 +544,7 @@ export function getConditionArgCount(name : Function | string): number
  * @param {Object} node     node
  * @return {boolean}    true if the node is either an "and" or an "or"
  */
-export function isLogicalCondition(node : CNode) : node is ConditionNode
+export function isLogicalCondition(node: CNode): node is ConditionNode
 {
     return (
         node &&
@@ -562,12 +558,12 @@ export function isLogicalCondition(node : CNode) : node is ConditionNode
 
 /**
  * Returns true if the given condition node is a logical condition with all operands being of type Component
- * 
+ *
  * @param node
  */
-export function isComposedComponentExpression(node : CNode) : boolean
+export function isComposedComponentExpression(node: CNode): boolean
 {
-    return isLogicalCondition(node) && node.operands.every( o => o.type === "Component")
+    return isLogicalCondition(node) && node.operands.every(o => o.type === "Component")
 }
 
 
@@ -579,7 +575,7 @@ export function isComposedComponentExpression(node : CNode) : boolean
  *
  * @return {Object|null}    component node or `null`
  */
-export function findComponentNode(conditionNode : CNode | null, id : string ): CNode | null
+export function findComponentNode(conditionNode: CNode | null, id: string): CNode | null
 {
     if (conditionNode == null)
     {
@@ -587,7 +583,8 @@ export function findComponentNode(conditionNode : CNode | null, id : string ): C
     }
     if (conditionNode.type === "Component")
     {
-        if (conditionNode.id === id) {
+        if (conditionNode.id === id)
+        {
             return conditionNode;
         }
         return findComponentNode(conditionNode.condition, id);
@@ -595,7 +592,7 @@ export function findComponentNode(conditionNode : CNode | null, id : string ): C
 
     if (isLogicalCondition(conditionNode))
     {
-        const { operands } = conditionNode;
+        const {operands} = conditionNode;
 
         if (operands)
         {
@@ -603,14 +600,14 @@ export function findComponentNode(conditionNode : CNode | null, id : string ): C
             {
                 const operand = operands[i];
                 const currentResult = findComponentNode(operand, id);
-                if (currentResult != null) {
+                if (currentResult != null)
+                {
                     return currentResult;
                 }
             }
         }
         return null;
-    }
-    else
+    } else
     {
         return id === null ? component(null, conditionNode) : null;
     }
@@ -631,65 +628,60 @@ export function findComponentNode(conditionNode : CNode | null, id : string ): C
  * @param condition    Input condition, potentially consisting of DSL instances
  * @return condition as graph of objects / arrays
  */
-export function toJSON(condition : CNode) : RawValue
+export function toJSON(condition: CNode): RawValue
 {
     if (!condition)
     {
         return null;
     }
 
-    const { type } = condition;
+    const {type} = condition;
 
     if (type === "Condition" || type === "Operation")
     {
-        const { name, operands } = condition;
+        const {name, operands} = condition;
 
         return {
             type,
             name,
-            operands: operands.map( toJSON )
+            operands: operands.map(toJSON)
         }
-    }
-    else if (type === "Component")
+    } else if (type === "Component")
     {
-        const { id, condition : wrapped } = condition;
+        const {id, condition: wrapped} = condition;
 
         return {
             type,
             id,
             condition: toJSON(wrapped)
         }
-    }
-    else if (type === "Field")
+    } else if (type === "Field")
     {
-        const { name } = condition;
+        const {name} = condition;
 
         return {
             type,
             name
         }
-    }
-    else if (type === "Value")
+    } else if (type === "Value")
     {
-        const { scalarType, value } = condition;
+        const {scalarType, value} = condition;
 
         return {
             type,
             scalarType,
             value
         }
-    }
-    else if (type === "Values")
+    } else if (type === "Values")
     {
-        const { scalarType, values } = condition;
+        const {scalarType, values} = condition;
 
         return {
             type,
             scalarType,
             values
         }
-    }
-    else
+    } else
     {
         throw new Error("Invalid condition node: " + condition);
     }
@@ -700,7 +692,7 @@ export type ComputedValue = {
     args: RawValue[];
 }
 
-export function computedValue(name : string, args : RawValue[] = []) : ValueNode
+export function computedValue(name: string, args: RawValue[] = []): ValueNode
 {
     return value({
             name,
@@ -711,89 +703,89 @@ export function computedValue(name : string, args : RawValue[] = []) : ValueNode
 }
 
 
-export function now() : ValueNode
+export function now(): ValueNode
 {
     return computedValue("now")
 }
 
-export function today() : ValueNode
+export function today(): ValueNode
 {
     return computedValue("today")
 }
 
-export function isComputedValue(raw : unknown) : raw is ComputedValue
+export function isComputedValue(raw: unknown): raw is ComputedValue
 {
     // @ts-ignore
     return typeof raw.name === "string" && Array.isArray(raw.args)
 }
 
 type FieldConditions = {
-    greaterOrEqual: (a : CNode) => Condition
-    lessOrEqual: (a : CNode) => Condition
-    lt: (a : CNode) => Condition
-    notBetweenSymmetric: (a : CNode, b : CNode) => Condition
-    notEqualIgnoreCase: (a : CNode) => Condition
-    betweenSymmetric: (a : CNode, b : CNode) => Condition
-    lessThan: (a : CNode) => Condition
-    equalIgnoreCase: (a : CNode) => Condition
-    isDistinctFrom: (a : CNode) => Condition
-    between: (a : CNode, b : CNode) => Condition
-    ge: (a : CNode) => Condition
-    greaterThan: (a : CNode) => Condition
+    greaterOrEqual: (a: CNode) => Condition
+    lessOrEqual: (a: CNode) => Condition
+    lt: (a: CNode) => Condition
+    notBetweenSymmetric: (a: CNode, b: CNode) => Condition
+    notEqualIgnoreCase: (a: CNode) => Condition
+    betweenSymmetric: (a: CNode, b: CNode) => Condition
+    lessThan: (a: CNode) => Condition
+    equalIgnoreCase: (a: CNode) => Condition
+    isDistinctFrom: (a: CNode) => Condition
+    between: (a: CNode, b: CNode) => Condition
+    ge: (a: CNode) => Condition
+    greaterThan: (a: CNode) => Condition
     isNotNull: () => Condition
-    notLikeRegex: (a : CNode) => Condition
-    notBetween: (a : CNode, b : CNode) => Condition
-    notEqual: (a : CNode) => Condition
+    notLikeRegex: (a: CNode) => Condition
+    notBetween: (a: CNode, b: CNode) => Condition
+    notEqual: (a: CNode) => Condition
     isFalse: () => Condition
-    containsIgnoreCase: (a : CNode) => Condition
-    eq: (a : CNode) => Condition
-    gt: (a : CNode) => Condition
-    equal: (a : CNode) => Condition
-    likeRegex: (a : CNode) => Condition
+    containsIgnoreCase: (a: CNode) => Condition
+    eq: (a: CNode) => Condition
+    gt: (a: CNode) => Condition
+    equal: (a: CNode) => Condition
+    likeRegex: (a: CNode) => Condition
     isTrue: () => Condition
-    contains: (a : CNode) => Condition
-    notContainsIgnoreCase: (a : CNode) => Condition
-    notContains: (a : CNode) => Condition
-    ne: (a : CNode) => Condition
+    contains: (a: CNode) => Condition
+    notContainsIgnoreCase: (a: CNode) => Condition
+    notContains: (a: CNode) => Condition
+    ne: (a: CNode) => Condition
     isNull: () => Condition
-    endsWith: (a : CNode) => Condition
-    le: (a : CNode) => Condition
-    isNotDistinctFrom: (a : CNode) => Condition
-    startsWith: (a : CNode) => Condition
-    in: (a : CNode) => Condition
+    endsWith: (a: CNode) => Condition
+    le: (a: CNode) => Condition
+    isNotDistinctFrom: (a: CNode) => Condition
+    startsWith: (a: CNode) => Condition
+    in: (a: CNode) => Condition
 }
 
 type FieldOperations = {
-    bitNand: (a : CNode) => Field
-    mod: (a : CNode) => Field
-    div: (a : CNode) => Field
+    bitNand: (a: CNode) => Field
+    mod: (a: CNode) => Field
+    div: (a: CNode) => Field
     neg: () => Field
-    rem: (a : CNode) => Field
-    add: (a : CNode) => Field
-    subtract: (a : CNode) => Field
-    plus: (a : CNode) => Field
-    bitAnd: (a : CNode) => Field
-    bitXor: (a : CNode) => Field
-    shl: (a : CNode) => Field
+    rem: (a: CNode) => Field
+    add: (a: CNode) => Field
+    subtract: (a: CNode) => Field
+    plus: (a: CNode) => Field
+    bitAnd: (a: CNode) => Field
+    bitXor: (a: CNode) => Field
+    shl: (a: CNode) => Field
     unaryMinus: () => Field
-    bitNor: (a : CNode) => Field
-    shr: (a : CNode) => Field
-    modulo: (a : CNode) => Field
-    bitXNor: (a : CNode) => Field
+    bitNor: (a: CNode) => Field
+    shr: (a: CNode) => Field
+    modulo: (a: CNode) => Field
+    bitXNor: (a: CNode) => Field
     bitNot: () => Field
-    sub: (a : CNode) => Field
-    minus: (a : CNode) => Field
-    mul: (a : CNode) => Field
-    bitOr: (a : CNode) => Field
-    times: (a : CNode) => Field
-    pow: (a : CNode) => Field
-    divide: (a : CNode) => Field
-    power: (a : CNode) => Field
-    multiply: (a : CNode) => Field
+    sub: (a: CNode) => Field
+    minus: (a: CNode) => Field
+    mul: (a: CNode) => Field
+    bitOr: (a: CNode) => Field
+    times: (a: CNode) => Field
+    pow: (a: CNode) => Field
+    divide: (a: CNode) => Field
+    power: (a: CNode) => Field
+    multiply: (a: CNode) => Field
     unaryPlus: () => Field
     lower: () => Field
     upper: () => Field
-    concat: (a : CNode) => Field
+    concat: (a: CNode) => Field
     toString: () => Field
     asc: () => Field
     desc: () => Field
@@ -801,10 +793,10 @@ type FieldOperations = {
 
 export type Condition = ConditionNode & {
     not: () => Condition
-    or: (a : Condition) => Condition
-    orNot: (a : Condition) => Condition
-    and: (a : Condition) => Condition
-    andNot: (a : Condition) => Condition
+    or: (a: Condition) => Condition
+    orNot: (a: Condition) => Condition
+    and: (a: Condition) => Condition
+    andNot: (a: Condition) => Condition
 }
 
 export type Field = FieldNode & FieldConditions & FieldOperations; // Field prototype

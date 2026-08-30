@@ -1,4 +1,4 @@
-import { QueryDocument } from "./QueryDocument";
+import {QueryDocument} from "./QueryDocument";
 import graphql, {GraphQLParams} from "./util/graphql";
 
 const secret = Symbol("GraphQLQuery Secret")
@@ -7,7 +7,8 @@ export class GraphQLQuery<T>
 {
     query: string;
 
-    constructor(query : string) {
+    constructor(query: string)
+    {
         this.query = query
     }
 
@@ -15,7 +16,7 @@ export class GraphQLQuery<T>
      * Registers this query with the given result
      * @param result    GraphQL result object to attack this query to
      */
-    register(result: T) : void
+    register(result: T): void
     {
         result[secret] = this
     }
@@ -26,14 +27,14 @@ export class GraphQLQuery<T>
      *
      * @returns query attached to object or null
      */
-    static access<T>(o: T) : GraphQLQuery<T> | null
+    static access<T>(o: T): GraphQLQuery<T> | null
     {
         return o[secret] || null
     }
 
-    execute(params: GraphQLParams) : Promise<T>
+    execute(params: GraphQLParams): Promise<T>
     {
-        return graphql<T>(this, params).then((data : T ) : T =>  {
+        return graphql<T>(this, params).then((data: T): T => {
 
             return data;
         });

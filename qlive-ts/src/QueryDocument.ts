@@ -2,14 +2,16 @@ import {Condition, FieldExpression} from "./FilterDSL";
 import {GraphQLQuery} from "./GraphQLQuery";
 
 
-interface QueryConfig {
+interface QueryConfig
+{
     condition: Condition;
     offset: number;
     pageSize: number;
     sortFields: FieldExpression[];
 }
 
-export interface QueryDocumentMethods<T> {
+export interface QueryDocumentMethods<T>
+{
     update(newConfig: QueryConfig): Promise<QueryDocument<T>>
 }
 
@@ -31,11 +33,11 @@ export class QueryDocument<T> implements QueryDocumentMethods<T>
     update(newConfig: QueryConfig): Promise<QueryDocument<T>>
     {
         const query: GraphQLQuery<QueryDocument<T>> = GraphQLQuery.access(this);
-        return query.execute({ config: newConfig })
+        return query.execute({config: newConfig})
             .then(
                 queryDocument => {
-                query.register(queryDocument)
-                return queryDocument;
-            })
+                    query.register(queryDocument)
+                    return queryDocument;
+                })
     }
 }

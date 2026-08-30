@@ -1,16 +1,16 @@
 import {CNode, isComputedValue, RawValue} from "../FilterDSL"
 
-function convert(value : RawValue, scalarType : string)
+function convert(value: RawValue, scalarType: string)
 {
     if (scalarType === "Timestamp" || scalarType === "Date")
     {
-        return "DateTime.fromISO(" + JSON.stringify(value)+ ")"
+        return "DateTime.fromISO(" + JSON.stringify(value) + ")"
     }
 
     return JSON.stringify(value)
 }
 
-function indent(level:number): string
+function indent(level: number): string
 {
     let s = ""
     if (level <= 0)
@@ -50,13 +50,14 @@ const simplifiedValues = {
  *
  * @return {string} pretty-printed source string. If match was used, the >> << might prevent it from being valid JavaScript
  */
-export function decompileFilter(condition : CNode | null, level: number = 0, match : CNode = null, invert : boolean = true) : string {
+export function decompileFilter(condition: CNode | null, level: number = 0, match: CNode = null, invert: boolean = true): string
+{
     if (!condition)
     {
         return indent(level) + "null";
     }
 
-    const { type } = condition;
+    const {type} = condition;
     const markerL = match === condition ? "/*>>*/ " : "";
     const markerR = match === condition ? " /*<<*/" : "";
 
@@ -69,8 +70,7 @@ export function decompileFilter(condition : CNode | null, level: number = 0, mat
             if (value.name === "now")
             {
                 return indent(level) + markerL + "now()" + markerR
-            }
-            else if (value.name === "today")
+            } else if (value.name === "today")
             {
                 return indent(level) + markerL + "today()" + markerR
             }
@@ -84,38 +84,44 @@ export function decompileFilter(condition : CNode | null, level: number = 0, mat
     if (type === "Field")
     {
         return indent(level) + markerL + "field(" + JSON.stringify(condition.name) + ")" + markerR;
-    }
-    else if (type === "Condition" || type === "Operation")
+    } else if (type === "Condition" || type === "Operation")
     {
-        const { name, operands } = condition;
+        const {name, operands} = condition;
         if (invert && !topLevelConditions.hasOwnProperty(name))
         {
-            return decompileFilter(operands[0], level, match, true) + "." + markerL + name + (level >= 0 && operands.length > 1 ? "(\n" : "(") + operands.slice(1).map(o => decompileFilter(o, nextLevel, match, invert)).join((level >= 0 && operands.length > 1? ",\n" : ",")) + (level >= 0 && operands.length > 1 ? "\n" : "") + indent(level) + ")" + markerR;
+            return decompileFilter(operands[0], level, match,
+                true) + "." + markerL + name + (level >= 0 && operands.length > 1 ? "(\n" : "(") + operands.slice(1)
+                .map(o => decompileFilter(o, nextLevel, match, invert)).join(
+                    (level >= 0 && operands.length > 1 ? ",\n" : ",")) + (level >= 0 && operands.length > 1 ? "\n" : "") + indent(
+                level) + ")" + markerR;
         }
-        return indent(level) + markerL + name + (level >= 0 && operands.length > 0 ? "(\n" : "(") + operands.map( o => decompileFilter(o, nextLevel, match, invert)).join((level >= 0 && operands.length > 1 ? ",\n" : ",")) + (level >= 0 && operands.length > 0? "\n" : "") + indent(level) + ")" + markerR;
-    }
-    else if (type === "Value")
+        return indent(level) + markerL + name + (level >= 0 && operands.length > 0 ? "(\n" : "(") + operands.map(
+            o => decompileFilter(o, nextLevel, match, invert)).join(
+            (level >= 0 && operands.length > 1 ? ",\n" : ",")) + (level >= 0 && operands.length > 0 ? "\n" : "") + indent(
+            level) + ")" + markerR;
+    } else if (type === "Value")
     {
-        const { value, scalarType } = condition;
+        const {value, scalarType} = condition;
         if (value !== null && simplifiedValues[scalarType])
         {
-            return indent(level) + markerL +"value(" + convert(value, scalarType) + ")" + markerR;
+            return indent(level) + markerL + "value(" + convert(value, scalarType) + ")" + markerR;
         }
-        return indent(level) + markerL +"value(" + JSON.stringify(value) + ", " + JSON.stringify(scalarType) +")" + markerR;
+        return indent(level) + markerL + "value(" + JSON.stringify(value) + ", " + JSON.stringify(
+            scalarType) + ")" + markerR;
 
-    }
-    else if (type === "Values")
+    } else if (type === "Values")
     {
-        const { values, scalarType } = condition;
-        return indent(level) + markerL +"values(" + JSON.stringify(scalarType) + ", " + JSON.stringify(values)+ ")" + markerR;
+        const {values, scalarType} = condition;
+        return indent(level) + markerL + "values(" + JSON.stringify(scalarType) + ", " + JSON.stringify(
+            values) + ")" + markerR;
 
-    }
-    else if (type === "Component")
+    } else if (type === "Component")
     {
-        const { id, condition : component } = condition;
-        return indent(level) + markerL + "component(" + JSON.stringify(id) + ", " + (level >= 0 ? "\n" : "") + decompileFilter(component, nextLevel, match, true) + (level >= 0 ? "\n" : "") + indent(level) + ")" + markerR;
-    }
-    else
+        const {id, condition: component} = condition;
+        return indent(level) + markerL + "component(" + JSON.stringify(
+            id) + ", " + (level >= 0 ? "\n" : "") + decompileFilter(component, nextLevel, match,
+            true) + (level >= 0 ? "\n" : "") + indent(level) + ")" + markerR;
+    } else
     {
         throw new Error("Unhandled type: " + type);
     }

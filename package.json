@@ -8,11 +8,12 @@
   },
   "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "dev": "concurrently -k -n backend,frontend -c blue,green \"./mvnw -f qlive-test spring-boot:run\" \"pnpm --filter @quinscape/qlive-test-frontend dev\"",
+    "dev": "concurrently -k -n backend,frontend -c blue,green \"./mvnw -f qlive-test spring-boot:run\" \"wait-on tcp:8080 && pnpm --filter @quinscape/qlive-test-frontend dev\"",
     "build": "./mvnw install",
     "test": "./mvnw test && pnpm -r test"
   },
   "devDependencies": {
-    "concurrently": "^9.0.0"
+    "concurrently": "^9.0.0",
+    "wait-on": "^8.0.1"
   }
 }

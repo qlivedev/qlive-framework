@@ -1,9 +1,10 @@
 package com.dataciders.qlive.runtime.config;
 
+import com.dataciders.qlive.runtime.service.QLiveConfigService;
+import com.dataciders.qlive.runtime.service.StreamResourceLoader;
 import de.quinscape.domainql.DomainQL;
 import com.dataciders.qlive.model.condition.ConditionParser;
 import de.quinscape.spring.jsview.loader.ResourceLoader;
-import de.quinscape.spring.jsview.loader.ServletResourceLoader;
 import graphql.GraphQL;
 import jakarta.servlet.ServletContext;
 import org.slf4j.Logger;
@@ -34,13 +35,9 @@ public class QLiveConfiguration
 
 
     @Bean
-    public ResourceLoader resourceLoader() throws IOException
+    public ResourceLoader resourceLoader()
     {
-        return new ServletResourceLoader(
-            servletContext,
-            "/",
-            true
-        );
+        return new StreamResourceLoader(servletContext, "/");
     }
 
 

@@ -1,5 +1,6 @@
-package com.dataciders.qlive.runtime.config;
+package com.dataciders.qlive.runtime.controller;
 
+import com.dataciders.qlive.runtime.service.QLiveConfigService;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

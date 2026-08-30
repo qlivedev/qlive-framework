@@ -1,7 +1,7 @@
 package com.dataciders.qlivetest.runtime.config;
 
-import com.dataciders.qlive.runtime.config.QLiveConfigService;
-import com.dataciders.qlive.runtime.config.ViteIndexController;
+import com.dataciders.qlive.runtime.service.QLiveConfigService;
+import com.dataciders.qlive.runtime.controller.ViteIndexController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.CacheControl;

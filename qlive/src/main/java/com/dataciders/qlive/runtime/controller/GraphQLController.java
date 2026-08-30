@@ -1,4 +1,4 @@
-package com.dataciders.qlive.runtime.config;
+package com.dataciders.qlive.runtime.controller;
 
 import com.dataciders.qlive.runtime.util.GraphQLUtil;
 import de.quinscape.spring.jsview.util.JSONUtil;

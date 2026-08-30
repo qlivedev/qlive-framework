@@ -1,4 +1,4 @@
-package com.dataciders.qlive.runtime.config;
+package com.dataciders.qlive.runtime.service;
 
 import com.dataciders.qlive.model.bootstrap.QLiveConfig;
 import de.quinscape.domainql.DomainQL;

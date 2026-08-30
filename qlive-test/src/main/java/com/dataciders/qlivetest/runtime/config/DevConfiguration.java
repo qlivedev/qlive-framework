@@ -1,7 +1,7 @@
 package com.dataciders.qlivetest.runtime.config;
 
 import de.quinscape.domainql.DomainQL;
-import com.dataciders.qlive.runtime.config.GraphQLController;
+import com.dataciders.qlive.runtime.controller.GraphQLController;
 import com.dataciders.qlive.runtime.domain.GraphQLQueryTypingService;
 import com.dataciders.qlive.model.ts.TrackUsageData;
 import com.dataciders.qlive.runtime.util.ResourceConverterInterceptor;

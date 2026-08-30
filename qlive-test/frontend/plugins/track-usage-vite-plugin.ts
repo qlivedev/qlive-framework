@@ -95,6 +95,7 @@ function toRelativeModuleId(absPath: string, sourceRoot: string): string
 export default function trackUsage(options: TrackUsagePluginOptions): Plugin {
     const outputFileName = options.outputFileName ?? "track-usage.json";
     let command: "build" | "serve" = "build";
+    let isDevMode = false;
     let devData: UsageSnapshot = {usages: {}};
 
     function mergeIntoDevData(absPath: string): boolean
@@ -148,6 +149,11 @@ export default function trackUsage(options: TrackUsagePluginOptions): Plugin {
         configResolved(config)
         {
             command = config.command === "serve" ? "serve" : "build";
+            // `command === "serve"` alone isn't enough: Vitest also runs the
+            // dev-server pipeline but with mode "test", and `vite --mode
+            // production` keeps command "serve" too. Require mode === "development"
+            // so pushes only happen for an actual `vite dev`/`vite`.
+            isDevMode = command === "serve" && config.mode === "development";
         },
 
         transform(code, id)
@@ -157,7 +163,7 @@ export default function trackUsage(options: TrackUsagePluginOptions): Plugin {
                 return null;
             }
             runBabelOnFile(id, code, options);
-            if (command === "serve")
+            if (isDevMode)
             {
                 mergeIntoDevData(id);
                 pushToServer();
@@ -184,7 +190,10 @@ export default function trackUsage(options: TrackUsagePluginOptions): Plugin {
             {
                 devData = {usages: {}};
             }
-            pushToServer();
+            if (isDevMode)
+            {
+                pushToServer();
+            }
 
             // Only "change" is handled live - adding, renaming or deleting a tracked
             // file requires a dev server restart to be reflected.
@@ -197,7 +206,10 @@ export default function trackUsage(options: TrackUsagePluginOptions): Plugin {
                 runBabelOnFile(file, code, options);
                 if (mergeIntoDevData(file))
                 {
-                    pushToServer();
+                    if (isDevMode)
+                    {
+                        pushToServer();
+                    }
                     server.ws.send({type: "full-reload"});
                 }
             });

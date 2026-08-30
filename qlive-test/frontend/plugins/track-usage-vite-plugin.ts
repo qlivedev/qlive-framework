@@ -3,6 +3,7 @@ import * as path from "node:path";
 import * as babel from "@babel/core";
 import trackUsageBabelPlugin from "babel-plugin-track-usage";
 import trackUsageData from "babel-plugin-track-usage/data";
+import deepEqual from "deep-equal";
 import type {Plugin} from "vite";
 
 export interface TrackedFunctionSpec
@@ -96,14 +97,16 @@ export default function trackUsage(options: TrackUsagePluginOptions): Plugin {
     let command: "build" | "serve" = "build";
     let devData: UsageSnapshot = {usages: {}};
 
-    function mergeIntoDevData(absPath: string): void
+    function mergeIntoDevData(absPath: string): boolean
     {
         const fresh = trackUsageData.get() as UsageSnapshot;
         const key = toRelativeModuleId(absPath, options.sourceRoot);
-        if (fresh.usages[key])
+        if (!deepEqual(devData.usages[key], fresh.usages[key]))
         {
             devData.usages[key] = fresh.usages[key];
+            return true
         }
+        return false
     }
 
     let pushWarned = false;
@@ -192,9 +195,11 @@ export default function trackUsage(options: TrackUsagePluginOptions): Plugin {
                 }
                 const code = fs.readFileSync(file, "utf-8");
                 runBabelOnFile(file, code, options);
-                mergeIntoDevData(file);
-                pushToServer();
-                server.ws.send({type: "full-reload"});
+                if (mergeIntoDevData(file))
+                {
+                    pushToServer();
+                    server.ws.send({type: "full-reload"});
+                }
             });
         },
     };

@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { startup } from "@quinscape/qlive-ts";
 
 document.addEventListener("DOMContentLoaded", async () => {
+
     await startup();
 
     const root = createRoot(document.getElementById("root")!);

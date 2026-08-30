@@ -123,15 +123,10 @@ type DomainQLMeta = {
 }
 
 
-class QliveConfiguration implements QLiveConfig
-{
-    contextPath: string = ""
-    meta: DomainQLMeta = null
-}
 
-let theConfig = null
+let theConfig : QLiveConfig | null = null
 
-export function init(config: QliveConfiguration)
+export function init(config: QLiveConfig)
 {
     theConfig = config
 
@@ -140,5 +135,10 @@ export function init(config: QliveConfiguration)
 
 export default function config() : QLiveConfig
 {
+    if (!theConfig)
+    {
+        throw new Error("Config not initialized")
+    }
+
     return theConfig
 }

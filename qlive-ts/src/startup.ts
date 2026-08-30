@@ -49,7 +49,7 @@ export async function startup(): Promise<void>
     // placeholder. In `vite dev`, nobody touches that placeholder, so it stays empty --
     // fall back to fetching the same data live in that case (or if it's there but somehow
     // didn't parse).
-    if (!import.meta.env.DEV && text)
+    if (text)
     {
         try
         {
@@ -62,6 +62,11 @@ export async function startup(): Promise<void>
 
     if (!data)
     {
+        if (!import.meta.env.DEV)
+        {
+            console.warn("Using injection fallback while not in vite dev mode")
+        }
+
         data = await fetchBootstrap();
     }
 

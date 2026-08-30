@@ -101,6 +101,11 @@ public class ModuleFunctionReferences
      */
     public List<List<?>> getIndexes(String name)
     {
+        if (indexes == null)
+        {
+            return Collections.emptyList();
+        }
+
         List<List<?>> indexes = this.indexes.get(name);
         return Objects.requireNonNullElse(indexes, Collections.emptyList());
     }

@@ -1,32 +1,7 @@
 /*
     Generated types. Do *not* edit. Run "pnpm generate" to update from schema.graphql
 */
-import {QueryDocumentAPI} from "@quinscape/qlive-ts"
-
-/** Generated for de.quinscape.qlive.model.dev.AllScalars */
-export type AllScalars = {
-
-    _type: "AllScalars",
-
-    bigDecimalValue?: bigint
-    bool?: boolean
-    byteValue?: number
-    computedValueScalar?: ComputedValue
-    conditionValue?: ConditionNode
-    currencyValue?: number
-    dateValue?: Temporal.PlainDate
-    domainObjectValue?: DomainObject
-    doubleValue?: number
-    fieldExpressionValue?: string | FieldNode
-    genericScalarValue?: GenericScalar
-    intValue?: number
-    jsonbValue?: any
-    longValue?: number
-    queryConfigValue?: QueryConfig
-    stringValue?: string
-    timestampValue?: Temporal.Instant
-}
-
+import { QueryDocumentAPI } from "@quinscape/qlive-ts"
 /** Database storage for spring security's remember-me feature */
 export type AppLogin = {
 
@@ -72,9 +47,93 @@ export type AppUserDocument = {
 
     /** query config for this document */
     config: QueryConfig
+    rowCount?: number
     /** List of AppUser objects */
     rows: AppUser[]
     /** Runtime payload type (always 'AppUser') */
+    type: string
+}
+
+/** Generated from public.bar */
+export type Bar = {
+
+    _type: "Bar",
+
+    /** Many-to-many objects from bar_link.bar_id */
+    bazLinks: BarLink[]
+    /** DB column 'created' */
+    created: Temporal.Instant
+    /** DB column 'description' */
+    description?: string
+    /** DB column 'id' */
+    id: string
+    /** DB column 'name' */
+    name: string
+    /** DB column 'num' */
+    num: number
+}
+
+/** Container for Bar queries */
+export type BarDocument = {
+
+    _type: "BarDocument",
+
+    /** query config for this document */
+    config: QueryConfig
+    rowCount?: number
+    /** List of Bar objects */
+    rows: Bar[]
+    /** Runtime payload type (always 'Bar') */
+    type: string
+}
+
+/** Generated from public.bar_link */
+export type BarLink = {
+
+    _type: "BarLink",
+
+    /** Target of 'bar_id' */
+    bar: Bar
+    /** DB foreign key column 'bar_id' */
+    barId: string
+    /** Target of 'baz_id' */
+    baz: Baz
+    /** DB foreign key column 'baz_id' */
+    bazId: string
+    /** DB column 'id' */
+    id: string
+}
+
+/** Generated from public.baz */
+export type Baz = {
+
+    _type: "Baz",
+
+    /** Many-to-many objects from bar_link.baz_id */
+    bazLinks: BarLink[]
+    /** DB column 'created' */
+    created: Temporal.Instant
+    /** DB column 'description' */
+    description?: string
+    /** DB column 'id' */
+    id: string
+    /** DB column 'name' */
+    name: string
+    /** DB column 'num' */
+    num: number
+}
+
+/** Container for Baz queries */
+export type BazDocument = {
+
+    _type: "BazDocument",
+
+    /** query config for this document */
+    config: QueryConfig
+    rowCount?: number
+    /** List of Baz objects */
+    rows: Baz[]
+    /** Runtime payload type (always 'Baz') */
     type: string
 }
 
@@ -111,6 +170,7 @@ export type FooDocument = {
 
     /** query config for this document */
     config: QueryConfig
+    rowCount?: number
     /** List of Foo objects */
     rows: Foo[]
     /** Runtime payload type (always 'Foo') */
@@ -135,13 +195,14 @@ export type FooTypeDocument = {
 
     /** query config for this document */
     config: QueryConfig
+    rowCount?: number
     /** List of FooType objects */
     rows: FooType[]
     /** Runtime payload type (always 'FooType') */
     type: string
 }
 
-/** Auto-generated from QueryDocumentLogic */
+/** Auto-generated from QueryLogic */
 export type MutationType = {
 
     _type: "MutationType",
@@ -149,29 +210,22 @@ export type MutationType = {
     mDummy?: boolean
 }
 
-/** Auto-generated from QueryDocumentLogic */
+/** Auto-generated from QueryLogic */
 export type QueryType = {
 
     _type: "QueryType",
 
-    queryAllScalars?: AllScalars
     /** Queries AppUser objects based on the given query config */
-    queryAppUserDocument?: AppUserDocument
+    queryAppUserDocument: AppUserDocument
+    /** Queries Bar objects based on the given query config */
+    queryBarDocument: BarDocument
+    /** Queries Baz objects based on the given query config */
+    queryBazDocument: BazDocument
     /** Queries Foo objects based on the given query config */
-    queryFooDocument?: FooDocument
+    queryFooDocument: FooDocument
     /** Queries FooType objects based on the given query config */
-    queryFooTypeDocument?: FooTypeDocument
+    queryFooTypeDocument: FooTypeDocument
 }
 
-export type DomainObject =
-    AllScalars
-    | AppLogin
-    | AppUser
-    | AppUserDocument
-    | Foo
-    | FooDocument
-    | FooType
-    | FooTypeDocument
-    |
-    MutationType
-    | QueryType
+export type DomainObject = AppLogin | AppUser | AppUserDocument | Bar | BarDocument | BarLink | Baz | BazDocument |
+    Foo | FooDocument | FooType | FooTypeDocument | MutationType | QueryType

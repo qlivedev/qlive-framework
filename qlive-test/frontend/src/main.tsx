@@ -1,6 +1,7 @@
 import * as React from "react";
 import {createRoot} from "react-dom/client";
 import {startup} from "@quinscape/qlive-ts";
+import TestComponent from "./component/TestComponent";
 
 document.addEventListener("DOMContentLoaded", async () => {
 
@@ -10,7 +11,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     root.render(
         <React.StrictMode>
-            <h1>Test</h1>
+            <TestComponent/>
         </React.StrictMode>,
     );
 });

@@ -7,8 +7,16 @@ const rootDir = fileURLToPath(new URL("../..", import.meta.url));
 const frontendSrcDir = fileURLToPath(new URL("./src/", import.meta.url));
 
 const trackedFunctions = {
-    inject: {module: "@quinscape/qlive-ts", fn: "inject"},
-    GraphQLQuery: {module: "@quinscape/qlive-ts", fn: "GraphQLQuery"},
+    i18n: {
+        module: "@quinscape/qlive-ts", fn: "i18n",
+        varArgs: true
+    },
+    inject: {
+        module: "@quinscape/qlive-ts", fn: "inject"
+    },
+    GraphQLQuery: {
+        module: "@quinscape/qlive-ts", fn: "GraphQLQuery"
+    },
 };
 
 const backendOrigin = "http://localhost:8080";

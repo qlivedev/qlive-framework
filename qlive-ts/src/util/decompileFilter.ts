@@ -30,12 +30,12 @@ const topLevelConditions = {
     not: true
 }
 
-const simplifiedValues = {
-    "Boolean": true,
-    "String": true,
-    "Int": true,
-    "Timestamp": true
-}
+const simplifiedValues = new Set([
+    "Boolean",
+    "String",
+    "Int",
+    "Timestamp"
+])
 
 
 /**
@@ -50,7 +50,7 @@ const simplifiedValues = {
  *
  * @return {string} pretty-printed source string. If match was used, the >> << might prevent it from being valid JavaScript
  */
-export function decompileFilter(condition: CNode | null, level: number = 0, match: CNode = null, invert: boolean = true): string
+export function decompileFilter(condition: CNode | null, level: number = 0, match: CNode | null = null, invert: boolean = true): string
 {
     if (!condition)
     {
@@ -102,7 +102,7 @@ export function decompileFilter(condition: CNode | null, level: number = 0, matc
     } else if (type === "Value")
     {
         const {value, scalarType} = condition;
-        if (value !== null && simplifiedValues[scalarType])
+        if (value !== null && simplifiedValues.has(scalarType))
         {
             return indent(level) + markerL + "value(" + convert(value, scalarType) + ")" + markerR;
         }

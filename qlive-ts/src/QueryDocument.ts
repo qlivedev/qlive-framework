@@ -1,10 +1,13 @@
-import {Condition, FieldExpression} from "./FilterDSL";
+import {FieldExpression, FilterExpression} from "./FilterDSL";
 import {GraphQLQuery} from "./GraphQLQuery";
 
 
 interface QueryConfig
 {
-    condition: Condition;
+    // Data only - serialised into the GraphQL query, never called on.
+    // Accepts both styles: fluent (a.and(b)) and functional (and(a, b)),
+    // plus null for "no filter".
+    condition: FilterExpression | null;
     offset: number;
     pageSize: number;
     sortFields: FieldExpression[];

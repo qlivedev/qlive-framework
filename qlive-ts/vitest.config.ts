@@ -1,8 +1,8 @@
 import {defineConfig} from "vitest/config";
 
-// No test files ported from qlive-js (the old package had no tests either -
-// its "test" script was a no-op stub). passWithNoTests keeps `pnpm -r test`
-// green instead of failing on an empty suite.
+// The old package had no tests (its "test" script was a no-op stub), so the
+// suite here starts from FilterDSL.test.ts. passWithNoTests is kept so adding
+// a package without tests does not fail `pnpm -r test`.
 export default defineConfig({
     test: {
         passWithNoTests: true,

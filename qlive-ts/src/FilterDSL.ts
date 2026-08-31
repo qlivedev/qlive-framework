@@ -90,7 +90,7 @@ export interface ComponentNode
     /**
      * Id of the component
      */
-    id: string,
+    id: string | null,
     /**
      * Actual condition
      */
@@ -99,6 +99,23 @@ export interface ComponentNode
 
 
 export type CNode = FieldNode | ConditionNode | ValueNode | ValuesNode | OperationNode | ComponentNode;
+
+/**
+ * A composed filter: a condition, or a component marker wrapping one. This is
+ * what a filter *is* - it never includes falsy members.
+ */
+export type FilterExpression = ConditionNode | ComponentNode;
+
+/**
+ * What or() / and() *accept*. Falsy operands are dropped, which is the point of
+ * the logical composers: callers compose from helpers that may contribute
+ * nothing and let the final logical shape fall out of whatever survived.
+ *
+ * Note that `flag && cond` only lands in this type when `flag` is a boolean.
+ * For a truthy-narrowable value use `!!flag && cond`, or the equivalent
+ * `flag ? cond : null` - `"" | undefined | Condition` is not an operand.
+ */
+export type LogicalOperand = FilterExpression | null | undefined | false;
 
 export type FieldExpression = string | CNode
 
@@ -153,20 +170,20 @@ export function not(operand: CNode): CNode
  * @param {... CNode} operands
  * @return {CNode} ORed condition
  */
-export const or: (...args: CNode[]) => (null | ConditionNode) = buildLogical("or");
+export const or: (...args: LogicalOperand[]) => (FilterExpression | null) = buildLogical("or");
 /**
  * Logical and condition. Will ignore falsy operands. An empty and collapses to null.
  *
  * @param {... CNode} operands
  * @return {CNode} ANDed condition
  */
-export const and: (...args: CNode[]) => (null | ConditionNode) = buildLogical("and");
+export const and: (...args: LogicalOperand[]) => (FilterExpression | null) = buildLogical("and");
 
-function buildLogical(name: string): (...args: CNode[]) => ConditionNode | null
+function buildLogical(name: string): (...args: LogicalOperand[]) => FilterExpression | null
 {
-    return function (...args: CNode[]): ConditionNode | null {
+    return function (...args: LogicalOperand[]): FilterExpression | null {
 
-        const operands = [];
+        const operands: FilterExpression[] = [];
 
         const len = args.length
 
@@ -175,7 +192,9 @@ function buildLogical(name: string): (...args: CNode[]) => ConditionNode | null
             const condition = args[i];
             if (isConditionObject(condition))
             {
-                operands.push(condition);
+                // isConditionObject is a truthy/object check, looser than the
+                // type - it cannot tell a condition from any other node.
+                operands.push(condition as FilterExpression);
             }
         }
 
@@ -201,7 +220,7 @@ function buildLogical(name: string): (...args: CNode[]) => ConditionNode | null
  */
 function buildFn(name: string, numArgs: number): (...args: CNode[]) => CNode
 {
-    return function (...args: CNode[]): CNode {
+    return function (this: CNode, ...args: CNode[]): CNode {
         const cond = new Condition(name);
         cond.operands = [this, ...args.slice(0, numArgs)];
         return cond;
@@ -215,8 +234,10 @@ function buildFn(name: string, numArgs: number): (...args: CNode[]) => CNode
  */
 function buildOpFn(name: string, numArgs: number): (...args: CNode[]) => CNode
 {
-    return function (...args: CNode[]): CNode {
-        const op = new Field(name);
+    return function (this: CNode, ...args: CNode[]): CNode {
+        // Operations reuse the Field prototype - identical method set, different
+        // node type - so the node is constructed as a Field and relabelled.
+        const op = new FieldCtor(name) as unknown as OperationNode;
         op.type = "Operation";
         op.operands = [this, ...args.slice(0, numArgs)];
         return op;
@@ -258,7 +279,7 @@ const FIELD_CONDITIONS = {
     "startsWith": 1,
     // 1 collection arg
     "in": 1
-};
+} as const;
 
 const CONDITION_METHODS = {
     "not": 0,
@@ -266,7 +287,7 @@ const CONDITION_METHODS = {
     "orNot": 1,
     "and": 1,
     "andNot": 1
-};
+} as const;
 
 const FIELD_OPERATIONS = {
     "bitNand": 1,
@@ -306,7 +327,7 @@ const FIELD_OPERATIONS = {
     // for sort order fields
     "asc": 0,
     "desc": 0
-};
+} as const;
 
 /**
  * Automatically creates a builder function for the given name and number of arguments. All conditions are the same, all
@@ -323,8 +344,8 @@ type FunctionFactory = (name: string, numArgs: number) => (...args: CNode[]) => 
  * @param factory       factory function
  */
 function buildProto(
-    proto: object,
-    methodsMap: { [name: string]: number | undefined },
+    proto: Record<string, unknown>,
+    methodsMap: Readonly<Record<string, number>>,
     factory: FunctionFactory
 )
 {
@@ -344,7 +365,7 @@ function buildProto(
  * @param name
  * @constructor
  */
-function Field(name: string)
+function Field(this: FieldNode, name: string)
 {
     this.type = "Field";
     this.name = name;
@@ -353,18 +374,35 @@ function Field(name: string)
 buildProto(Field.prototype, FIELD_CONDITIONS, buildFn);
 buildProto(Field.prototype, FIELD_OPERATIONS, buildOpFn);
 
+/*
+ * buildProto() attaches the method set above at runtime, which TypeScript
+ * cannot observe, and a plain function has no construct signature anyway.
+ * These aliases are the single boundary where the metaprogramming is asserted
+ * to the type system: they state the shape the prototype actually has, so
+ * every `new` below - and every consumer - gets the fully typed node.
+ */
+const FieldCtor = Field as unknown as { new (name: string): Field };
+
 /**
  * Condition constructor
  * @param name
  * @constructor
  */
-export function Condition(name: string)
+function ConditionImpl(this: ConditionNode, name: string)
 {
     this.type = "Condition";
     this.name = name;
 }
 
-buildProto(Condition.prototype, CONDITION_METHODS, buildFn);
+buildProto(ConditionImpl.prototype, CONDITION_METHODS, buildFn);
+
+/*
+ * Exported as a value, so consumers can construct conditions directly. Same
+ * assertion as FieldCtor above - and unlike the previous plain function
+ * declaration, this one actually carries a construct signature, so
+ * `new FilterDSL.Condition(name)` now type-checks for callers too.
+ */
+export const Condition = ConditionImpl as unknown as { new (name: string): Condition };
 
 export function isConditionObject(value: any): boolean
 {
@@ -392,7 +430,7 @@ export function condition(name: string, operands: CNode[] = []): CNode
  */
 export function operation(name: string, operands: CNode[] = []): CNode
 {
-    const op = new Field(name);
+    const op = new FieldCtor(name) as unknown as OperationNode;
     op.type = "Operation";
     op.operands = operands;
     return op;
@@ -407,7 +445,7 @@ export function operation(name: string, operands: CNode[] = []): CNode
  */
 export function field(name: string): Field
 {
-    return new Field(name);
+    return new FieldCtor(name);
 }
 
 
@@ -420,7 +458,7 @@ export function field(name: string): Field
  *
  * @return {CNode}
  */
-export function component(id: string, condition: CNode): ComponentNode
+export function component(id: string | null, condition: CNode): ComponentNode
 {
     return {
         type: "Component",
@@ -436,7 +474,7 @@ export function component(id: string, condition: CNode): ComponentNode
  * @param value     raw value
  * @constructor
  */
-function Value(type: string, value: RawValue)
+function Value(this: ValueNode, type: string, value: RawValue)
 {
     this.type = "Value";
     this.scalarType = type;
@@ -446,6 +484,8 @@ function Value(type: string, value: RawValue)
 buildProto(Value.prototype, FIELD_CONDITIONS, buildFn);
 buildProto(Value.prototype, FIELD_OPERATIONS, buildOpFn);
 
+const ValueCtor = Value as unknown as { new (type: string, value: RawValue): Value };
+
 /**
  * Values node.
  *
@@ -453,12 +493,14 @@ buildProto(Value.prototype, FIELD_OPERATIONS, buildOpFn);
  * @param values    raw value array
  * @constructor
  */
-function Values(type: string, values: RawValue[])
+function Values(this: ValuesNode, type: string, values: RawValue[])
 {
     this.type = "Values";
     this.scalarType = type;
     this.values = values;
 }
+
+const ValuesCtor = Values as unknown as { new (type: string, values: RawValue[]): ValuesNode };
 
 
 /**
@@ -500,7 +542,7 @@ function getDefaultType(value: any): string
  */
 export function value(value: RawValue, type: string = getDefaultType(value)): ValueNode
 {
-    return new Value(type, value);
+    return new ValueCtor(type, value);
 }
 
 /**
@@ -513,7 +555,7 @@ export function value(value: RawValue, type: string = getDefaultType(value)): Va
  */
 export function values(type: string, ...values: RawValue[]): ValuesNode
 {
-    return new Values(type, values);
+    return new ValuesCtor(type, values);
 }
 
 /**
@@ -530,7 +572,14 @@ export function getConditionArgCount(name: Function | string): number
         return name.length - 1;
     }
 
-    const count = CONDITION_METHODS[name] || FIELD_CONDITIONS[name];
+    // Widened views of the const tables: `name` is an arbitrary string here,
+    // not one of their literal keys. `||` (not `??`) is preserved deliberately -
+    // it is what the JS did, and a 0-arity entry falling through to the second
+    // table is existing behaviour, not an oversight to fix in passing.
+    const conditionMethods: Readonly<Record<string, number>> = CONDITION_METHODS;
+    const fieldConditions: Readonly<Record<string, number>> = FIELD_CONDITIONS;
+
+    const count = conditionMethods[name] || fieldConditions[name];
 
     //console.log("getConditionArgCount, name = " + name , count);
 
@@ -719,85 +768,38 @@ export function isComputedValue(raw: unknown): raw is ComputedValue
     return typeof raw.name === "string" && Array.isArray(raw.args)
 }
 
+/*
+ * The DSL's method surface is derived from the same arity tables that
+ * buildProto() uses at runtime, so the tables are the single source of truth.
+ * Adding an operator is a one-line edit there and both halves follow.
+ *
+ * TypeScript cannot infer methods attached to a prototype in a loop - the
+ * method set only exists after module evaluation - so the mapping from an
+ * arity to a call signature has to be spelled out once, here.
+ */
+type CondFn<N extends number> =
+    N extends 0 ? () => Condition :
+    N extends 1 ? (a: CNode) => Condition :
+    N extends 2 ? (a: CNode, b: CNode) => Condition :
+    never;
+
+type OpFn<N extends number> =
+    N extends 0 ? () => Field :
+    N extends 1 ? (a: CNode) => Field :
+    N extends 2 ? (a: CNode, b: CNode) => Field :
+    never;
+
 type FieldConditions = {
-    greaterOrEqual: (a: CNode) => Condition
-    lessOrEqual: (a: CNode) => Condition
-    lt: (a: CNode) => Condition
-    notBetweenSymmetric: (a: CNode, b: CNode) => Condition
-    notEqualIgnoreCase: (a: CNode) => Condition
-    betweenSymmetric: (a: CNode, b: CNode) => Condition
-    lessThan: (a: CNode) => Condition
-    equalIgnoreCase: (a: CNode) => Condition
-    isDistinctFrom: (a: CNode) => Condition
-    between: (a: CNode, b: CNode) => Condition
-    ge: (a: CNode) => Condition
-    greaterThan: (a: CNode) => Condition
-    isNotNull: () => Condition
-    notLikeRegex: (a: CNode) => Condition
-    notBetween: (a: CNode, b: CNode) => Condition
-    notEqual: (a: CNode) => Condition
-    isFalse: () => Condition
-    containsIgnoreCase: (a: CNode) => Condition
-    eq: (a: CNode) => Condition
-    gt: (a: CNode) => Condition
-    equal: (a: CNode) => Condition
-    likeRegex: (a: CNode) => Condition
-    isTrue: () => Condition
-    contains: (a: CNode) => Condition
-    notContainsIgnoreCase: (a: CNode) => Condition
-    notContains: (a: CNode) => Condition
-    ne: (a: CNode) => Condition
-    isNull: () => Condition
-    endsWith: (a: CNode) => Condition
-    le: (a: CNode) => Condition
-    isNotDistinctFrom: (a: CNode) => Condition
-    startsWith: (a: CNode) => Condition
-    in: (a: CNode) => Condition
-}
+    [K in keyof typeof FIELD_CONDITIONS]: CondFn<(typeof FIELD_CONDITIONS)[K]>
+};
 
 type FieldOperations = {
-    bitNand: (a: CNode) => Field
-    mod: (a: CNode) => Field
-    div: (a: CNode) => Field
-    neg: () => Field
-    rem: (a: CNode) => Field
-    add: (a: CNode) => Field
-    subtract: (a: CNode) => Field
-    plus: (a: CNode) => Field
-    bitAnd: (a: CNode) => Field
-    bitXor: (a: CNode) => Field
-    shl: (a: CNode) => Field
-    unaryMinus: () => Field
-    bitNor: (a: CNode) => Field
-    shr: (a: CNode) => Field
-    modulo: (a: CNode) => Field
-    bitXNor: (a: CNode) => Field
-    bitNot: () => Field
-    sub: (a: CNode) => Field
-    minus: (a: CNode) => Field
-    mul: (a: CNode) => Field
-    bitOr: (a: CNode) => Field
-    times: (a: CNode) => Field
-    pow: (a: CNode) => Field
-    divide: (a: CNode) => Field
-    power: (a: CNode) => Field
-    multiply: (a: CNode) => Field
-    unaryPlus: () => Field
-    lower: () => Field
-    upper: () => Field
-    concat: (a: CNode) => Field
-    toString: () => Field
-    asc: () => Field
-    desc: () => Field
-}
+    [K in keyof typeof FIELD_OPERATIONS]: OpFn<(typeof FIELD_OPERATIONS)[K]>
+};
 
 export type Condition = ConditionNode & {
-    not: () => Condition
-    or: (a: Condition) => Condition
-    orNot: (a: Condition) => Condition
-    and: (a: Condition) => Condition
-    andNot: (a: Condition) => Condition
-}
+    [K in keyof typeof CONDITION_METHODS]: CondFn<(typeof CONDITION_METHODS)[K]>
+};
 
 export type Field = FieldNode & FieldConditions & FieldOperations; // Field prototype
 export type Value = ValueNode & FieldConditions & FieldOperations; // Value prototype

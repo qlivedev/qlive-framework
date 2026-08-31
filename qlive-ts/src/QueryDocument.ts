@@ -20,10 +20,10 @@ export interface QueryDocumentMethods<T>
 
 export class QueryDocument<T> implements QueryDocumentMethods<T>
 {
-    type: string = null
-    config: QueryConfig = null;
-    rows: T[] = null
-    rowCount: number = 0
+    type: string;
+    config: QueryConfig;
+    rows: T[];
+    rowCount: number;
 
     constructor(type: string, config: QueryConfig, rows: T[], rowCount: number)
     {
@@ -35,7 +35,12 @@ export class QueryDocument<T> implements QueryDocumentMethods<T>
 
     update(newConfig: QueryConfig): Promise<QueryDocument<T>>
     {
-        const query: GraphQLQuery<QueryDocument<T>> = GraphQLQuery.access(this);
+        const query = GraphQLQuery.access<QueryDocument<T>>(this);
+        if (!query)
+        {
+            // Previously this threw an unhelpful TypeError one line further on.
+            throw new Error("QueryDocument has no GraphQLQuery registered - it was not created by executing a query");
+        }
         return query.execute({config: newConfig})
             .then(
                 queryDocument => {

@@ -1,5 +1,5 @@
 import {FilterDSL, inject} from "@quinscape/qlive-ts";
-import {Q_Foo, Q_FooResult} from "./Q_Foo.ts";
+import {Q_Foo, Q_FooResult} from "./Q_Foo";
 
 const {field, value} = FilterDSL;
 

@@ -18,7 +18,9 @@ export class GraphQLQuery<T>
      */
     register(result: T): void
     {
-        result[secret] = this
+        // The query is stashed on the result under a private symbol; T is
+        // opaque here, so the symbol index has to be asserted.
+        (result as Record<symbol, unknown>)[secret] = this
     }
 
     /**
@@ -29,7 +31,7 @@ export class GraphQLQuery<T>
      */
     static access<T>(o: T): GraphQLQuery<T> | null
     {
-        return o[secret] || null
+        return (o as Record<symbol, unknown>)[secret] as GraphQLQuery<T> || null
     }
 
     execute(params: GraphQLParams): Promise<T>

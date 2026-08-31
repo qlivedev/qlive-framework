@@ -62,7 +62,10 @@ export async function startup(): Promise<void>
 
     if (!data)
     {
-        if (!import.meta.env.DEV)
+        // Read structurally rather than augmenting ImportMeta: consuming apps
+        // get their own vite/client declaration, and two would conflict.
+        const viteDev = (import.meta as { env?: { DEV?: boolean } }).env?.DEV === true;
+        if (!viteDev)
         {
             console.warn("Using injection fallback while not in vite dev mode")
         }

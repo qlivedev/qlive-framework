@@ -1,5 +1,13 @@
 import {GraphQLQuery} from "../GraphQLQuery";
 
+/*
+ * Injected into the page by the server, not imported: the context path the
+ * app is deployed under, and the CSRF token Spring Security requires on
+ * every POST.
+ */
+declare const contextPath: string;
+declare const csrfToken: { header: string, value: string };
+
 type GraphQLErrorLocation = {
     line: number
     column: number

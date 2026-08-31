@@ -88,12 +88,9 @@ function typesUnionExpression(typeNames)
 
         if (i !== 0)
         {
-            out += " | "
-
-            if ((i & 7) === 0)
-            {
-                out += "\n    ";
-            }
+            // Break before the space, not after it, or the wrap leaves the
+            // separator dangling as trailing whitespace.
+            out += (i & 7) === 0 ? " |\n    " : " | "
         }
 
         out += name
@@ -144,14 +141,14 @@ function generateTypeDefinitions(schemaPath, output)
 
                 const typeName = mapGraphQLToTypeScript(type.name);
 
-                return `${fieldDocs(fieldDef)}    ${ isNonNull ? fieldDef.name : fieldDef.name + "?" } : ${isListType(fieldDef.type) ?  typeName + "[]" : typeName}`
+                return `${fieldDocs(fieldDef)}    ${ isNonNull ? fieldDef.name : fieldDef.name + "?" }: ${isListType(fieldDef.type) ?  typeName + "[]" : typeName}`
             }).join("\n")
 
             typeDefinitions += trimIndent(`
                 ${typeDocs(typeDef)}export type ${typeDef.name} = {
                 
                     _type: "${typeDef.name}",
-                    
+
                 ${fields}
                 }
                 
@@ -160,7 +157,7 @@ function generateTypeDefinitions(schemaPath, output)
 
         typeDefinitions += "export type DomainObject = " + typesUnionExpression(types.map(td => td.name))
 
-        fs.writeFileSync(output, typeDefinitions, "utf8");
+        fs.writeFileSync(output, typeDefinitions.trimEnd() + "\n", "utf8");
     })
 }
 if (process.argv.length !== 4)

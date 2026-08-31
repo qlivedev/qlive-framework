@@ -6,6 +6,7 @@ command; nothing is published to iterate locally.
 ```
 qlive/                     Java library, version 1.0.0-SNAPSHOT
 qlive-ts/                  @quinscape/qlive-ts, linked by pnpm workspace (built with tsdown; dev aliases to its TS source)
+qlive-codegen/             @quinscape/qlive-codegen, the generate-ts CLI (schema.graphql -> types.d.ts)
 qlive-test/                Spring Boot app, depends on qlive as a SNAPSHOT
   frontend/                 Vite + React app, depends on qlive-ts via "workspace:*"
 ```
@@ -23,6 +24,12 @@ mirrors the demo app migrated from the framework's previous incarnation:
 GraphQL/DomainQL config, jOOQ-backed auth and domain model, and query
 logic exercising `qlive`. Neither side is split along wiring/scenarios
 lines.
+
+The codegen CLI is a separate package on purpose. It needs `graphql` and
+`@graphql-tools/*` - about 5 MB that the `qlive-ts` runtime never imports -
+so applications that do not run codegen should not have to carry them.
+Add it as a devDependency where you need it, as `qlive-test/frontend`
+does, and run it via `pnpm generate`.
 
 ## One-command entry points
 

@@ -17,16 +17,12 @@
     "*.css"
   ],
   "files": [
-    "dist",
-    "tooling"
+    "dist"
   ],
   "scripts": {
     "build": "tsdown",
     "watch": "tsdown -w",
     "test": "vitest run"
-  },
-  "bin": {
-    "generate-ts": "tooling/generateTS.js"
   },
   "peerDependencies": {
     "react": "^18.3.0"
@@ -35,10 +31,7 @@
     "temporal-polyfill": "^0.3.0"
   },
   "devDependencies": {
-    "@graphql-tools/graphql-file-loader": "^8.1.12",
-    "@graphql-tools/load": "^8.1.8",
     "@types/react": "^18.3.3",
-    "graphql": "^16.13.1",
     "tsdown": "^0.22.14",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"

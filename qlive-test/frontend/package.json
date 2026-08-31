@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@babel/core": "^8.0.1",
+    "@quinscape/qlive-codegen": "workspace:*",
     "@types/babel__core": "^7.20.5",
     "@types/deep-equal": "^1.0.4",
     "@types/node": "^26.4.0",

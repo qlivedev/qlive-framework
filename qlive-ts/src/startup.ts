@@ -1,5 +1,6 @@
 import {init, QLiveConfig} from "./config";
 import delay from "./util/delay";
+import isViteDev from "./util/isViteDev";
 
 // Webpack/rspack-specific dynamic-import mechanism (`import.meta.webpackContext`),
 // used here to lazily load a page component by name at runtime. It has no
@@ -62,10 +63,7 @@ export async function startup(): Promise<void>
 
     if (!data)
     {
-        // Read structurally rather than augmenting ImportMeta: consuming apps
-        // get their own vite/client declaration, and two would conflict.
-        const viteDev = (import.meta as { env?: { DEV?: boolean } }).env?.DEV === true;
-        if (!viteDev)
+        if (!isViteDev())
         {
             console.warn("Using injection fallback while not in vite dev mode")
         }

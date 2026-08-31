@@ -12,8 +12,21 @@ export interface TrackedFunctionSpec
     module: string;
     /** "" if the module itself is called as a function; otherwise the method/export name called on it. */
     fn: string;
+
+    /**
+     * Enables varargs support where a function can have n static arguments and then a number of variable arguments
+     * that have no restriction on being static. If varargs is a number, it defines how many arguments are statically
+     * captured (true is the same as 1)
+     */
     varArgs?: boolean | number;
+    /**
+     * Allows recording context expressions against the matched location in the AST. e.g. "parent.id.name"
+     */
     captureContext?: boolean;
+    /**
+     * Enables identifier matching where instead of a static expression, we capture the *name* of an identifier to
+     * reference some global namespace (or local in some way).
+     */
     allowIdentifier?: boolean;
 }
 

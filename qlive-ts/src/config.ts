@@ -109,16 +109,30 @@ export type QLiveConfig = {
     meta: DomainQLMeta
 }
 
-type DomainQLMeta = {
+/**
+ * Domain meta information from DomainQL
+ */
+export type DomainQLMeta = {
+
+    /**
+     * Contains type names mapped to TypeMeta
+     */
     types: {
-        [typeName: string]: {
-            meta?: {
-                nameFields: string
-            }
-        }
+        [typeName: string]: DomainQLTypeMeta
     },
     genericTypes: Array<GenericTypeInfo>,
     relations: Array<RelationInfo>
+}
+
+export type DomainQLTypeMeta = {
+    fields: {
+        [fieldName: string]: {
+
+        }
+    }
+    meta?: {
+        nameFields?: string
+    }
 }
 
 

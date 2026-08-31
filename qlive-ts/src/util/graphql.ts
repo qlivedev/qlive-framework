@@ -50,7 +50,7 @@ export default function graphql<T>(query: GraphQLQuery<T> | string, params: Grap
             },
             body: JSON.stringify({
                 query: queryInstance.query,
-                variables
+                variables: params
             })
         }
     )

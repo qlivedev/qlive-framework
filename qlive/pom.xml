@@ -158,6 +158,7 @@
         </executions>
         <configuration>
           <mainClass>de.quinscape.domainql.docs.DocsExtractor</mainClass>
+          <classpathScope>test</classpathScope>
           <arguments>
             <argument>--sourceRoot</argument>
             <argument>${project.basedir}/src/main/java</argument>

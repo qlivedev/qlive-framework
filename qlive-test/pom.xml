@@ -159,6 +159,24 @@
               <arguments>install</arguments>
             </configuration>
           </execution>
+          <!--
+            qlive-ts is a tsdown-built package whose package.json points at
+            dist/, so it has to be built before the frontend's `vite build`
+            resolves it. Runs from the repo root because the plugin's own
+            workingDirectory is qlive-test/frontend; installDirectory is
+            inherited, so it reuses the node/pnpm downloaded above.
+          -->
+          <execution>
+            <id>pnpm-build-qlive-ts</id>
+            <goals>
+              <goal>pnpm</goal>
+            </goals>
+            <phase>generate-resources</phase>
+            <configuration>
+              <workingDirectory>${project.basedir}/..</workingDirectory>
+              <arguments>--filter @quinscape/qlive-ts run build</arguments>
+            </configuration>
+          </execution>
           <execution>
             <id>pnpm-build</id>
             <goals>

@@ -5,7 +5,7 @@ command; nothing is published to iterate locally.
 
 ```
 qlive/                     Java library, version 1.0.0-SNAPSHOT
-qlive-ts/                  @quinscape/qlive-ts, linked by pnpm workspace (no build step, Vite reads its TS source directly)
+qlive-ts/                  @quinscape/qlive-ts, linked by pnpm workspace (built with tsdown; dev aliases to its TS source)
 qlive-test/                Spring Boot app, depends on qlive as a SNAPSHOT
   frontend/                 Vite + React app, depends on qlive-ts via "workspace:*"
 ```
@@ -31,18 +31,30 @@ call `mvnw` directly.
 
 ```bash
 pnpm install   # symlinks qlive-ts into qlive-test/frontend/node_modules
-pnpm build     # ./mvnw install — builds qlive, then frontend (via frontend-maven-plugin
-               # + pnpm workspace), then qlive-test, copying the built frontend into
-               # qlive-test/target/classes/static
+pnpm build     # ./mvnw install — builds qlive, then qlive-ts (tsdown), then the frontend
+               # (via frontend-maven-plugin + pnpm workspace), then qlive-test, copying
+               # the built frontend into qlive-test/target/classes/static
 pnpm test      # ./mvnw test (Java) + pnpm -r test (TS, both qlive-ts and the frontend app)
 pnpm dev       # backend (spring-boot:run on :8080) + frontend (vite on :5173, proxying /api
                # to :8080) together, both with hot reload
 ```
 
 While `pnpm dev` is running, editing `qlive-ts/src` reflects immediately
-in the browser — no rebuild step, because Vite transpiles the linked
-workspace source directly (`qlive-ts`'s `package.json` points `main` at
-its `.ts` source, not a `dist/`).
+in the browser — no rebuild step. `qlive-ts`'s `package.json` points at
+`dist/`, which is what consumers get and what `vite build` resolves, but
+`qlive-test/frontend/vite.config.ts` aliases the package to its `.ts`
+source in serve mode, so Vite transpiles the linked workspace source
+directly. Vitest runs in serve mode too, so tests exercise source as well.
+
+The trade: only `vite build` touches `dist/`, so packaging mistakes (a bad
+`exports` entry, a file that never got emitted) surface at build time
+rather than in the inner loop. `pnpm build` runs that build, so they are
+still caught before anything ships.
+
+QLive's stylesheet is shipped as a separate artifact, imported explicitly
+by the application (`import "@quinscape/qlive-ts/styles.css"`) rather than
+pulled in by the JS, so the app controls where it lands in the cascade.
+See `docs/design/styling-strategy.md`.
 
 ## Toolchain
 

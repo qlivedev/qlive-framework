@@ -3,9 +3,26 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./styles.css": "./dist/qlive.css",
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": [
+    "*.css"
+  ],
+  "files": [
+    "dist",
+    "tooling"
+  ],
   "scripts": {
+    "build": "tsdown",
+    "watch": "tsdown -w",
     "test": "vitest run"
   },
   "bin": {
@@ -18,10 +35,11 @@
     "temporal-polyfill": "^0.3.0"
   },
   "devDependencies": {
-    "@types/react": "^18.3.3",
     "@graphql-tools/graphql-file-loader": "^8.1.12",
     "@graphql-tools/load": "^8.1.8",
+    "@types/react": "^18.3.3",
     "graphql": "^16.13.1",
+    "tsdown": "^0.22.14",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
   }

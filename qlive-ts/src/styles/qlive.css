@@ -1,0 +1,73 @@
+/*
+ * QLive base stylesheet - tokens and cascade layer.
+ *
+ * Placeholder: the token set is a skeleton, not a designed palette. It exists
+ * so the packaging path (build -> dist -> consumer import) is wired and
+ * testable before the first component is written.
+ *
+ * See docs/design/styling-strategy.md for the reasoning behind the layer and
+ * the custom-property theming approach.
+ */
+
+/*
+ * Declare the layer before defining anything in it. First occurrence fixes the
+ * layer's position in the cascade, so stating it here keeps that position
+ * independent of import order later on.
+ *
+ * Everything QLive ships lives inside this layer, which means any consumer
+ * rule outside it wins regardless of specificity - including a single utility
+ * class dropped onto one of our components. That is the point.
+ */
+@layer qlive;
+
+@layer qlive {
+
+    /*
+     * Overridable by consumers: redefine any of these in their own CSS, at
+     * whatever scope they like. These names are public API - renaming one is a
+     * breaking change.
+     */
+    :root {
+        --qlive-color-bg: #ffffff;
+        --qlive-color-fg: #1a1a1a;
+        --qlive-color-muted: #6b6b6b;
+        --qlive-color-border: #d4d4d4;
+        --qlive-color-accent: #2563eb;
+
+        --qlive-space-1: 0.25rem;
+        --qlive-space-2: 0.5rem;
+        --qlive-space-3: 1rem;
+
+        --qlive-radius-md: 0.375rem;
+
+        --qlive-font-sans: system-ui, sans-serif;
+    }
+
+    /*
+     * Dark mode via prefers-color-scheme rather than light-dark(): the media
+     * query is Baseline-ancient, and it is also what lets a consumer force a
+     * theme by redefining the tokens under their own selector.
+     */
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --qlive-color-bg: #141414;
+            --qlive-color-fg: #ededed;
+            --qlive-color-muted: #9a9a9a;
+            --qlive-color-border: #3a3a3a;
+            --qlive-color-accent: #60a5fa;
+        }
+    }
+
+    /*
+     * Placeholder rule. Delete once real components exist - it is here so the
+     * stylesheet is visibly doing something end to end.
+     */
+    .qlive-placeholder {
+        padding: var(--qlive-space-2) var(--qlive-space-3);
+        border: 1px solid var(--qlive-color-border);
+        border-radius: var(--qlive-radius-md);
+        background: var(--qlive-color-bg);
+        color: var(--qlive-color-fg);
+        font-family: var(--qlive-font-sans);
+    }
+}

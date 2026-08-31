@@ -5,6 +5,21 @@ import trackUsage from "./plugins/track-usage-vite-plugin";
 
 const rootDir = fileURLToPath(new URL("../..", import.meta.url));
 const frontendSrcDir = fileURLToPath(new URL("./src/", import.meta.url));
+const qliveTsDir = fileURLToPath(new URL("../../qlive-ts/", import.meta.url));
+
+// qlive-ts is built by tsdown, and its package.json points at dist/ - which is
+// what consumers get and what `vite build` therefore resolves. In dev that
+// would mean editing qlive-ts/src does nothing until something rebuilds dist,
+// losing the instant inner loop, so serve mode is aliased straight to source.
+// Vitest runs in serve mode too, so tests exercise source as well.
+//
+// Consequence worth knowing: only `vite build` touches dist, so packaging bugs
+// (bad exports map, missing emitted file) surface at build time, not in dev.
+// `pnpm build` runs that build, so CI still catches them.
+const devAliases = {
+    "@quinscape/qlive-ts/styles.css": qliveTsDir + "src/styles/qlive.css",
+    "@quinscape/qlive-ts": qliveTsDir + "src/index.ts",
+};
 
 const trackedFunctions = {
     i18n: {
@@ -21,7 +36,10 @@ const trackedFunctions = {
 
 const backendOrigin = "http://localhost:8080";
 
-export default defineConfig({
+export default defineConfig(({command}) => ({
+    resolve: {
+        alias: command === "serve" ? devAliases : {},
+    },
     plugins: [
         react(),
         trackUsage({
@@ -50,4 +68,4 @@ export default defineConfig({
     test: {
         environment: "jsdom",
     },
-});
+}));

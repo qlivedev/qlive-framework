@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc --noEmit && vite build",
     "test": "vitest run",
     "preview": "vite preview",
     "generate": "generate-ts schema.graphql src/types.d.ts"

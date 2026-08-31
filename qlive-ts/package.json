@@ -20,7 +20,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsdown",
+    "build": "tsc --noEmit && tsdown",
     "watch": "tsdown -w",
     "test": "vitest run"
   },

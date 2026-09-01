@@ -1,7 +1,7 @@
 import {defineConfig} from "vitest/config";
 import react from "@vitejs/plugin-react";
 import {fileURLToPath} from "node:url";
-import trackUsage from "./plugins/track-usage-vite-plugin";
+import trackUsage, {TrackedFunctionSpec} from "./plugins/track-usage-vite-plugin";
 
 const rootDir = fileURLToPath(new URL("../..", import.meta.url));
 const frontendSrcDir = fileURLToPath(new URL("./src/", import.meta.url));
@@ -21,13 +21,13 @@ const devAliases = {
     "@quinscape/qlive-ts": qliveTsDir + "src/index.ts",
 };
 
-const trackedFunctions = {
+const trackedFunctions : { [name: string]: TrackedFunctionSpec } = {
     i18n: {
         module: "@quinscape/qlive-ts", fn: "i18n",
         varArgs: true
     },
     inject: {
-        module: "@quinscape/qlive-ts", fn: "inject"
+        module: "@quinscape/qlive-ts", fn: "inject", allowIdentifier: true
     },
     GraphQLQuery: {
         module: "@quinscape/qlive-ts", fn: "GraphQLQuery"
@@ -41,13 +41,13 @@ export default defineConfig(({command}) => ({
         alias: command === "serve" ? devAliases : {},
     },
     plugins: [
-        react(),
         trackUsage({
             trackedFunctions,
             sourceRoot: frontendSrcDir,
             debug: false,
             pushUrl: `${backendOrigin}/_dev/track-usage`,
         }),
+        react(),
     ],
     build: {
         outDir: "dist",

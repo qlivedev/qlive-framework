@@ -36,6 +36,14 @@ export interface TrackUsagePluginOptions
     /** Absolute path to the directory tracking is scoped to. Must end with "/". */
     sourceRoot: string;
     debug?: boolean;
+    /**
+     * Records the source offsets ([start, end]) of every tracked call alongside its arguments. Consumers that
+     * rewrite the source at the call site (the QLive backend patches the result type into every
+     * `new GraphQLQuery<...>()`) cannot work without them, so leave this on unless you only need the
+     * argument values.
+     *
+     * Default: true.
+     */
     indexes?: boolean;
     /** Previously-built track-usage.json used to pre-seed dev mode. Default: <sourceRoot>/../dist/<outputFileName>. */
     seedFile?: string;
@@ -91,7 +99,7 @@ function runBabelOnFile(absPath: string, code: string, options: TrackUsagePlugin
                     trackedFunctions: options.trackedFunctions,
                     sourceRoot: relativeSourceRoot,
                     debug: options.debug,
-                    indexes: options.indexes,
+                    indexes: options.indexes ?? true,
                 },
             ],
         ],

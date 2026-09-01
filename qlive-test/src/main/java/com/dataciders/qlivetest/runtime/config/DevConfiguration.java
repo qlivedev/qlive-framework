@@ -9,9 +9,9 @@ import de.quinscape.spring.jsview.loader.JSONResourceConverter;
 import de.quinscape.spring.jsview.loader.ResourceHandle;
 import de.quinscape.spring.jsview.loader.ResourceLoader;
 import graphql.GraphQL;
-import jakarta.servlet.ServletContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -33,11 +33,37 @@ public class DevConfiguration
 
     public final static String TRACK_USAGE = "/static/track-usage.json";
 
+    /**
+     * <p>
+     *     Creates the service that writes generated result types back into the frontend's query modules.
+     * </p>
+     * <p>
+     *     {@code qlive.dev.ts-source} has to name the same directory as the track-usage Vite plugin's
+     *     {@code sourceRoot}, because the module paths in the pushed track-usage data are relative to it.
+     *     A relative value is resolved against the working directory the backend runs in.
+     * </p>
+     */
     @Bean
     @Profile("dev")
-    public GraphQLQueryTypingService hotReloadTypingService(DomainQL domainQL, ServletContext servletContext) throws IOException
+    public GraphQLQueryTypingService hotReloadTypingService(
+        DomainQL domainQL,
+        @Value("${qlive.dev.ts-source:frontend/src}")
+        String tsSource
+    ) throws IOException
     {
-        File tsSourcePath = new File(new File(servletContext.getRealPath("/")), "../../src/main/ts").getCanonicalFile();
+        final File tsSourcePath = new File(tsSource).getCanonicalFile();
+
+        // Fail here rather than once per push: a wrong directory otherwise only shows up as a recurring
+        // "Error updating TrackUsageData" from the debounce timer thread.
+        if (!tsSourcePath.isDirectory())
+        {
+            throw new IllegalStateException(
+                "qlive.dev.ts-source '" + tsSource + "' resolves to " + tsSourcePath +
+                    ", which is not a directory (working directory is " + new File("").getCanonicalPath() + ")"
+            );
+        }
+
+        log.info("Generating query types into {}", tsSourcePath);
 
         return new GraphQLQueryTypingService(
             domainQL,

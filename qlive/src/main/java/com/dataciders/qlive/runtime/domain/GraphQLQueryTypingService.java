@@ -47,7 +47,13 @@ public class GraphQLQueryTypingService
 
     private final File tsSourcePath;
 
-    final static Pattern RE_VAR_NAME = Pattern.compile(".*((export)\\s+?const\\s+([A-Za-z_]+))\\s*=.*", Pattern.DOTALL);
+    /**
+     * Finds the "export const <Name>" a tracked GraphQLQuery construction belongs to. The name is ASCII rather
+     * than a full TypeScript identifier on purpose: it doubles as the query's name, and a GraphQL Name is
+     * {@code [_A-Za-z][_0-9A-Za-z]*}. Upper case first, since query names are type-like.
+     */
+    final static Pattern RE_VAR_NAME =
+        Pattern.compile(".*((export)\\s+?const\\s+([A-Z][A-Za-z0-9_$]*))\\s*=.*", Pattern.DOTALL);
 
     final static Pattern RE_TYPE_PARAM = Pattern.compile("^new GraphQLQuery<(.*)>");
 
@@ -213,9 +219,32 @@ public class GraphQLQueryTypingService
             for (int i = 0; i < calls.size(); i++)
             {
                 List<?> call = calls.get(i);
-                List<?> index = indexes.get(i);
 
-                String query = (String) call.get(0);
+                if (call.isEmpty() || !(call.getFirst() instanceof String query))
+                {
+                    log.warn(
+                        "Ignoring GraphQLQuery construction #{} in module '{}': the query was not recorded as a " +
+                            "static string. Pass the query as a string or template literal without expressions.",
+                        i,
+                        modulePath
+                    );
+                    continue;
+                }
+
+                // Without the source offsets of the constructor call we cannot patch the result type back into
+                // the module, so there is nothing useful to do for this module.
+                List<?> index = i < indexes.size() ? indexes.get(i) : Collections.emptyList();
+                if (index.size() < 2)
+                {
+                    log.warn(
+                        "No source index recorded for GraphQLQuery construction #{} in module '{}'. Enable the " +
+                            "'indexes' option of babel-plugin-track-usage to generate query types.",
+                        i,
+                        modulePath
+                    );
+                    continue;
+                }
+
                 int start = ((Long) index.get(0)).intValue();
                 int end = ((Long) index.get(1)).intValue();
 

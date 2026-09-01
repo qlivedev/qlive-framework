@@ -1,25 +1,25 @@
 import {init, QLiveConfig} from "./config";
 import delay from "./util/delay";
-import isViteDev from "./util/isViteDev";
+import {isViteDev} from "./util/viteEnv";
+import {registerViews, ViewModules} from "./views";
 
-// Webpack/rspack-specific dynamic-import mechanism (`import.meta.webpackContext`),
-// used here to lazily load a page component by name at runtime. It has no
-// direct Vite equivalent by that name -- import.meta.webpackContext
-// categorically cannot work unmodified under Vite.
-//
-// Vite's equivalent capability is import.meta.glob()
-// (https://vite.dev/guide/features.html#glob-import): statically analyzed
-// at build time the same way, but it returns a map of matched file paths
-// to import functions instead of a context function you call directly.
-//
-// Not reimplemented now -- pick this back up with import.meta.glob() when
-// this dynamic-loading path is needed again.
-//
-// type ImportMetaWebpackContext = {
-//     (name : string) : Promise<any>
-//     keys: () => string[]
-//     resolve: (path: string) => void
-// }
+export interface StartupOptions
+{
+    /**
+     * The application's view modules, as produced by import.meta.glob().
+     *
+     * This is the Vite counterpart of the old `import.meta.webpackContext` lookup. Vite resolves
+     * import.meta.glob() at build time, relative to the file it appears in, and only accepts literal patterns
+     * -- so the call has to happen in the application, which knows where its views live, and the resulting map
+     * is handed to QLive here:
+     *
+     *     await startup({views: import.meta.glob("./app/**\/*.tsx")})
+     *
+     * Without the `eager` option the map holds loader functions, so a view module is only fetched once
+     * loadView() actually asks for it.
+     */
+    views?: ViewModules
+}
 
 // Server responds 503 while it isn't ready to provide a complete QLiveConfig yet (e.g.
 // booting, or -- in dev -- waiting on the first push from a Vite dev server that hasn't
@@ -38,8 +38,9 @@ async function fetchBootstrap(): Promise<QLiveConfig>
 }
 
 
-export async function startup(): Promise<void>
+export async function startup(options: StartupOptions = {}): Promise<void>
 {
+    registerViews(options.views ?? {});
 
     const elem = document.getElementById("root-data");
     const text = elem?.textContent;
@@ -72,9 +73,4 @@ export async function startup(): Promise<void>
     }
 
     return init(data);
-
-    // return webpackCtx("./Home.tsx").then(result => {
-    //        console.log("STARTUP", result)
-    //     return result.default
-    // }) as Promise<Function>
 }

@@ -37,6 +37,10 @@ const trackedFunctions : { [name: string]: TrackedFunctionSpec } = {
 const backendOrigin = "http://localhost:8080";
 
 export default defineConfig(({command}) => ({
+    // ViteIndexController serves the built index.html under /app/**, so the dev server serves the application
+    // from the same prefix. QLive's router derives its routes from this, which is why both sides agree on
+    // where a view lives.
+    base: "/app/",
     resolve: {
         alias: command === "serve" ? devAliases : {},
     },

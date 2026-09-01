@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.io.IOException;
@@ -28,6 +29,12 @@ import java.nio.charset.StandardCharsets;
 public class ViteIndexController
 {
     private final static Logger log = LoggerFactory.getLogger(ViteIndexController.class);
+
+    /**
+     * Vite's {@code build.assetsDir}, i.e. the directory below the build output that the emitted chunks land
+     * in. Its default; an application that reconfigures it has to keep this in sync.
+     */
+    private final static String ASSETS_DIR = "assets";
 
     private final static String PLACEHOLDER =
         "<script id=\"root-data\" type=\"x-application/view-data\"></script>";
@@ -62,7 +69,25 @@ public class ViteIndexController
     @GetMapping("/")
     public String root()
     {
-        return "redirect:/app/";
+        return "redirect:/app/home";
+    }
+
+
+    /**
+     * <p>
+     *     Hands requests for Vite's emitted assets back to the regular static resource handling.
+     * </p>
+     * <p>
+     *     The application's Vite {@code base} is {@code /app/}, so the built index.html references its chunks
+     *     as {@code /app/assets/...} -- which {@link #app()}'s {@code /app/**} mapping would otherwise answer
+     *     with the index page. This mapping is the more specific one and wins, forwarding to the location the
+     *     frontend build actually lands in ({@code classpath:/static/assets/}).
+     * </p>
+     */
+    @RequestMapping("/app/" + ASSETS_DIR + "/{*path}")
+    public String assets(@PathVariable String path)
+    {
+        return "forward:/" + ASSETS_DIR + path;
     }
 
 

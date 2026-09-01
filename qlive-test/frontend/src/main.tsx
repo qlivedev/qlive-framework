@@ -1,4 +1,5 @@
 import * as React from "react";
+import "./style.css"
 import {createRoot} from "react-dom/client";
 import {loadViewForPath, startup} from "@quinscape/qlive-ts";
 import TestComponent from "./component/TestComponent";

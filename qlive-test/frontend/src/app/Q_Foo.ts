@@ -1,4 +1,4 @@
-import {GraphQLQuery,} from "@quinscape/qlive-ts";
+import { GraphQLQuery } from "@quinscape/qlive-ts";
 import {AppUser, Foo, FooDocument, FooType} from "../types";
 
 export type Q_FooResult = {

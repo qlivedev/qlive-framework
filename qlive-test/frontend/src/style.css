@@ -1,0 +1,5 @@
+body
+{
+    background: var(--qlive-color-bg);
+    color: var(--qlive-color-fg);
+}

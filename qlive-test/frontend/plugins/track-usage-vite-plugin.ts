@@ -216,6 +216,8 @@ export default function trackUsage(options: TrackUsagePluginOptions): Plugin {
                 pushToServer();
             }
 
+            let errorCount = 0
+
             // Only "change" is handled live - adding, renaming or deleting a tracked
             // file requires a dev server restart to be reflected.
             server.watcher.on("change", (file) => {
@@ -224,7 +226,19 @@ export default function trackUsage(options: TrackUsagePluginOptions): Plugin {
                     return;
                 }
                 const code = fs.readFileSync(file, "utf-8");
-                runBabelOnFile(file, code, options);
+                try
+                {
+                    runBabelOnFile(file, code, options);
+                }
+                catch(e)
+                {
+                    if (errorCount === 0)
+                    {
+                        console.error("Error", e);
+                    }
+                    errorCount++
+                    return
+                }
                 if (mergeIntoDevData(file))
                 {
                     if (isDevMode)
@@ -233,6 +247,7 @@ export default function trackUsage(options: TrackUsagePluginOptions): Plugin {
                     }
                     server.ws.send({type: "full-reload"});
                 }
+                errorCount = 0
             });
         },
     };

@@ -1,8 +1,9 @@
 import * as React from "react";
 import "./style.css"
 import {createRoot} from "react-dom/client";
-import {loadViewForPath, startup} from "@quinscape/qlive-ts";
+import { loadViewForPath, startup } from "@quinscape/qlive-ts";
 import TestComponent from "./component/TestComponent";
+import ViteDevHome from "./component/ViteDevHome";
 
 import {Q_Foo, Q_FooResult} from "./app/Q_Foo";
 
@@ -19,29 +20,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     // has to be declared here rather than inside QLive. Without `eager` the map holds loader functions --
     // each view becomes its own chunk and is fetched the first time loadView() asks for it.
     await startup({
+        path: location.pathname,
         views: import.meta.glob("./app/**/*.tsx"),
     });
 
-    const root = createRoot(document.getElementById("root")!);
+    const container = document.getElementById("root");
+    if (!container){
+        throw new Error("View must have a #root element")
+    }
+    const root = createRoot(container);
 
     // The URL picks the view: /home renders app/Home.tsx, /sub/view renders app/sub/View.tsx. Its chunk is
     // fetched here, at the moment the route needs it -- nothing loaded it up to this point.
     let View: React.ComponentType;
-    try
+    if (location.pathname === "/app/")
     {
-        View = await loadViewForPath(location.pathname);
+        View = ViteDevHome
     }
-    catch (e)
+    else
     {
-        View = () => <p>{ String(e) }</p>;
+        try
+        {
+            View = await loadViewForPath(location.pathname);
+        }
+        catch (e)
+        {
+            View = () => <p>{ String(e) }</p>;
+        }
     }
 
     root.render(
         <React.StrictMode>
-            <TestComponent/>
-            <p>
-                { String(Q_Foo) }
-            </p>
             <View/>
         </React.StrictMode>,
     );

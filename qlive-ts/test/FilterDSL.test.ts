@@ -1,5 +1,5 @@
 import {describe, expect, test} from "vitest";
-import {and, field, or, value, type FilterExpression, type LogicalOperand} from "./FilterDSL";
+import {and, field, or, value, type FilterExpression, type LogicalOperand} from "../src/FilterDSL";
 
 /**
  * The logical composers are the functional alternative to the fluent style:

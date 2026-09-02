@@ -71,5 +71,9 @@ export default defineConfig(({command}) => ({
     },
     test: {
         environment: "jsdom",
+        // Tests live in test/, mirroring the src/ tree they cover, so src/ holds
+        // only application code. Spelling the pattern out means a stray
+        // *.test.ts under src/ is ignored rather than quietly running.
+        include: ["test/**/*.test.{ts,tsx}"],
     },
 }));

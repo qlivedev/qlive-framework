@@ -1,5 +1,5 @@
 import {describe, expect, test} from "vitest";
-import {parseQuery} from "./parseQuery";
+import {parseQuery} from "../../src/util/parseQuery";
 
 /**
  * The parser only needs to see the outline of a document - operation, name and

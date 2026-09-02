@@ -1,6 +1,6 @@
 package com.dataciders.qlivetest.runtime.config;
 
-import com.dataciders.qlive.runtime.service.QLiveConfigService;
+import com.dataciders.qlive.runtime.service.BootstrapService;
 import com.dataciders.qlive.runtime.controller.ViteIndexController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,19 +14,19 @@ import java.util.concurrent.TimeUnit;
 public class WebConfiguration
     implements WebMvcConfigurer
 {
-    private final QLiveConfigService qLiveConfigService;
+    private final BootstrapService bootstrapService;
 
 
-    public WebConfiguration(QLiveConfigService qLiveConfigService)
+    public WebConfiguration(BootstrapService bootstrapService)
     {
-        this.qLiveConfigService = qLiveConfigService;
+        this.bootstrapService = bootstrapService;
     }
 
 
     @Bean
     public ViteIndexController viteIndexController()
     {
-        return new ViteIndexController(qLiveConfigService);
+        return new ViteIndexController(bootstrapService);
     }
 
 

@@ -1,7 +1,7 @@
 package com.dataciders.qlive.runtime.controller;
 
-import com.dataciders.qlive.model.bootstrap.QLiveConfig;
-import com.dataciders.qlive.runtime.service.QLiveConfigService;
+import com.dataciders.qlive.model.bootstrap.QLiveBoostrap;
+import com.dataciders.qlive.runtime.service.BootstrapService;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,9 +13,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 /**
  * Serves Vite's own production build ({@code classpath:/static/index.html}) under
@@ -23,7 +25,7 @@ import java.nio.charset.StandardCharsets;
  * into the empty {@code #root-data} placeholder script tag that
  * {@code qlive-test/frontend/index.html} carries. In {@code vite dev}, nobody touches that
  * template, so the placeholder stays empty and the frontend falls back to fetching the same
- * data live from {@link #bootstrap()}.
+ * data live from {@link #bootstrap(String)}.
  */
 @Controller
 public class ViteIndexController
@@ -39,28 +41,44 @@ public class ViteIndexController
     private final static String PLACEHOLDER =
         "<script id=\"root-data\" type=\"x-application/view-data\"></script>";
 
-    private final QLiveConfigService qLiveConfigService;
+    private final BootstrapService bootstrapService;
 
     private String indexHtml;
 
 
-    public ViteIndexController(QLiveConfigService qLiveConfigService)
+    public ViteIndexController(BootstrapService bootstrapService)
     {
-        this.qLiveConfigService = qLiveConfigService;
+        this.bootstrapService = bootstrapService;
     }
 
 
     @GetMapping("/api/bootstrap")
-    public ResponseEntity<String> bootstrap()
+    public ResponseEntity<String> bootstrap(
+        @RequestParam(value = "path") String path
+    )
     {
-        final QLiveConfig qlConfig = qLiveConfigService.provideConfig();
-        if (qlConfig == null)
+        final QLiveBoostrap bs = bootstrapService.provideConfig(path);
+        if (bs == null)
         {
             return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
         }
 
         return new ResponseEntity<>(
-            JSONUtil.DEFAULT_GENERATOR.forValue(qlConfig),
+            JSONUtil.DEFAULT_GENERATOR.forValue(bs),
+            HttpStatus.OK
+        );
+    }
+
+
+    @GetMapping("/api/update")
+    public ResponseEntity<String> update(
+        @RequestParam(value = "path") String path
+    )
+    {
+        final Map<String, Object> data = bootstrapService.provideInjectionData(path);
+
+        return new ResponseEntity<>(
+            JSONUtil.DEFAULT_GENERATOR.forValue(data),
             HttpStatus.OK
         );
     }
@@ -79,7 +97,7 @@ public class ViteIndexController
      * </p>
      * <p>
      *     The application's Vite {@code base} is {@code /app/}, so the built index.html references its chunks
-     *     as {@code /app/assets/...} -- which {@link #app()}'s {@code /app/**} mapping would otherwise answer
+     *     as {@code /app/assets/...} -- which {@link #app(String)} ()}'s {@code /app/**} mapping would otherwise answer
      *     with the index page. This mapping is the more specific one and wins, forwarding to the location the
      *     frontend build actually lands in ({@code classpath:/static/assets/}).
      * </p>
@@ -91,8 +109,10 @@ public class ViteIndexController
     }
 
 
-    @RequestMapping("/app/**")
-    public ResponseEntity<String> app()
+    @RequestMapping("/app/{*path}")
+    public ResponseEntity<String> app(
+        @PathVariable String path
+    )
     {
         final String template = loadTemplate();
         if (template == null)
@@ -100,10 +120,10 @@ public class ViteIndexController
             return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
         }
 
-        final QLiveConfig qlConfig = qLiveConfigService.provideConfig();
+        final QLiveBoostrap bs = bootstrapService.provideConfig(path);
 
         // we replace a null config with "" to trigger
-        final String data = qlConfig != null ? JSONUtil.DEFAULT_GENERATOR.forValue(qlConfig) :"";
+        final String data = bs != null ? JSONUtil.DEFAULT_GENERATOR.forValue(bs) :"";
         final String html = template.replace(
             PLACEHOLDER,
             "<script id=\"root-data\" type=\"x-application/view-data\">" + data + "</script>"

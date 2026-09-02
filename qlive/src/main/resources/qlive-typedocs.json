@@ -144,6 +144,26 @@
     ]
   },
   {
+    "name":"QLiveBoostrap",
+    "description":null,
+    "fieldDocs":[
+      {
+        "name":"config",
+        "description":"QLive system config.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"data",
+        "description":"Injected data keyed by query name / query id",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
     "name":"QLiveConfig",
     "description":"Data embedded into the served page (or fetched live in dev) so the frontend can boot\nwith the same data regardless of how it got there.",
     "fieldDocs":[

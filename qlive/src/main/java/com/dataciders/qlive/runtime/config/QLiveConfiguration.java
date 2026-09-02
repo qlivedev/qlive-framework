@@ -1,6 +1,6 @@
 package com.dataciders.qlive.runtime.config;
 
-import com.dataciders.qlive.runtime.service.QLiveConfigService;
+import com.dataciders.qlive.runtime.service.BootstrapService;
 import com.dataciders.qlive.runtime.service.StreamResourceLoader;
 import de.quinscape.domainql.DomainQL;
 import com.dataciders.qlive.model.condition.ConditionParser;
@@ -28,9 +28,9 @@ public class QLiveConfiguration
     }
     
     @Bean
-    public QLiveConfigService qLiveConfigService(DomainQL domainQL) throws IOException
+    public BootstrapService bootstrapService(DomainQL domainQL) throws IOException
     {
-        return new QLiveConfigService(servletContext, domainQL);
+        return new BootstrapService(servletContext, domainQL);
     }
 
 

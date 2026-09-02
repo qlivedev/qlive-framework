@@ -16,7 +16,7 @@ public class QLiveBoostrap
     private Map<String,Object> data;
 
     /**
-     * QLive system config. Only present in the first call.
+     * QLive system config.
      */
     public JSONHolder getConfig()
     {

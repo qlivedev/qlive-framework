@@ -1,4 +1,5 @@
-import {GraphQLNamedTypeRef, GraphQLTypeRef} from "./GraphQLSchema";
+import {GraphQLNamedTypeRef, GraphQLType, GraphQLTypeRef} from "./GraphQLSchema";
+import config from "./config";
 
 export const LIST = "LIST"
 export const NON_NULL = "NON_NULL"
@@ -61,4 +62,16 @@ export function isListType(type: GraphQLTypeRef): boolean
 export function isNonNull(type: GraphQLTypeRef): boolean
 {
     return type.kind === NON_NULL;
+}
+
+export function findType(name: string) : GraphQLType
+{
+    const { schema, meta } = config()
+
+    const type = schema.types.find(t => t.name === name);
+    if (!type)
+    {
+        throw new Error(`Unable to find type "${name}"`);
+    }
+    return type;
 }

@@ -1,5 +1,6 @@
 export {QueryDocument, type QueryDocumentMethods} from "./QueryDocument";
 export {GraphQLQuery} from "./GraphQLQuery";
+export {parseQuery, type ParsedQuery, type QuerySelection, type OperationType} from "./util/parseQuery";
 export {default as inject} from "./inject";
 export {decompileFilter} from "./util/decompileFilter";
 export { startup, type StartupOptions } from "./startup";

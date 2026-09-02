@@ -1,4 +1,4 @@
-import {init, QLiveConfig} from "./config";
+import {init, QLiveBoostrap, QLiveConfig} from "./config";
 import delay from "./util/delay";
 import {isViteDev} from "./util/viteEnv";
 import {registerViews, ViewModules} from "./views";
@@ -13,39 +13,48 @@ export interface StartupOptions
      * -- so the call has to happen in the application, which knows where its views live, and the resulting map
      * is handed to QLive here:
      *
-     *     await startup({views: import.meta.glob("./app/**\/*.tsx")})
+     *     await startup({views: import.meta.glob("./app/**\/*.tsx"), ... })
      *
      * Without the `eager` option the map holds loader functions, so a view module is only fetched once
      * loadView() actually asks for it.
      */
-    views?: ViewModules
+    views: ViewModules
+
+    /**
+     *  Current path
+     */
+    path: string,
+
+
 }
 
 // Server responds 503 while it isn't ready to provide a complete QLiveConfig yet (e.g.
 // booting, or -- in dev -- waiting on the first push from a Vite dev server that hasn't
 // started). Retry until it is, rather than starting up with incomplete data.
-async function fetchBootstrap(): Promise<QLiveConfig>
+async function fetchBootstrap(path : string): Promise<QLiveBoostrap>
 {
     for (; ;)
     {
-        const response = await fetch("/api/bootstrap");
+        const response = await fetch(`/api/bootstrap?path=${path}`, {
+            method: "GET",
+        });
         if (response.ok)
         {
-            return await response.json() as QLiveConfig;
+            return await response.json() as QLiveBoostrap;
         }
         await delay(500);
     }
 }
 
 
-export async function startup(options: StartupOptions = {}): Promise<void>
+export async function startup(options: StartupOptions): Promise<void>
 {
     registerViews(options.views ?? {});
 
     const elem = document.getElementById("root-data");
     const text = elem?.textContent;
 
-    let data: QLiveConfig | undefined;
+    let bsData: QLiveBoostrap | undefined;
 
     // In production, ViteIndexController has spliced the current QLiveConfig into the
     // placeholder. In `vite dev`, nobody touches that placeholder, so it stays empty --
@@ -55,22 +64,22 @@ export async function startup(options: StartupOptions = {}): Promise<void>
     {
         try
         {
-            data = JSON.parse(text) as QLiveConfig;
+            bsData = JSON.parse(text) as QLiveBoostrap;
         } catch (e)
         {
             // fall through to the live fetch below
         }
     }
 
-    if (!data)
+    if (!bsData)
     {
         if (!isViteDev())
         {
             console.warn("Using injection fallback while not in vite dev mode")
         }
 
-        data = await fetchBootstrap();
+        bsData = await fetchBootstrap(options.path);
     }
 
-    return init(data);
+    return init(bsData);
 }

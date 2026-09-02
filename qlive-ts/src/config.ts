@@ -1,10 +1,12 @@
+import {GraphQLSchema} from "./GraphQLSchema";
+
 /**
  * Meta-information about types that are generic types on the Java side.
  *
  * For example, de.quinscape.qlive.model.QueryDocument<T> is the generic Java class for query documents. In the GraphQL
  * world, the same type is called FooDocument with Foo replacing the generic T.
  */
-type GenericTypeInfo = {
+export type GenericTypeInfo = {
     /**
      * GraphQL Type name
      */
@@ -22,14 +24,20 @@ type GenericTypeInfo = {
 /**
  * Describe a relation within the domain
  */
-type RelationInfo = {
-
+export type RelationInfo = {
 
     /**
      * Right side type of the relation
      */
     targetType: string,
-    leftSideObjectName: "fooType",
+    /**
+     * Generated GraphQL field of the left / source side of the relation
+     */
+    leftSideObjectName?: string,
+    /**
+     * Generated GraphQL field of the right / target side of the relation
+     */
+    rightSideObjectName?: string,
 
     /**
      * SourceField enum. Controlled the GraphQL fields on the left side
@@ -52,7 +60,7 @@ type RelationInfo = {
     /**
      * Name of the relation
      */
-    id: string,
+    id?: string,
 
     /**
      * Fields on the left side table forming the foreign key
@@ -62,7 +70,7 @@ type RelationInfo = {
     /**
      * Fields on the right side table the foreign key is pointing to
      */
-    targetFields: ["name"]
+    targetFields: [string]
 }
 
 type SourceField =
@@ -101,11 +109,18 @@ type TargetField =
     /** Assume the foreign key to represent a many-to-one relationship and embed a list of back references.*/
     "MANY"
 
+export type QLiveBoostrap = {
+    config: QLiveConfig | null;
+    data: {
+        [key: string]: any;
+    }
+}
 export type QLiveConfig = {
     /**
      * Relative path of the QLive server
      */
     contextPath: string;
+    schema: GraphQLSchema
     meta: DomainQLMeta
 }
 
@@ -119,9 +134,9 @@ export type DomainQLMeta = {
      */
     types: {
         [typeName: string]: DomainQLTypeMeta
-    },
-    genericTypes: Array<GenericTypeInfo>,
-    relations: Array<RelationInfo>
+    }
+    genericTypes: GenericTypeInfo[]
+    relations: RelationInfo[]
 }
 
 export type DomainQLTypeMeta = {

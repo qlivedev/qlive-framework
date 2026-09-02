@@ -7,3 +7,37 @@ export { loadView, viewNames, routeNames, type ViewModules } from "./views";
 export { loadViewForPath, appBase, routeOf, urlOf } from "./router";
 export { default as i18n } from "./i18n";
 export * as FilterDSL from "./FilterDSL";
+export { default as config } from "./config";
+export { unwrapAll, unwrapNonNull, isListType, isNonNull, LIST, NON_NULL} from "./type-utils";
+
+// TYPESCRIPT TYPES
+export type {
+    GraphQLSchema,
+    GraphQLType,
+    GraphQLScalarType,
+    GraphQLObjectType,
+    GraphQLInterfaceType,
+    GraphQLUnionType,
+    GraphQLEnumType,
+    GraphQLInputObjectType,
+    GraphQLField,
+    GraphQLInputValue,
+    GraphQLEnumValue,
+    GraphQLTypeRef,
+    GraphQLNamedTypeRef,
+    GraphQLModifiedTypeRef,
+    GraphQLList,
+    GraphQLNonNull,
+    GraphQLTypeKind,
+    GraphQLNamedTypes,
+    GraphQLModifiedTypes
+} from "./GraphQLSchema";
+
+export type {
+    DomainQLMeta,
+    DomainQLTypeMeta,
+    GenericTypeInfo,
+    RelationInfo,
+    QLiveConfig,
+    QLiveBoostrap
+} from "./config"

@@ -20,7 +20,7 @@
  * Kind of a named type, i.e. one of the graphql.schema.GraphQLNamedType
  * implementations.
  */
-export type GraphQLNamedTypeKind =
+export type GraphQLNamedTypes =
     "SCALAR" |
     "OBJECT" |
     "INTERFACE" |
@@ -32,17 +32,17 @@ export type GraphQLNamedTypeKind =
  * Kind of a type modifier, i.e. one of the graphql.schema.GraphQLModifiedType
  * implementations wrapping another type.
  */
-export type GraphQLModifiedTypeKind =
+export type GraphQLModifiedTypes =
     "LIST" |
     "NON_NULL"
 
-export type GraphQLTypeKind = GraphQLNamedTypeKind | GraphQLModifiedTypeKind
+export type GraphQLTypeKind = GraphQLNamedTypes | GraphQLModifiedTypes
 
 /**
  * Reference to one of the named types in GraphQLSchema.types.
  */
 export type GraphQLNamedTypeRef = {
-    kind: GraphQLNamedTypeKind
+    kind: GraphQLNamedTypes
     name: string
     /**
      * Named types wrap nothing. Missing on the innermost level (see
@@ -54,7 +54,7 @@ export type GraphQLNamedTypeRef = {
 /**
  * LIST modifier wrapping another type reference. Has no name of its own.
  */
-export type GraphQLListTypeRef = {
+export type GraphQLList = {
     kind: "LIST"
     name: null
     /**
@@ -70,7 +70,7 @@ export type GraphQLListTypeRef = {
 /**
  * NON_NULL modifier wrapping another type reference. Has no name of its own.
  */
-export type GraphQLNonNullTypeRef = {
+export type GraphQLNonNull = {
     kind: "NON_NULL"
     name: null
     /**
@@ -83,7 +83,7 @@ export type GraphQLNonNullTypeRef = {
 /**
  * One of the two type modifiers (graphql.schema.GraphQLModifiedType)
  */
-export type GraphQLModifiedTypeRef = GraphQLListTypeRef | GraphQLNonNullTypeRef
+export type GraphQLModifiedTypeRef = GraphQLList | GraphQLNonNull
 
 /**
  * Reference to the type of a field, argument or input field, i.e. a named type

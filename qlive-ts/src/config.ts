@@ -1,4 +1,5 @@
 import {GraphQLSchema} from "./GraphQLSchema";
+import {initData} from "./data";
 
 /**
  * Meta-information about types that are generic types on the Java side.
@@ -109,10 +110,22 @@ type TargetField =
     /** Assume the foreign key to represent a many-to-one relationship and embed a list of back references.*/
     "MANY"
 
+export type InjectionSource = {
+    data: any,
+    type: string,
+    meta: any
+}
+
+export type Injection = {
+    value: any,
+    type: string,
+    meta: any
+}
+
 export type QLiveBoostrap = {
     config: QLiveConfig | null;
     data: {
-        [key: string]: any;
+        [key: string]: InjectionSource;
     }
 }
 export type QLiveConfig = {
@@ -156,6 +169,7 @@ let theConfig: QLiveConfig | null = null
 export function init(config: QLiveConfig)
 {
     theConfig = config
+    initData(data)
 
     console.log("INIT ", config)
 

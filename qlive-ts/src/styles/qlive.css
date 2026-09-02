@@ -41,6 +41,10 @@
         --qlive-radius-md: 0.375rem;
 
         --qlive-font-sans: system-ui, sans-serif;
+        --qlive-font-size-sm: 0.7em;
+        --qlive-font-size: 1em;
+        --qlive-font-size-lg: 1.2em;
+
     }
 
     /*
@@ -69,5 +73,89 @@
         background: var(--qlive-color-bg);
         color: var(--qlive-color-fg);
         font-family: var(--qlive-font-sans);
+    }
+
+    small,.domain-type .small {
+        font-size: var(--qlive-font-size-sm);
+        color: var(--qlive-color-muted);
+    }
+
+    .domain-type h1
+    {
+        font-size: var(--qlive-font-size-lg);
+        color: var(--qlive-color-accent);
+    }
+    .domain-type
+    {
+        border: 1px solid var(--qlive-color-border);
+        border-radius: var(--qlive-radius-md);
+        padding: var(--qlive-space-2) var(--qlive-space-3);
+        margin: var(--qlive-space-2) var(--qlive-space-3);
+        background: var(--qlive-color-bg);
+        color: var(--qlive-color-fg);
+        font-family: var(--qlive-font-sans);
+    }
+    .search-bar
+    {
+        display: inline-block;
+        border: 1px solid var(--qlive-color-border);
+        border-radius: var(--qlive-radius-md);
+        padding: var(--qlive-space-2) var(--qlive-space-3);
+        margin: var(--qlive-space-2) var(--qlive-space-3);
+        background: var(--qlive-color-bg);
+        color: var(--qlive-color-fg);
+        font-family: var(--qlive-font-sans);
+    }
+
+    .btn, .search-bar input
+    {
+        display: inline-block;
+        border: 1px solid var(--qlive-color-border);
+        border-radius: var(--qlive-radius-md);
+        padding: var(--qlive-space-1) var(--qlive-space-2);
+        background: var(--qlive-color-bg);
+        color: var(--qlive-color-fg);
+        font-family: var(--qlive-font-sans);
+    }
+
+
+    summary{
+        font-size: var(--qlive-font-size);
+        font-weight: bold;
+    }
+    .domain-type table
+    {
+        border: 1px solid var(--qlive-color-border);
+        padding: 0;
+        border-collapse: collapse;
+    }
+    .domain-type tr
+    {
+        padding: 0;
+        margin: 0
+    }
+
+    .domain-type tr a
+    {
+        color: var(--qlive-color-muted);
+        font-weight: bold;
+        text-decoration: none;
+    }
+
+    .domain-type tr a:hover,.domain-type tr a:focus
+    {
+        color: var(--qlive-color-fg);
+        text-decoration: underline;
+    }
+
+    .domain-type th
+    {
+    }
+    .domain-type td,.domain-type th
+    {
+        font-size: var(--qlive-font-size);
+        border: 1px solid var(--qlive-color-border);
+        padding: var(--qlive-space-1) var(--qlive-space-2);
+        margin: 0
     }
 }

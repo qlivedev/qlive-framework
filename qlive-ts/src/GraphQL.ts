@@ -2,18 +2,18 @@ import {ConditionNode, FieldNode, RawValue} from "./FilterDSL"
 
 type Scalar = boolean | number | string | bigint;
 
-type GenericBigDecimal = {
+export type GenericBigDecimal = {
     scalarType: "BigDecimal"
     value: bigint
 }
 
-type GenericByte = {
+export type GenericByte = {
     scalarType: "Byte"
     value: number
 }
 
 
-type GenericComputedValue = {
+export type GenericComputedValue = {
     scalarType: "ComputedValue"
     value: {
         name: string,
@@ -22,43 +22,43 @@ type GenericComputedValue = {
 }
 
 
-type GenericCondition = {
+export type GenericCondition = {
     scalarType: "Condition"
     value: ConditionNode
 }
 
 
-type GenericDate = {
+export type GenericDate = {
     scalarType: "Date"
     value: string
 }
 
 
-type GenericDomainObject = {
+export type GenericDomainObject = {
     scalarType: "DomainObject"
     value: object
 }
 
 
-type GenericFieldExpression = {
+export type GenericFieldExpression = {
     scalarType: "FieldExpression"
     value: string | FieldNode
 }
 
 
-type GenericJSONB = {
+export type GenericJSONB = {
     scalarType: "JSONB"
     value: RawValue
 }
 
 
-type GenericLong = {
+export type GenericLong = {
     scalarType: "Long"
     value: bigint
 }
 
 
-type GenericTimestamp = {
+export type GenericTimestamp = {
     scalarType: "Timestamp"
     value: string
 }

@@ -2,7 +2,7 @@ import {FieldExpression, FilterExpression} from "./FilterDSL";
 import {GraphQLQuery} from "./GraphQLQuery";
 
 
-interface QueryConfig
+export interface QueryConfig
 {
     // Data only - serialised into the GraphQL query, never called on.
     // Accepts both styles: fluent (a.and(b)) and functional (and(a, b)),

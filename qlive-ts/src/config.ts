@@ -75,7 +75,7 @@ export type RelationInfo = {
     targetFields: [string]
 }
 
-type SourceField =
+export type SourceField =
 /**
  * Ignore field for source type.
  */
@@ -99,7 +99,7 @@ type SourceField =
      */
     "OBJECT_AND_SCALAR"
 
-type TargetField =
+export type TargetField =
 /**
  * Do nothing on target side.
  */

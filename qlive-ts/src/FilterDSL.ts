@@ -128,7 +128,7 @@ const validTypeValues = [
     "Component"
 ]
 
-type Typed = { type: string };
+export type Typed = { type: string };
 
 /**
  * Returns true if the given value is a condition node.

@@ -128,7 +128,7 @@ export type GraphQLEnumValue = {
     deprecationReason: string | null
 }
 
-type GraphQLNamedTypeBase = {
+export type GraphQLNamedTypeBase = {
     name: string
     description: string | null
 }

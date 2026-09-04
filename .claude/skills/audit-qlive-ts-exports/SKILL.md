@@ -43,9 +43,11 @@ If a public function takes it or hands it back, it is public.
 **Keep it internal** when it is one of:
 
 - *Lifecycle* -- `startup()` calls it, in an order that matters. Calling it by
-  hand leaves the framework half-initialized.
-- *Plumbing behind a public entry point* -- a raw `graphql()` fetch that skips
-  value conversion, when `GraphQLQuery.execute()` is the supported path.
+  hand leaves the framework half-initialized. `init`, `initConverters`,
+  `initData`, `registerViews`.
+- *A step inside a public function* -- it exists because that function had to be
+  written in more than one piece, and it computes nothing an application would
+  ask for on its own. `buildConversionMap`, `viewNameForRoute`.
 - *Machinery* -- constants and mapped-type helpers that generate an exported
   type. The generated type is what an application names.
 - *A local alias* whose name would be too generic at package scope.
@@ -55,6 +57,26 @@ Then add it to the `DELIBERATELY NOT EXPORTED` section with the reason. That
 section is the point of the whole exercise: it is what makes the next run of this
 audit a short one, and it is what tells the next reader that an absence was a
 decision rather than an oversight.
+
+### Do not withhold a lower-level entry point
+
+The tempting category is "there is a nicer function for this, so the plain one
+stays in". It is nearly always wrong, and it is the mistake this audit made on
+its first run: `graphql()` and `data()` were held back behind
+`GraphQLQuery.execute()` and `inject()` until the framework's author overruled
+it.
+
+The convenient wrapper covers the common case, never all of it -- a query with
+several top-level selections has no single value to unwrap to, and an injection
+read for its type or meta rather than its value has no other route. Withholding
+the lower level does not stop an application from going there; it makes it
+reimplement the function, worse, against internals that are free to move.
+
+So: if it works, and someone would reasonably call it, export it. Then say in
+its JSDoc what the higher-level path does that it does not -- that is where the
+distinction belongs, not in an absence nobody can see. Withhold a working
+function only when calling it would actually break something, which is what the
+lifecycle category is.
 
 When a type genuinely belongs to the public API but its module never marked it
 `export`, add the `export` there first, then re-export from `index.ts`.

@@ -54,11 +54,5 @@ public class QLiveConfiguration
     {
         return new ConditionParser();
     }
-
-    @PreDestroy
-    public void destroy(ResourceLoader resourceLoader)
-    {
-        resourceLoader.shutDown();
-    }
-
+    
 }

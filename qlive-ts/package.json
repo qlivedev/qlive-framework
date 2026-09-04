@@ -22,6 +22,7 @@
   ],
   "scripts": {
     "build": "tsc --noEmit && tsdown",
+    "check-exports": "node tooling/checkExports.mjs",
     "watch": "tsdown -w",
     "test": "vitest run"
   },

@@ -170,7 +170,4 @@ export type {
  *
  *   GraphQL.Scalar                      "boolean | number | string | bigint",
  *                                       the argument type of a computed value
- *
- * Not API yet:
- *
  */

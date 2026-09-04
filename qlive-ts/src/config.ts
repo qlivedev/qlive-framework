@@ -1,4 +1,4 @@
-import {GraphQLSchema} from "./GraphQLSchema";
+import {GraphQLSchema, GraphQLType} from "./GraphQLSchema";
 import {initData} from "./data";
 import {initConverters, QueryConversionMap} from "./converter";
 

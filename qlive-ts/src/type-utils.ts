@@ -64,11 +64,19 @@ export function isNonNull(type: GraphQLTypeRef): boolean
     return type.kind === NON_NULL;
 }
 
+/**
+ * Returns the named type of the given name.
+ *
+ * @param name      GraphQL type name
+ *
+ * @returns the type
+ * @throws if the schema has no type of that name
+ */
 export function findType(name: string) : GraphQLType
 {
-    const { schema, meta } = config()
+    const { typesByName } = config()
 
-    const type = schema.types.find(t => t.name === name);
+    const type = typesByName!.get(name);
     if (!type)
     {
         throw new Error(`Unable to find type "${name}"`);
@@ -82,11 +90,7 @@ export function findType(name: string) : GraphQLType
  */
 export function isQueryDocumentType(type: string): boolean
 {
-    const { meta } = config()
+    const { queryDocumentTypes } = config()
 
-    return !!meta.genericTypes.find(
-        ({type : typeName, genericType}) => (
-            type === typeName && genericType === "de.quinscape.qlive.model.QueryDocument"
-        )
-    )
+    return queryDocumentTypes!.has(type);
 }

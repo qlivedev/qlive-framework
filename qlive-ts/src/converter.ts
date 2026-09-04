@@ -405,13 +405,11 @@ const queryDocumentConverter: Converter<any, QueryDocument<any>> = {
  */
 export function initConverters(): void
 {
-    const {meta} = config()
+    const { queryDocumentTypes } = config()
 
-    const genericTypes = meta.genericTypes ?? []
-    for (let i = 0; i < genericTypes.length; i++)
+    for (const type of queryDocumentTypes!)
     {
-        const {type} = genericTypes[i];
-        if (isQueryDocumentType(type) && !converterRegistry[type])
+        if (!converterRegistry[type])
         {
             registerConverter(type, queryDocumentConverter)
         }

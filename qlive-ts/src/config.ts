@@ -150,7 +150,12 @@ export type QLiveConfig = {
      */
     contextPath: string;
     schema: GraphQLSchema
-    meta: DomainQLMeta
+    meta: DomainQLMeta,
+
+    // client-side only
+    queryDocumentTypes?: Set<string>
+    typesByName?: Map<string, GraphQLType>
+
 }
 
 /**

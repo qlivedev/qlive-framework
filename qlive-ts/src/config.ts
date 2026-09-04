@@ -166,12 +166,27 @@ export type DomainQLTypeMeta = {
 
 let theConfig: QLiveConfig | null = null
 
-export function init(config: QLiveConfig)
+function logObject(label : string, data: {[key : string] : any})
 {
+    console.groupCollapsed(label)
+    const keys = Object.keys(data)
+    for (let i = 0; i < keys.length; i++)
+    {
+        const key = keys[i];
+        console.log(key, " =", data[key])
+    }
+    console.groupEnd()
+}
+
+export function init(bs : QLiveBoostrap)
+{
+    const { config, data } = bs
+
     theConfig = config
     initData(data)
 
-    console.log("INIT ", config)
+    logObject("CONFIG", config as {[key : string] : any});
+    logObject("INJECTED", data);
 
     return Promise.resolve()
 }

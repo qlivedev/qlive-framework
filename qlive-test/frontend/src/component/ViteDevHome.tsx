@@ -67,7 +67,7 @@ function handleJump(targetId: string, setFilter: (filter: string) => void, sourc
 
         setTimeout(
             () => {
-                location.ref = "#" + targetId;
+                location.href = "#" + targetId;
             },
             200
         )

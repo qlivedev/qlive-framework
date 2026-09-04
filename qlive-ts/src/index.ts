@@ -173,6 +173,4 @@ export type {
  *
  * Not API yet:
  *
- *   components/InjectionProvider.InjectionContext
- *                                       an empty stub, nothing to use yet
  */

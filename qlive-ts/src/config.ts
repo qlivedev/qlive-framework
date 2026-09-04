@@ -187,16 +187,37 @@ export type DomainQLTypeMeta = {
 
 let theConfig: QLiveConfig | null = null
 
-function logObject(label : string, data: {[key : string] : any})
+function logObject(label : string, data: {[key : string] : any}, logger : ((data: {[key : string] : any}, key: string) => void)): void
 {
     console.groupCollapsed(label)
     const keys = Object.keys(data)
+
     for (let i = 0; i < keys.length; i++)
     {
         const key = keys[i];
-        console.log(key, " =", data[key])
+        logger(data, key)
     }
     console.groupEnd()
+}
+
+const notLogged = new Set([
+    // is derived and can be looked up in meta.genericTypes
+    "queryDocumentTypes",
+    // is derived and just another way of looking at schema.types
+    "typesByName"
+])
+
+function initializeDerivedConfig(theConfig: QLiveConfig)
+{
+    theConfig.typesByName = new Map<string, GraphQLType>(
+        theConfig.schema.types.map(t => [t.name, t])
+    )
+
+    theConfig.queryDocumentTypes = new Set<string>(
+        theConfig.meta.genericTypes
+            .filter(gt => gt.genericType === "com.dataciders.qlive.model.QueryDocument")
+            .map(gt => gt.type)
+    )
 }
 
 export function init(bs : QLiveBoostrap)
@@ -206,14 +227,29 @@ export function init(bs : QLiveBoostrap)
     theConfig = config
     if (theConfig)
     {
+        initializeDerivedConfig(theConfig);
+
         // the converters for the QueryDocument derived types come out of the config,
         // and initData() converts, so this has to happen in between
         initConverters()
     }
     initData(data)
 
-    logObject("CONFIG", config as {[key : string] : any});
-    logObject("INJECTED", data);
+    logObject(
+        "CONFIG",
+        config as {[key : string] : any},
+        (data: {[key : string] : any}, key: string) : void => {
+            if (!notLogged.has(key))
+            {
+                console.log(key, data[key])
+            }
+        }
+    );
+    logObject(
+        "INJECTED",
+        data,
+        (data, key) => console.log(key, data[key].data, "( type = \"" + data[key].type+ "\" )", "meta = ", data[key].meta),
+    );
 
     return Promise.resolve()
 }

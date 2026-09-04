@@ -73,7 +73,7 @@ export default function graphql<T>(query: GraphQLQuery<T> | string, params: Grap
             {
                 return Promise.reject(new Error("GraphQL error: " + JSON.stringify(data.errors)));
             }
-            const t = data as T;
+            const t = data.data as T;
             queryInstance.register(t);
             return t
         })

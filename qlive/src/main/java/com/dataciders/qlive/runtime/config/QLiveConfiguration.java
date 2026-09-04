@@ -1,6 +1,7 @@
 package com.dataciders.qlive.runtime.config;
 
 import com.dataciders.qlive.runtime.service.BootstrapService;
+import com.dataciders.qlive.runtime.service.DefaultBootstrapService;
 import com.dataciders.qlive.runtime.service.StreamResourceLoader;
 import de.quinscape.domainql.DomainQL;
 import com.dataciders.qlive.model.condition.ConditionParser;
@@ -30,7 +31,7 @@ public class QLiveConfiguration
     @Bean
     public BootstrapService bootstrapService(DomainQL domainQL) throws IOException
     {
-        return new BootstrapService(servletContext, domainQL);
+        return new DefaultBootstrapService(servletContext, domainQL);
     }
 
 

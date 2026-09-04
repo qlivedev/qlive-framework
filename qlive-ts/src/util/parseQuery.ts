@@ -1,11 +1,15 @@
 /**
  * Minimal structural parser for the GraphQL documents qlive works with.
  *
- * It is deliberately not a GraphQL parser: we only need the operation kind, the
- * operation name and the top-level selections with both sides of an alias. Every
- * other piece of syntax - arguments, variable definitions, directives, fragments,
- * nested selections - is skipped over in a balanced way so that documents using
- * those features still parse instead of failing the framework user.
+ * It is deliberately not a GraphQL parser. What it does model is what building a
+ * conversion map needs: the operation kind and name, the variable definitions, and
+ * the selections with both sides of an alias, nested all the way down. Arguments and
+ * directives are skipped over in a balanced way so that documents using them still
+ * parse instead of failing the framework user.
+ *
+ * Fragments are not modelled. A document using them still parses - the spread simply
+ * contributes no selections - but the fact is recorded in usesFragments, because a
+ * conversion map built from such a document would silently lack those fields.
  */
 
 export type OperationType = "query" | "mutation" | "subscription"
@@ -18,6 +22,8 @@ export interface QuerySelection
     name: string
     /** key the field's value appears under in the result: alias if given, else name */
     key: string
+    /** selections below this one, empty for a leaf */
+    selections: QuerySelection[]
 }
 
 export interface ParsedQuery
@@ -28,6 +34,16 @@ export interface ParsedQuery
     name: string | null
     /** top-level selections of the operation */
     selections: QuerySelection[]
+    /**
+     * Variable definitions of the operation, with the type as it was written,
+     * e.g. { config: "QueryConfig!" }
+     */
+    variables: { [name: string]: string }
+    /**
+     * True if the document used a fragment spread or an inline fragment. Their
+     * fields are not part of the selections above.
+     */
+    usesFragments: boolean
 }
 
 const NAME_START = /[_A-Za-z]/
@@ -48,10 +64,14 @@ class Scanner
     private readonly src: string;
     private pos: number;
 
+    /** set once a fragment spread or inline fragment was skipped, see ParsedQuery */
+    usesFragments: boolean;
+
     constructor(src: string)
     {
         this.src = src;
         this.pos = 0;
+        this.usesFragments = false;
     }
 
     atEnd(): boolean
@@ -174,6 +194,46 @@ class Scanner
         }
     }
 
+    /**
+     * Reads a type reference at the cursor, e.g. "Int", "[Foo!]!". Returned as
+     * written: the modifiers are the caller's business.
+     */
+    readTypeRef(): string
+    {
+        const start = this.pos;
+        while (!this.atEnd() && /[\[\]!]/.test(this.peek()) || (!this.atEnd() && NAME_CHAR.test(this.peek())))
+        {
+            this.pos++
+        }
+        return this.src.slice(start, this.pos)
+    }
+
+    /** skips a single value, e.g. the default of a variable definition */
+    skipValue(): void
+    {
+        this.skipIgnored()
+        const c = this.peek();
+        if (c === '"')
+        {
+            this.skipString()
+        }
+        else if (c === "[")
+        {
+            this.skipBalanced("[", "]")
+        }
+        else if (c === "{")
+        {
+            this.skipBalanced("{", "}")
+        }
+        else
+        {
+            while (!this.atEnd() && !/[\s,)]/.test(this.peek()))
+            {
+                this.pos++
+            }
+        }
+    }
+
     /** skips any number of directives, including their arguments */
     skipDirectives(): void
     {
@@ -219,10 +279,13 @@ export function parseQuery(query: string): ParsedQuery
         if (scanner.peek() === "{")
         {
             // anonymous shorthand: `{ ... }` is a query without name
+            const selections = parseSelectionSet(scanner);
             return {
                 operation: "query",
                 name: null,
-                selections: parseSelectionSet(scanner)
+                selections,
+                variables: {},
+                usesFragments: scanner.usesFragments
             }
         }
 
@@ -266,11 +329,7 @@ function parseOperation(scanner: Scanner, operation: OperationType): ParsedQuery
     const name = scanner.readName();
 
     scanner.skipIgnored()
-    if (scanner.peek() === "(")
-    {
-        // variable definitions
-        scanner.skipBalanced("(", ")")
-    }
+    const variables = scanner.peek() === "(" ? parseVariableDefinitions(scanner) : {};
     scanner.skipDirectives()
 
     scanner.skipIgnored()
@@ -279,17 +338,76 @@ function parseOperation(scanner: Scanner, operation: OperationType): ParsedQuery
         throw new Error("Expected selection set of " + operation + " " + (name || "") )
     }
 
+    const selections = parseSelectionSet(scanner);
+
     return {
         operation,
         name,
-        selections: parseSelectionSet(scanner)
+        selections,
+        variables,
+        usesFragments: scanner.usesFragments
     }
 }
 
 /**
- * Parses the selection set at the cursor, collecting its own selections. Nested
- * selection sets are skipped - the structure below the top level is described by
- * the result type, not by us.
+ * Parses the variable definitions of an operation, e.g. `($config: QueryConfig!)`.
+ * Their types are what the outbound conversion walks the variable values along.
+ */
+function parseVariableDefinitions(scanner: Scanner): { [name: string]: string }
+{
+    const variables: { [name: string]: string } = {};
+
+    // consume the opening paren
+    scanner.advance()
+
+    while (true)
+    {
+        scanner.skipIgnored()
+        if (scanner.atEnd())
+        {
+            throw new Error("Unterminated variable definitions")
+        }
+
+        if (scanner.peek() === ")")
+        {
+            scanner.advance()
+            return variables
+        }
+
+        if (scanner.peek() !== "$")
+        {
+            // not a variable definition: step over it rather than failing the document
+            scanner.advance()
+            continue
+        }
+
+        scanner.advance()
+        const name = scanner.readName();
+        scanner.skipIgnored()
+        if (scanner.peek() === ":")
+        {
+            scanner.advance()
+            scanner.skipIgnored()
+            const type = scanner.readTypeRef();
+            if (name && type)
+            {
+                variables[name] = type
+            }
+        }
+
+        scanner.skipIgnored()
+        if (scanner.peek() === "=")
+        {
+            scanner.advance()
+            scanner.skipValue()
+        }
+        scanner.skipDirectives()
+    }
+}
+
+/**
+ * Parses the selection set at the cursor, collecting its selections and, for each of
+ * them, the selection set below it.
  */
 function parseSelectionSet(scanner: Scanner): QuerySelection[]
 {
@@ -315,7 +433,8 @@ function parseSelectionSet(scanner: Scanner): QuerySelection[]
 
         if (c === ".")
         {
-            // fragment spread or inline fragment: contributes no field of its own
+            // fragment spread or inline fragment: contributes no selections we model
+            scanner.usesFragments = true
             while (scanner.peek() === ".")
             {
                 scanner.advance()
@@ -363,15 +482,13 @@ function parseSelectionSet(scanner: Scanner): QuerySelection[]
         scanner.skipDirectives()
 
         scanner.skipIgnored()
-        if (scanner.peek() === "{")
-        {
-            scanner.skipBalanced("{", "}")
-        }
+        const nested = scanner.peek() === "{" ? parseSelectionSet(scanner) : [];
 
         selections.push({
             alias,
             name,
-            key: alias || name
+            key: alias || name,
+            selections: nested
         })
     }
 }

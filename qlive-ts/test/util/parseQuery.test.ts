@@ -2,12 +2,16 @@ import {describe, expect, test} from "vitest";
 import {parseQuery} from "../../src/util/parseQuery";
 
 /**
- * The parser only needs to see the outline of a document - operation, name and
- * the top-level selections with both sides of an alias. Everything below that is
- * described by the TypeScript result type, so it only has to be skipped without
- * tripping over its syntax.
+ * The parser sees what building a conversion map needs: operation, name, variable
+ * definitions and the selections with both sides of an alias, nested all the way
+ * down. Arguments and directives only have to be skipped without tripping over
+ * their syntax.
  */
 describe("parseQuery", () => {
+
+    /** a selection without a selection set of its own */
+    const leaf = (name: string, alias: string | null = null) =>
+        ({alias, name, key: alias ?? name, selections: []});
 
     const Q_FOO = `query Q_Foo($config: QueryConfig!) {
         xxx: queryFooDocument(config: $config) {
@@ -30,13 +34,53 @@ describe("parseQuery", () => {
         }
     }`;
 
-    test("extracts operation, name and aliased selection", () => {
+    test("extracts operation, name, variables and the selection tree", () => {
         expect(parseQuery(Q_FOO)).toEqual({
             operation: "query",
             name: "Q_Foo",
+            variables: {config: "QueryConfig!"},
+            usesFragments: false,
             selections: [
-                {alias: "xxx", name: "queryFooDocument", key: "xxx"}
+                {
+                    alias: "xxx", name: "queryFooDocument", key: "xxx", selections: [
+                        leaf("type"),
+                        leaf("config"),
+                        {
+                            alias: null, name: "rows", key: "rows", selections: [
+                                leaf("id"),
+                                leaf("name"),
+                                leaf("description", "desc"),
+                                {
+                                    alias: null, name: "owner", key: "owner", selections: [
+                                        leaf("id"),
+                                        leaf("login")
+                                    ]
+                                },
+                                {
+                                    alias: null, name: "fooType", key: "fooType", selections: [
+                                        leaf("name", "id"),
+                                        leaf("ordinal")
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
             ]
+        });
+    });
+
+    test("reads variable definitions with defaults and lists", () => {
+        const parsed = parseQuery(`query Q_Vars(
+            $config: QueryConfig! = { pageSize: 10 }
+            $ids: [String!]
+            $since: Timestamp = "2026-01-02T03:04:05Z"
+        ) { foo }`);
+
+        expect(parsed.variables).toEqual({
+            config: "QueryConfig!",
+            ids: "[String!]",
+            since: "Timestamp"
         });
     });
 
@@ -49,10 +93,11 @@ describe("parseQuery", () => {
 
         expect(parsed.operation).toBe("mutation");
         expect(parsed.name).toBe("M_Update");
+        expect(parsed.variables).toEqual({foo: "FooInput!"});
         expect(parsed.selections).toEqual([
-            {alias: "a", name: "updateFoo", key: "a"},
-            {alias: null, name: "deleteFoo", key: "deleteFoo"},
-            {alias: "b", name: "countFoos", key: "b"}
+            {alias: "a", name: "updateFoo", key: "a", selections: [leaf("id")]},
+            leaf("deleteFoo"),
+            leaf("countFoos", "b")
         ]);
     });
 
@@ -60,8 +105,10 @@ describe("parseQuery", () => {
         expect(parseQuery(`{ currentUser { id } }`)).toEqual({
             operation: "query",
             name: null,
+            variables: {},
+            usesFragments: false,
             selections: [
-                {alias: null, name: "currentUser", key: "currentUser"}
+                {alias: null, name: "currentUser", key: "currentUser", selections: [leaf("id")]}
             ]
         });
     });
@@ -77,12 +124,12 @@ describe("parseQuery", () => {
 
         expect(parsed.name).toBe("Q_Commented");
         expect(parsed.selections).toEqual([
-            {alias: "x", name: "foo", key: "x"},
-            {alias: null, name: "bar", key: "bar"}
+            {alias: "x", name: "foo", key: "x", selections: [leaf("id")]},
+            leaf("bar")
         ]);
     });
 
-    test("skips fragment definitions and spreads", () => {
+    test("skips fragment definitions and spreads, but says so", () => {
         const parsed = parseQuery(`
             fragment FooFields on Foo {
                 id
@@ -95,8 +142,9 @@ describe("parseQuery", () => {
             }`);
 
         expect(parsed.name).toBe("Q_WithFragment");
+        expect(parsed.usesFragments).toBe(true);
         expect(parsed.selections).toEqual([
-            {alias: null, name: "foo", key: "foo"}
+            {alias: null, name: "foo", key: "foo", selections: []}
         ]);
     });
 
@@ -112,7 +160,7 @@ describe("parseQuery", () => {
         }`);
 
         expect(parsed.selections).toEqual([
-            {alias: null, name: "foo", key: "foo"}
+            {alias: null, name: "foo", key: "foo", selections: [leaf("id")]}
         ]);
     });
 

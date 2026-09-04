@@ -18,7 +18,9 @@ export { default as config } from "./config";
 export { default as i18n } from "./i18n";
 
 export { default as inject } from "./inject";
+export { default as data } from "./data";
 export { GraphQLQuery } from "./GraphQLQuery";
+export { default as graphql, firstValue } from "./util/graphql";
 export { QueryDocument } from "./QueryDocument";
 export { parseQuery } from "./util/parseQuery";
 
@@ -61,6 +63,7 @@ export type { StartupOptions } from "./startup";
 export type {
     QLiveBoostrap,
     QLiveConfig,
+    Injection,
     InjectionSource,
     DomainQLMeta,
     DomainQLTypeMeta,
@@ -141,15 +144,8 @@ export type {
  * Internal plumbing -- an implementation detail of a public entry point, and
  * the public one is the supported way in:
  *
- *   util/graphql (default export)       raw fetch, does no value conversion.
- *                                       GraphQLQuery.execute() is the way to
- *                                       run a query.
- *   util/graphql.firstValue             unwraps a result by its single key,
- *                                       which GraphQLQuery/inject() already do
  *   util/conversionMap.buildConversionMap
  *                                       a GraphQLQuery builds its own map
- *   data (default export)               reads one injection by id; inject()
- *                                       is the way to read injected data
  *   views.viewNameForRoute()            resolution step inside
  *                                       loadViewForPath()
  *   util/delay                          a setTimeout promise, not framework API
@@ -171,8 +167,6 @@ export type {
  *
  * Not API yet:
  *
- *   config.Injection                    the in-memory shape of an injection,
- *                                       free to change while inject() stays
  *   components/InjectionProvider.InjectionContext
  *                                       an empty stub, nothing to use yet
  */

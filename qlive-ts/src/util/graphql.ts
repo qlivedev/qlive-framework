@@ -54,6 +54,22 @@ export type GraphQLParams =
         [name: string]: any
     }
 
+/**
+ * Posts the given query to the server's /graphql endpoint and resolves with its
+ * data, rejecting on a transport error or on any GraphQL error in the response.
+ *
+ * This is the raw call: values go out and come back in their wire format, and the
+ * result is the whole data object, keyed by result key. GraphQLQuery.execute()
+ * runs the same request through the query's conversion map and unwraps the single
+ * selection, and is what an application normally wants -- reach for this one when
+ * the query has several top-level selections, or when the wire format is what you
+ * are after.
+ *
+ * @param query     query to run, as a GraphQLQuery or its source
+ * @param params    variables for the query, in wire format
+ *
+ * @returns the "data" member of the GraphQL response
+ */
 export default function graphql<T>(query: GraphQLQuery<T> | string, params: GraphQLParams): Promise<T> {
     let queryInstance: GraphQLQuery<T>
     if (typeof query === "string")

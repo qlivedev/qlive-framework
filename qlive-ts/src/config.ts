@@ -5,7 +5,7 @@ import {initConverters} from "./converter";
 /**
  * Meta-information about types that are generic types on the Java side.
  *
- * For example, de.quinscape.qlive.model.QueryDocument<T> is the generic Java class for query documents. In the GraphQL
+ * For example, com.dataciders.qlive.model.QueryDocument<T> is the generic Java class for query documents. In the GraphQL
  * world, the same type is called FooDocument with Foo replacing the generic T.
  */
 export type GenericTypeInfo = {
@@ -20,7 +20,7 @@ export type GenericTypeInfo = {
     /**
      * Full-qualified Java class name of the original generic class. Mostly useful as constant in the TS world
      */
-    genericType: "de.quinscape.qlive.model.QueryDocument" | string
+    genericType: "com.dataciders.qlive.model.QueryDocument" | string
 }
 
 /**

@@ -1,8 +1,11 @@
 package com.dataciders.qlive.runtime.service;
 
+import com.dataciders.qlive.model.QueryConfig;
+import com.dataciders.qlive.model.QueryDocument;
 import com.dataciders.qlive.model.bootstrap.Injection;
 import com.dataciders.qlive.model.bootstrap.QLiveBoostrap;
 import com.dataciders.qlive.model.bootstrap.QLiveConfig;
+import com.google.errorprone.annotations.ForOverride;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.util.IntrospectionUtil;
 import de.quinscape.domainql.util.JSONHolder;
@@ -13,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.svenson.util.JSONPathUtil;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -79,7 +83,20 @@ public class DefaultBootstrapService
 
         // TODO: implement injection
         final HashMap<String, Object> r = new HashMap<>();
-        r.put("xxx", 1234);
+        try
+        {
+            final QueryDocument<?> doc = new QueryDocument<>(Class.forName(
+                "com.dataciders.qlivetest.domain.tables.pojos.Foo"));
+
+            doc.setConfig(new QueryConfig());
+            doc.setRows(new ArrayList<>());
+            doc.setRowCount(0);
+            r.put("xxx", doc);
+        }
+        catch (ClassNotFoundException e)
+        {
+            throw new RuntimeException(e);
+        }
         data.put("Q_Foo", new Injection(r, "Int"));
 
 

@@ -33,7 +33,7 @@ export class QueryDocument<T> implements QueryDocumentMethods<T>
         this.rowCount = rowCount;
     }
 
-    update(newConfig: QueryConfig): Promise<QueryDocument<T>>
+    async update(newConfig: QueryConfig): Promise<QueryDocument<T>>
     {
         const query = GraphQLQuery.access<QueryDocument<T>>(this);
         if (!query)
@@ -41,11 +41,6 @@ export class QueryDocument<T> implements QueryDocumentMethods<T>
             // Previously this threw an unhelpful TypeError one line further on.
             throw new Error("QueryDocument has no GraphQLQuery registered - it was not created by executing a query");
         }
-        return query.execute({config: newConfig})
-            .then(
-                queryDocument => {
-                    query.register(queryDocument)
-                    return queryDocument;
-                })
+        return query.execute({config: newConfig});
     }
 }

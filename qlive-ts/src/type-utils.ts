@@ -75,3 +75,18 @@ export function findType(name: string) : GraphQLType
     }
     return type;
 }
+
+/**
+ * Returns true if the given type name was derived from QueryDocument<T>
+ * @param type
+ */
+export function isQueryDocumentType(type: string): boolean
+{
+    const { meta } = config()
+
+    return !!meta.genericTypes.find(
+        ({type : typeName, genericType}) => (
+            type === typeName && genericType === "de.quinscape.qlive.model.QueryDocument"
+        )
+    )
+}

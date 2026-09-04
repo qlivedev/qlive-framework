@@ -71,6 +71,12 @@ public class ViteIndexController
     }
 
 
+    /**
+     * Resolves the injections for the given path
+     *
+     * @param path  path within the application
+     * @return new data injection map as JOSN
+     */
     @GetMapping("/api/update")
     public ResponseEntity<String> update(
         @RequestParam(value = "path") String path

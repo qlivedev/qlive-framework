@@ -252,13 +252,6 @@
     ]
   },
   {
-    "name":"RsPackManifest",
-    "description":"POJO implementation for rspack/rspack-manifest-plugin's manifest. Accepts any key, ensures the values are strings.",
-    "fieldDocs":[
-      
-    ]
-  },
-  {
     "name":"TrackUsageData",
     "description":"Encapsulates the information contained within a <code>track-usage.json<\/code> file on the java side.\n\nIt contains the results of JavaScript code analysis that detects statically analyzable calls within the application\nreact components and other modules.",
     "fieldDocs":[

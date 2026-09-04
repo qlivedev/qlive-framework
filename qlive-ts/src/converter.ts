@@ -103,7 +103,7 @@ export type SelectionNode = {
 }
 
 /**
- * Conversion map of one query, as generated from the query source.
+ * Conversion map of one query, as built from its source by buildConversionMap().
  */
 export type QueryConversionMap = {
     /**

@@ -29,6 +29,26 @@ function isGraphQLResponse(d: unknown): d is GraphQLResponse
     return (typeof data !== "undefined" && Array.isArray(errors))
 }
 
+/**
+ * Returns the value of the first key of a GraphQL result.
+ *
+ * The wire format of a result is keyed by result key, while GraphQLQuery<T> promises
+ * T for one execution of the query -- the value of its single selection. This is
+ * where the two meet, which only works out because a query we inject or execute for
+ * its value has exactly one top-level selection.
+ */
+export function firstValue(result: any)
+{
+    for (let key in result)
+    {
+        if (result.hasOwnProperty(key))
+        {
+            return result[key];
+        }
+    }
+    return null;
+}
+
 export type GraphQLParams =
     {
         [name: string]: any

@@ -1,7 +1,6 @@
 import {GraphQLQuery} from "./GraphQLQuery";
 import {GraphQLParams} from "./util/graphql";
 import data from "./data";
-import {isQueryDocumentType} from "./type-utils";
 import {QueryDocument} from "./QueryDocument";
 
 /**
@@ -54,7 +53,7 @@ export default function inject<T>(query: GraphQLQuery<T>, params: InjectParams =
     const injection = data(injectionId);
     const result = injection.value;
 
-    if (isQueryDocumentType(injection.type))
+    if (result instanceof QueryDocument)
     {
         query.register(result)
     }

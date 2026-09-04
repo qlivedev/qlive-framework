@@ -9,7 +9,19 @@ export { loadViewForPath, appBase, routeOf, urlOf } from "./router";
 export { default as i18n } from "./i18n";
 export * as FilterDSL from "./FilterDSL";
 export { default as config } from "./config";
-export { unwrapAll, unwrapNonNull, isListType, isNonNull, LIST, NON_NULL} from "./type-utils";
+export { unwrapAll, unwrapNonNull, isListType, isNonNull, findType, isQueryDocumentType, LIST, NON_NULL} from "./type-utils";
+export {
+    registerConverter,
+    getConverter,
+    convertToServer,
+    convertSelectionFromServer,
+    convertResultFromServer,
+    convertVariablesToServer,
+    type Converter,
+    type ConversionFn,
+    type SelectionNode,
+    type QueryConversionMap
+} from "./converter";
 
 // TYPESCRIPT TYPES
 export type {

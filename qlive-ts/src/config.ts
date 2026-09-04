@@ -1,5 +1,6 @@
 import {GraphQLSchema} from "./GraphQLSchema";
 import {initData} from "./data";
+import {initConverters, QueryConversionMap} from "./converter";
 
 /**
  * Meta-information about types that are generic types on the Java side.
@@ -113,13 +114,28 @@ type TargetField =
 export type InjectionSource = {
     data: any,
     type: string,
-    meta: any
+    meta: any,
+    /**
+     * Conversion map of the query this injection was produced from, generated from
+     * the query source. Every injection has one: it resolves the aliases the wire
+     * data does not carry, which the schema alone cannot do.
+     *
+     * Consequently "data" is a GraphQL result, keyed by result key, not the value of
+     * the single selection.
+     */
+    conversion: QueryConversionMap
 }
 
 export type Injection = {
     value: any,
     type: string,
-    meta: any
+    meta: any,
+    /**
+     * Conversion map of the query, kept around because re-executing that query at
+     * runtime needs it for both directions -- which is what QueryDocument.update()
+     * on an injected document does.
+     */
+    conversion: QueryConversionMap
 }
 
 export type QLiveBoostrap = {
@@ -183,6 +199,12 @@ export function init(bs : QLiveBoostrap)
     const { config, data } = bs
 
     theConfig = config
+    if (theConfig)
+    {
+        // the converters for the QueryDocument derived types come out of the config,
+        // and initData() converts, so this has to happen in between
+        initConverters()
+    }
     initData(data)
 
     logObject("CONFIG", config as {[key : string] : any});

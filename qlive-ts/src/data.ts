@@ -1,16 +1,18 @@
 import {Injection, InjectionSource} from "./config";
+import {convertResultFromServer} from "./converter";
 
 let injectedData: { [key: string]: Injection }
 
 function convertInjection(value: InjectionSource) : Injection
 {
 
-    const { data, type, meta } = value;
+    const { data, type, meta, conversion } = value;
 
     return {
-        value: data,
+        value: convertResultFromServer(data, conversion),
         type,
-        meta
+        meta,
+        conversion
     }
 }
 

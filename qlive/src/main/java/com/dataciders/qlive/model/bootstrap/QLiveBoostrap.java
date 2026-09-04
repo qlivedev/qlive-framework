@@ -8,12 +8,12 @@ import java.util.Map;
 ///
 ///  * QLive config - this part is constant over the lifetime of the server and is kept as a JSONHolder
 ///  * injected data
-///
 public class QLiveBoostrap
 {
     private JSONHolder config;
 
-    private Map<String,Object> data;
+    private Map<String, Injection> data;
+
 
     /**
      * QLive system config.
@@ -30,16 +30,13 @@ public class QLiveBoostrap
     }
 
 
-    /**
-     * Injected data keyed by query name / query id
-     */
-    public Map<String, Object> getData()
+    public Map<String, Injection> getData()
     {
         return data;
     }
 
 
-    public void setData(Map<String, Object> data)
+    public void setData(Map<String, Injection> data)
     {
         this.data = data;
     }

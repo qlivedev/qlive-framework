@@ -1,5 +1,6 @@
 package com.dataciders.qlive.runtime.service;
 
+import com.dataciders.qlive.model.bootstrap.Injection;
 import com.dataciders.qlive.model.bootstrap.QLiveBoostrap;
 import com.dataciders.qlive.model.bootstrap.QLiveConfig;
 import de.quinscape.domainql.DomainQL;
@@ -60,18 +61,25 @@ public class BootstrapService
     public QLiveBoostrap provideConfig(String path)
     {
         final QLiveBoostrap qLiveBoostrap = new QLiveBoostrap();
+        final Map<String, Injection> data = provideInjectionData(path);
+
         qLiveBoostrap.setConfig(qlConfigJSON);
-
-
-        Map<String, Object> data = provideInjectionData(path);
         qLiveBoostrap.setData(data);
 
         return qLiveBoostrap;
     }
 
     /// Provides just the injection data subset for dynamic path updates
-    public Map<String, Object> provideInjectionData(String path)
+    public Map<String, Injection> provideInjectionData(String path)
     {
-        return null;
+        final HashMap<String, Injection> data = new HashMap<>();
+
+        // TODO: implement injection
+        final HashMap<String, Object> r = new HashMap<>();
+        r.put("xxx", 1234);
+        data.put("Q_Foo", new Injection(r, "Int"));
+
+
+        return data;
     }
 }

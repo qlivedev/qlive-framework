@@ -1,5 +1,6 @@
 package com.dataciders.qlive.runtime.controller;
 
+import com.dataciders.qlive.model.bootstrap.Injection;
 import com.dataciders.qlive.model.bootstrap.QLiveBoostrap;
 import com.dataciders.qlive.runtime.service.BootstrapService;
 import de.quinscape.spring.jsview.util.JSONUtil;
@@ -75,7 +76,7 @@ public class ViteIndexController
         @RequestParam(value = "path") String path
     )
     {
-        final Map<String, Object> data = bootstrapService.provideInjectionData(path);
+        final Map<String, Injection> data = bootstrapService.provideInjectionData(path);
 
         return new ResponseEntity<>(
             JSONUtil.DEFAULT_GENERATOR.forValue(data),

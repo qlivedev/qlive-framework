@@ -1,6 +1,6 @@
 import {beforeAll, describe, expect, it} from "vitest";
 import {Temporal} from "temporal-polyfill";
-import {init, QLiveConfig} from "../src/config";
+import {init} from "../src/config";
 import {
     convertResultFromServer,
     convertSelectionFromServer,
@@ -11,147 +11,12 @@ import {
     registerConverter
 } from "../src/converter";
 import {QueryDocument} from "../src/QueryDocument";
-import data from "../src/data";
-import {
-    GraphQLField,
-    GraphQLInputObjectType,
-    GraphQLInputValue,
-    GraphQLObjectType,
-    GraphQLScalarType,
-    GraphQLTypeRef
-} from "../src/GraphQLSchema";
-
-function scalar(name: string): GraphQLScalarType
-{
-    return {
-        kind: "SCALAR",
-        name,
-        description: null,
-        fields: null,
-        inputFields: null,
-        interfaces: null,
-        enumValues: null,
-        possibleTypes: null
-    }
-}
-
-function field(name: string, type: GraphQLTypeRef): GraphQLField
-{
-    return {name, description: null, args: [], type, isDeprecated: false, deprecationReason: null}
-}
-
-function object(name: string, fields: GraphQLField[]): GraphQLObjectType
-{
-    return {
-        kind: "OBJECT",
-        name,
-        description: null,
-        fields,
-        inputFields: null,
-        interfaces: [],
-        enumValues: null,
-        possibleTypes: null
-    }
-}
-
-function inputValue(name: string, type: GraphQLTypeRef): GraphQLInputValue
-{
-    return {name, description: null, type, defaultValue: null}
-}
-
-function inputObject(name: string, inputFields: GraphQLInputValue[]): GraphQLInputObjectType
-{
-    return {
-        kind: "INPUT_OBJECT",
-        name,
-        description: null,
-        fields: null,
-        inputFields,
-        interfaces: null,
-        enumValues: null,
-        possibleTypes: null
-    }
-}
-
-const NAMED = (name: string, kind: "SCALAR" | "OBJECT" = "SCALAR"): GraphQLTypeRef => ({kind, name})
-const NOT_NULL = (ofType: GraphQLTypeRef): GraphQLTypeRef => ({kind: "NON_NULL", name: null, ofType})
-const LIST_OF = (ofType: GraphQLTypeRef): GraphQLTypeRef => ({kind: "LIST", name: null, ofType})
-
-const TIMESTAMP = NAMED("Timestamp")
-const STRING = NAMED("String")
-
-const testConfig: QLiveConfig = {
-    contextPath: "/",
-    schema: {
-        types: [
-            scalar("String"),
-            scalar("Int"),
-            scalar("Timestamp"),
-            scalar("QueryConfig"),
-            object("AppUser", [
-                field("id", NOT_NULL(STRING)),
-                field("lastLogin", TIMESTAMP)
-            ]),
-            object("Foo", [
-                field("id", NOT_NULL(STRING)),
-                field("name", NOT_NULL(STRING)),
-                field("created", NOT_NULL(TIMESTAMP)),
-                field("owner", NAMED("AppUser", "OBJECT"))
-            ]),
-            inputObject("FooInput", [
-                inputValue("name", NOT_NULL(STRING)),
-                inputValue("created", NOT_NULL(TIMESTAMP)),
-                inputValue("seenAt", LIST_OF(TIMESTAMP)),
-                inputValue("config", NAMED("QueryConfig"))
-            ]),
-            object("FooDocument", [
-                field("type", STRING),
-                field("config", NAMED("QueryConfig")),
-                field("rows", LIST_OF(NAMED("Foo", "OBJECT"))),
-                field("rowCount", NAMED("Int"))
-            ])
-        ]
-    },
-    meta: {
-        types: {},
-        genericTypes: [
-            {
-                type: "FooDocument",
-                typeParameters: ["Foo"],
-                genericType: "de.quinscape.qlive.model.QueryDocument"
-            }
-        ],
-        relations: []
-    }
-}
-
-function fooDocument()
-{
-    return {
-        type: "Foo",
-        config: {offset: 0, pageSize: 10, condition: null, sortFields: []},
-        rowCount: 1,
-        rows: [
-            {
-                id: "abc",
-                name: "Foo #1",
-                created: "2026-09-04T10:15:30Z",
-                desc: "aliased, no field of that name",
-                owner: {
-                    id: "user-1",
-                    lastLogin: null
-                }
-            }
-        ]
-    }
-}
+import {queryResult, testConfig} from "./fixtures/testConfig";
 
 beforeAll(async () => {
     await init({
         config: testConfig,
-        data: {
-            Q_Foo: {data: queryResult(), type: "FooDocument", meta: null, conversion: Q_FOO_MAP}
-        }
+        data: {}
     })
 })
 
@@ -191,16 +56,6 @@ const Q_FOO_MAP: QueryConversionMap = {
         config: "QueryConfig",
         since: "Timestamp",
         foo: "FooInput"
-    }
-}
-
-function queryResult()
-{
-    return {
-        xxx: {
-            ...fooDocument(),
-            rows: [{...fooDocument().rows[0], desc: "2026-01-02T03:04:05Z"}]
-        }
     }
 }
 
@@ -293,18 +148,6 @@ describe("result conversion", () => {
         expect(typeof raw.xxx.rows[0].created).toBe("string")
     })
 
-    it("converts an injection along the map it came with", () => {
-        const injection = data("Q_Foo")
-
-        expect(injection.type).toBe("FooDocument")
-        expect(injection.value.xxx).toBeInstanceOf(QueryDocument)
-        expect(injection.value.xxx.rows[0].created).toBeInstanceOf(Temporal.Instant)
-        expect(injection.value.xxx.rows[0].desc).toBeInstanceOf(Temporal.Instant)
-    })
-
-    it("keeps the map on the injection, for re-executing the query", () => {
-        expect(data("Q_Foo").conversion).toBe(Q_FOO_MAP)
-    })
 })
 
 describe("variable conversion", () => {

@@ -1,6 +1,7 @@
 import {GraphQLQuery} from "./GraphQLQuery";
-import {GraphQLParams} from "./util/graphql";
+import {firstValue, GraphQLParams} from "./util/graphql";
 import data from "./data";
+import {convertResultFromServer} from "./converter";
 import {QueryDocument} from "./QueryDocument";
 
 /**
@@ -19,17 +20,8 @@ export type InjectParams = GraphQLParams & {
     __id?: string
 }
 
-function getFirstValue(result: any)
-{
-    for (let key in result)
-    {
-        if (result.hasOwnProperty(key))
-        {
-            return result[key];
-        }
-    }
-    return null;
-}
+/** injection ids whose data has been converted, see inject() */
+const converted = new Set<string>()
 
 /**
  * Injects the data from the given query with the given optional params.
@@ -51,12 +43,24 @@ export default function inject<T>(query: GraphQLQuery<T>, params: InjectParams =
 
     const injectionId = __id || query.queryName;
     const injection = data(injectionId);
-    const result = injection.value;
+
+    // The server ships the injection as the JSON it got out of GraphQL. Converting it
+    // needs the selections of the query, which is only here now -- so it happens on
+    // first use and the result replaces the raw data, an injection being read as often
+    // as its view renders.
+    if (!converted.has(injectionId))
+    {
+        injection.value = convertResultFromServer(injection.value, query.conversionMap)
+        converted.add(injectionId)
+    }
+
+    const result = firstValue(injection.value) as T;
 
     if (result instanceof QueryDocument)
     {
+        // gives the document the query it came from, which is what update() re-executes
         query.register(result)
     }
-    
-    return getFirstValue(result);
+
+    return result;
 }

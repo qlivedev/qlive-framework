@@ -1,24 +1,27 @@
 import {Injection, InjectionSource} from "./config";
-import {convertResultFromServer} from "./converter";
 
 let injectedData: { [key: string]: Injection }
 
-function convertInjection(value: InjectionSource) : Injection
+/**
+ * Turns one injection as it came over the wire into the record the application reads
+ * from. The data is not converted here: the conversion needs the selections of the
+ * query the injection was produced from, and that query is only known once a view
+ * actually calls inject() with it.
+ */
+function toInjection(value: InjectionSource) : Injection
 {
-
-    const { data, type, meta, conversion } = value;
+    const { data, type, meta } = value;
 
     return {
-        value: convertResultFromServer(data, conversion),
+        value: data,
         type,
-        meta,
-        conversion
+        meta
     }
 }
 
 export function initData(data : { [key: string]: InjectionSource })
 {
-    const convertedInjections : { [key: string]: Injection } = {}
+    const injections : { [key: string]: Injection } = {}
     if (data)
     {
         for (let key in data)
@@ -26,12 +29,12 @@ export function initData(data : { [key: string]: InjectionSource })
             if (data.hasOwnProperty(key))
             {
                 const value = data[key];
-                convertedInjections[key] = convertInjection(value);
+                injections[key] = toInjection(value);
             }
         }
     }
 
-    injectedData = convertedInjections
+    injectedData = injections
 }
 
 export default function data(injectionId : string): Injection {

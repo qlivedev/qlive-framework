@@ -174,13 +174,7 @@ public class GraphQLQueryTypingService
                 boolean allComplete = result.allComplete();
                 log.trace("{}: {}, complete = {}", rootTypeName, selectedOperations, allComplete);
 
-                final String tsCode = renderType(
-                    rootTypeName,
-                    selectedOperations,
-                    allComplete,
-                    false,
-                    0
-                );
+                final String tsCode = renderResultType(selectedOperations);
 
                 final String source = readModule(ctx.modulePath);
                 final ModuleInfo moduleInfo = analyzeModule(ctx, source);
@@ -457,6 +451,46 @@ public class GraphQLQueryTypingService
 
         return new TSResult(selectedFields, allComplete);
     }
+
+    /**
+     * Renders the result type of a query, that is the type of the value one execution
+     * of it yields.
+     * <p>
+     * That is the type of its single top-level selection, not an object keyed by that
+     * selection's result key: GraphQLQuery&lt;T&gt; promises T for one execution, and
+     * both inject() and execute() hand the value of the selection over unwrapped.
+     *
+     * @param selectedOperations selected operations, of which the first is the one the
+     *                           result type describes
+     *
+     * @return TS code expression
+     */
+    String renderResultType(List<SelectionTypeNode> selectedOperations)
+    {
+        final SelectionTypeNode operation = selectedOperations.get(0);
+        final String typeName = operation.getFieldTypeName();
+        final GraphQLType fieldType = GraphQLTypeUtil.unwrapAll(operation.fieldType());
+
+        String rendered;
+        if (fieldType instanceof GraphQLObjectType objectType)
+        {
+            rendered = renderType(
+                typeName,
+                operation.selectedKids(),
+                fieldsMatch(objectType, operation.selectedKids()),
+                false,
+                0
+            );
+        }
+        else
+        {
+            // a scalar or enum valued method has no selection set describing it
+            rendered = typeName;
+        }
+
+        return operation.isList() ? "Array<" + rendered + ">" : rendered;
+    }
+
 
      /**
      * Renders the type expression for a selected, potentially aliased node

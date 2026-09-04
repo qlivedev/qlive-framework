@@ -100,12 +100,10 @@ class GraphQLQueryTypingServiceTest
 
         // language=TypeScript
         assertThat(typeDef, is("""
-            {
-                xxx : Pick<TestFooDocument,"type" | "config"> & {
-                    rows : Array<Pick<TestFoo,"name"> & {
-                        owner : Pick<TestUser,"login">
-                    }>
-                }
+            Pick<TestFooDocument,"type" | "config"> & {
+                rows : Array<Pick<TestFoo,"name"> & {
+                    owner : Pick<TestUser,"login">
+                }>
             }"""
         ));
     }
@@ -133,10 +131,8 @@ class GraphQLQueryTypingServiceTest
 
         // language=TypeScript
         assertThat(typeDef, is("""
-            {
-                queryTestFooDocument : Pick<TestFooDocument,"type" | "config"> & {
-                    rows : Array<Pick<TestFoo,"name" | "fooType">>
-                }
+            Pick<TestFooDocument,"type" | "config"> & {
+                rows : Array<Pick<TestFoo,"name" | "fooType">>
             }"""
         ));
     }
@@ -163,14 +159,12 @@ class GraphQLQueryTypingServiceTest
 
         // language=TypeScript
         assertThat(typeDef, is("""
-            {
-                queryTestFooDocument : Pick<TestFooDocument,"type" | "config"> & {
-                    rows : Array<Pick<TestFoo,"name"> & {
-                        fooType : Pick<TestFooType,"name"> & {
-                            id : Int
-                        }
-                    }>
-                }
+            Pick<TestFooDocument,"type" | "config"> & {
+                rows : Array<Pick<TestFoo,"name"> & {
+                    fooType : Pick<TestFooType,"name"> & {
+                        id : Int
+                    }
+                }>
             }"""
         ));
     }
@@ -196,12 +190,10 @@ class GraphQLQueryTypingServiceTest
         
         // language=TypeScript
         assertThat(typeDef, is("""
-            {
-                queryTestFooDocument : Pick<TestFooDocument,"type" | "config"> & {
-                    rows : Array<Pick<TestFoo,"name"> & {
-                        desc? : String
-                    }>
-                }
+            Pick<TestFooDocument,"type" | "config"> & {
+                rows : Array<Pick<TestFoo,"name"> & {
+                    desc? : String
+                }>
             }"""
         ));
     }
@@ -245,14 +237,7 @@ class GraphQLQueryTypingServiceTest
             boolean allComplete = result.allComplete();
             log.trace("{}: {}, complete = {}", rootTypeName, selectedOperations, allComplete);
 
-            final String tsCode = service.renderType(
-                rootTypeName,
-                selectedOperations,
-                allComplete,
-                false,
-                0
-            );
-            return tsCode;
+            return service.renderResultType(selectedOperations);
         }
         return null;
     }

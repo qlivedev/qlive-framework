@@ -8,6 +8,8 @@ dist/
 .pnpm-store/
 # Node/pnpm binaries downloaded locally by frontend-maven-plugin
 qlive-test/frontend/node/
+# Scratch output of the codegen smoke check
+qlive-codegen/test/.tmp/
 
 # IDE
 .idea/

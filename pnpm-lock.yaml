@@ -26,6 +26,16 @@ importers:
       graphql:
         specifier: ^16.13.1
         version: 16.14.2
+    devDependencies:
+      '@quinscape/qlive-ts':
+        specifier: workspace:*
+        version: link:../qlive-ts
+      typescript:
+        specifier: ^5.5.4
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.5
+        version: 2.1.9(@types/node@26.4.0)(jsdom@24.1.3(supports-color@8.1.1))(supports-color@8.1.1)
 
   qlive-test/frontend:
     dependencies:

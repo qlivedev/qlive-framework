@@ -7,6 +7,9 @@
   "bin": {
     "generate-ts": "tooling/generateTS.js"
   },
+  "scripts": {
+    "test": "vitest run"
+  },
   "files": [
     "tooling"
   ],
@@ -14,5 +17,10 @@
     "@graphql-tools/graphql-file-loader": "^8.1.12",
     "@graphql-tools/load": "^8.1.8",
     "graphql": "^16.13.1"
+  },
+  "devDependencies": {
+    "@quinscape/qlive-ts": "workspace:*",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
   }
 }

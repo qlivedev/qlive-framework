@@ -41,7 +41,7 @@ pnpm install   # symlinks qlive-ts into qlive-test/frontend/node_modules
 pnpm build     # ./mvnw install — builds qlive, then qlive-ts (tsdown), then the frontend
                # (via frontend-maven-plugin + pnpm workspace), then qlive-test, copying
                # the built frontend into qlive-test/target/classes/static
-pnpm test      # ./mvnw test (Java) + pnpm -r test (TS, both qlive-ts and the frontend app)
+pnpm test      # ./mvnw test (Java) + pnpm -r test (TS: qlive-ts, qlive-codegen, the frontend app)
 pnpm dev       # backend (spring-boot:run on :8080) + frontend (vite on :5173, proxying /api
                # to :8080) together, both with hot reload
 ```

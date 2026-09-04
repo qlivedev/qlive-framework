@@ -1,0 +1,61 @@
+# Fixture for the codegen smoke check.
+#
+# Reaches every scalar in generateTS.js's GRAPHQL_TO_TYPESCRIPT map, which is
+# the point: an application's own schema typically uses a handful of them, so
+# the mappings it never touches are exactly where a wrong or missing import
+# survives unnoticed.
+
+scalar BigDecimal
+scalar Byte
+scalar ComputedValue
+scalar Condition
+scalar Currency
+scalar Date
+scalar DomainObject
+scalar FieldExpression
+scalar GenericScalar
+scalar JSONB
+scalar Long
+scalar QueryConfig
+scalar Timestamp
+
+"Carries one field per mapped scalar."
+type Widget {
+    id: String!
+    amount: BigDecimal
+    flag: Boolean
+    small: Byte
+    computed: ComputedValue
+    filter: Condition
+    price: Currency
+    day: Date
+    anything: DomainObject
+    ratio: Float
+    sortBy: FieldExpression
+    generic: GenericScalar
+    count: Int
+    payload: JSONB
+    big: Long
+    "Documented so the field doc comment path is exercised too"
+    name: String
+    created: Timestamp
+    tags: [String]
+    owner: Owner
+}
+
+type Owner {
+    id: String!
+    login: String!
+}
+
+"Stands in for a QueryDocument derived type."
+type WidgetDocument {
+    type: String!
+    config: QueryConfig!
+    rows: [Widget]
+    rowCount: Int
+}
+
+type Query {
+    widgets(config: QueryConfig): WidgetDocument
+}

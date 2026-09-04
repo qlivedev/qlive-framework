@@ -4,10 +4,11 @@ import de.quinscape.domainql.util.JSONHolder;
 
 import java.util.Map;
 
-/// Encapsulates the data for a /api/bootstrap call
+/// Encapsulates the data for a /api/bootstrap call or to be embedded in the HTML document.
 ///
-///  * QLive config - this part is constant over the lifetime of the server and is kept as a JSONHolder
-///  * injected data
+///  * QLive config - {@link QLiveConfig} wrapped in a JSONHolder
+///  * injected data - Prepared data for the starting view based on static analysis of TypeScript sources.
+///
 public class QLiveBoostrap
 {
     private JSONHolder config;
@@ -30,6 +31,9 @@ public class QLiveBoostrap
     }
 
 
+    /**
+     * Injection data map
+     */
     public Map<String, Injection> getData()
     {
         return data;

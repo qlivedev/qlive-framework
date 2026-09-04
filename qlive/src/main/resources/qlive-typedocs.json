@@ -124,6 +124,33 @@
     ]
   },
   {
+    "name":"Injection",
+    "description":"Encapsulates the data and meta data for a data injection.",
+    "fieldDocs":[
+      {
+        "name":"data",
+        "description":"The payload for the injection",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"meta",
+        "description":"Arbitrary meta data",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"type",
+        "description":"The GraphQL type of the injection",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
     "name":"ModuleFunctionReferences",
     "description":"Encapsulates the detected static function calls within one module.",
     "fieldDocs":[
@@ -145,7 +172,7 @@
   },
   {
     "name":"QLiveBoostrap",
-    "description":null,
+    "description":"Encapsulates the data for a /api/bootstrap call or to be embedded in the HTML document.\n\n * QLive config - QLiveConfig wrapped in a JSONHolder\n * injected data - Prepared data for the starting view based on static analysis of TypeScript sources.",
     "fieldDocs":[
       {
         "name":"config",
@@ -156,7 +183,7 @@
       },
       {
         "name":"data",
-        "description":"Injected data keyed by query name / query id",
+        "description":"Injection data map",
         "paramDocs":[
           
         ]
@@ -165,7 +192,7 @@
   },
   {
     "name":"QLiveConfig",
-    "description":"Data embedded into the served page (or fetched live in dev) so the frontend can boot\nwith the same data regardless of how it got there.",
+    "description":"Contains the system configuration of a QLive system.",
     "fieldDocs":[
       
     ]
@@ -234,6 +261,13 @@
   {
     "name":"TrackUsageData",
     "description":"Encapsulates the information contained within a <code>track-usage.json<\/code> file on the java side.\n\nIt contains the results of JavaScript code analysis that detects statically analyzable calls within the application\nreact components and other modules.",
+    "fieldDocs":[
+      
+    ]
+  },
+  {
+    "name":"ValueNode",
+    "description":"Abstract base class for \"Value nodes\" within a FilterDSL condition hierarchy",
     "fieldDocs":[
       
     ]

@@ -4,10 +4,7 @@ import de.quinscape.domainql.meta.DomainQLMeta;
 
 import java.util.Map;
 
-/**
- * Data embedded into the served page (or fetched live in dev) so the frontend can boot
- * with the same data regardless of how it got there.
- */
+/// Contains the system configuration of a QLive system.
 public class QLiveConfig
 {
     private String contextPath;

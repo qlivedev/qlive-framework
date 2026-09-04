@@ -1,5 +1,6 @@
 package com.dataciders.qlive.model.bootstrap;
 
+/// Encapsulates the data and meta data for a data injection.
 public class Injection
 {
     private final Object data;
@@ -13,7 +14,7 @@ public class Injection
     {
         this(data, type, null);
     }
-    
+
     public Injection(Object data, String type, Object meta)
     {
         this.data = data;
@@ -22,18 +23,21 @@ public class Injection
     }
 
 
+    /// The payload for the injection
     public Object getData()
     {
         return data;
     }
 
 
+    /// The GraphQL type of the injection
     public String getType()
     {
         return type;
     }
 
 
+    /// Arbitrary meta data
     public Object getMeta()
     {
         return meta;

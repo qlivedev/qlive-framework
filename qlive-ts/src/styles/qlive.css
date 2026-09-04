@@ -75,6 +75,10 @@
         font-family: var(--qlive-font-sans);
     }
 
+   .domain-type {
+       display: block;
+    }
+
     small,.domain-type .small {
         font-size: var(--qlive-font-size-sm);
         color: var(--qlive-color-muted);
@@ -83,7 +87,7 @@
     .domain-type h1
     {
         font-size: var(--qlive-font-size-lg);
-        color: var(--qlive-color-accent);
+        color: var(--qlive-color-fg);
     }
     .domain-type
     {
@@ -91,7 +95,6 @@
         border-radius: var(--qlive-radius-md);
         padding: var(--qlive-space-2) var(--qlive-space-3);
         margin: var(--qlive-space-2) var(--qlive-space-3);
-        background: var(--qlive-color-bg);
         color: var(--qlive-color-fg);
         font-family: var(--qlive-font-sans);
     }
@@ -128,6 +131,7 @@
         border: 1px solid var(--qlive-color-border);
         padding: 0;
         border-collapse: collapse;
+        width: 100%;
     }
     .domain-type tr
     {
@@ -158,4 +162,23 @@
         padding: var(--qlive-space-1) var(--qlive-space-2);
         margin: 0
     }
+
+    #domain-types-wrapper
+    {
+        position: relative;
+    }
+    #domain-types-container
+    {
+        position: absolute;
+        left: 0;
+        top: 0
+    }
+
+    .arrow-path
+    {
+        stroke-width: 2px;
+        stroke: var(--qlive-color-muted);
+        fill: transparent;
+    }
+
 }

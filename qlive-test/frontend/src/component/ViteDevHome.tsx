@@ -1,4 +1,4 @@
-import React, {useState} from "react"
+import React, {useLayoutEffect, useState} from "react"
 import { i18n, config, isListType, isNonNull, unwrapAll } from "@quinscape/qlive-ts"
 import type {
     DomainQLMeta,
@@ -7,6 +7,7 @@ import type {
     GraphQLType,
     GraphQLTypeRef
 } from "@quinscape/qlive-ts"
+import {posix} from "node:path";
 
 
 function domainFieldId(domainType: GraphQLObjectType, field : GraphQLField ) : string
@@ -92,8 +93,12 @@ function findRelations(schema : GraphQLSchema, meta: DomainQLMeta, type : GraphQ
             const targetId = domainFieldId(targetType, targetField);
             outgoing.push(
                 <a
+                    className="arrow"
                     key={outgoing.length}
                     href={ "#" + targetId}
+                    data-type={ "start" }
+                    data-end={ targetId }
+                    data-relation={ relation.id }
                     title={ "Points to " + relation.targetType + "." + relation.rightSideObjectName }
                     onClick={ ev => {
                         if (!handleJump(targetId, setFilter, relation.sourceType, relation.targetType))
@@ -113,9 +118,13 @@ function findRelations(schema : GraphQLSchema, meta: DomainQLMeta, type : GraphQ
             const targetId = domainFieldId(sourceType, sourceField);
             outgoing.push(
                 <a
+                    className="arrow"
+                    data-type={ "end" }
+                    data-start={ targetId }
+                    data-relation={ relation.id }
                     key={outgoing.length}
                     href={ "#" + targetId}
-                    title={ "Coming from" + relation.sourceType + "." + relation.leftSideObjectName  }
+                    title={ "Coming from " + relation.sourceType + "." + relation.leftSideObjectName  }
                     onClick={ ev => {
                         if (!handleJump(targetId, setFilter, relation.sourceType, relation.targetType))
                         {
@@ -235,9 +244,9 @@ const objectTypeNegativeList = [
     "__Type"
 ]
 
-function renderTypes(schema: GraphQLSchema, meta: DomainQLMeta, filter: string, setFilter : (filter: string) => void) : GraphQLObjectType
-{
 
+function filterTypes(schema: GraphQLSchema, meta: DomainQLMeta, filter: string, setFilter : (filter: string) => void) : GraphQLObjectType[]
+{
     let re: null | RegExp = null;
     try
     {
@@ -249,7 +258,8 @@ function renderTypes(schema: GraphQLSchema, meta: DomainQLMeta, filter: string, 
     }
 
     const { types } = schema
-    const elements = []
+
+    const filtered : GraphQLObjectType[] = []
     for (let i = 0; i < types.length; i++)
     {
         const type = types[i];
@@ -259,20 +269,176 @@ function renderTypes(schema: GraphQLSchema, meta: DomainQLMeta, filter: string, 
             (!re || re.test(type.name))
         )
         {
-            elements.push(
-                <DomainType
-                    key={ type.name }
-                    type={ type }
-                    schema={ schema }
-                    meta={ meta }
-                    filter={filter}
-                    setFilter={setFilter}
-                />
-            )
-
+            filtered.push(type);
         }
     }
-    return elements
+
+    return filtered
+
+}
+
+type DomainRelationsLayerProps = {
+    under: string
+    objectTypes: GraphQLObjectType[]
+}
+
+type Layout = {
+    pos: Point,
+    size: Dimension,
+    arrows : ArrowLayout[]
+}
+
+type Dimension = [w : number,h : number]
+type Point = [x : number,y : number]
+
+type ArrowLayout = {
+    start: Point,
+    end: Point
+}
+
+const EMPTY : Layout = {
+    pos: [0,0],
+    size: [0,0],
+    arrows: []
+}
+
+function getElementRect(param: HTMLElement | null) : DOMRect
+{
+    if (!param)
+    {
+        throw new Error("Element referenced by arrow cannot be found")
+    }
+    return param.getBoundingClientRect()
+}
+
+const DomainRelationsLayer = ({ under, objectTypes   } : DomainRelationsLayerProps) => {
+
+    const [layout, setLayout] = useState<Layout>(EMPTY)
+
+    useLayoutEffect(() => {
+
+        const container = document.getElementById(under);
+
+        const rect = container?.getBoundingClientRect();
+        if (!rect)
+        {
+            throw new Error("No getBoundingClientRect")
+        }
+
+        const relations = new Set()
+
+        const arrows : ArrowLayout[] = Array.from(
+            document.querySelectorAll("#domain-types-container a.arrow")
+        )
+            // make sure every relation only occurs once
+            .filter((e : Element) => {
+                const relation = (e as HTMLElement).dataset.relation!;
+                if (relations.has(relation))
+                {
+                    return false;
+                }
+                relations.add(relation)
+                return true
+            })
+            .map((e : Element) : ArrowLayout =>  {
+
+            const arrowElement = e as HTMLElement;
+            const type = arrowElement.dataset.type;
+            const start = arrowElement.dataset.start!;
+            const end = arrowElement.dataset.end!;
+
+            const startRect = getElementRect(
+                type === "start" ? arrowElement :
+                    document.getElementById(start)
+            )
+
+            const endRect = getElementRect(
+                type === "start" ? document.getElementById(end) :
+                    arrowElement
+            )
+
+            return ({
+                start: [
+                    Math.round(startRect.x + startRect.width),
+                    Math.round(startRect.y + startRect.height / 2)
+                ],
+                end: [
+                    Math.round(endRect.x + endRect.width),
+                    Math.round(endRect.y + endRect.height / 2)
+                ]
+            })
+
+        })
+
+        arrows.sort(
+            (a, b) => Math.abs(a.end[1] - a.start[1]) - Math.abs(b.end[1] - b.start[1])
+        )
+
+        setLayout({
+            pos: [
+                rect.x,
+                rect.y
+            ],
+            size: [
+                rect.width,
+                rect.height
+            ],
+            arrows
+        })
+    }, []);
+
+    if (!layout.arrows.length)
+    {
+        return false;
+    }
+
+    const {pos, size, arrows} = layout
+
+    const offset = 10
+    let slidingWidth = 40
+    let slidingWidthStep = 20
+
+    return (
+        <svg
+            style={{
+                display: "block",
+                position: "absolute",
+                left: 0,
+                top: 0,
+                width: "98vw",
+                height: size[1],
+                zIndex: 1,
+                pointerEvents: "none"
+            }}
+        >
+            {
+                arrows.map((arrow, i)   => {
+
+                    const { start, end } = arrow
+
+                    slidingWidth += slidingWidthStep
+
+                    return (
+                        <path
+                            key={i}
+                            className="arrow-path"
+                            d={
+                                `M${
+                                    start[0] - pos[0] + offset },${ start[1]- pos[1]
+                                } C${
+                                    start[0] - pos[0] + slidingWidth * 2 },${ start[1]- pos[1]
+                                } ${
+                                    end[0] - pos[0] + slidingWidth * 2 },${ end[1]- pos[1]
+                                } ${
+                                    end[0] - pos[0] + offset },${ end[1]- pos[1]
+                                }`
+                            }
+                        />
+                    );
+                })
+            }
+        </svg>
+    )
 }
 
 const ViteDevHome = ({}) => {
@@ -281,7 +447,7 @@ const ViteDevHome = ({}) => {
 
     const { schema, meta } = config();
 
-    const renderedTypes = renderTypes(schema, meta, filter, setFilter);
+    const filtered: GraphQLObjectType[] = filterTypes(schema, meta, filter, setFilter);
 
     return (
         <>
@@ -298,13 +464,31 @@ const ViteDevHome = ({}) => {
             <details>
                 <summary> Details ...</summary>
                 <span>
-                    <SearchBar
-                        filter={filter}
-                        setFilter={setFilter}
-                    />
-                    {
-                        renderedTypes
-                    }
+                    <div id="domain-types-wrapper">
+                        <div id="domain-types-container">
+                            <SearchBar
+                                filter={filter}
+                                setFilter={setFilter}
+                            />
+                            <hr/>
+                            {
+                                filtered.map(type => (
+                                    <DomainType
+                                        key={type.name}
+                                        type={type}
+                                        schema={schema}
+                                        meta={meta}
+                                        filter={filter}
+                                        setFilter={setFilter}
+                                    />
+                                ))
+                            }
+                            <DomainRelationsLayer
+                                under="domain-types-container"
+                                objectTypes={ filtered }
+                            />
+                        </div>
+                    </div>
                 </span>
             </details>
         </>

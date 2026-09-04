@@ -7,6 +7,7 @@ import com.dataciders.qlive.runtime.QLiveException;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.language.Document;
 import graphql.language.Field;
+import graphql.language.InlineFragment;
 import graphql.language.OperationDefinition;
 import graphql.language.Selection;
 import graphql.language.SelectionSet;
@@ -322,6 +323,15 @@ public class GraphQLQueryTypingService
         {
 
             final SelectionSet selectionSet = definition.getSelectionSet();
+            final String where = ctx.modulePath() + ", " +
+                definition.getOperation().name().toLowerCase() + " " +
+                (definition.getName() != null ? definition.getName() : "<unnamed>");
+
+            for (Selection<?> s : selectionSet.getSelections())
+            {
+                refuseFragment(where, s, rootType.getName());
+            }
+
             final Selection selection = selectionSet.getSelections().get(0);
 
             if (selection instanceof Field field)
@@ -343,7 +353,7 @@ public class GraphQLQueryTypingService
                     continue;
                 }
 
-                TSResult result = follow(field, queryTypeName, 1);
+                TSResult result = follow(where, field, queryTypeName, 1);
                 selectedOperations.add(new SelectionTypeNode(
                     rootType.getName(), field,
                     fieldDef.getType(),
@@ -364,13 +374,14 @@ public class GraphQLQueryTypingService
     /**
      * Recursively follows the GraphQL types selected by the current operation.
      *
+     * @param where    module and operation the field belongs to, for error messages
      * @param field    selected GraphQL node
      * @param typeName current type name
      * @param level    recursion level
      *
      * @return TS result
      */
-    private TSResult follow(Field field, String typeName, int level)
+    private TSResult follow(String where, Field field, String typeName, int level)
     {
         final GraphQLObjectType type = (GraphQLObjectType) graphQLSchema.getType(typeName);
         if (type == null)
@@ -410,9 +421,11 @@ public class GraphQLQueryTypingService
                 {
                     for (Selection selection : selections)
                     {
+                        refuseFragment(where, selection, objectType.getName());
+
                         if (selection instanceof Field kidField)
                         {
-                            TSResult result = follow(kidField, objectType.getName(), level + 1);
+                            TSResult result = follow(where, kidField, objectType.getName(), level + 1);
 
                             final GraphQLOutputType kidsType = objectType.getField(
                                 kidField.getName()).getType();
@@ -451,6 +464,34 @@ public class GraphQLQueryTypingService
 
         return new TSResult(selectedFields, allComplete);
     }
+
+    /**
+     * Refuses a selection that is a fragment spread or an inline fragment.
+     * <p>
+     * Their fields would be dropped from the generated result type without a word, and
+     * the conversion map the frontend builds from the same query refuses them as well.
+     * Supporting them means teaching both walkers to resolve fields in the type a
+     * fragment is conditioned on, so until that happens, saying so beats a result type
+     * that quietly misses half the selection.
+     *
+     * @param where     module and operation, for the message
+     * @param selection selection to check
+     * @param typeName  type the selection sits in
+     */
+    private static void refuseFragment(String where, Selection<?> selection, String typeName)
+    {
+        if (selection instanceof Field)
+        {
+            return;
+        }
+
+        throw new QLiveException(
+            where + ": fragments are not supported, found " +
+                (selection instanceof InlineFragment ? "an inline fragment" : "a fragment spread") +
+                " in " + typeName
+        );
+    }
+
 
     /**
      * Renders the result type of a query, that is the type of the value one execution

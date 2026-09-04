@@ -15,8 +15,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import com.dataciders.qlive.runtime.QLiveException;
+
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 class GraphQLQueryTypingServiceTest
@@ -196,6 +199,52 @@ class GraphQLQueryTypingServiceTest
                 }>
             }"""
         ));
+    }
+
+
+    @Test
+    void testFragmentsAreRefused()
+    {
+        // language=GraphQL
+        final String withSpread = """
+            query Q_Test($config: QueryConfig!) {
+                    queryTestFooDocument(config: $config) {
+                        type
+                        config
+                        rows {
+                            ...RowFields
+                        }
+                    }
+            }
+            fragment RowFields on TestFoo {
+                name
+            }
+            """;
+
+        final QLiveException spread = assertThrows(QLiveException.class, () -> queryTransform(withSpread));
+        assertThat(spread.getMessage(), containsString("fragments are not supported"));
+        // says where, so the message is actionable without hunting for the query
+        assertThat(spread.getMessage(), containsString("./sub/Q_Test"));
+        assertThat(spread.getMessage(), containsString("query Q_Test"));
+        assertThat(spread.getMessage(), containsString("a fragment spread in TestFoo"));
+
+        // language=GraphQL
+        final String withInline = """
+            query Q_Test($config: QueryConfig!) {
+                    queryTestFooDocument(config: $config) {
+                        type
+                        config
+                        rows {
+                            ... on TestFoo { name }
+                        }
+                    }
+            }
+            """;
+
+        assertThat(
+            assertThrows(QLiveException.class, () -> queryTransform(withInline)).getMessage(),
+            containsString("an inline fragment in TestFoo")
+        );
     }
 
 

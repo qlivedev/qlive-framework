@@ -8,17 +8,23 @@ import { GraphQLFileLoader } from "@graphql-tools/graphql-file-loader"
 import { loadSchema as gqlLoadSchema } from "@graphql-tools/load"
 import { isListType, unwrapAll } from "./type-utils.js"
 
+/*
+ * GraphQL scalar -> the TypeScript the generated file uses for it. Names that
+ * have to be imported are spelled the way they are imported: the filter node
+ * types live in qlive-ts's FilterDSL namespace, and Temporal is the polyfill
+ * namespace qlive-ts re-exports.
+ */
 const GRAPHQL_TO_TYPESCRIPT = {
     "BigDecimal" : "bigint",
     "Boolean" : "boolean",
     "Byte" : "number",
-    "ComputedValue" : "ComputedValue",
-    "Condition" : "ConditionNode",
+    "ComputedValue" : "FilterDSL.ComputedValue",
+    "Condition" : "FilterDSL.ConditionNode",
     "Currency" : "number",
     "Date" : "Temporal.PlainDate",
     "DomainObject" : "DomainObject",
     "Float" : "number",
-    "FieldExpression" : "string | FieldNode",
+    "FieldExpression" : "string | FilterDSL.FieldNode",
     "GenericScalar" : "GenericScalar",
     "Int" : "number",
     "JSONB" : "any",
@@ -27,6 +33,17 @@ const GRAPHQL_TO_TYPESCRIPT = {
     "String" : "string",
     "Timestamp" : "Temporal.Instant"
 }
+
+/*
+ * The qlive-ts exports the mapping above can reach, in the order they are
+ * imported. DomainObject is deliberately absent: the generated file declares
+ * its own, as the union of the schema's object types.
+ *
+ * Only the ones a schema actually reaches are imported. An import the output
+ * does not use is noise, and a wrong one goes unnoticed for a long time --
+ * consuming apps set skipLibCheck, so nothing typechecks a generated .d.ts.
+ */
+const QLIVE_TS_IMPORTS = ["FilterDSL", "GenericScalar", "QueryConfig", "Temporal"]
 
 
 function loadSchema(path)
@@ -72,9 +89,21 @@ export function trimIndent(s)
 }
 
 
-function mapGraphQLToTypeScript(name)
+function mapGraphQLToTypeScript(name, imported)
 {
-    return GRAPHQL_TO_TYPESCRIPT[name] || name
+    const typeScript = GRAPHQL_TO_TYPESCRIPT[name] || name
+
+    for (const importable of QLIVE_TS_IMPORTS)
+    {
+        // matches the qualifier of "FilterDSL.ConditionNode" as well as a bare
+        // "QueryConfig", and not the "GenericScalar" inside a domain type name
+        if (new RegExp("\\b" + importable + "\\b").test(typeScript))
+        {
+            imported.add(importable)
+        }
+    }
+
+    return typeScript
 }
 
 
@@ -125,12 +154,8 @@ function generateTypeDefinitions(schemaPath, output)
         //fs.writeFileSync("schema.json", JSON.stringify(schema, null, 4), "utf8")
         //console.log("schema.json", JSON.stringify(schema, null, 4))
 
-        let typeDefinitions = trimIndent(`
-        /*
-            Generated types. Do *not* edit. Run "pnpm generate" to update from schema.graphql
-        */
-        import { QueryDocumentAPI } from "@quinscape/qlive-ts"
-        `)
+        const imported = new Set()
+        let typeDefinitions = ""
 
         types.forEach(typeDef => {
 
@@ -139,7 +164,7 @@ function generateTypeDefinitions(schemaPath, output)
                 const type = unwrapAll(fieldDef.type)
                 const isNonNull = fieldDef.type.kind === "NON_NULL"
 
-                const typeName = mapGraphQLToTypeScript(type.name);
+                const typeName = mapGraphQLToTypeScript(type.name, imported);
 
                 return `${fieldDocs(fieldDef)}    ${ isNonNull ? fieldDef.name : fieldDef.name + "?" }: ${isListType(fieldDef.type) ?  typeName + "[]" : typeName}`
             }).join("\n")
@@ -157,7 +182,15 @@ function generateTypeDefinitions(schemaPath, output)
 
         typeDefinitions += "export type DomainObject = " + typesUnionExpression(types.map(td => td.name))
 
-        fs.writeFileSync(output, typeDefinitions.trimEnd() + "\n", "utf8");
+        const names = QLIVE_TS_IMPORTS.filter(name => imported.has(name))
+
+        const header = trimIndent(`
+        /*
+            Generated types. Do *not* edit. Run "pnpm generate" to update from schema.graphql
+        */
+        `) + (names.length ? `import { ${ names.join(", ") } } from "@quinscape/qlive-ts"\n\n` : "")
+
+        fs.writeFileSync(output, header + typeDefinitions.trimEnd() + "\n", "utf8");
     })
 }
 if (process.argv.length !== 4)

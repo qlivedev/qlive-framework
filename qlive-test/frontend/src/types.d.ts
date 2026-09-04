@@ -1,7 +1,8 @@
 /*
     Generated types. Do *not* edit. Run "pnpm generate" to update from schema.graphql
 */
-import { QueryDocumentAPI } from "@quinscape/qlive-ts"
+import { QueryConfig, Temporal } from "@quinscape/qlive-ts"
+
 /** Database storage for spring security's remember-me feature */
 export type AppLogin = {
 

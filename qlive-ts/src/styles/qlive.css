@@ -1,12 +1,12 @@
 /*
  * QLive base stylesheet - tokens and cascade layer.
  *
- * Placeholder: the token set is a skeleton, not a designed palette. It exists
- * so the packaging path (build -> dist -> consumer import) is wired and
- * testable before the first component is written.
+ * The token set is a skeleton, not a designed palette. It exists so the
+ * packaging path (build -> dist -> consumer import) is wired and testable
+ * before the first component is written.
  *
- * See docs/design/styling-strategy.md for the reasoning behind the layer and
- * the custom-property theming approach.
+ * See docs/styling.md for the reasoning behind the layer and the
+ * custom-property theming approach.
  */
 
 /*

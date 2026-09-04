@@ -61,7 +61,7 @@ still caught before anything ships.
 QLive's stylesheet is shipped as a separate artifact, imported explicitly
 by the application (`import "@quinscape/qlive-ts/styles.css"`) rather than
 pulled in by the JS, so the app controls where it lands in the cascade.
-See `docs/design/styling-strategy.md`.
+See `docs/styling.md`.
 
 ## Toolchain
 

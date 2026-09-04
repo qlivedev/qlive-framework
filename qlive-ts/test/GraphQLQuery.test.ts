@@ -84,6 +84,12 @@ describe("GraphQLQuery", () => {
         expect(doc.rows[0].when).toBeInstanceOf(Temporal.Instant)
     })
 
+    it("registers itself with the document, so it can be updated", async () => {
+        respondWith({data: queryResult(), errors: []})
+
+        expect(GraphQLQuery.access(await Q_Foo.execute({config: {}}))).toBe(Q_Foo)
+    })
+
     it("rejects with the GraphQL errors rather than converting them", async () => {
         respondWith({data: null, errors: [{message: "boom"}]})
 

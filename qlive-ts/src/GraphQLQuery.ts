@@ -2,6 +2,7 @@ import graphql, {firstValue, GraphQLParams} from "./util/graphql";
 import {type OperationType, type ParsedQuery, parseQuery, type QuerySelection} from "./util/parseQuery";
 import {buildConversionMap} from "./util/conversionMap";
 import {convertResultFromServer, convertVariablesToServer, QueryConversionMap} from "./converter";
+import {QueryDocument} from "./QueryDocument";
 
 const secret = Symbol("GraphQLQuery Secret")
 
@@ -101,6 +102,18 @@ export class GraphQLQuery<T>
         const map = this.conversionMap;
 
         return graphql<any>(this, convertVariablesToServer(params, map))
-            .then(data => firstValue(convertResultFromServer(data, map)) as T);
+            .then(data => {
+
+                const result = firstValue(convertResultFromServer(data, map)) as T;
+
+                if (result instanceof QueryDocument)
+                {
+                    // gives the document the query it came from, which is what
+                    // update() re-executes -- inject() does the same for its value
+                    this.register(result)
+                }
+
+                return result;
+            });
     }
 }

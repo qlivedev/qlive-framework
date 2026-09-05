@@ -62,8 +62,16 @@ export default defineConfig(({command}) => ({
         fs: {
             allow: [rootDir],
         },
+        // Both prefixes the browser asks the backend for: /api/** (bootstrap, update) and
+        // /graphql. Keeping them same-origin is what lets the frontend send its session cookie
+        // and CSRF header exactly the way it does in production - no CORS, no credentialed
+        // cross-origin code path that only ever runs in dev.
         proxy: {
             "/api": {
+                target: backendOrigin,
+                changeOrigin: true,
+            },
+            "/graphql": {
                 target: backendOrigin,
                 changeOrigin: true,
             },

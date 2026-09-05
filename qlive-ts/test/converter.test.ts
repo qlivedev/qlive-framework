@@ -11,11 +11,12 @@ import {
     registerConverter
 } from "../src/converter";
 import {QueryDocument} from "../src/QueryDocument";
-import {queryResult, testConfig} from "./fixtures/testConfig";
+import {queryResult, testConfig, testCsrfToken} from "./fixtures/testConfig";
 
 beforeAll(async () => {
     await init({
         config: testConfig,
+        csrfToken: testCsrfToken(),
         data: {}
     })
 })

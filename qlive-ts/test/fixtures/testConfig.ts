@@ -7,6 +7,7 @@ import {
     GraphQLTypeRef
 } from "../../src/GraphQLSchema";
 import {QLiveConfig} from "../../src/config";
+import {v4 as uuid} from "uuid";
 
 /**
  * Schema and meta data the tests run against: a Foo with a Timestamp, its owner, the
@@ -73,8 +74,19 @@ export const LIST_OF = (ofType: GraphQLTypeRef): GraphQLTypeRef => ({kind: "LIST
 export const TIMESTAMP = NAMED("Timestamp")
 export const STRING = NAMED("String")
 
+
+export function testCsrfToken()
+{
+    return {
+        param: "_csrf",
+        header: "X-CSRFToken",
+        value: uuid()
+    };
+}
+
 export const testConfig: QLiveConfig = {
     contextPath: "/",
+    csrfToken: testCsrfToken(),
     schema: {
         types: [
             scalar("String"),

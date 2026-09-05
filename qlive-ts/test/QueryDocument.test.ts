@@ -2,7 +2,7 @@ import {afterEach, beforeAll, describe, expect, it, vi} from "vitest";
 import {init} from "../src/config";
 import {GraphQLQuery} from "../src/GraphQLQuery";
 import {QueryDocument} from "../src/QueryDocument";
-import {fooDocument, testConfig} from "./fixtures/testConfig";
+import {fooDocument, testConfig, testCsrfToken} from "./fixtures/testConfig";
 import {respondWith, sentVariables} from "./fixtures/graphqlMock";
 
 const Q_Doc = new GraphQLQuery<QueryDocument<any>>(
@@ -47,7 +47,7 @@ async function executed()
 }
 
 beforeAll(async () => {
-    await init({config: testConfig, data: {}})
+    await init({config: testConfig, csrfToken: testCsrfToken(), data: {}})
 })
 
 afterEach(() => {

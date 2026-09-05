@@ -4,7 +4,7 @@ import {init} from "../src/config";
 import {GraphQLQuery} from "../src/GraphQLQuery";
 import inject from "../src/inject";
 import {QueryDocument} from "../src/QueryDocument";
-import {queryResult, testConfig} from "./fixtures/testConfig";
+import {queryResult, testConfig, testCsrfToken} from "./fixtures/testConfig";
 
 /** T of a query is what one execution of it yields: the value of its one selection */
 const Q_Foo = new GraphQLQuery<QueryDocument<any>>(
@@ -31,6 +31,7 @@ const Q_Foo = new GraphQLQuery<QueryDocument<any>>(
 beforeAll(async () => {
     await init({
         config: testConfig,
+        csrfToken: testCsrfToken(),
         data: {
             Q_Foo: {data: queryResult(), type: "FooDocument", meta: null},
             Second: {data: queryResult(), type: "FooDocument", meta: null}

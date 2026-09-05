@@ -2,7 +2,7 @@ import {beforeAll, describe, expect, test} from "vitest";
 import {init} from "../../src/config";
 import {parseQuery} from "../../src/util/parseQuery";
 import {buildConversionMap} from "../../src/util/conversionMap";
-import {testConfig} from "../fixtures/testConfig";
+import {testConfig, testCsrfToken} from "../fixtures/testConfig";
 
 function mapOf(query: string)
 {
@@ -10,7 +10,7 @@ function mapOf(query: string)
 }
 
 beforeAll(async () => {
-    await init({config: testConfig, data: {}})
+    await init({config: testConfig, csrfToken: testCsrfToken(), data: {}})
 })
 
 describe("buildConversionMap", () => {

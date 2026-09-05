@@ -103,6 +103,33 @@
     ]
   },
   {
+    "name":"ClientCsrfToken",
+    "description":"Encapsulates CSRF token meta information",
+    "fieldDocs":[
+      {
+        "name":"header",
+        "description":"Header name to send the CSRF token as",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"param",
+        "description":"HTTP Parameter name to send the CSRF token as",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"value",
+        "description":"CSRF token value",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
     "name":"ConditionParser",
     "description":"Specialized JSONParser setup to parse a FilterDSL node hierarchy into\nthe correct types.",
     "fieldDocs":[
@@ -176,7 +203,14 @@
     "fieldDocs":[
       {
         "name":"config",
-        "description":"QLive system config.",
+        "description":"QLive system config.\n\nWe keep it wrapped in a JSONHolder to generate the JSON only once.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"csrfToken",
+        "description":"Returns CSRF Token meta information.",
         "paramDocs":[
           
         ]

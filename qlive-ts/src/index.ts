@@ -23,7 +23,7 @@ export { Temporal } from "temporal-polyfill";
 export { default as config } from "./config";
 export { default as i18n } from "./i18n";
 
-export { default as inject } from "./inject";
+export { useInjection } from "./useInjection";
 export { default as data } from "./data";
 export { GraphQLQuery } from "./GraphQLQuery";
 export { default as graphql, firstValue } from "./util/graphql";
@@ -150,6 +150,10 @@ export type {
  * Internal plumbing -- an implementation detail of a public entry point, and
  * the public one is the supported way in:
  *
+ *   inject.inject()                     the plain read of an injection, without
+ *                                       the subscription that makes an update
+ *                                       show up. useInjection() is the way in;
+ *                                       data() covers the raw value + meta case
  *   util/conversionMap.buildConversionMap
  *                                       a GraphQLQuery builds its own map
  *   views.viewNameForRoute()            resolution step inside

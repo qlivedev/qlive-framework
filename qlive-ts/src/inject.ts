@@ -4,15 +4,6 @@ import data from "./data";
 import {convertResultFromServer} from "./converter";
 import {QueryDocument} from "./QueryDocument";
 
-/**
- * Causes the injection of the given GraphQL result.
- *
- * @param query         GraphQL query
- * @param params        Parameters for the query
- *
- * @returns injected Value
- */
-
 export type InjectParams = GraphQLParams & {
     /**
      * Used to disambiguate query results when the same named query gets used multiple times.
@@ -24,18 +15,20 @@ export type InjectParams = GraphQLParams & {
 const converted = new Set<string>()
 
 /**
- * Injects the data from the given query with the given optional params.
+ * Reads the data the server injected for the given query, converting it on first use.
  *
- * The actual work for the data injection has already happened on the server side by the time this method actually
- * gets called. We use static analysis to detect the inject calls in the code base and prepare them before sending
- * each view.
+ * Framework-internal: this is the plain read, with nothing subscribed to what it returns,
+ * so an update() of the document it yields would never reach a view. Applications call
+ * useInjection(), which is this plus the subscription.
  *
- * To receive the data, we need a injection id. Normally this is the query name as defined within the query definition.
- * If you need to inject the same query twice for the same view, at least one of the injections needs to provide a
- * __id parameter to disambiguate.
+ * To find the data, we need an injection id. Normally this is the query name as defined
+ * within the query definition. If you need to inject the same query twice for the same
+ * view, at least one of the injections needs to provide a __id parameter to disambiguate.
  *
  * @param query     GraphQLQuery
  * @param params    GraphQLParams including __id
+ *
+ * @returns the injected value, a QueryDocument where the query selects one
  */
 export default function inject<T>(query: GraphQLQuery<T>, params: InjectParams = {}): T
 {

@@ -16,7 +16,7 @@ and the source the end-user template gets extracted from later.
 
 The frontend (`qlive-test/frontend/src/...`) mirrors the demo app
 migrated from the framework's previous incarnation: a Home page using
-`FilterDSL`/`inject`, a typed `GraphQLQuery` (`Q_Foo`), and the generated
+`FilterDSL`/`useInjection`, a typed `GraphQLQuery` (`Q_Foo`), and the
 `types.d.ts`. It isn't split along wiring/scenarios lines.
 
 The Java side (`qlive-test/src/main/java/com/dataciders/qlivetest/...`)

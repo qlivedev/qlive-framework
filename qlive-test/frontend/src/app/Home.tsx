@@ -1,14 +1,13 @@
-import {FilterDSL, inject} from "@quinscape/qlive-ts";
-import {Q_Foo, Q_FooResult} from "./Q_Foo";
+import {FilterDSL, useInjection} from "@quinscape/qlive-ts";
+import {Q_Foo} from "./Q_Foo";
 
 const {field, value} = FilterDSL;
 
-interface HomeProps
-{
-    foos: Q_FooResult;
-}
+export default function Home() {
 
-export default function Home({foos = inject(Q_Foo)}: HomeProps) {
+    // The view subscribes to the injected document here -- update() below changes it and
+    // this re-renders with the new snapshot.
+    const foos = useInjection(Q_Foo);
 
     // const filter =
     //     field("name").eq(value("Foo #1")).or(field("owner.login").eq(value("admin")))

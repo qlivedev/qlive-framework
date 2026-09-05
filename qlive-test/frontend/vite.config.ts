@@ -26,8 +26,8 @@ const trackedFunctions : { [name: string]: TrackedFunctionSpec } = {
         module: "@quinscape/qlive-ts", fn: "i18n",
         varArgs: true
     },
-    inject: {
-        module: "@quinscape/qlive-ts", fn: "inject", allowIdentifier: true
+    useInjection: {
+        module: "@quinscape/qlive-ts", fn: "useInjection", allowIdentifier: true
     },
     GraphQLQuery: {
         module: "@quinscape/qlive-ts", fn: "GraphQLQuery"

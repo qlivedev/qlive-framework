@@ -6,7 +6,7 @@ let injectedData: { [key: string]: Injection }
  * Turns one injection as it came over the wire into the record the application reads
  * from. The data is not converted here: the conversion needs the selections of the
  * query the injection was produced from, and that query is only known once a view
- * actually calls inject() with it.
+ * actually asks for the injection with it.
  */
 function toInjection(value: InjectionSource) : Injection
 {
@@ -41,9 +41,9 @@ export function initData(data : { [key: string]: InjectionSource })
  * Returns the injection the server shipped under the given id, with the type and
  * meta information it came with.
  *
- * The value is in whatever state it was last left in -- raw as received until an
- * inject() call for the same id converts it in place. inject() is the normal way
- * to read injected data; this is for the cases that need the type or the meta
+ * The value is in whatever state it was last left in -- raw as received until the
+ * first read of that id converts it in place. useInjection() is the normal way to
+ * read injected data; this is for the cases that need the type or the meta
  * alongside the value, or the id of an injection no view claimed.
  *
  * @param injectionId   injection id, normally the query name

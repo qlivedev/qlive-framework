@@ -16,9 +16,9 @@ import java.util.Set;
 public class ModuleFunctionReferences
 {
     /**
-     * Call name configured for call data to injection()
+     * Call name configured for call data to useInjection()
      */
-    public static final String INJECT_CALL_NAME = "inject";
+    public static final String USE_INJECTION_CALL_NAME = "useInjection";
 
     public static final String GRAPHQL_QUERY_CONSTRUCTOR_NAME = "GraphQLQuery";
 

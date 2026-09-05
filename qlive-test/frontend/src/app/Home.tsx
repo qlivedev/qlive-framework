@@ -25,7 +25,7 @@ export default function Home() {
             <div className="toolbar">
 
             <button type="button" onClick={ () => {
-                foos.update({offset: 1, pageSize: 20}).then(result => { console.log(result) });
+                foos.update({offset: 1}).then(result => { console.log(result) });
             }}>
                 Test
             </button>

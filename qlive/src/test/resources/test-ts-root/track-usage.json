@@ -1,7 +1,7 @@
 {
     "usages": {
         "./sub/Q_Test": {
-            "requires": ["@quinscape/qlive-js"],
+            "requires": ["@quinscape/qlive-ts"],
             "calls": {
                 "GraphQLQuery": [
                     [

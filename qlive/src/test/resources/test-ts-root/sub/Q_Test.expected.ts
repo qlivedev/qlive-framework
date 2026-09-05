@@ -1,4 +1,4 @@
-import { GraphQLQuery, } from "@quinscape/qlive-js";
+import { GraphQLQuery, } from "@quinscape/qlive-ts";
 
 export type Q_TestResult = Pick<TestFooDocument,"type" | "config"> & {
     rows : Array<Pick<TestFoo,"name"> & {

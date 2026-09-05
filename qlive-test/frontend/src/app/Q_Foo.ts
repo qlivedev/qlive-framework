@@ -3,10 +3,7 @@ import {AppUser, Foo, FooDocument, FooType} from "../types";
 
 export type Q_FooResult = Pick<FooDocument,"type" | "config"> & {
     rows : Array<Pick<Foo,"id" | "name" | "description"> & {
-        owner : Pick<AppUser,"id" | "login">,
-        fooType : Pick<FooType,"ordinal"> & {
-            id : String
-        }
+        owner : Pick<AppUser,"id" | "login">
     }>
 } & QueryDocumentMethods<Q_FooResult>
 
@@ -25,10 +22,6 @@ export const Q_Foo = new GraphQLQuery<Q_FooResult>(
                 owner {
                     id
                     login
-                }
-                fooType {
-                    id: name
-                    ordinal
                 }
             }
         }

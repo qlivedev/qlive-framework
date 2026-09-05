@@ -6,9 +6,9 @@ import com.dataciders.qlive.model.bootstrap.ClientCsrfToken;
 import com.dataciders.qlive.model.bootstrap.Injection;
 import com.dataciders.qlive.model.bootstrap.QLiveBoostrap;
 import com.dataciders.qlive.model.bootstrap.QLiveConfig;
-import com.dataciders.qlive.runtime.scalar.FilterDSL;
-import com.google.errorprone.annotations.ForOverride;
 import de.quinscape.domainql.DomainQL;
+import de.quinscape.domainql.fetcher.FetcherContext;
+import de.quinscape.domainql.jooq.GeneratedDomainObject;
 import de.quinscape.domainql.util.IntrospectionUtil;
 import de.quinscape.domainql.util.JSONHolder;
 import de.quinscape.spring.jsview.util.JSONUtil;
@@ -16,14 +16,14 @@ import jakarta.servlet.ServletContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
-import org.svenson.util.JSONBeanUtil;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.svenson.util.JSONPathUtil;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class DefaultBootstrapService
     implements BootstrapService
@@ -37,7 +37,6 @@ public class DefaultBootstrapService
     private final JSONHolder qlConfigJSON;
 
     private final JSONPathUtil pathUtil = new JSONPathUtil(JSONUtil.OBJECT_SUPPORT);
-
 
     public DefaultBootstrapService(
         ServletContext servletContext, @Lazy DomainQL domainQL
@@ -102,13 +101,19 @@ public class DefaultBootstrapService
             final ArrayList rows = new ArrayList<>();
             try
             {
-                final Object foo = fooClass.getConstructor().newInstance();
+                final GeneratedDomainObject foo = (GeneratedDomainObject) fooClass.getConstructor().newInstance();
 
                 int rnd = (int) Math.round(Math.random() * 100);
 
-                pathUtil.setPropertyPath(foo, "name", "Foo #" + rnd);
-                pathUtil.setPropertyPath(foo, "num", rnd);
-                pathUtil.setPropertyPath(foo, "description", "Desc for Foo #" + rnd);
+                foo.setProperty("id", UUID.randomUUID().toString());
+                foo.setProperty("name", "Foo #" + rnd);
+                foo.setProperty("num", rnd);
+                foo.setProperty("description", "Desc for Foo #" + rnd);
+                foo.setProperty("ownerId", "d7df0f2c-9aa8-4845-b2bf-1d02abd3666e");
+                final FetcherContext fetcherContext = new FetcherContext();
+                fetcherContext.setProperty("id", "d7df0f2c-9aa8-4845-b2bf-1d02abd3666e");
+                fetcherContext.setProperty("login", "admin");
+                foo.provideFetcherContext(fetcherContext);
 
                 rows.add(foo);
             }

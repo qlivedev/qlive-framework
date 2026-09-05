@@ -1,5 +1,7 @@
 package com.dataciders.qlivetest.runtime.config;
 
+import com.dataciders.qlive.runtime.controller.GraphQLController;
+import com.dataciders.qlive.runtime.security.GraphQLSecurityErrorHandler;
 import com.dataciders.qlivetest.domain.tables.pojos.AppLogin;
 import com.dataciders.qlivetest.domain.tables.pojos.AppUser;
 import com.dataciders.qlivetest.runtime.auth.AppUserDetailsService;
@@ -11,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
 @Configuration
@@ -84,6 +87,28 @@ public class SecurityConfiguration
                     login.loginPage(LOGIN_URI)
                         .defaultSuccessUrl(LOGIN_SUCCESS_URI)
                         .failureUrl(LOGIN_URI + "?error")
+            )
+
+            // ... which is the right answer for a view, and the wrong one for the GraphQL endpoint: no
+            // fetch() call can do anything with a login page. That one URL answers in the format its
+            // caller parses instead, both when it is not authenticated and when it is denied.
+            //
+            // Worth knowing, because spring security decides this and not us: form login registers its
+            // redirect for requests that accept text/html, and the entry point registered first -- this
+            // one -- is what answers everything matching neither. So an unauthenticated fetch() of
+            // another URL gets this 401 rather than a login page it could not use either, which is the
+            // more useful of the two even where the GraphQL shape of the body has nothing to say.
+            .exceptionHandling(
+                exceptions ->
+                {
+                    final GraphQLSecurityErrorHandler graphQLErrors = new GraphQLSecurityErrorHandler();
+                    final PathPatternRequestMatcher graphQLEndpoint =
+                        PathPatternRequestMatcher.withDefaults().matcher(GraphQLController.GRAPHQL_URI);
+
+                    exceptions
+                        .defaultAuthenticationEntryPointFor(graphQLErrors, graphQLEndpoint)
+                        .defaultAccessDeniedHandlerFor(graphQLErrors, graphQLEndpoint);
+                }
             )
 
             .userDetailsService(userDetailsServiceBean())

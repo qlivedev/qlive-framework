@@ -196,7 +196,6 @@ type QueryType {
     queryBarDocument(config: QueryConfig!): BarDocument!
     "Queries Baz objects based on the given query config"
     queryBazDocument(config: QueryConfig!): BazDocument!
-    "Queries Foo objects based on the given query config"
     queryFooDocument(config: QueryConfig!): FooDocument!
     "Queries FooType objects based on the given query config"
     queryFooTypeDocument(config: QueryConfig!): FooTypeDocument!

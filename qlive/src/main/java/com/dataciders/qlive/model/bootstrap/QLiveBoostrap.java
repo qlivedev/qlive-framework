@@ -20,6 +20,8 @@ public class QLiveBoostrap
 
 
     /// QLive system config.
+    ///
+    /// We keep it wrapped in a JSONHolder to generate the JSON only once. 
     public JSONHolder getConfig()
     {
         return config;

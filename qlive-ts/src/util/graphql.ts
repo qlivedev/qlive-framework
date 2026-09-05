@@ -1,12 +1,6 @@
 import {GraphQLQuery} from "../GraphQLQuery";
+import config from "../config";
 
-/*
- * Injected into the page by the server, not imported: the context path the
- * app is deployed under, and the CSRF token Spring Security requires on
- * every POST.
- */
-declare const contextPath: string;
-declare const csrfToken: { header: string, value: string };
 
 type GraphQLErrorLocation = {
     line: number
@@ -80,6 +74,8 @@ export default function graphql<T>(query: GraphQLQuery<T> | string, params: Grap
         queryInstance = query;
     }
 
+    const { contextPath, csrfToken } = config()
+
     return fetch(
         window.location.origin + contextPath + "/graphql",
         {
@@ -90,7 +86,7 @@ export default function graphql<T>(query: GraphQLQuery<T> | string, params: Grap
                 "Accept": "application/json",
 
                 // spring security enforces every POST request to carry a csrf token as either parameter or header
-                [csrfToken.header]: csrfToken.value
+                [csrfToken!.header]: csrfToken!.value
             },
             body: JSON.stringify({
                 query: queryInstance.query,

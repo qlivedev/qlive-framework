@@ -1,6 +1,7 @@
 package com.dataciders.qlive.model.bootstrap;
 
 import de.quinscape.domainql.util.JSONHolder;
+import org.springframework.security.web.csrf.CsrfToken;
 
 import java.util.Map;
 
@@ -13,12 +14,12 @@ public class QLiveBoostrap
 {
     private JSONHolder config;
 
+    private ClientCsrfToken csrfToken;
+
     private Map<String, Injection> data;
 
 
-    /**
-     * QLive system config.
-     */
+    /// QLive system config.
     public JSONHolder getConfig()
     {
         return config;
@@ -31,9 +32,20 @@ public class QLiveBoostrap
     }
 
 
-    /**
-     * Injection data map
-     */
+    /// Returns CSRF Token meta information.
+    public ClientCsrfToken getCsrfToken()
+    {
+        return csrfToken;
+    }
+
+
+    public void setCsrfToken(ClientCsrfToken csrfToken)
+    {
+        this.csrfToken = csrfToken;
+    }
+
+
+    /// Injection data map
     public Map<String, Injection> getData()
     {
         return data;
@@ -44,4 +56,5 @@ public class QLiveBoostrap
     {
         this.data = data;
     }
+
 }

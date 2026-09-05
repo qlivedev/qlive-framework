@@ -2,6 +2,7 @@ package com.dataciders.qlive.runtime.service;
 
 import com.dataciders.qlive.model.QueryConfig;
 import com.dataciders.qlive.model.QueryDocument;
+import com.dataciders.qlive.model.bootstrap.ClientCsrfToken;
 import com.dataciders.qlive.model.bootstrap.Injection;
 import com.dataciders.qlive.model.bootstrap.QLiveBoostrap;
 import com.dataciders.qlive.model.bootstrap.QLiveConfig;
@@ -69,13 +70,14 @@ public class DefaultBootstrapService
 
 
     @Override
-    public QLiveBoostrap provideConfig(String path)
+    public QLiveBoostrap provideConfig(CsrfToken csrfToken, String path)
     {
         final QLiveBoostrap qLiveBoostrap = new QLiveBoostrap();
         final Map<String, Injection> data = provideInjectionData(path);
 
         qLiveBoostrap.setConfig(qlConfigJSON);
         qLiveBoostrap.setData(data);
+        qLiveBoostrap.setCsrfToken(new ClientCsrfToken(csrfToken));
 
         return qLiveBoostrap;
     }

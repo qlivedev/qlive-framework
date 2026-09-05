@@ -2,6 +2,7 @@ package com.dataciders.qlive.runtime.service;
 
 import com.dataciders.qlive.model.bootstrap.Injection;
 import com.dataciders.qlive.model.bootstrap.QLiveBoostrap;
+import org.springframework.security.web.csrf.CsrfToken;
 
 import java.util.Map;
 
@@ -15,7 +16,7 @@ import java.util.Map;
 public interface BootstrapService
 {
     /// Provides the bootstrap data 
-    QLiveBoostrap provideConfig(String path);
+    QLiveBoostrap provideConfig(CsrfToken csrfToken, String path);
 
     /// Provides just the injection data subset for dynamic path updates
     Map<String, Injection> provideInjectionData(String path);

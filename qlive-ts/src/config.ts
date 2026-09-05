@@ -123,8 +123,15 @@ export type Injection = {
     meta: any
 }
 
+export type CSRFToken = {
+    param: string
+    header: string
+    value: string
+}
+
 export type QLiveBoostrap = {
     config: QLiveConfig | null;
+    csrfToken: CSRFToken
     data: {
         [key: string]: InjectionSource;
     }
@@ -138,6 +145,7 @@ export type QLiveConfig = {
     meta: DomainQLMeta,
 
     // client-side only
+    csrfToken?: CSRFToken
     queryDocumentTypes?: Set<string>
     typesByName?: Map<string, GraphQLType>
 
@@ -189,7 +197,8 @@ const notLogged = new Set([
     // is derived and can be looked up in meta.genericTypes
     "queryDocumentTypes",
     // is derived and just another way of looking at schema.types
-    "typesByName"
+    "typesByName",
+    "csrfToken"
 ])
 
 function initializeDerivedConfig(theConfig: QLiveConfig)
@@ -207,11 +216,13 @@ function initializeDerivedConfig(theConfig: QLiveConfig)
 
 export function init(bs : QLiveBoostrap)
 {
-    const { config, data } = bs
+    const { config, data, csrfToken } = bs
 
     theConfig = config
     if (theConfig)
     {
+        theConfig.csrfToken = csrfToken
+
         initializeDerivedConfig(theConfig);
 
         // the converters for the QueryDocument derived types come out of the config,

@@ -10,6 +10,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -55,10 +56,11 @@ public class ViteIndexController
 
     @GetMapping("/api/bootstrap")
     public ResponseEntity<String> bootstrap(
-        @RequestParam(value = "path") String path
+        @RequestParam(value = "path") String path,
+        CsrfToken csrfToken
     )
     {
-        final QLiveBoostrap bs = bootstrapService.provideConfig(path);
+        final QLiveBoostrap bs = bootstrapService.provideConfig(csrfToken, path);
         if (bs == null)
         {
             return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
@@ -118,7 +120,8 @@ public class ViteIndexController
 
     @RequestMapping("/app/{*path}")
     public ResponseEntity<String> app(
-        @PathVariable String path
+        @PathVariable String path,
+        CsrfToken csrfToken
     )
     {
         final String template = loadTemplate();
@@ -127,7 +130,7 @@ public class ViteIndexController
             return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
         }
 
-        final QLiveBoostrap bs = bootstrapService.provideConfig(path);
+        final QLiveBoostrap bs = bootstrapService.provideConfig(csrfToken, path);
 
         // we replace a null config with "" to trigger
         final String data = bs != null ? JSONUtil.DEFAULT_GENERATOR.forValue(bs) :"";

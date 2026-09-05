@@ -248,6 +248,93 @@ class GraphQLQueryTypingServiceTest
     }
 
 
+    @Test
+    void testDocumentResultGetsMethodsMixedIn()
+    {
+        final GraphQLQueryTypingService.ModuleInfo moduleInfo = moduleInfo(
+            // language=TypeScript
+            """
+            import { GraphQLQuery, } from "@quinscape/qlive-ts";
+
+            """
+        );
+
+        final String rendered = GraphQLQueryTypingService.renderModule(moduleInfo, "TestFooDocument", true);
+
+        // the document is a QueryDocument instance in the application, so update() is in its type
+        assertThat(rendered, containsString(
+            "export type Q_TestResult = TestFooDocument & QueryDocumentMethods<Q_TestResult>"
+        ));
+        // .. and the name it needs for that is imported without the user having to think of it
+        assertThat(rendered, containsString(
+            "import { GraphQLQuery, QueryDocumentMethods } from \"@quinscape/qlive-ts\";"
+        ));
+    }
+
+
+    @Test
+    void testPlainResultKeepsToItself()
+    {
+        final GraphQLQueryTypingService.ModuleInfo moduleInfo = moduleInfo(
+            // language=TypeScript
+            """
+            import { GraphQLQuery } from "@quinscape/qlive-ts";
+
+            """
+        );
+
+        final String rendered = GraphQLQueryTypingService.renderModule(moduleInfo, "TestFoo", false);
+
+        assertThat(rendered, containsString("export type Q_TestResult = TestFoo\n"));
+        assertThat(rendered, not(containsString("QueryDocumentMethods")));
+    }
+
+
+    @Test
+    void testDocumentMethodsImport()
+    {
+        // joins an existing import, keeping its formatting
+        assertThat(
+            GraphQLQueryTypingService.withDocumentMethodsImport(
+                "import { GraphQLQuery } from \"@quinscape/qlive-ts\";\n"
+            ),
+            is("import { GraphQLQuery, QueryDocumentMethods } from \"@quinscape/qlive-ts\";\n")
+        );
+
+        assertThat(
+            GraphQLQueryTypingService.withDocumentMethodsImport(
+                "import {\n    GraphQLQuery,\n    inject\n} from \"@quinscape/qlive-ts\";\n"
+            ),
+            is("import {\n    GraphQLQuery,\n    inject, QueryDocumentMethods\n} from \"@quinscape/qlive-ts\";\n")
+        );
+
+        // adds an import of its own if the module does not import from the package yet
+        assertThat(
+            GraphQLQueryTypingService.withDocumentMethodsImport("import { Foo } from \"./types\";\n"),
+            is("import { QueryDocumentMethods } from \"@quinscape/qlive-ts\";\nimport { Foo } from \"./types\";\n")
+        );
+
+        // and leaves the module alone once the name is there, so repeated updates do not pile up imports
+        final String alreadyImported = "import { GraphQLQuery, QueryDocumentMethods } from \"@quinscape/qlive-ts\";\n";
+        assertThat(GraphQLQueryTypingService.withDocumentMethodsImport(alreadyImported), is(alreadyImported));
+
+        final String typeOnly = "import type { QueryDocumentMethods } from \"@quinscape/qlive-ts\";\n";
+        assertThat(GraphQLQueryTypingService.withDocumentMethodsImport(typeOnly), is(typeOnly));
+    }
+
+
+    private static GraphQLQueryTypingService.ModuleInfo moduleInfo(String prologue)
+    {
+        return new GraphQLQueryTypingService.ModuleInfo(
+            "Q_Test",
+            prologue,
+            "export const Q_Test",
+            "new GraphQLQuery<Q_TestResult>(`query Q_Test { x }`)",
+            "\n"
+        );
+    }
+
+
     private static TrackUsageData readTrackUsageData() throws IOException
     {
         TrackUsageData data = JSONUtil.DEFAULT_PARSER.parse(TrackUsageData.class, FileUtils.readFileToString(

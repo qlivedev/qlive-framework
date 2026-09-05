@@ -1,10 +1,10 @@
-import { GraphQLQuery, } from "@quinscape/qlive-ts";
+import { GraphQLQuery, QueryDocumentMethods } from "@quinscape/qlive-ts";
 
 export type Q_TestResult = Pick<TestFooDocument,"type" | "config"> & {
     rows : Array<Pick<TestFoo,"name"> & {
         owner : Pick<TestUser,"login">
     }>
-}
+} & QueryDocumentMethods<Q_TestResult>
 
 export const Q_Test = new GraphQLQuery<Q_TestResult>(
     // language=GraphQL

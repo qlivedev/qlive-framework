@@ -13,12 +13,23 @@ export interface QueryConfig
     sortFields: FieldExpression[];
 }
 
-export interface QueryDocumentMethods<T>
+/**
+ * What a query document can do on top of holding its data.
+ *
+ * Every document the server sends becomes a QueryDocument instance, so the generated
+ * result type of a query selecting one mixes this in: the methods are part of the type
+ * the same way they are part of the value.
+ *
+ * @typeParam D    document type update() resolves to. That is the type this interface is
+ *                 mixed into, so an updated document keeps the exact selection of the one
+ *                 it was updated from and can be updated again.
+ */
+export interface QueryDocumentMethods<D>
 {
-    update(newConfig: QueryConfig): Promise<QueryDocument<T>>
+    update(newConfig: QueryConfig): Promise<D>
 }
 
-export class QueryDocument<T> implements QueryDocumentMethods<T>
+export class QueryDocument<T> implements QueryDocumentMethods<QueryDocument<T>>
 {
     type: string;
     config: QueryConfig;

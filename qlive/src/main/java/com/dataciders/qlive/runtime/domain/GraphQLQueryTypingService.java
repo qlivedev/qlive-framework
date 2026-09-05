@@ -4,6 +4,7 @@ import de.quinscape.domainql.DomainQL;
 import com.dataciders.qlive.model.ts.ModuleFunctionReferences;
 import com.dataciders.qlive.model.ts.TrackUsageData;
 import com.dataciders.qlive.runtime.QLiveException;
+import com.dataciders.qlive.runtime.util.Util;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.language.Document;
 import graphql.language.Field;
@@ -44,9 +45,17 @@ public class GraphQLQueryTypingService
 {
     private final static Logger log = LoggerFactory.getLogger(GraphQLQueryTypingService.class);
 
+    private final DomainQL domainQL;
+
     private final GraphQLSchema graphQLSchema;
 
     private final File tsSourcePath;
+
+    /** npm package the generated result types import their QLive types from */
+    final static String QLIVE_PACKAGE = "@quinscape/qlive-ts";
+
+    /** Interface mixed into the result type of a query selecting a query document */
+    final static String DOCUMENT_METHODS = "QueryDocumentMethods";
 
     /**
      * Finds the "export const <Name>" a tracked GraphQLQuery construction belongs to. The name is ASCII rather
@@ -58,6 +67,14 @@ public class GraphQLQueryTypingService
 
     final static Pattern RE_TYPE_PARAM = Pattern.compile("^new GraphQLQuery<(.*)>");
 
+    /** Finds the named imports of an existing import from {@link #QLIVE_PACKAGE}, so we can join them */
+    final static Pattern RE_QLIVE_IMPORT = Pattern.compile(
+        "import\\s+(?:type\\s+)?\\{([^}]*)}\\s*from\\s*[\"']" + Pattern.quote(QLIVE_PACKAGE) + "[\"']"
+    );
+
+    /** Finds {@link #DOCUMENT_METHODS} among already imported names */
+    final static Pattern RE_DOCUMENT_METHODS_IMPORTED = Pattern.compile("\\b" + DOCUMENT_METHODS + "\\b");
+
     private int timeoutMillis = 300;
 
     private Timer timer = null;
@@ -67,6 +84,7 @@ public class GraphQLQueryTypingService
     {
         log.trace("Create GraphQLQueryTypingService");
 
+        this.domainQL = domainQL;
         this.graphQLSchema = domainQL.getGraphQLSchema();
         this.tsSourcePath = tsSourcePath;
     }
@@ -183,7 +201,11 @@ public class GraphQLQueryTypingService
                 String updatedSource = null;
                 if (moduleInfo != null)
                 {
-                    updatedSource = renderModule(moduleInfo, tsCode);
+                    updatedSource = renderModule(
+                        moduleInfo,
+                        tsCode,
+                        isQueryDocumentResult(selectedOperations.getFirst())
+                    );
                 }
 
                 if (updatedSource == null)
@@ -649,15 +671,90 @@ public class GraphQLQueryTypingService
     }
 
 
-    static String renderModule(ModuleInfo moduleInfo, String tsCode)
+    /**
+     * Returns true if the given operation selects a query document, that is one of the GraphQL types
+     * derived from QueryDocument&lt;T&gt;, e.g. FooDocument.
+     * <p>
+     * Those arrive in the application as QueryDocument instances, not as the plain JSON objects they
+     * are on the wire, which is what earns their result type the {@link #DOCUMENT_METHODS} mix-in.
+     *
+     * @param operation selected operation
+     *
+     * @return true if the operation yields a query document
+     */
+    private boolean isQueryDocumentResult(SelectionTypeNode operation)
+    {
+        // A list of documents is not a document, and nothing produces one -- so we stay on the
+        // safe side of a type that would promise methods the values do not have.
+        return !operation.isList() && Util.isQueryDocumentType(domainQL, operation.getFieldTypeName());
+    }
+
+
+    /**
+     * Renders the updated module source with the given result type.
+     *
+     * @param moduleInfo      analyzed module
+     * @param tsCode          result type expression as rendered by {@link #renderResultType(List)}
+     * @param isQueryDocument true if the query selects a query document
+     *
+     * @return new TS source of the module
+     */
+    static String renderModule(ModuleInfo moduleInfo, String tsCode, boolean isQueryDocument)
     {
         String prologue;
 
-        final String tsTypeDef = "export type " + moduleInfo.variableName() + "Result = " + tsCode;
+        final String typeName = moduleInfo.variableName() + "Result";
 
-        prologue = moduleInfo.prologue() + tsTypeDef + "\n\n";
+        String resultType = tsCode;
+        if (isQueryDocument)
+        {
+            // The document methods are parameterized with the result type itself, so an updated
+            // document is typed exactly like the one it came from -- selection and all.
+            resultType += " & " + DOCUMENT_METHODS + "<" + typeName + ">";
+        }
+
+        final String tsTypeDef = "export type " + typeName + " = " + resultType;
+
+        prologue = (isQueryDocument ? withDocumentMethodsImport(moduleInfo.prologue()) : moduleInfo.prologue()) +
+            tsTypeDef + "\n\n";
 
         return prologue + moduleInfo.leftSideOfDefinition + " = " + moduleInfo.graphQLQueryDefinition + moduleInfo.epilogue();
+    }
+
+
+    /**
+     * Returns the given module prologue with {@link #DOCUMENT_METHODS} imported from {@link #QLIVE_PACKAGE}.
+     * <p>
+     * The generated result type is the only place referring to that name, so the user should not have to
+     * keep an import for it around. An existing import from the QLive package takes the name in, otherwise
+     * a new import is prepended.
+     *
+     * @param prologue module source in front of the generated result type
+     *
+     * @return prologue importing the document methods
+     */
+    static String withDocumentMethodsImport(String prologue)
+    {
+        final Matcher matcher = RE_QLIVE_IMPORT.matcher(prologue);
+        if (!matcher.find())
+        {
+            return "import { " + DOCUMENT_METHODS + " } from \"" + QLIVE_PACKAGE + "\";\n" + prologue;
+        }
+
+        final String names = matcher.group(1);
+        if (RE_DOCUMENT_METHODS_IMPORTED.matcher(names).find())
+        {
+            return prologue;
+        }
+
+        final String imported = names.stripTrailing();
+        // whatever separated the last name from the closing brace stays, so a multi-line import stays multi-line
+        final String trailing = names.substring(imported.length());
+        final String separator = imported.isEmpty() ? "" : (imported.endsWith(",") ? " " : ", ");
+
+        return prologue.substring(0, matcher.start(1)) +
+            imported + separator + DOCUMENT_METHODS + trailing +
+            prologue.substring(matcher.end(1));
     }
 
 
@@ -910,8 +1007,8 @@ public class GraphQLQueryTypingService
      * @param graphQLQueryDefinition TypeScript snippet of the GraphQL Definition (right side of assignment)
      * @param epilogue               Code after the query
      */
-    private record ModuleInfo(String variableName, String prologue, String leftSideOfDefinition,
-                              String graphQLQueryDefinition, String epilogue)
+    record ModuleInfo(String variableName, String prologue, String leftSideOfDefinition,
+                      String graphQLQueryDefinition, String epilogue)
     {
     }
 

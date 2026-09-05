@@ -5,6 +5,7 @@ import com.dataciders.qlive.model.QueryDocument;
 import com.dataciders.qlive.model.bootstrap.Injection;
 import com.dataciders.qlive.model.bootstrap.QLiveBoostrap;
 import com.dataciders.qlive.model.bootstrap.QLiveConfig;
+import com.dataciders.qlive.runtime.scalar.FilterDSL;
 import com.google.errorprone.annotations.ForOverride;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.util.IntrospectionUtil;
@@ -14,9 +15,12 @@ import jakarta.servlet.ServletContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
+import org.svenson.util.JSONBeanUtil;
 import org.svenson.util.JSONPathUtil;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,6 +36,7 @@ public class DefaultBootstrapService
     private final JSONHolder qlConfigJSON;
 
     private final JSONPathUtil pathUtil = new JSONPathUtil(JSONUtil.OBJECT_SUPPORT);
+
 
     public DefaultBootstrapService(
         ServletContext servletContext, @Lazy DomainQL domainQL
@@ -85,12 +90,33 @@ public class DefaultBootstrapService
         final HashMap<String, Object> r = new HashMap<>();
         try
         {
-            final QueryDocument<?> doc = new QueryDocument<>(Class.forName(
-                "com.dataciders.qlivetest.domain.tables.pojos.Foo"));
+            final Class<?> fooClass = Class.forName(
+                "com.dataciders.qlivetest.domain.tables.pojos.Foo");
+            final QueryDocument<?> doc = new QueryDocument<>(fooClass);
 
-            doc.setConfig(new QueryConfig());
-            doc.setRows(new ArrayList<>());
-            doc.setRowCount(0);
+            final QueryConfig config = new QueryConfig();
+            config.setPageSize(1);
+            doc.setConfig(config);
+            final ArrayList rows = new ArrayList<>();
+            try
+            {
+                final Object foo = fooClass.getConstructor().newInstance();
+
+                int rnd = (int) Math.round(Math.random() * 100);
+
+                pathUtil.setPropertyPath(foo, "name", "Foo #" + rnd);
+                pathUtil.setPropertyPath(foo, "num", rnd);
+                pathUtil.setPropertyPath(foo, "description", "Desc for Foo #" + rnd);
+
+                rows.add(foo);
+            }
+            catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
+            {
+                throw new RuntimeException(e);
+            }
+
+            doc.setRows(rows);
+            doc.setRowCount(1);
             r.put("xxx", doc);
         }
         catch (ClassNotFoundException e)

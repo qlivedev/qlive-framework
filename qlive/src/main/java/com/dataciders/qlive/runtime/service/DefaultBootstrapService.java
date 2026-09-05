@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.web.csrf.CsrfToken;
+import org.svenson.JSON;
 import org.svenson.util.JSONPathUtil;
 
 import java.lang.reflect.InvocationTargetException;
@@ -45,6 +46,23 @@ public class DefaultBootstrapService
         this.servletContext = servletContext;
         this.domainQL = domainQL;
 
+        // the whole model just exists to be sent to the client. We only need it in JSON string form,
+        // over and over for every full page load forever. The JSONHolder allows us to only generate it once and then
+        // embed it as JSON subgraph when the rest of the JSON is generated.
+        qlConfigJSON = new JSONHolder(
+            createSystemConfig(servletContext, domainQL)
+        );
+
+        log.info("Cached QLiveConfig JSON size: {}", this.qlConfigJSON.toJSON().length());
+        if (log.isDebugEnabled())
+        {
+            log.debug("QLiveConfig JSON: {}", this.qlConfigJSON.toJSON());
+        }
+    }
+
+    /// Creates a {@link QLiveBoostrap} bean hierarchy
+    private QLiveConfig createSystemConfig(ServletContext servletContext, DomainQL domainQL)
+    {
         final Map<String, Object> raw = IntrospectionUtil.introspect(domainQL.getGraphQLSchema());
 
         final Map<String, Object> schema = (Map<String, Object>) pathUtil.getPropertyPath(raw, "data.__schema");
@@ -62,9 +80,7 @@ public class DefaultBootstrapService
         qlConfig.setMeta(domainQL.getMetaData());
         qlConfig.setSchema(cleaned);
 
-        this.qlConfigJSON = new JSONHolder(qlConfig);
-
-        log.info("QLiveConfig size: {}", this.qlConfigJSON.toJSON().length());
+        return qlConfig;
     }
 
 

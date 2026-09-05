@@ -81,7 +81,7 @@ export type {
 
 export type { InjectParams } from "./inject";
 export type { GraphQLParams } from "./util/graphql";
-export type { QueryConfig, QueryDocumentMethods } from "./QueryDocument";
+export type { QueryConfig, QueryConfigDelta, QueryDocumentSnapshot, QueryDocumentMethods } from "./QueryDocument";
 export type { ParsedQuery, QuerySelection, OperationType } from "./util/parseQuery";
 
 export type { ViewModules } from "./views";

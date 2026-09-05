@@ -13,6 +13,14 @@ export interface QueryConfig
     sortFields: FieldExpression[];
 }
 
+export interface QueryConfigDelta
+{
+    condition?: FilterExpression | null;
+    offset?: number;
+    pageSize?: number;
+    sortFields?: FieldExpression[];
+}
+
 /**
  * What a query document can do on top of holding its data.
  *
@@ -26,7 +34,15 @@ export interface QueryConfig
  */
 export interface QueryDocumentMethods<D>
 {
-    update(newConfig: QueryConfig): Promise<D>
+    update(newConfig: QueryConfigDelta): Promise<D>
+}
+
+export type QueryDocumentSnapshot<T> =
+{
+    type: string
+    config: QueryConfig
+    rows: T[]
+    rowCount: number
 }
 
 export class QueryDocument<T> implements QueryDocumentMethods<QueryDocument<T>>
@@ -36,15 +52,21 @@ export class QueryDocument<T> implements QueryDocumentMethods<QueryDocument<T>>
     rows: T[];
     rowCount: number;
 
+    subscribers: (() => void)[];
+    snapshot: QueryDocumentSnapshot<T> | null;
+
     constructor(type: string, config: QueryConfig, rows: T[], rowCount: number)
     {
         this.type = type;
         this.config = config;
         this.rows = rows;
         this.rowCount = rowCount;
+
+        this.subscribers = []
+        this.snapshot = null
     }
 
-    async update(newConfig: QueryConfig): Promise<QueryDocument<T>>
+    async update(newConfig: QueryConfigDelta): Promise<QueryDocument<T>>
     {
         const query = GraphQLQuery.access<QueryDocument<T>>(this);
         if (!query)
@@ -52,6 +74,39 @@ export class QueryDocument<T> implements QueryDocumentMethods<QueryDocument<T>>
             // Previously this threw an unhelpful TypeError one line further on.
             throw new Error("QueryDocument has no GraphQLQuery registered - it was not created by executing a query");
         }
-        return query.execute({config: newConfig});
+
+        const mergedConfig : QueryConfig = {
+            ...this.config,
+            ...newConfig,
+        }
+
+        const queryDocument = await query.execute({config: mergedConfig});
+
+        this.rows = queryDocument.rows;
+        this.config = queryDocument.config;
+        return this
+    }
+
+    subscribe = (fn: () => void) => {
+        this.subscribers.push(fn)
+
+        return () => {
+            this.subscribers = this.subscribers.filter( s => s !== fn)
+        }
+    }
+
+    getSnapshot = () : QueryDocumentSnapshot<T> =>
+    {
+        if (!this.snapshot)
+        {
+            this.snapshot = {
+                type: this.type,
+                rows: this.rows,
+                config: this.config,
+                rowCount: this.rowCount,
+            }
+        }
+
+        return this.snapshot
     }
 }

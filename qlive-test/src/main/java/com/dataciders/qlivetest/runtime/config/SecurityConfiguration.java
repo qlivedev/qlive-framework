@@ -29,6 +29,19 @@ public class SecurityConfiguration
             "/_dev/**"
         };
 
+    /**
+     * Login page and form target. Reachable without authentication like {@link #PUBLIC_URIS}, but
+     * deliberately not one of them: those are excluded from CSRF, and the login POST is exactly the
+     * request that has to stay protected, so that a foreign page can't log a user in as someone else.
+     */
+    public final static String LOGIN_URI = "/login";
+
+    /**
+     * Where a successful login lands. The application's routes live below Vite's base, so this is the
+     * one view every user is known to be allowed to see.
+     */
+    private final static String LOGIN_SUCCESS_URI = "/app/home";
+
     private final DSLContext dslContext;
 
 
@@ -52,12 +65,25 @@ public class SecurityConfiguration
             .authorizeHttpRequests(
                 auth ->
                     auth.requestMatchers(PUBLIC_URIS).permitAll()
+                        // spelled out here rather than left to formLogin's permitAll(), which appends its
+                        // rules behind the "/**" one below and would therefore never be reached
+                        .requestMatchers(LOGIN_URI).permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/**").hasRole("USER")
             )
 
             .csrf(
                 csrf -> csrf.ignoringRequestMatchers(PUBLIC_URIS)
+            )
+
+            // Without a configured authentication mechanism, Spring Security answers every
+            // unauthenticated request with a bare 403 instead of sending the user somewhere they can
+            // do something about it.
+            .formLogin(
+                login ->
+                    login.loginPage(LOGIN_URI)
+                        .defaultSuccessUrl(LOGIN_SUCCESS_URI)
+                        .failureUrl(LOGIN_URI + "?error")
             )
 
             .userDetailsService(userDetailsServiceBean())

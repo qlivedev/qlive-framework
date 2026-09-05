@@ -3,3 +3,42 @@ body
     background: var(--qlive-color-bg);
     color: var(--qlive-color-fg);
 }
+
+.login
+{
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 18rem;
+    margin: 4rem auto;
+    padding: 2rem;
+    border: 1px solid var(--qlive-color-border);
+    border-radius: 0.5rem;
+}
+
+.login h1
+{
+    margin: 0 0 0.5rem;
+    font-size: 1.25rem;
+}
+
+.login label
+{
+    font-size: 0.8rem;
+    color: var(--qlive-color-muted);
+}
+
+.login button
+{
+    margin-top: 1rem;
+}
+
+.login .error
+{
+    margin: 0;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    background: #c0392b;
+    color: #ffffff;
+    font-size: 0.85rem;
+}

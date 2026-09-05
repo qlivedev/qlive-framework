@@ -55,6 +55,16 @@ export default defineConfig(({command}) => ({
     ],
     build: {
         outDir: "dist",
+        rollupOptions: {
+            // The application has a second entry point: the login page spring security serves under
+            // /login, with its own HTML and its own reduced startup. Naming it here is what puts
+            // login.html into the build, where VitePageRenderer picks it up the way it picks up
+            // index.html.
+            input: {
+                main: fileURLToPath(new URL("./index.html", import.meta.url)),
+                login: fileURLToPath(new URL("./login.html", import.meta.url)),
+            },
+        },
     },
     server: {
         // qlive-ts is pnpm-symlinked in from outside this package's directory;
@@ -74,6 +84,18 @@ export default defineConfig(({command}) => ({
             "/graphql": {
                 target: backendOrigin,
                 changeOrigin: true,
+            },
+            // Only the form POST belongs to the backend. The page itself is served by the dev server
+            // like every other page, so that it gets the same module graph and HMR -- bypass hands the
+            // GET to the login entry point instead of proxying it. The path has to carry `base`: a bare
+            // "/login.html" is outside it and gets answered with a redirect to /app/ instead.
+            //
+            // No changeOrigin either: the login redirects carry an absolute Location built from the Host
+            // header, so rewriting Host to the backend would bounce the browser off the dev server and
+            // onto :8080 the moment a login succeeds.
+            "/login": {
+                target: backendOrigin,
+                bypass: (req) => req.method === "GET" ? "/app/login.html" : undefined,
             },
         },
     },

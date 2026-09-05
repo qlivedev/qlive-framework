@@ -2,6 +2,7 @@ package com.dataciders.qlivetest.runtime.config;
 
 import com.dataciders.qlive.runtime.service.BootstrapService;
 import com.dataciders.qlive.runtime.controller.ViteIndexController;
+import com.dataciders.qlive.runtime.view.VitePageRenderer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.CacheControl;
@@ -23,10 +24,22 @@ public class WebConfiguration
     }
 
 
+    /**
+     * Renders Vite's entry points. Shared with the application's own -- see
+     * {@link com.dataciders.qlivetest.runtime.controller.LoginController} -- rather than created per
+     * controller, so one cache holds all of them.
+     */
     @Bean
-    public ViteIndexController viteIndexController()
+    public VitePageRenderer vitePageRenderer()
     {
-        return new ViteIndexController(bootstrapService);
+        return new VitePageRenderer(bootstrapService);
+    }
+
+
+    @Bean
+    public ViteIndexController viteIndexController(VitePageRenderer vitePageRenderer)
+    {
+        return new ViteIndexController(bootstrapService, vitePageRenderer);
     }
 
 

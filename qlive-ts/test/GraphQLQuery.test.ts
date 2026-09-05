@@ -4,6 +4,7 @@ import {init} from "../src/config";
 import {GraphQLQuery} from "../src/GraphQLQuery";
 import {QueryDocument} from "../src/QueryDocument";
 import {queryResult, testConfig} from "./fixtures/testConfig";
+import {respondWith, sentVariables} from "./fixtures/graphqlMock";
 
 const Q_Foo = new GraphQLQuery<QueryDocument<any>>(
     `query Q_Foo($config: QueryConfig!, $since: Timestamp) {
@@ -18,29 +19,6 @@ const Q_Foo = new GraphQLQuery<QueryDocument<any>>(
         }
     }`
 )
-
-/**
- * Stubs out what the server puts into the page and what it answers with. The suite
- * runs in node, so the globals graphql() reads are not there either.
- */
-function respondWith(response: any)
-{
-    const fetchMock = vi.fn().mockResolvedValue({
-        json: () => Promise.resolve(response)
-    })
-
-    vi.stubGlobal("fetch", fetchMock)
-    vi.stubGlobal("window", {location: {origin: "http://localhost"}})
-    vi.stubGlobal("contextPath", "")
-    vi.stubGlobal("csrfToken", {header: "X-CSRF", value: "token"})
-
-    return fetchMock
-}
-
-function sentVariables(fetchMock: ReturnType<typeof vi.fn>)
-{
-    return JSON.parse(fetchMock.mock.calls[0][1].body).variables
-}
 
 beforeAll(async () => {
     await init({config: testConfig, data: {}})

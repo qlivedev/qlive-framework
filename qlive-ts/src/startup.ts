@@ -17,8 +17,11 @@ export interface StartupOptions
      *
      * Without the `eager` option the map holds loader functions, so a view module is only fetched once
      * loadView() actually asks for it.
+     *
+     * Optional: an entry point that renders one fixed page -- a login page, say -- resolves no routes and
+     * has nothing to register.
      */
-    views: ViewModules
+    views?: ViewModules
 
     /**
      *  Current path

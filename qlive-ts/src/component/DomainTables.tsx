@@ -1,10 +1,11 @@
 import React, {useLayoutEffect, useState} from "react"
-import { i18n, config, isListType, isNonNull, unwrapAll } from "@quinscape/qlive-ts"
+import { isListType, isNonNull, unwrapAll } from "../type-utils"
+import config from "../config"
 import type {
     DomainQLMeta,
-    GraphQLField, GraphQLInterfaceType, GraphQLObjectType,
+    GraphQLField,
+    GraphQLObjectType,
     GraphQLSchema,
-    GraphQLType,
     GraphQLTypeRef
 } from "@quinscape/qlive-ts"
 

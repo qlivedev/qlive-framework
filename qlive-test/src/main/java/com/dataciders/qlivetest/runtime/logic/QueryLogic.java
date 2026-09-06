@@ -108,6 +108,7 @@ public class QueryLogic
         user.setId("d7df0f2c-9aa8-4845-b2bf-1d02abd3666e");
         user.setLogin("admin");
         user.setCreated(Timestamp.from(Instant.now()));
+        fetcherContext.setProperty("owner", user);
         foo.provideFetcherContext(fetcherContext);
 
         rows.add(foo);

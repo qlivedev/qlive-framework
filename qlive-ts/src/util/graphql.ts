@@ -20,7 +20,7 @@ function isGraphQLResponse(d: unknown): d is GraphQLResponse
 {
     // @ts-ignore
     const {data, errors} = d;
-    return (typeof data !== "undefined" && Array.isArray(errors))
+    return !!data || Array.isArray(errors)
 }
 
 /**
@@ -101,7 +101,7 @@ export default function graphql<T>(query: GraphQLQuery<T> | string, params: Grap
                 return Promise.reject(new Error("Expected GraphQL response"));
             }
 
-            if (data.errors.length > 0)
+            if (data.errors && data.errors.length > 0)
             {
                 return Promise.reject(new Error("GraphQL error: " + JSON.stringify(data.errors)));
             }

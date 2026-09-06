@@ -1,7 +1,7 @@
 import * as React from "react";
 import "./style.css"
 import {createRoot} from "react-dom/client";
-import { loadViewForPath, startup } from "@quinscape/qlive-ts";
+import {findRoot, loadViewForPath, startup } from "@quinscape/qlive-ts";
 import TestComponent from "./component/TestComponent";
 import ViteDevHome from "./component/ViteDevHome";
 
@@ -24,11 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         views: import.meta.glob("./app/**/*.tsx"),
     });
 
-    const container = document.getElementById("root");
-    if (!container){
-        throw new Error("View must have a #root element")
-    }
-    const root = createRoot(container);
+    const root = createRoot(findRoot());
 
     // The URL picks the view: /home renders app/Home.tsx, /sub/view renders app/sub/View.tsx. Its chunk is
     // fetched here, at the moment the route needs it -- nothing loaded it up to this point.

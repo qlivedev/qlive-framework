@@ -62,6 +62,8 @@ export { default as DomainTables } from "./component/DomainTables";
 
 export { decompileFilter } from "./util/decompileFilter";
 
+export { default as findRoot } from "./util/findRoot";
+
 // ---------------------------------------------------------------------------
 // TYPESCRIPT TYPES
 // ---------------------------------------------------------------------------

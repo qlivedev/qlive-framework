@@ -62,6 +62,24 @@ export { default as DomainTables } from "./component/DomainTables";
 
 export { decompileFilter } from "./util/decompileFilter";
 
+/**
+ * Declares that this entry point needs no domain schema.
+ *
+ * Call it at the top level of an entry module. The call does nothing at runtime and exists to be seen by the
+ * build's track-usage analysis, which the server reads: a path whose module declares this gets the reduced
+ * bootstrap -- context path, CSRF token and injections, with an empty schema and empty meta data in place of
+ * the domain. On a large domain that is the difference between shipping the whole introspection result and
+ * shipping none of it.
+ *
+ * Only for entry points that issue no queries and render no application view: a login page, an error page, a
+ * public landing page. Anything that resolves a route or reads an injection with a query needs the schema and
+ * will fail on its first type lookup without it.
+ */
+export function noSchema()
+{
+    // only exists for static analysis
+}
+
 export { default as findRoot } from "./util/findRoot";
 
 // ---------------------------------------------------------------------------

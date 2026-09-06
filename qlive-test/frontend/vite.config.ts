@@ -29,6 +29,9 @@ const trackedFunctions : { [name: string]: TrackedFunctionSpec } = {
     useInjection: {
         module: "@quinscape/qlive-ts", fn: "useInjection", allowIdentifier: true
     },
+    noSchema: {
+        module: "@quinscape/qlive-ts", fn: "noSchema"
+    },
     GraphQLQuery: {
         module: "@quinscape/qlive-ts", fn: "GraphQLQuery"
     },

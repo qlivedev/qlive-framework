@@ -2,10 +2,8 @@ package com.dataciders.qlive.runtime.config;
 
 import com.dataciders.qlive.runtime.service.BootstrapService;
 import com.dataciders.qlive.runtime.service.DefaultBootstrapService;
-import com.dataciders.qlive.runtime.service.StreamResourceLoader;
 import de.quinscape.domainql.DomainQL;
 import com.dataciders.qlive.model.condition.ConditionParser;
-import de.quinscape.spring.jsview.loader.ResourceLoader;
 import graphql.GraphQL;
 import jakarta.servlet.ServletContext;
 import org.slf4j.Logger;
@@ -32,13 +30,6 @@ public class QLiveConfiguration
     public BootstrapService bootstrapService(DomainQL domainQL) throws IOException
     {
         return new DefaultBootstrapService(servletContext, domainQL);
-    }
-
-
-    @Bean
-    public ResourceLoader resourceLoader()
-    {
-        return new StreamResourceLoader(servletContext, "/");
     }
 
 

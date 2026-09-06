@@ -4,10 +4,6 @@ import de.quinscape.domainql.DomainQL;
 import com.dataciders.qlive.runtime.controller.GraphQLController;
 import com.dataciders.qlive.runtime.controller.TrackUsageDevController;
 import com.dataciders.qlive.runtime.domain.GraphQLQueryTypingService;
-import com.dataciders.qlive.model.ts.TrackUsageData;
-import de.quinscape.spring.jsview.loader.JSONResourceConverter;
-import de.quinscape.spring.jsview.loader.ResourceHandle;
-import de.quinscape.spring.jsview.loader.ResourceLoader;
 import graphql.GraphQL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,15 +19,6 @@ import java.io.IOException;
 public class DevConfiguration
 {
     private final static Logger log = LoggerFactory.getLogger(DevConfiguration.class);
-
-    private final ResourceLoader resourceLoader;
-
-    public DevConfiguration(ResourceLoader resourceLoader)
-    {
-        this.resourceLoader = resourceLoader;
-    }
-
-    public final static String TRACK_USAGE = "/static/track-usage.json";
 
     /**
      * <p>
@@ -76,17 +63,6 @@ public class DevConfiguration
     public TrackUsageDevController trackUsageDevController(GraphQLQueryTypingService graphQLQueryTypingService)
     {
         return new TrackUsageDevController(graphQLQueryTypingService);
-    }
-
-
-    @Profile("prod")
-    @Bean
-    public ResourceHandle<TrackUsageData> prodStaticFunctionReferencesResourceHandle()
-    {
-        return resourceLoader.getResourceHandle(
-            TRACK_USAGE,
-            new JSONResourceConverter<>(TrackUsageData.class)
-        );
     }
 
     @Bean

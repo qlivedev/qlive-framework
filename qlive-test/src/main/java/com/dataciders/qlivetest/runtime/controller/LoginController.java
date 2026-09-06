@@ -2,6 +2,7 @@ package com.dataciders.qlivetest.runtime.controller;
 
 import com.dataciders.qlive.runtime.view.VitePageRenderer;
 import com.dataciders.qlivetest.runtime.config.SecurityConfiguration;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
@@ -41,9 +42,14 @@ public class LoginController
     }
 
 
+    /**
+     * The request URI rather than {@link SecurityConfiguration#LOGIN_URI} itself: the two are the same string
+     * today, but only the former stays equal to the {@code location.pathname} the frontend sends when it
+     * fetches its own bootstrap in {@code vite dev}, whatever context path the application is deployed under.
+     */
     @GetMapping(SecurityConfiguration.LOGIN_URI)
-    public ResponseEntity<String> login(CsrfToken csrfToken)
+    public ResponseEntity<String> login(HttpServletRequest request, CsrfToken csrfToken)
     {
-        return vitePageRenderer.render(LOGIN_ENTRY_POINT, SecurityConfiguration.LOGIN_URI, csrfToken);
+        return vitePageRenderer.render(LOGIN_ENTRY_POINT, request.getRequestURI(), csrfToken);
     }
 }

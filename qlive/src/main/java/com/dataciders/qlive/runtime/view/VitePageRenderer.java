@@ -63,9 +63,11 @@ public class VitePageRenderer
      * @param entryPoint    HTML file of the entry point as Vite emits it, e.g. {@code "index.html"} or
      *                      {@code "login.html"} -- an application's own entry points have to be declared in
      *                      its Vite config's {@code build.rollupOptions.input} to end up in the build
-     * @param path          path within the application. Decides which injections the embedded bootstrap
-     *                      carries, and is the same value the frontend passes to {@code /api/bootstrap}
-     *                      when it has to fetch that data itself
+     * @param path          the request URI, i.e. exactly what the browser has in {@code location.pathname}
+     *                      -- including the context path, and percent-encoded the way the browser encodes it.
+     *                      It decides what the bootstrap carries, and the frontend sends the same string to
+     *                      {@code /api/bootstrap} when it fetches that data itself in {@code vite dev}, so
+     *                      the two routes have to agree on it down to the character
      * @param csrfToken     CSRF token of the current session, handed to the frontend with the bootstrap
      *
      * @return the page, or 503 while there is nothing to serve it from yet

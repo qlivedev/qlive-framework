@@ -38,7 +38,11 @@ async function fetchBootstrap(path : string): Promise<QLiveBoostrap>
 {
     for (; ;)
     {
-        const response = await fetch(`/api/bootstrap?path=${path}`, {
+        // encodeURIComponent, not raw interpolation: the server compares this against the request URI of the
+        // production route, which is percent-encoded. Interpolating raw would have the query parser decode one
+        // level too many, so a path with an encoded character in it would arrive as a different string here
+        // than the embedded route ever sees.
+        const response = await fetch(`/api/bootstrap?path=${encodeURIComponent(path)}`, {
             method: "GET",
         });
         if (response.ok)

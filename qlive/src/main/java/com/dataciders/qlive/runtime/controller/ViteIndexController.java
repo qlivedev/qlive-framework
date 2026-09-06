@@ -5,6 +5,7 @@ import com.dataciders.qlive.model.bootstrap.QLiveBoostrap;
 import com.dataciders.qlive.runtime.service.BootstrapService;
 import com.dataciders.qlive.runtime.view.VitePageRenderer;
 import de.quinscape.spring.jsview.util.JSONUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;
@@ -48,6 +49,11 @@ public class ViteIndexController
     }
 
 
+    /**
+     * Live bootstrap for {@code vite dev}, where nobody splices the data into the template. The path is the
+     * only thing the frontend has to say: what that path needs is derived server-side, the same way it is for
+     * the embedded variant.
+     */
     @GetMapping("/api/bootstrap")
     public ResponseEntity<String> bootstrap(
         @RequestParam(value = "path") String path,
@@ -100,9 +106,9 @@ public class ViteIndexController
      * </p>
      * <p>
      *     The application's Vite {@code base} is {@code /app/}, so the built index.html references its chunks
-     *     as {@code /app/assets/...} -- which {@link #app(String)} ()}'s {@code /app/**} mapping would otherwise answer
-     *     with the index page. This mapping is the more specific one and wins, forwarding to the location the
-     *     frontend build actually lands in ({@code classpath:/static/assets/}).
+     *     as {@code /app/assets/...} -- which {@link #app(HttpServletRequest, CsrfToken)}'s {@code /app/**}
+     *     mapping would otherwise answer with the index page. This mapping is the more specific one and wins,
+     *     forwarding to the location the frontend build actually lands in ({@code classpath:/static/assets/}).
      * </p>
      */
     @RequestMapping("/app/" + ASSETS_DIR + "/{*path}")
@@ -112,12 +118,24 @@ public class ViteIndexController
     }
 
 
+    /**
+     * <p>
+     *     Serves the application's index page for any route below the Vite base.
+     * </p>
+     * <p>
+     *     The path handed on is the request URI rather than the {@code {*path}} variable, which would be
+     *     {@code /home} where the browser's own {@code location.pathname} is {@code /app/home}. Those have to
+     *     be the same string: it is what the bootstrap service resolves to a module, and the dev server's
+     *     live {@code /api/bootstrap} call can only send the browser's version. Deriving one from the other
+     *     would mean two path vocabularies and a conversion between them in whichever direction was asked.
+     * </p>
+     */
     @RequestMapping("/app/{*path}")
     public ResponseEntity<String> app(
-        @PathVariable String path,
+        HttpServletRequest request,
         CsrfToken csrfToken
     )
     {
-        return vitePageRenderer.render(INDEX_ENTRY_POINT, path, csrfToken);
+        return vitePageRenderer.render(INDEX_ENTRY_POINT, request.getRequestURI(), csrfToken);
     }
 }

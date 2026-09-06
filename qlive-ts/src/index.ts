@@ -58,6 +58,8 @@ export {
 // application's import list.
 export * as FilterDSL from "./FilterDSL";
 
+export { default as DomainTables } from "./component/DomainTables";
+
 export { decompileFilter } from "./util/decompileFilter";
 
 // ---------------------------------------------------------------------------
@@ -85,6 +87,8 @@ export type { QueryConfig, QueryConfigDelta, QueryDocumentSnapshot, QueryDocumen
 export type { ParsedQuery, QuerySelection, OperationType } from "./util/parseQuery";
 
 export type { ViewModules } from "./views";
+
+export type { DomainTablesProps } from "./component/DomainTables";
 
 export type {
     Converter,

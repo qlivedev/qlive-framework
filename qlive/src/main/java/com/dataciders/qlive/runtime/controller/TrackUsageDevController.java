@@ -2,6 +2,7 @@ package com.dataciders.qlive.runtime.controller;
 
 import com.dataciders.qlive.model.ts.TrackUsageData;
 import com.dataciders.qlive.runtime.domain.GraphQLQueryTypingService;
+import com.dataciders.qlive.runtime.service.DevStaticAnalysisProvider;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,10 +33,16 @@ public class TrackUsageDevController
 
     private final GraphQLQueryTypingService graphQLQueryTypingService;
 
+    private final DevStaticAnalysisProvider staticAnalysisProvider;
 
-    public TrackUsageDevController(GraphQLQueryTypingService graphQLQueryTypingService)
+
+    public TrackUsageDevController(
+        GraphQLQueryTypingService graphQLQueryTypingService,
+        DevStaticAnalysisProvider staticAnalysisProvider
+    )
     {
         this.graphQLQueryTypingService = graphQLQueryTypingService;
+        this.staticAnalysisProvider = staticAnalysisProvider;
     }
 
 
@@ -45,6 +52,11 @@ public class TrackUsageDevController
         try
         {
             final TrackUsageData data = JSONUtil.DEFAULT_PARSER.parse(TrackUsageData.class, body);
+
+            // Published before the codegen runs: the typing service debounces and writes files, while
+            // everything reading the data for the current request -- the bootstrap service above all -- wants
+            // the newest snapshot as soon as it arrives.
+            staticAnalysisProvider.update(data);
             graphQLQueryTypingService.triggerDebouncedUpdate(data);
             return ResponseEntity.noContent().build();
         }

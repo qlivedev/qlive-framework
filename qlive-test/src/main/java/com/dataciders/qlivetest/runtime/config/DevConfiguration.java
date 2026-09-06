@@ -4,6 +4,8 @@ import de.quinscape.domainql.DomainQL;
 import com.dataciders.qlive.runtime.controller.GraphQLController;
 import com.dataciders.qlive.runtime.controller.TrackUsageDevController;
 import com.dataciders.qlive.runtime.domain.GraphQLQueryTypingService;
+import com.dataciders.qlive.runtime.service.DevStaticAnalysisProvider;
+import com.dataciders.qlive.runtime.service.ProdStaticAnalysisProvider;
 import graphql.GraphQL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,11 +60,38 @@ public class DevConfiguration
         );
     }
 
+    /**
+     * Where the analysis snapshots pushed by the Vite dev server land, so that the rest of the server can read
+     * the same data the codegen runs on -- the bootstrap service asks it which paths declared noSchema().
+     */
     @Profile("dev")
     @Bean
-    public TrackUsageDevController trackUsageDevController(GraphQLQueryTypingService graphQLQueryTypingService)
+    public DevStaticAnalysisProvider devStaticAnalysisProvider()
     {
-        return new TrackUsageDevController(graphQLQueryTypingService);
+        return new DevStaticAnalysisProvider();
+    }
+
+
+    @Profile("dev")
+    @Bean
+    public TrackUsageDevController trackUsageDevController(
+        GraphQLQueryTypingService graphQLQueryTypingService,
+        DevStaticAnalysisProvider devStaticAnalysisProvider
+    )
+    {
+        return new TrackUsageDevController(graphQLQueryTypingService, devStaticAnalysisProvider);
+    }
+
+
+    /**
+     * The production counterpart of {@link #devStaticAnalysisProvider()}: same data, read from what
+     * {@code vite build} wrote instead of from what the dev server pushed.
+     */
+    @Profile("prod")
+    @Bean
+    public ProdStaticAnalysisProvider prodStaticAnalysisProvider()
+    {
+        return new ProdStaticAnalysisProvider();
     }
 
     @Bean

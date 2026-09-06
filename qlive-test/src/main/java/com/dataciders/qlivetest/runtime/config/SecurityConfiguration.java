@@ -22,7 +22,7 @@ public class SecurityConfiguration
     private final static String[] PUBLIC_URIS = new String[]
         {
             "/",
-            "/app/**",
+            "/app/assets/**",
             "/api/bootstrap",
             "/assets/**",
             "/index.jsp",

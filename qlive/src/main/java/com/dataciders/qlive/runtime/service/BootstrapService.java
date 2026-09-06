@@ -15,7 +15,18 @@ import java.util.Map;
 /// The boostrap service also provides the injection data for new views.
 public interface BootstrapService
 {
-    /// Provides the bootstrap data 
+    /// Provides the bootstrap data
+    ///
+    /// How much of it the given path needs is the service's decision, not the caller's: whether the module
+    /// serving that path declares noSchema() is something only the frontend's static analysis knows, and this
+    /// is where that data is read. The same lookup is what resolves the path's injections.
+    ///
+    /// @param csrfToken    CSRF token of the current session
+    /// @param path         path within the application
+    ///
+    /// @return the bootstrap data, or `null` while the server cannot yet say what this path needs -- in dev,
+    ///         before the Vite dev server has pushed its first static analysis snapshot. Callers turn that
+    ///         into a 503, which the frontend's bootstrap fetch retries.
     QLiveBoostrap provideConfig(CsrfToken csrfToken, String path);
 
     /// Provides just the injection data subset for dynamic path updates

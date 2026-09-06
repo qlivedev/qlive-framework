@@ -1,6 +1,10 @@
 package com.dataciders.qlive.runtime.service;
 
 import com.dataciders.qlive.model.ts.TrackUsageData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /// Provides a dev implementation of {@link StaticAnalysisProvider} which holds the last static analysis snapshot
 /// pushed by the Vite dev server.
@@ -11,10 +15,16 @@ import com.dataciders.qlive.model.ts.TrackUsageData;
 public class DevStaticAnalysisProvider
     implements StaticAnalysisProvider
 {
+    private final static Logger log = LoggerFactory.getLogger(DevStaticAnalysisProvider.class);
+
     /// Written by the request thread handling a push, read by request threads serving pages. Volatile rather
     /// than synchronized: a reader either sees the previous snapshot or the new one, and both are consistent
     /// in themselves.
     private volatile TrackUsageData trackUsageData;
+
+    /// What the last report said, so that the same mistake is not restated on every keystroke -- the dev
+    /// server pushes a snapshot for every file it transforms.
+    private volatile List<String> reportedOutsideViews = List.of();
 
 
     @Override
@@ -27,5 +37,26 @@ public class DevStaticAnalysisProvider
     public void update(TrackUsageData trackUsageData)
     {
         this.trackUsageData = trackUsageData;
+
+        // Where the production build refuses to start, dev says so and carries on: the developer is mid-edit,
+        // and the rest of the application is still worth serving while this one call gets moved.
+        final List<String> outsideViews = InjectionService.injectionsOutsideViews(trackUsageData);
+        if (!outsideViews.equals(reportedOutsideViews))
+        {
+            reportedOutsideViews = outsideViews;
+
+            if (!outsideViews.isEmpty())
+            {
+                log.error(
+                    "{} Until then those injections are not prepared, and the views rendering those " +
+                        "components will fail on them.",
+                    InjectionService.describeInjectionsOutsideViews(outsideViews)
+                );
+            }
+            else
+            {
+                log.info("All injections sit in views again");
+            }
+        }
     }
 }

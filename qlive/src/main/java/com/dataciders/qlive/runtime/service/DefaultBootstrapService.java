@@ -1,34 +1,30 @@
 package com.dataciders.qlive.runtime.service;
 
-import com.dataciders.qlive.model.QueryConfig;
-import com.dataciders.qlive.model.QueryDocument;
 import com.dataciders.qlive.model.bootstrap.ClientCsrfToken;
 import com.dataciders.qlive.model.bootstrap.Injection;
 import com.dataciders.qlive.model.bootstrap.QLiveBoostrap;
 import com.dataciders.qlive.model.bootstrap.QLiveConfig;
 import com.dataciders.qlive.model.ts.ModuleFunctionReferences;
 import com.dataciders.qlive.model.ts.TrackUsageData;
+import com.dataciders.qlive.runtime.QLiveException;
+import com.dataciders.qlive.runtime.QLivePaths;
 import de.quinscape.domainql.DomainQL;
-import de.quinscape.domainql.fetcher.FetcherContext;
-import de.quinscape.domainql.jooq.GeneratedDomainObject;
 import de.quinscape.domainql.meta.DomainQLMeta;
 import de.quinscape.domainql.util.IntrospectionUtil;
 import de.quinscape.domainql.util.JSONHolder;
 import de.quinscape.spring.jsview.util.JSONUtil;
+import graphql.GraphQL;
 import jakarta.servlet.ServletContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.web.csrf.CsrfToken;
-import org.svenson.JSON;
 import org.svenson.util.JSONPathUtil;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
 
 public class DefaultBootstrapService
     implements BootstrapService
@@ -49,15 +45,21 @@ public class DefaultBootstrapService
 
     private final StaticAnalysisProvider staticAnalysisProvider;
 
+    private final InjectionService injectionService;
+
     private final JSONPathUtil pathUtil = new JSONPathUtil(JSONUtil.OBJECT_SUPPORT);
 
     public DefaultBootstrapService(
-        ServletContext servletContext, @Lazy DomainQL domainQL, StaticAnalysisProvider staticAnalysisProvider
+        ServletContext servletContext,
+        @Lazy DomainQL domainQL,
+        @Lazy GraphQL graphQL,
+        StaticAnalysisProvider staticAnalysisProvider
     )
     {
         this.servletContext = servletContext;
         this.domainQL = domainQL;
         this.staticAnalysisProvider = staticAnalysisProvider;
+        this.injectionService = new InjectionService(graphQL, domainQL.getGraphQLSchema());
 
         // the whole model just exists to be sent to the client. We only need it in JSON string form,
         // over and over for every full page load forever. The JSONHolder allows us to only generate it once and then
@@ -135,6 +137,7 @@ public class DefaultBootstrapService
     }
 
 
+
     @Override
     public QLiveBoostrap provideConfig(CsrfToken csrfToken, String path)
     {
@@ -150,14 +153,39 @@ public class DefaultBootstrapService
             return null;
         }
 
-        final QLiveBoostrap qLiveBoostrap = new QLiveBoostrap();
-        final Map<String, Injection> data = provideInjectionData(path);
+        // Resolved once and handed to both: which module serves the path is what decides the size of the
+        // config as well as which queries run for it.
+        final String module = moduleForPath(staticAnalysis, servletContext.getContextPath(), path);
 
-        qLiveBoostrap.setConfig(needsSchema(staticAnalysis, path) ? qlConfigJSON : reducedConfigJSON);
-        qLiveBoostrap.setData(data);
+        final QLiveBoostrap qLiveBoostrap = new QLiveBoostrap();
+
+        qLiveBoostrap.setConfig(needsSchema(staticAnalysis, module) ? qlConfigJSON : reducedConfigJSON);
+        qLiveBoostrap.setData(injectionService.provideInjections(staticAnalysis, module));
         qLiveBoostrap.setCsrfToken(new ClientCsrfToken(csrfToken));
 
         return qLiveBoostrap;
+    }
+
+
+    /// Provides just the injection data subset for dynamic path updates
+    @Override
+    public Map<String, Injection> provideInjectionData(String path)
+    {
+        final TrackUsageData staticAnalysis = staticAnalysisProvider.getTrackUsageData();
+        if (staticAnalysis == null)
+        {
+            log.debug("No static analysis data (yet) -- reporting not ready for path {}", path);
+            return null;
+        }
+
+        return injectionService.provideInjections(
+            staticAnalysis,
+            moduleForPath(
+                staticAnalysis,
+                servletContext.getContextPath(),
+                path
+            )
+        );
     }
 
 
@@ -168,12 +196,18 @@ public class DefaultBootstrapService
     /// can see -- so this reads the same data the injections are resolved from, rather than letting the caller
     /// pass a flag it would have to know from somewhere else.
     ///
-    /// Answers `true` for a path with no entry of its own. A page that gets the schema it did not need is
+    /// Answers `true` for a path that resolves to no module. A page that gets the schema it did not need is
     /// slower than necessary; a page that does not get the schema it needed is broken, so the case this
-    /// cannot resolve -- see {@link #moduleForPath(String)} -- has to fall on this side.
-    private boolean needsSchema(TrackUsageData staticAnalysis, String path)
+    /// cannot resolve -- see {@link #moduleForPath(TrackUsageData, String, String)} -- has to fall on this
+    /// side.
+    private static boolean needsSchema(TrackUsageData staticAnalysis, String module)
     {
-        final ModuleFunctionReferences refs = staticAnalysis.getModuleFunctionReferences(moduleForPath(path));
+        if (module == null)
+        {
+            return true;
+        }
+
+        final ModuleFunctionReferences refs = staticAnalysis.getModuleFunctionReferences(module);
 
         return refs == null || refs.getCalls(NO_SCHEMA_CALL).isEmpty();
     }
@@ -181,91 +215,95 @@ public class DefaultBootstrapService
 
     /// Maps a path to the track-usage module name of whatever renders it.
     ///
-    /// Module names are relative to the frontend's track-usage `sourceRoot` and carry a leading "./", so the
-    /// entry module of `/login` is "./login". That direct correspondence is all that is resolved here, which
-    /// covers an application's own entry points -- the ones that can declare noSchema() in the first place,
-    /// because they are the ones that call startup().
+    /// Module names are relative to the frontend's track-usage `sourceRoot` and carry a leading "./". Two
+    /// kinds of path resolve through this, because an application serves two kinds of page:
     ///
-    /// Views below the Vite base do not resolve through this yet: their route is lower-cased and their module
-    /// lives under the view glob's directory, so "/app/home" reaches "./app/Home" only through the same
-    /// route table the client builds in views.ts. Nothing needs that mapping until injections are resolved
-    /// per view, and getting it wrong here would be invisible -- an unresolved path is a path that gets the
-    /// full config, which is what a view wants anyway.
-    private String moduleForPath(String path)
+    ///  * an entry point of its own, whose route is its module name: `/login` is served by "./login". These
+    ///    are the modules that call startup() and can therefore declare noSchema().
+    ///  * a view below the Vite base, which the frontend loads through the route table it builds in views.ts.
+    ///    That table is built from the view glob, which only the frontend has, so the same correspondence is
+    ///    reconstructed here from the analysis -- see {@link #viewModule(TrackUsageData, String)}.
+    ///
+    /// @return the module name, or `null` where the path belongs to no module of the application
+    static String moduleForPath(TrackUsageData staticAnalysis, String contextPath, String path)
+    {
+        final String normalized = normalizePath(contextPath, path);
+
+        // Below the Vite base everything is a view, whatever the analysis happens to hold: those routes are
+        // served by the index page, and the frontend resolves them through its route table alone.
+        if (normalized.startsWith(QLivePaths.APP_BASE))
+        {
+            final String route = normalized.substring(QLivePaths.APP_BASE.length())
+                .toLowerCase(Locale.ROOT);
+
+            // "/app/" itself addresses no view -- the frontend renders its own landing page there.
+            return route.isEmpty() ? null : viewModule(staticAnalysis, route);
+        }
+
+        // Outside it, an entry point is named by its route directly, so this is a plain lookup.
+        final String entryPoint = "." + normalized;
+
+        return staticAnalysis.getModuleFunctionReferences(entryPoint) != null ? entryPoint : null;
+    }
+
+
+    /// Resolves a route below the Vite base to the module the frontend would load for it.
+    ///
+    /// views.ts derives a view's route by dropping the directory of the view glob from its module path and
+    /// lower-casing what is left, so "./app/sub/View" is reached at "/app/sub/view". This is that in
+    /// reverse, with {@link QLivePaths#VIEW_ROOT} standing in for the glob's directory.
+    ///
+    /// @return the module name, or `null` where no module matches
+    private static String viewModule(TrackUsageData staticAnalysis, String route)
+    {
+        final String wanted = QLivePaths.VIEW_ROOT + route;
+
+        String found = null;
+        for (String module : staticAnalysis.getModuleFunctionReferences().keySet())
+        {
+            if (!module.toLowerCase(Locale.ROOT).equals(wanted))
+            {
+                continue;
+            }
+
+            if (found != null)
+            {
+                // Two modules the frontend's own route table could not hold at the same time either: it
+                // refuses view names that differ only in case. Reported rather than picked from, because
+                // picking wrong means a page that renders with another view's data.
+                throw new QLiveException(
+                    "Route '" + route + "' matches both module '" + found + "' and module '" + module +
+                        "'. View names have to differ by more than their case."
+                );
+            }
+            found = module;
+        }
+
+        return found;
+    }
+
+
+    /// The request URI reduced to what module names are expressed in: no context path, no trailing slash.
+    ///
+    /// The paths that reach here are request URIs, so they carry the context path an application happens to
+    /// be deployed under. Module names never do -- they are relative to the frontend's source root, and the
+    /// frontend is the same build wherever it ends up mounted.
+    private static String normalizePath(String contextPath, String path)
     {
         if (path == null || path.isEmpty())
         {
-            return "";
+            return "/";
         }
 
-        // The paths that reach here are request URIs, so they carry the context path an application happens
-        // to be deployed under. Module names never do -- they are relative to the frontend's source root, and
-        // the frontend is the same build wherever it ends up mounted.
-        final String contextPath = servletContext.getContextPath();
-        String normalized = !contextPath.isEmpty() && path.startsWith(contextPath)
+        String normalized = contextPath != null && !contextPath.isEmpty() && path.startsWith(contextPath)
             ? path.substring(contextPath.length())
             : path;
 
-        if (normalized.endsWith("/"))
+        if (normalized.length() > 1 && normalized.endsWith("/"))
         {
             normalized = normalized.substring(0, normalized.length() - 1);
         }
 
-        return normalized.startsWith("/") ? "." + normalized : "./" + normalized;
-    }
-
-    /// Provides just the injection data subset for dynamic path updates
-    @Override
-    public Map<String, Injection> provideInjectionData(String path)
-    {
-        final HashMap<String, Injection> data = new HashMap<>();
-
-        // TODO: implement injection
-        final HashMap<String, Object> r = new HashMap<>();
-        try
-        {
-            final Class<?> fooClass = Class.forName(
-                "com.dataciders.qlivetest.domain.tables.pojos.Foo");
-            final QueryDocument<?> doc = new QueryDocument<>(fooClass);
-
-            final QueryConfig config = new QueryConfig();
-            config.setPageSize(1);
-            doc.setConfig(config);
-            final ArrayList rows = new ArrayList<>();
-            try
-            {
-                final GeneratedDomainObject foo = (GeneratedDomainObject) fooClass.getConstructor().newInstance();
-
-                int rnd = (int) Math.round(Math.random() * 100);
-
-                foo.setProperty("id", UUID.randomUUID().toString());
-                foo.setProperty("name", "Foo #" + rnd);
-                foo.setProperty("num", rnd);
-                foo.setProperty("description", "Desc for Foo #" + rnd);
-                foo.setProperty("ownerId", "d7df0f2c-9aa8-4845-b2bf-1d02abd3666e");
-                final FetcherContext fetcherContext = new FetcherContext();
-                fetcherContext.setProperty("id", "d7df0f2c-9aa8-4845-b2bf-1d02abd3666e");
-                fetcherContext.setProperty("login", "admin");
-                foo.provideFetcherContext(fetcherContext);
-
-                rows.add(foo);
-            }
-            catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
-            {
-                throw new RuntimeException(e);
-            }
-
-            doc.setRows(rows);
-            doc.setRowCount(1);
-            r.put("xxx", doc);
-        }
-        catch (ClassNotFoundException e)
-        {
-            throw new RuntimeException(e);
-        }
-        data.put("Q_Foo", new Injection(r, "Int"));
-
-
-        return data;
+        return normalized.startsWith("/") ? normalized : "/" + normalized;
     }
 }

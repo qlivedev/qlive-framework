@@ -29,6 +29,16 @@ public interface BootstrapService
     ///         into a 503, which the frontend's bootstrap fetch retries.
     QLiveBoostrap provideConfig(CsrfToken csrfToken, String path);
 
-    /// Provides just the injection data subset for dynamic path updates
+    /// Provides just the injection data subset for dynamic path updates.
+    ///
+    /// The injections are the result of actually running the queries the path's view declares with
+    /// useInjection(), which is why this can be asked for again as the application navigates: the data is
+    /// current as of the call, not as of the page load.
+    ///
+    /// @param path         path within the application
+    ///
+    /// @return injections by injection id, or `null` while the server cannot yet say what this path needs --
+    ///         the same "not ready" {@link #provideConfig(CsrfToken, String)} answers with, for the same
+    ///         reason
     Map<String, Injection> provideInjectionData(String path);
 }

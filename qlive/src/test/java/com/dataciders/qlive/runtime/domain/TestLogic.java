@@ -12,6 +12,8 @@ import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 @GraphQLLogic
 public class TestLogic
 {
@@ -45,6 +47,12 @@ public class TestLogic
 
         log.info("QueryDocument<{}>, config = {}", type, config);
 
-        return new QueryDocument<>(type);
+        // Echoes the config back instead of querying anything: there is no database behind this schema, and
+        // what the execution tests need to see is that the config reached the query at all.
+        final QueryDocument<T> document = new QueryDocument<>(type);
+        document.setConfig(config);
+        document.setRows(List.of());
+
+        return document;
     }
 }

@@ -37,10 +37,12 @@ public class QLiveConfiguration
      * </p>
      */
     @Bean
-    public BootstrapService bootstrapService(DomainQL domainQL, StaticAnalysisProvider staticAnalysis)
+    public BootstrapService bootstrapService(
+        DomainQL domainQL, GraphQL graphQL, StaticAnalysisProvider staticAnalysis
+    )
         throws IOException
     {
-        return new DefaultBootstrapService(servletContext, domainQL, staticAnalysis);
+        return new DefaultBootstrapService(servletContext, domainQL, graphQL, staticAnalysis);
     }
 
 

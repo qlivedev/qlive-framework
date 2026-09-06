@@ -2,6 +2,7 @@ package com.dataciders.qlive.runtime.controller;
 
 import com.dataciders.qlive.model.bootstrap.Injection;
 import com.dataciders.qlive.model.bootstrap.QLiveBoostrap;
+import com.dataciders.qlive.runtime.QLivePaths;
 import com.dataciders.qlive.runtime.service.BootstrapService;
 import com.dataciders.qlive.runtime.view.VitePageRenderer;
 import de.quinscape.spring.jsview.util.JSONUtil;
@@ -85,6 +86,10 @@ public class ViteIndexController
     )
     {
         final Map<String, Injection> data = bootstrapService.provideInjectionData(path);
+        if (data == null)
+        {
+            return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
+        }
 
         return new ResponseEntity<>(
             JSONUtil.DEFAULT_GENERATOR.forValue(data),
@@ -111,7 +116,7 @@ public class ViteIndexController
      *     forwarding to the location the frontend build actually lands in ({@code classpath:/static/assets/}).
      * </p>
      */
-    @RequestMapping("/app/" + ASSETS_DIR + "/{*path}")
+    @RequestMapping(QLivePaths.APP_BASE + ASSETS_DIR + "/{*path}")
     public String assets(@PathVariable String path)
     {
         return "forward:/" + ASSETS_DIR + path;
@@ -130,7 +135,7 @@ public class ViteIndexController
      *     would mean two path vocabularies and a conversion between them in whichever direction was asked.
      * </p>
      */
-    @RequestMapping("/app/{*path}")
+    @RequestMapping(QLivePaths.APP_BASE + "{*path}")
     public ResponseEntity<String> app(
         HttpServletRequest request,
         CsrfToken csrfToken

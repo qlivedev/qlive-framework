@@ -1,0 +1,14 @@
+{
+    "usages": {
+        "./app/Home": {
+            "requires": [ "./component/Widget" ],
+            "calls": {}
+        },
+        "./component/Widget": {
+            "requires": [ "./app/Q_Test" ],
+            "calls": {
+                "useInjection": [ [ { "__identifier": "Q_Test" } ] ]
+            }
+        }
+    }
+}

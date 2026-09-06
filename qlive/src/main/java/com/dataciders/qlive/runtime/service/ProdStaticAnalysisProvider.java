@@ -6,9 +6,14 @@ import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /// Provides a production implementation of {@link StaticAnalysisProvider} that reads static build output data
 /// from a classpath resource.
+///
+/// This is also where an application's use of the analysis is checked, because here the whole of it is
+/// present before the first request: a build whose injections are not where they belong fails at startup
+/// rather than on the page that happens to hit the mistake.
 ///
 /// @see DevStaticAnalysisProvider
 ///
@@ -31,6 +36,12 @@ public class ProdStaticAnalysisProvider
     public ProdStaticAnalysisProvider(String resource)
     {
         this.trackUsageData = read(resource);
+
+        final List<String> outsideViews = InjectionService.injectionsOutsideViews(trackUsageData);
+        if (!outsideViews.isEmpty())
+        {
+            throw new IllegalStateException(InjectionService.describeInjectionsOutsideViews(outsideViews));
+        }
     }
 
 

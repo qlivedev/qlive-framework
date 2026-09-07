@@ -1,6 +1,7 @@
 package com.dataciders.qlivetest.runtime.config;
 
 import com.dataciders.qlivetest.domain.Public;
+import com.dataciders.qlivetest.types.Qux;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.annotation.GraphQLLogic;
 import de.quinscape.domainql.config.SourceField;
@@ -60,6 +61,12 @@ public class GraphQLConfiguration
             .logicBeans(logicBeans)
 
             .objectTypes(Public.PUBLIC)
+
+            /*
+                hand-written types replacing generated ones of the same simple name. Registered after the
+                schema, which is what puts them in the generated type's place.
+             */
+            .objectType(Qux.class)
 
 //            .withAdditionalInputTypes(
 //                Node.class,

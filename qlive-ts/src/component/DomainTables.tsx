@@ -141,30 +141,43 @@ function findRelations(schema : GraphQLSchema, meta: DomainQLMeta, type : GraphQ
     return outgoing
 }
 
-type SearchBarProps = {
+type FilterNoticeProps = {
     filter: string
     setFilter : (filter: string) => void
 }
 
-const SearchBar = ({ filter, setFilter }: SearchBarProps) => {
+/*
+ * What is left of the type search: a way out of a filter, and nothing that
+ * sets one by hand.
+ *
+ * The filter is a regular expression, which is not something to ask a reader
+ * to type -- an unfinished "(" is an invalid expression, and the catch below
+ * turns that into "no filter", so the list silently shows everything while
+ * the user believes they are searching. The input is gone until there is a
+ * search worth offering.
+ *
+ * It still renders, because {@link handleJump} sets a filter of its own to
+ * reveal the far side of a relation. Without this the reader would be left
+ * looking at two types and no way back.
+ */
+const FilterNotice = ({ filter, setFilter }: FilterNoticeProps) => {
+
+    if (!filter)
+    {
+        return false
+    }
+
     return (
         <span className="search-bar">
-            <label aria-label="Search Types">
-                <span style={{display: "none"}}>Search Types</span>
-                <input
-                    type="text"
-                    value={filter}
-                    onChange={ev => setFilter(ev.target.value)}
-                    placeholder="Search Types"/>
-            </label>
+            Showing the types of one relation.
+            {" "}
             <button
                 className="btn"
                 type="button"
                 onClick={() => setFilter("")}
             >
-                Clear
+                Show all
             </button>
-
         </span>
     )
 }
@@ -250,7 +263,9 @@ function filterTypes(schema: GraphQLSchema, meta: DomainQLMeta, filter: string, 
     let re: null | RegExp = null;
     try
     {
-        re = filter ? new RegExp(filter, "gi") : null;
+        // no "g": it makes test() stateful through lastIndex, so a run over the
+        // type list skips roughly every other match
+        re = filter ? new RegExp(filter, "i") : null;
     }
     catch(e)
     {
@@ -457,7 +472,7 @@ const DomainTables = ({filter, setFilter} : DomainTablesProps) => {
 
             <div id="domain-types-wrapper">
                 <div id="domain-types-container">
-                    <SearchBar
+                    <FilterNotice
                         filter={filter}
                         setFilter={setFilter}
                     />

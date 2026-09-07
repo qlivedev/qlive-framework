@@ -5,8 +5,8 @@ import graphql.schema.DataFetchingEnvironment;
 
 /// Executes the generic [T] document queries the application's query logic exposes over GraphQL.
 ///
-/// Placeholder for the rebuilt service: only the API the framework user's logic beans already call
-/// exists so far, none of the query execution behind it.
+/// The interface a logic bean sees. {@link DefaultQueryDocumentService} is the implementation querying the
+/// application's JOOQ schema; an application needing something else registers its own bean.
 public interface QueryDocumentService
 {
     /// Starts building the query for a single query document.

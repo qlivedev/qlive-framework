@@ -93,7 +93,7 @@ export class QueryDocument<T> implements QueryDocumentMethods<QueryDocumentSnaps
         const query = GraphQLQuery.access<QueryDocument<T>>(this);
         if (!query)
         {
-            // Previously this threw an unhelpful TypeError one line further on.
+            // Only a document that came out of an execution carries the query update() re-runs.
             throw new Error("QueryDocument has no GraphQLQuery registered - it was not created by executing a query");
         }
 

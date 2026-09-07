@@ -8,10 +8,9 @@ export interface StartupOptions
     /**
      * The application's view modules, as produced by import.meta.glob().
      *
-     * This is the Vite counterpart of the old `import.meta.webpackContext` lookup. Vite resolves
-     * import.meta.glob() at build time, relative to the file it appears in, and only accepts literal patterns
-     * -- so the call has to happen in the application, which knows where its views live, and the resulting map
-     * is handed to QLive here:
+     * Vite resolves import.meta.glob() at build time, relative to the file it appears in, and only accepts
+     * literal patterns -- so the call has to happen in the application, which knows where its views live,
+     * and the resulting map is handed to QLive here:
      *
      *     await startup({views: import.meta.glob("./app/**\/*.tsx"), ... })
      *

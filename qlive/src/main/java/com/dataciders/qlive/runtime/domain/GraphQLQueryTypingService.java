@@ -278,8 +278,8 @@ public class GraphQLQueryTypingService
 
                     DocumentContext ctx = new DocumentContext(modulePath, start, end, definitions);
 
-                    // For now, we expect that we either have queries or mutations. The use-case of mixing
-                    // both seems fishy at this point.
+                    // A document holds queries or mutations, not both: it is analyzed as queries first and
+                    // only read as mutations when it selects none.
 
                     QueryInfo result = analyzeQuery(
                         ctx,
@@ -988,7 +988,8 @@ public class GraphQLQueryTypingService
      * <p>
      * Encapsulates the knowledge we gained of analyzing the root type
      * </p><p>
-     * Admittedly, having an allComplete = true here is odd, who is selecting all things?, but for completeness’ sake.
+     * allComplete describes the root type by the same rule every other type is described by, so a query
+     * selecting the whole of it is not a case the renderer has to special-case.
      * </p>
      *
      * @param rootTypeName root type name ("QueryType" or "MutationType" usually)

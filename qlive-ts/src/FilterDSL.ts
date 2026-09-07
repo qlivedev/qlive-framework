@@ -398,9 +398,8 @@ buildProto(ConditionImpl.prototype, CONDITION_METHODS, buildFn);
 
 /*
  * Exported as a value, so consumers can construct conditions directly. Same
- * assertion as FieldCtor above - and unlike the previous plain function
- * declaration, this one actually carries a construct signature, so
- * `new FilterDSL.Condition(name)` now type-checks for callers too.
+ * assertion as FieldCtor above, and it is what gives the export the construct
+ * signature `new FilterDSL.Condition(name)` needs to typecheck.
  */
 export const Condition = ConditionImpl as unknown as { new (name: string): Condition };
 
@@ -573,9 +572,8 @@ export function getConditionArgCount(name: Function | string): number
     }
 
     // Widened views of the const tables: `name` is an arbitrary string here,
-    // not one of their literal keys. `||` (not `??`) is preserved deliberately -
-    // it is what the JS did, and a 0-arity entry falling through to the second
-    // table is existing behaviour, not an oversight to fix in passing.
+    // not one of their literal keys. `||`, not `??`: a 0-arity entry in the
+    // first table falls through to the second.
     const conditionMethods: Readonly<Record<string, number>> = CONDITION_METHODS;
     const fieldConditions: Readonly<Record<string, number>> = FIELD_CONDITIONS;
 

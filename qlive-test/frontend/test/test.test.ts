@@ -3,11 +3,8 @@ import {FilterDSL} from "@quinscape/qlive-ts"
 
 const {field, value, or} = FilterDSL
 
-// Ported verbatim from the old repo's test.test.ts, which has no
-// assertions -- just logs a FilterDSL.or(...) expression. The old
-// rstest runner didn't require a test()/it() wrapper to run a .test.ts
-// file's top-level code; vitest does, so this wrapper is added purely
-// for that reason, not as an added assertion.
+// No assertions: this logs a FilterDSL.or(...) expression so the composed node
+// can be eyeballed. The test() wrapper is what makes vitest run it at all.
 test("logs a FilterDSL.or(...) expression", () => {
     console.log(
         or(

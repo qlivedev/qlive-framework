@@ -111,24 +111,48 @@ So `dark:sl-hidden` is the *light* theme's image. Both files must live in
 
 ### Drawing a diagram
 
-Diagrams are ordinary SVG files referenced with Markdown image syntax, kept
-editable in Inkscape. One file is served to both themes, so it has to read on
-the cream and on the ink alike -- and none of the six brand colours manages
-that: they clear 3:1 on one background or the other, never both, the two
-being 19.4:1 apart.
+Diagrams are **two SVG files, one per theme**, each carrying its own full
+background. Drawn in Inkscape, kept editable, and swapped by Starlight's
+theme classes.
 
-`qlive.gpl` is generated for this. Load it into Inkscape by copying it to
-`~/.config/inkscape/palettes/` and picking "QLive" from the palette menu
-under the colour swatches. It carries the six brand colours plus three that
-clear 3:1 on **both** pages -- a bronze, a teal and a sage, each its hue
-walked toward the opposite neutral until it does. Draw with those three and
-the diagram works in either theme.
+Because they are swapped they have to be written as HTML rather than
+Markdown image syntax, and raw HTML is passed through untouched -- so they
+live in `public/diagrams/`, not in `src/`:
 
-The alternative, if you want the full-strength brand colours in a diagram, is
-to give the SVG its own background rectangle. Contrast is then internal to
-the drawing and the page behind it stops mattering.
+```
+public/diagrams/injection-light.svg
+public/diagrams/injection-dark.svg
+```
 
-Inline SVG with `var()` fills is a third option -- it survives the Markdown
-pipeline intact and tracks the palette automatically -- but Inkscape rewrites
-a file on every save and cannot render `var()`, so it is the wrong trade for
-anything drawn by hand.
+and in the page:
+
+```html
+<img src="../diagrams/injection-light.svg" alt="..." class="dark:sl-hidden" />
+<img src="../diagrams/injection-dark.svg"  alt="..." class="light:sl-hidden" />
+```
+
+Three things about that snippet:
+
+- The class names say **when the element hides**, not which theme it is for.
+  `dark:sl-hidden` is the light theme's image.
+- The path is relative, `../diagrams/`, not `/qlive-framework/diagrams/`.
+  Both resolve, but the relative one carries no repository name, so it
+  survives a change of `base`. Every documentation page sits one level below
+  the root, so `../` is right for all of them.
+- Both files are fetched whichever theme is active; the hidden one is
+  `display: none`, not unloaded. Keep them small.
+
+Since each file owns its background, the full-strength brand colours are
+available inside it -- the page behind it never shows through. Load
+`qlive.gpl` into Inkscape (copy to `~/.config/inkscape/palettes/`, then pick
+"QLive" under the colour swatches) so the drawing uses the exact palette.
+
+`qlive.gpl` also carries three colours that clear 3:1 on *both* pages -- a
+bronze, a teal and a sage. Those are for the other case: a single diagram
+serving both themes, with no background of its own. Not needed for the
+two-file approach.
+
+Inline SVG with `var()` fills is a third option, and the only one that tracks
+the palette automatically, but Inkscape rewrites a file on every save and
+cannot render `var()`. Wrong trade for anything drawn by hand.
+

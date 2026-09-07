@@ -165,10 +165,20 @@ const lightGrays = ramp(INK, CREAM);
  * against the bar and mixed only as far as clearing AA there requires.
  */
 const darkHeader = blend(ORANGE, INK, 0.70);
-const lightHeader = blend(ORANGE, CREAM, 0.80);
+const lightHeader = TEAL;
 
-const titleOnDark = readable(ORANGE, CREAM, darkHeader);
-const titleOnLight = readable(ORANGE, INK, lightHeader);
+/*
+ * The bar is dark in both themes, so what sits directly on it -- wordmark,
+ * social icons, theme select -- is coloured against the bar rather than
+ * inheriting the page's. Without that the light theme puts its dark-on-light
+ * foreground onto a dark bar: the social icon lands at 1.60 on the teal.
+ *
+ * All of it is the cream, the wordmark included, which is also the strongest
+ * reading either bar offers. The amber is the hover, being the one other hue
+ * that clears AA on both.
+ */
+const onBar = CREAM;
+const onBarHover = AMBER;
 
 // Subtle fills: the accent taken most of the way to the background.
 const darkAccentLow = blend(ORANGE, INK, 0.82);
@@ -225,7 +235,8 @@ ${row("teal", TEAL, onInk.teal, INK)}
 
     /* the top bar and the wordmark on it */
     --sl-color-bg-nav: ${darkHeader};
-    --qlive-title: ${titleOnDark.hex};
+    --qlive-on-bar: ${onBar};
+    --qlive-on-bar-hover: ${onBarHover};
 
     --sl-color-white: ${CREAM};
 ${grays(darkGrays)}
@@ -247,7 +258,8 @@ ${grays(darkGrays)}
 
     --sl-color-bg-nav: ${lightHeader};
     --sl-color-gray-7: ${lightGrays[5]};
-    --qlive-title: ${titleOnLight.hex};
+    --qlive-on-bar: ${onBar};
+    --qlive-on-bar-hover: ${onBarHover};
 
     --sl-color-white: ${INK};
 ${grays(lightGrays)}
@@ -271,14 +283,25 @@ ${grays(lightGrays)}
 }
 
 /* The bar carries its own colour, so what sits on it is measured against the
-   bar rather than the page: the wordmark reads at ${titleOnDark.ratio.toFixed(2)} on the dark bar and
-   ${titleOnLight.ratio.toFixed(2)} on the light one. */
+   bar rather than the page: the cream reads at ${contrast(onBar, darkHeader).toFixed(2)} on the dark bar
+   and ${contrast(onBar, lightHeader).toFixed(2)} on the teal one.
+
+   The search field is left out on purpose: it brings its own background, so
+   its text is measured against that rather than against the bar. */
 .header {
     background: var(--sl-color-bg-nav);
 }
 
-.site-title {
-    color: var(--qlive-title);
+.site-title,
+.header .social-icons a,
+.header starlight-theme-select,
+.header starlight-theme-select select {
+    color: var(--qlive-on-bar);
+}
+
+.site-title:hover,
+.header .social-icons a:hover {
+    color: var(--qlive-on-bar-hover);
 }
 
 /* Amber is the brightest thing in the palette on ink -- kept for the one

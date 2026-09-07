@@ -42,7 +42,8 @@
 
     /* the top bar and the wordmark on it */
     --sl-color-bg-nav: #05382D;
-    --qlive-title: #ff6b01;
+    --qlive-on-bar: #fff8e5;
+    --qlive-on-bar-hover: #ffbe00;
 
     --sl-color-white: #fff8e5;
     --sl-color-gray-1: #98D0E5;
@@ -67,9 +68,10 @@
     --sl-color-accent-high: #8E6D1F;
     --sl-color-text-accent: #8E6D1F;
 
-    --sl-color-bg-nav: #FFDFA7;
+    --sl-color-bg-nav: #075d5a;
     --sl-color-gray-7: #E5F3E6;
-    --qlive-title: #696724;
+    --qlive-on-bar: #fff8e5;
+    --qlive-on-bar-hover: #ffbe00;
 
     --sl-color-white: #000217;
     --sl-color-gray-1: #002A79;
@@ -98,14 +100,25 @@
 }
 
 /* The bar carries its own colour, so what sits on it is measured against the
-   bar rather than the page: the wordmark reads at 4.57 on the dark bar and
-   4.59 on the light one. */
+   bar rather than the page: the cream reads at 12.30 on the dark bar
+   and 7.28 on the teal one.
+
+   The search field is left out on purpose: it brings its own background, so
+   its text is measured against that rather than against the bar. */
 .header {
     background: var(--sl-color-bg-nav);
 }
 
-.site-title {
-    color: var(--qlive-title);
+.site-title,
+.header .social-icons a,
+.header starlight-theme-select,
+.header starlight-theme-select select {
+    color: var(--qlive-on-bar);
+}
+
+.site-title:hover,
+.header .social-icons a:hover {
+    color: var(--qlive-on-bar-hover);
 }
 
 /* Amber is the brightest thing in the palette on ink -- kept for the one

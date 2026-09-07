@@ -167,13 +167,21 @@ export type DomainQLMeta = {
 }
 
 export type DomainQLTypeMeta = {
-    fields: {
+
+    /**
+     * Field meta data by field name. Absent if no provider wrote field meta data for this type.
+     */
+    fields?: {
         [fieldName: string]: {
 
         }
     }
+
+    /**
+     * Type meta data. Absent if no provider wrote type meta data for this type.
+     */
     meta?: {
-        nameFields?: string
+        nameFields?: string[]
     }
 }
 

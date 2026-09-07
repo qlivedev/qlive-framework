@@ -332,77 +332,110 @@ const DomainRelationsLayer = ({ under, objectTypes   } : DomainRelationsLayerPro
 
     const [layout, setLayout] = useState<Layout>(EMPTY)
 
+    // The rendered types as one value, so the arrows are measured again when
+    // the set changes without depending on the array's identity.
+    const typeKey = objectTypes.map(t => t.name).join("\u0000")
+
+    /*
+     * Measured through a ResizeObserver rather than only on mount.
+     *
+     * Every coordinate here comes from getBoundingClientRect(), so the layer
+     * is wrong the moment anything reflows the tables -- a window resize, the
+     * browser's zoom, a webfont arriving, the type set changing. Observing the
+     * container catches all of them, because each one changes its box.
+     *
+     * Being inside a <details> is not one of them: closing it leaves every
+     * descendant rect as it was, so a layer measured while collapsed matches
+     * the open one.
+     *
+     * Deliberately not debounced. The observer already delivers at most once
+     * per frame, the callback only reads geometry and sets state, and a
+     * debounce would leave the arrows detached from the tables for the whole
+     * of a drag and snap them back at the end.
+     */
     useLayoutEffect(() => {
 
         const container = document.getElementById(under);
 
-        const rect = container?.getBoundingClientRect();
-        if (!rect)
+        if (!container)
         {
-            throw new Error("No getBoundingClientRect")
+            throw new Error("No element with id '" + under + "' to measure")
         }
 
-        const relations = new Set()
+        const measure = () => {
 
-        const arrows : ArrowLayout[] = Array.from(
-            document.querySelectorAll("#domain-types-container a.arrow")
-        )
-            // make sure every relation only occurs once
-            .filter((e : Element) => {
-                const relation = (e as HTMLElement).dataset.relation!;
-                if (relations.has(relation))
-                {
-                    return false;
-                }
-                relations.add(relation)
-                return true
-            })
-            .map((e : Element) : ArrowLayout =>  {
+            const rect = container.getBoundingClientRect();
 
-                const arrowElement = e as HTMLElement;
-                const type = arrowElement.dataset.type;
-                const start = arrowElement.dataset.start!;
-                const end = arrowElement.dataset.end!;
+            const relations = new Set()
 
-                const startRect = getElementRect(
-                    type === "start" ? arrowElement :
-                        document.getElementById(start)
-                )
+            const arrows : ArrowLayout[] = Array.from(
+                document.querySelectorAll("#domain-types-container a.arrow")
+            )
+                // make sure every relation only occurs once
+                .filter((e : Element) => {
+                    const relation = (e as HTMLElement).dataset.relation!;
+                    if (relations.has(relation))
+                    {
+                        return false;
+                    }
+                    relations.add(relation)
+                    return true
+                })
+                .map((e : Element) : ArrowLayout =>  {
 
-                const endRect = getElementRect(
-                    type === "start" ? document.getElementById(end) :
-                        arrowElement
-                )
+                    const arrowElement = e as HTMLElement;
+                    const type = arrowElement.dataset.type;
+                    const start = arrowElement.dataset.start!;
+                    const end = arrowElement.dataset.end!;
 
-                return ({
-                    start: [
-                        Math.round(startRect.x + startRect.width),
-                        Math.round(startRect.y + startRect.height / 2)
-                    ],
-                    end: [
-                        Math.round(endRect.x + endRect.width),
-                        Math.round(endRect.y + endRect.height / 2)
-                    ]
+                    const startRect = getElementRect(
+                        type === "start" ? arrowElement :
+                            document.getElementById(start)
+                    )
+
+                    const endRect = getElementRect(
+                        type === "start" ? document.getElementById(end) :
+                            arrowElement
+                    )
+
+                    return ({
+                        start: [
+                            Math.round(startRect.x + startRect.width),
+                            Math.round(startRect.y + startRect.height / 2)
+                        ],
+                        end: [
+                            Math.round(endRect.x + endRect.width),
+                            Math.round(endRect.y + endRect.height / 2)
+                        ]
+                    })
+
                 })
 
+            arrows.sort(
+                (a, b) => Math.abs(a.end[1] - a.start[1]) - Math.abs(b.end[1] - b.start[1])
+            )
+
+            setLayout({
+                pos: [
+                    rect.x,
+                    rect.y
+                ],
+                size: [
+                    rect.width,
+                    rect.height
+                ],
+                arrows
             })
+        }
 
-        arrows.sort(
-            (a, b) => Math.abs(a.end[1] - a.start[1]) - Math.abs(b.end[1] - b.start[1])
-        )
+        measure()
 
-        setLayout({
-            pos: [
-                rect.x,
-                rect.y
-            ],
-            size: [
-                rect.width,
-                rect.height
-            ],
-            arrows
-        })
-    }, []);
+        const observer = new ResizeObserver(measure)
+        observer.observe(container)
+
+        return () => observer.disconnect()
+
+    }, [under, typeKey]);
 
     if (!layout.arrows.length)
     {

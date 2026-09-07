@@ -12,7 +12,8 @@
     "dev": "concurrently -k -n backend,frontend -c blue,green \"node ./tooling/dev-backend.mjs\" \"wait-on tcp:8080 && pnpm --filter @quinscape/qlive-test-frontend dev\"",
     "build": "./mvnw install",
     "clean": "./mvnw clean",
-    "test": "./mvnw test && pnpm -r test"
+    "test": "./mvnw test && pnpm -r test",
+    "generate": "pnpm --filter @quinscape/qlive-test-frontend run generate"
   },
   "devDependencies": {
     "concurrently": "^9.0.0",

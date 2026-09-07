@@ -214,23 +214,29 @@ public class QueryPlanBuilder
             }
             else
             {
-                column(node, selected.getName(), true);
+                column(node, selected.getName());
             }
         }
     }
 
 
-    private Field<?> column(PlanNode node, String property, boolean fromSelection)
+    /// Selects one field of the GraphQL selection, if it is a column.
+    ///
+    /// A field that is not one is left where it is. A hand-written type replacing a generated one can add
+    /// fields the table has no column for, and DomainQL fetches those from the object itself -- there is
+    /// nothing for this to select and nothing to fail over, and GraphQL has already established that the
+    /// field exists on the type. What such a field computes from, it computes from the columns the query
+    /// selected, which is the query's business rather than the planner's.
+    ///
+    /// A filter path is the other case and stays strict: {@link PathResolver} needs a column, because
+    /// there is no way to put a Java property into a `WHERE` clause.
+    private void column(PlanNode node, String property)
     {
         final Field<?> field = domainQL.lookupField(node.getDomainType(), property);
-        if (field == null)
+        if (field != null)
         {
-            throw new QLiveException(
-                "Type '" + node.getDomainType() + "' has no database field '" + property + "'. A query " +
-                    "document can only select fields backed by a column."
-            );
+            node.addColumn(field, true);
         }
-        return node.addColumn(field, fromSelection);
     }
 
 

@@ -2,7 +2,6 @@ package com.dataciders.qlive.runtime.query;
 
 import com.dataciders.qlive.model.QueryConfig;
 import com.dataciders.qlive.model.QueryDocument;
-import com.dataciders.qlive.testdomain.tables.pojos.TestFoo;
 import com.dataciders.qlive.testdomain.tables.pojos.TestUser;
 import de.quinscape.domainql.annotation.GraphQLLogic;
 import de.quinscape.domainql.annotation.GraphQLQuery;
@@ -42,7 +41,10 @@ public class QueryTestLogic
             namePattern = "query*Document",
             typeNamePattern = "*Document",
             types = {
-                TestFoo.class,
+                // the hand-written TestFoo, which is what puts it in the generated one's place: a type
+                // reached from a logic bean is registered as an output type, and DomainQL resolves the
+                // simple name against those
+                com.dataciders.qlive.testmodel.types.TestFoo.class,
                 TestUser.class
             }
         )

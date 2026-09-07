@@ -174,6 +174,45 @@ class QueryPlanTest
     }
 
 
+    /// A hand-written type can add fields the table has no column for. DomainQL fetches those from the
+    /// object, so the planner has nothing to select for them and says so by leaving them alone -- rather
+    /// than refusing a query it has no reason to refuse.
+    @Test
+    void ignoresFieldsThatAreNotColumns()
+    {
+        final String sql = sql(
+            "query Q($config: QueryConfig!) { queryTestFooDocument(config: $config) { rows { id name summary } } }",
+            config(0, 0),
+            false
+        );
+
+        assertThat(sql, containsString("\"test_foo\".\"name\""));
+        assertThat(sql, not(containsString("summary")));
+    }
+
+
+    /// A filter is the other case: there is no way to put a computed property into a WHERE clause, so a
+    /// path naming one is an error however permissive the query is.
+    @Test
+    void refusesToFilterByFieldsThatAreNotColumns()
+    {
+        final QueryConfig config = config(0, 0);
+        config.setCondition(field("summary").eq(value("x")));
+
+        assertThat(
+            assertThrows(
+                QLiveException.class,
+                () -> sql(
+                    "query Q($config: QueryConfig!) { queryTestFooDocument(config: $config) { rows { id summary } } }",
+                    config,
+                    true
+                )
+            ).getMessage(),
+            containsString("has no database field 'summary'")
+        );
+    }
+
+
     /// The count joins what its condition reads and nothing else. The rest cannot change a count -- they
     /// are all left joins on keys -- so joining them would be work nobody reads.
     @Test

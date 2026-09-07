@@ -18,6 +18,15 @@ import jakarta.persistence.Table;
  *     fetcher context all come along, and only what is written here is different.
  * </p>
  * <p>
+ *     What documents this type to the schema is not the javadoc here but the hand-written
+ *     {@code src/main/resources/domain-typedocs.json}. The extraction feeding {@code source-typedocs.json}
+ *     reads a class's own source and sees only the members declared in it, so documenting a column would
+ *     mean overriding its getter for no reason but to hang a comment on it. Type docs merge by whole type
+ *     with the last source winning, and the extracted docs are read after the hand-written ones, so the two
+ *     cannot each document a part of this type: moving the computed field's documentation to where it is
+ *     written would take every column's along with it.
+ * </p>
+ * <p>
  *     Where it lives follows the split the application is laid out by: {@code domain} is what the code
  *     generator writes, {@code model} what is written by hand, {@code runtime} the code that runs. The
  *     generator owns {@code domain} outright and deletes anything in it that it did not write, so a

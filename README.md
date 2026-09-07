@@ -44,6 +44,8 @@ pnpm build     # ./mvnw install — builds qlive, then qlive-ts (tsdown), then t
 pnpm test      # ./mvnw test (Java) + pnpm -r test (TS: qlive-ts, qlive-codegen, the frontend app)
 pnpm dev       # backend (spring-boot:run on :8080) + frontend (vite on :5173, proxying /api
                # to :8080) together, both with hot reload
+pnpm dev-ts    # expects java backend to be started, frontend (vite on :5173, proxying /api
+               # to :8080) together, both with hot reload 
 ```
 
 While `pnpm dev` is running, editing `qlive-ts/src` reflects immediately

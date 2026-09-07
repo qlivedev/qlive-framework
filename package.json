@@ -8,7 +8,7 @@
   },
   "packageManager": "pnpm@11.24.0",
   "scripts": {
-    "dev-java": "wait-on tcp:8080 && pnpm --filter @quinscape/qlive-test-frontend dev",
+    "dev-ts": "wait-on tcp:8080 && pnpm --filter @quinscape/qlive-test-frontend dev",
     "dev": "concurrently -k -n backend,frontend -c blue,green \"node ./tooling/dev-backend.mjs\" \"wait-on tcp:8080 && pnpm --filter @quinscape/qlive-test-frontend dev\"",
     "build": "./mvnw install",
     "clean": "./mvnw clean",

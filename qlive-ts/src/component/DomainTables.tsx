@@ -147,18 +147,17 @@ type FilterNoticeProps = {
 }
 
 /*
- * What is left of the type search: a way out of a filter, and nothing that
- * sets one by hand.
+ * The way out of a filter. Nothing sets one at the moment, so this does not
+ * render: the type search was a regular expression, which is not something to
+ * ask a reader to type -- an unfinished "(" is invalid, and the catch in
+ * {@link filterTypes} turns that into "no filter", so the list silently shows
+ * everything while the reader believes they are searching.
  *
- * The filter is a regular expression, which is not something to ask a reader
- * to type -- an unfinished "(" is an invalid expression, and the catch below
- * turns that into "no filter", so the list silently shows everything while
- * the user believes they are searching. The input is gone until there is a
- * search worth offering.
- *
- * It still renders, because {@link handleJump} sets a filter of its own to
- * reveal the far side of a relation. Without this the reader would be left
- * looking at two types and no way back.
+ * The filter itself is kept rather than removed, because what replaces the
+ * search is a FilterDSL expression built on the client rather than a string
+ * the reader has to spell. {@link handleJump} already sets a filter to reveal
+ * the far side of a relation, and needs this to exist for the reader not to
+ * be stranded on two types once anything can set one again.
  */
 const FilterNotice = ({ filter, setFilter }: FilterNoticeProps) => {
 
@@ -260,6 +259,9 @@ const objectTypeNegativeList = [
 
 function filterTypes(schema: GraphQLSchema, meta: DomainQLMeta, filter: string, setFilter : (filter: string) => void) : GraphQLObjectType[]
 {
+    // Nothing sets a filter today -- see FilterNotice. What arrives here when
+    // something does is a regular expression, which is what the FilterDSL work
+    // is meant to replace.
     let re: null | RegExp = null;
     try
     {

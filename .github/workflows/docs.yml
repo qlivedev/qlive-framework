@@ -48,6 +48,13 @@ jobs:
         working-directory: qlive-doc
         run: pnpm build
 
+      # The contents of this directory become the site root -- dist/index.html
+      # is served at /qlive-framework/. No gh-pages branch is involved and no
+      # build output is committed: the artifact is published directly. That is
+      # what lets the site live in a subdirectory of the monorepo, which the
+      # branch-based model cannot express (it offers only / or /docs).
+      #
+      # Requires Settings -> Pages -> Source: GitHub Actions.
       - uses: actions/upload-pages-artifact@v3
         with:
           path: qlive-doc/dist

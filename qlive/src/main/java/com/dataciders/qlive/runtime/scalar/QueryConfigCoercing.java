@@ -2,6 +2,8 @@ package com.dataciders.qlive.runtime.scalar;
 
 import com.dataciders.qlive.model.QueryConfig;
 import com.dataciders.qlive.model.condition.CNode;
+import de.quinscape.domainql.DomainQL;
+import de.quinscape.domainql.schema.DomainQLAware;
 import graphql.GraphQLContext;
 import graphql.execution.CoercedVariables;
 import graphql.language.Value;
@@ -19,10 +21,21 @@ import java.util.Locale;
 import java.util.Map;
 
 public class QueryConfigCoercing
-    implements Coercing<QueryConfig, Map<String, Object>>
+    implements Coercing<QueryConfig, Map<String, Object>>, DomainQLAware
 {
     final ConditionCoercing conditionCoercing = new ConditionCoercing();
     final FieldExpressionCoercing fieldExpressionCoercing = new FieldExpressionCoercing();
+
+
+    /// Passed on to the coercings this one delegates to. They are instances of their own rather than the
+    /// ones registered for their scalars, so nothing else hands them the DomainQL they need to serialize a
+    /// condition -- which is what a query config carries.
+    @Override
+    public void setDomainQL(DomainQL domainQL)
+    {
+        conditionCoercing.setDomainQL(domainQL);
+        fieldExpressionCoercing.setDomainQL(domainQL);
+    }
 
     @Override
     public @Nullable QueryConfig parseLiteral(

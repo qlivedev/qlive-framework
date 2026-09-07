@@ -163,6 +163,19 @@
         margin: 0
     }
 
+    /*
+     * The relation column is right-aligned so its markers sit against the
+     * right edge of the table whatever width the column ends up with. The
+     * arrows are drawn from the row's right edge, so a left-aligned marker in
+     * a wide column is an arrow starting a long way from the glyph it appears
+     * to leave.
+     */
+    .domain-type td:last-child,.domain-type th:last-child
+    {
+        text-align: right;
+        white-space: nowrap;
+    }
+
     #domain-types-wrapper
     {
         position: relative;
@@ -171,7 +184,18 @@
     {
         position: absolute;
         left: 0;
-        top: 0
+        top: 0;
+
+        /*
+         * Capped, or the longest description in the schema sets the width of
+         * every table: the container shrink-wraps to its widest content and
+         * each table is 100% of it, so one verbose type stretches all the
+         * others and their relation column with them.
+         *
+         * Half the viewport also leaves the empty space to the right that the
+         * relation arrows curve through.
+         */
+        max-width: 50vw;
     }
 
     .arrow-path

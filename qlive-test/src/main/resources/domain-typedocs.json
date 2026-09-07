@@ -55,6 +55,16 @@
         "description": "Every scalar type the framework supports, one column each, and the example of a schema type a hand-written class stands in for -- see com.dataciders.qlivetest.model.types.Qux, which is where the documentation of the fields no column backs would otherwise live.",
         "fieldDocs": [
             {
+                "name": "name",
+                "description": "Qux name",
+                "paramDocs": []
+            },
+            {
+                "name": "jsonbValue",
+                "description": "JSONB example. An object, so that what comes back is read as one and not as the string it travels as.",
+                "paramDocs": []
+            },
+            {
                 "name": "jsonbValue",
                 "description": "JSONB example. An object, so that what comes back is read as one and not as the string it travels as.",
                 "paramDocs": []

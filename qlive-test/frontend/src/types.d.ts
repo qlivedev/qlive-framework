@@ -226,7 +226,58 @@ export type QueryType = {
     queryFooDocument: FooDocument
     /** Queries FooType objects based on the given query config */
     queryFooTypeDocument: FooTypeDocument
+    /** Queries Qux objects based on the given query config */
+    queryQuxDocument: QuxDocument
+}
+
+/** Every scalar type the framework supports, one column each, and the example of a schema type a hand-written class stands in for -- see com.dataciders.qlivetest.model.types.Qux, which is where the documentation of the fields no column backs would otherwise live. */
+export type Qux = {
+
+    _type: "Qux",
+
+    /** DB column 'big_decimal_value' */
+    bigDecimalValue?: bigint
+    /** DB column 'bool' */
+    bool?: boolean
+    /** DB column 'byte_value' */
+    byteValue?: number
+    /** DB column 'currency_value' */
+    currencyValue?: number
+    /** DB column 'date_value' */
+    dateValue?: Temporal.PlainDate
+    /** DB column 'double_value' */
+    doubleValue?: number
+    /** DB column 'id' */
+    id: string
+    /** DB column 'int_value' */
+    intValue?: number
+    /** JSONB example. An object, so that what comes back is read as one and not as the string it travels as. */
+    jsonbValue?: any
+    /** DB column 'long_value' */
+    longValue?: number
+    /** Qux name */
+    name: string
+    /** DB column 'string_value' */
+    stringValue?: string
+    /** Name and string value of the row, computed on read. No column backs it, so nothing fetches one on its account: a query wanting this should select the fields it is computed from as well. */
+    summary?: string
+    /** DB column 'timestamp_value' */
+    timestampValue?: Temporal.Instant
+}
+
+/** Container for Qux queries */
+export type QuxDocument = {
+
+    _type: "QuxDocument",
+
+    /** query config for this document */
+    config: QueryConfig
+    rowCount?: number
+    /** List of Qux objects */
+    rows: Qux[]
+    /** Runtime payload type (always 'Qux') */
+    type: string
 }
 
 export type DomainObject = AppLogin | AppUser | AppUserDocument | Bar | BarDocument | BarLink | Baz | BazDocument |
-    Foo | FooDocument | FooType | FooTypeDocument | MutationType | QueryType
+    Foo | FooDocument | FooType | FooTypeDocument | MutationType | QueryType | Qux | QuxDocument

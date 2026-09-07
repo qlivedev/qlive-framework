@@ -1,5 +1,6 @@
 package com.dataciders.qlivetest.runtime;
 
+import de.quinscape.domainql.scalar.TimestampScalar;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +18,8 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 /// Runs query documents the way a browser does -- through the schema, against this application's own
 /// database -- because everything this service does only means something at the far end of that.
@@ -161,6 +165,50 @@ class QueryDocumentServiceTest
         @SuppressWarnings("unchecked")
         final List<Map<String, Object>> foos = (List<Map<String, Object>>) rows.get(0).get("foos");
         assertThat(foos.size(), is(greaterThanOrEqualTo(7)));
+    }
+
+
+    /// The scalars, through a type that a hand-written class replaces: the query document materializes
+    /// that class, its Currency annotation reaches the schema, and the field it adds -- which no column
+    /// backs -- comes back alongside the ones that do.
+    @Test
+    void readsEveryScalarOfAHandWrittenType()
+    {
+        final Map<String, Object> document = queryDocument(
+            "queryQuxDocument",
+            "id name bool intValue doubleValue stringValue timestampValue dateValue longValue " +
+                "currencyValue byteValue bigDecimalValue jsonbValue summary",
+            Map.of("pageSize", 0, "offset", 0, "sortFields", List.of("name"))
+        );
+
+        final List<Map<String, Object>> rows = rows(document);
+        assertThat(rows, hasSize(3));
+
+        final Map<String, Object> full = rows.get(0);
+        assertThat(full.get("name"), is("Qux #1"));
+        assertThat(full.get("bool"), is(true));
+        assertThat(full.get("intValue"), is(12));
+        assertThat(full.get("doubleValue"), is(12.34));
+        assertThat(full.get("stringValue"), is("abc"));
+        // the column is a timestamp without time zone holding 19:58:59, which JDBC reads as that wall
+        // clock in the server's zone -- so the instant that goes out is an offset away from it
+        assertThat(
+            full.get("timestampValue"),
+            is(TimestampScalar.toISO8601(Timestamp.valueOf("2018-11-01 19:58:59")))
+        );
+        assertThat(full.get("dateValue"), is("2018-11-01"));
+        assertThat(full.get("longValue"), is(12345678901L));
+        assertThat(full.get("byteValue"), is((byte) 23));
+        assertThat(full.get("jsonbValue"), is(notNullValue()));
+
+        // the field the hand-written type adds, computed off the row rather than selected from it
+        assertThat(full.get("summary"), is("Qux #1 / abc"));
+
+        // and the row that is null throughout stays null throughout
+        final Map<String, Object> nulls = rows.get(2);
+        assertThat(nulls.get("name"), is("Qux #3 (nulls)"));
+        assertThat(nulls.get("bool"), is(nullValue()));
+        assertThat(nulls.get("jsonbValue"), is(nullValue()));
     }
 
 

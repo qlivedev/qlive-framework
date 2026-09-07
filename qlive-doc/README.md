@@ -109,16 +109,26 @@ element hides*, not which theme it belongs to:
 So `dark:sl-hidden` is the *light* theme's image. Both files must live in
 `public/`, per the rule above.
 
-For an SVG you draw yourself, one file usually beats two: inline it in the
-Markdown and paint it with the palette, and it follows the theme on its own.
+### Drawing a diagram
 
-```html
-<svg viewBox="0 0 120 40" role="img" aria-label="...">
-    <rect width="120" height="40" fill="var(--sl-color-accent)"/>
-    <text x="60" y="25" fill="var(--sl-color-black)">inline</text>
-</svg>
-```
+Diagrams are ordinary SVG files referenced with Markdown image syntax, kept
+editable in Inkscape. One file is served to both themes, so it has to read on
+the cream and on the ink alike -- and none of the six brand colours manages
+that: they clear 3:1 on one background or the other, never both, the two
+being 19.4:1 apart.
 
-Inline SVG survives the Markdown pipeline intact, `var()` fills and all. It
-needs no base prefix, cannot 404, and stays in step with
-`src/styles/qlive.css` when the palette changes.
+`qlive.gpl` is generated for this. Load it into Inkscape by copying it to
+`~/.config/inkscape/palettes/` and picking "QLive" from the palette menu
+under the colour swatches. It carries the six brand colours plus three that
+clear 3:1 on **both** pages -- a bronze, a teal and a sage, each its hue
+walked toward the opposite neutral until it does. Draw with those three and
+the diagram works in either theme.
+
+The alternative, if you want the full-strength brand colours in a diagram, is
+to give the SVG its own background rectangle. Contrast is then internal to
+the drawing and the page behind it stops mattering.
+
+Inline SVG with `var()` fills is a third option -- it survives the Markdown
+pipeline intact and tracks the palette automatically -- but Inkscape rewrites
+a file on every save and cannot render `var()`, so it is the wrong trade for
+anything drawn by hand.

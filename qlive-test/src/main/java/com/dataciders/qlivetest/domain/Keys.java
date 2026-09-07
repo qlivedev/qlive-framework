@@ -11,6 +11,7 @@ import com.dataciders.qlivetest.domain.tables.BarLink;
 import com.dataciders.qlivetest.domain.tables.Baz;
 import com.dataciders.qlivetest.domain.tables.Foo;
 import com.dataciders.qlivetest.domain.tables.FooType;
+import com.dataciders.qlivetest.domain.tables.Qux;
 import com.dataciders.qlivetest.domain.tables.records.AppLoginRecord;
 import com.dataciders.qlivetest.domain.tables.records.AppUserRecord;
 import com.dataciders.qlivetest.domain.tables.records.BarLinkRecord;
@@ -18,6 +19,7 @@ import com.dataciders.qlivetest.domain.tables.records.BarRecord;
 import com.dataciders.qlivetest.domain.tables.records.BazRecord;
 import com.dataciders.qlivetest.domain.tables.records.FooRecord;
 import com.dataciders.qlivetest.domain.tables.records.FooTypeRecord;
+import com.dataciders.qlivetest.domain.tables.records.QuxRecord;
 
 import javax.annotation.processing.Generated;
 
@@ -55,6 +57,7 @@ public class Keys {
     public static final UniqueKey<FooRecord> PK_FOO = Internal.createUniqueKey(Foo.FOO, DSL.name("pk_foo"), new TableField[] { Foo.FOO.ID }, true);
     public static final UniqueKey<FooTypeRecord> FOO_TYPE_NAME_KEY = Internal.createUniqueKey(FooType.FOO_TYPE, DSL.name("foo_type_name_key"), new TableField[] { FooType.FOO_TYPE.NAME }, true);
     public static final UniqueKey<FooTypeRecord> PK_FOO_TYPE = Internal.createUniqueKey(FooType.FOO_TYPE, DSL.name("pk_foo_type"), new TableField[] { FooType.FOO_TYPE.ORDINAL }, true);
+    public static final UniqueKey<QuxRecord> PK_QUX = Internal.createUniqueKey(Qux.QUX, DSL.name("pk_qux"), new TableField[] { Qux.QUX.ID }, true);
 
     // -------------------------------------------------------------------------
     // FOREIGN KEY definitions

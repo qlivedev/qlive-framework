@@ -11,6 +11,7 @@ import com.dataciders.qlivetest.domain.tables.BarLink;
 import com.dataciders.qlivetest.domain.tables.Baz;
 import com.dataciders.qlivetest.domain.tables.Foo;
 import com.dataciders.qlivetest.domain.tables.FooType;
+import com.dataciders.qlivetest.domain.tables.Qux;
 
 import java.util.Arrays;
 import java.util.List;
@@ -78,6 +79,12 @@ public class Public extends SchemaImpl {
     public final FooType FOO_TYPE = FooType.FOO_TYPE;
 
     /**
+     * Every scalar type a column can hold, for exercising the scalar handling
+     * end to end
+     */
+    public final Qux QUX = Qux.QUX;
+
+    /**
      * No further instances allowed
      */
     private Public() {
@@ -99,7 +106,8 @@ public class Public extends SchemaImpl {
             BarLink.BAR_LINK,
             Baz.BAZ,
             Foo.FOO,
-            FooType.FOO_TYPE
+            FooType.FOO_TYPE,
+            Qux.QUX
         );
     }
 }

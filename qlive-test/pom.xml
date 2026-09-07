@@ -279,6 +279,22 @@
               <includes>.*</includes>
               <excludes></excludes>
               <inputSchema>public</inputSchema>
+
+              <forcedTypes>
+                <!-- DomainQL has a scalar for its own JSONB type, not for jOOQ's -->
+                <forcedType>
+                  <userType>de.quinscape.domainql.jsonb.JSONB</userType>
+                  <binding>de.quinscape.domainql.jsonb.PGJSONBinding</binding>
+                  <includeTypes>jsonb</includeTypes>
+                </forcedType>
+
+                <!-- Postgres has no one-byte integer, and DomainQL has a Byte scalar but no Short one, so
+                     a column meant to hold a byte says so here -->
+                <forcedType>
+                  <name>TINYINT</name>
+                  <includeExpression>.*\.byte_value</includeExpression>
+                </forcedType>
+              </forcedTypes>
             </database>
             <target>
               <packageName>com.dataciders.qlivetest.domain</packageName>

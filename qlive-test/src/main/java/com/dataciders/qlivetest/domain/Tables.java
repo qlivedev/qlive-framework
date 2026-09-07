@@ -11,6 +11,7 @@ import com.dataciders.qlivetest.domain.tables.BarLink;
 import com.dataciders.qlivetest.domain.tables.Baz;
 import com.dataciders.qlivetest.domain.tables.Foo;
 import com.dataciders.qlivetest.domain.tables.FooType;
+import com.dataciders.qlivetest.domain.tables.Qux;
 
 import javax.annotation.processing.Generated;
 
@@ -62,4 +63,10 @@ public class Tables {
      * The table <code>public.foo_type</code>.
      */
     public static final FooType FOO_TYPE = FooType.FOO_TYPE;
+
+    /**
+     * Every scalar type a column can hold, for exercising the scalar handling
+     * end to end
+     */
+    public static final Qux QUX = Qux.QUX;
 }

@@ -15,6 +15,34 @@ pnpm docs:preview             # serve that build locally
 pnpm -C qlive-doc palette     # regenerate src/styles/qlive.css
 ```
 
+## Viewing a build locally
+
+`pnpm docs:build` writes `dist/`, but **opening `dist/index.html` directly
+does not work** and shows unstyled content: every asset in it is referenced
+absolutely as `/qlive-framework/_astro/...`, so a browser opening the file, or
+a server rooted at `dist/`, asks for a path that is not there.
+
+Use the preview server, which serves the build at the right prefix:
+
+```bash
+pnpm docs:preview
+```
+
+Note that it prints `http://localhost:4321`, which 404s. The site is at
+**<http://localhost:4321/qlive-framework/>** -- the `--open` flag in the
+script lands you there.
+
+### Why the prefix
+
+`base` in `astro.config.mjs` is `/qlive-framework` because GitHub Pages
+serves a *project* site under the repository name. It has nothing to do with
+Starlight, and it is what makes the deployed links correct.
+
+If the site ever moves somewhere it is served at a root -- a custom domain, a
+`quinscape.github.io` repository, or any other host -- change `base` to `/`
+and the problem disappears along with the prefix. For a custom domain, add
+the domain to `public/CNAME` at the same time.
+
 ## Outside the pnpm workspace
 
 `qlive-doc` carries its own `pnpm-workspace.yaml`, which makes it a

@@ -8,9 +8,9 @@
     "node": ">=22.23.2"
   },
   "scripts": {
-    "dev": "astro dev",
+    "dev": "astro dev --open",
     "build": "astro build",
-    "preview": "astro preview",
+    "preview": "astro preview --open",
     "check": "astro check"
   },
   "dependencies": {

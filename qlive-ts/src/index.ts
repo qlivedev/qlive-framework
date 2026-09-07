@@ -96,6 +96,8 @@ export type {
     InjectionSource,
     DomainQLMeta,
     DomainQLTypeMeta,
+    DomainQLTypeMetaProps,
+    DomainQLFieldMeta,
     GenericTypeInfo,
     RelationInfo,
     SourceField,

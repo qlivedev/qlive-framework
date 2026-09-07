@@ -152,9 +152,22 @@ export type QLiveConfig = {
 }
 
 /**
- * Domain meta information from DomainQL
+ * Domain meta information from DomainQL.
+ *
+ * Declared as an interface, not a type alias, so that an application can extend it. The server-side
+ * de.quinscape.domainql.meta.DomainQLMeta is an open map that every MetadataProvider bean adds its own addenda to,
+ * and declaration merging is the client-side equivalent: name the addenda your providers write once and they are
+ * typed at every place the application reads config().meta.
+ *
+ *     declare module "@quinscape/qlive-ts" {
+ *         interface DomainQLMeta {
+ *             myAddendum: MyAddendumInfo[]
+ *         }
+ *     }
+ *
+ * @see DomainQLTypeMetaProps and DomainQLFieldMeta for the per-type and per-field levels, which extend the same way
  */
-export type DomainQLMeta = {
+export interface DomainQLMeta {
 
     /**
      * Contains type names mapped to TypeMeta
@@ -166,23 +179,50 @@ export type DomainQLMeta = {
     relations: RelationInfo[]
 }
 
-export type DomainQLTypeMeta = {
+/**
+ * Meta data for a single GraphQL object type.
+ */
+export interface DomainQLTypeMeta {
 
     /**
      * Field meta data by field name. Absent if no provider wrote field meta data for this type.
      */
     fields?: {
-        [fieldName: string]: {
-
-        }
+        [fieldName: string]: DomainQLFieldMeta
     }
 
     /**
      * Type meta data. Absent if no provider wrote type meta data for this type.
      */
-    meta?: {
-        nameFields?: string[]
-    }
+    meta?: DomainQLTypeMetaProps
+}
+
+/**
+ * Type-level meta data properties, written server-side with DomainQLTypeMeta#setMeta.
+ *
+ * Extend by declaration merging, see DomainQLMeta.
+ */
+export interface DomainQLTypeMetaProps {
+
+    /**
+     * Names of the fields naming an instance of the type to a user, most significant first. Written by domainql's
+     * NameFieldProvider.
+     */
+    nameFields?: string[]
+}
+
+/**
+ * Field-level meta data properties, written server-side with DomainQLTypeMeta#setFieldMeta.
+ *
+ * Extend by declaration merging, see DomainQLMeta.
+ */
+export interface DomainQLFieldMeta {
+
+    /**
+     * true if the field is a GraphQLComputed-annotated property. Written by domainql's ComputedMetadataProvider,
+     * which an application has to register as a MetadataProvider bean itself.
+     */
+    computed?: boolean
 }
 
 

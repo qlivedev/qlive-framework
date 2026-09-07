@@ -9,10 +9,24 @@ qlive-ts/                  @quinscape/qlive-ts, linked by pnpm workspace (built 
 qlive-codegen/             @quinscape/qlive-codegen, the generate-ts CLI (schema.graphql -> types.d.ts)
 qlive-test/                Spring Boot app, depends on qlive as a SNAPSHOT
   frontend/                 Vite + React app, depends on qlive-ts via "workspace:*"
+qlive-doc/                 framework-user documentation (plain .md for now)
 ```
 
 `qlive-test` is both the framework's integration/regression test target
 and the source the end-user template gets extracted from later.
+
+## Documentation
+
+- **[`qlive-doc/`](qlive-doc/README.md)** — documentation for the framework
+  *user*, i.e. someone building an application on QLive. Plain Markdown for
+  now, intended to grow a build (most likely GitHub Pages) later. Not part
+  of the Maven reactor or the pnpm workspace; nothing builds it yet.
+- `docs/` — internal development documentation for maintainers.
+  `docs/design/` is for ideas not yet realized.
+
+The second half of the framework-user documentation — what gets generated
+into a new application alongside the template — waits for the templating
+command.
 
 The frontend (`qlive-test/frontend/src/...`) mirrors the demo app
 migrated from the framework's previous incarnation: a Home page using

@@ -119,6 +119,24 @@ class ConditionCoercingTest
     }
 
 
+    /// Timestamps included, which only holds because the scalar writes the UTC it reads. It used to write
+    /// the server's local time and label it "Z", so a filter came back an offset away from what was sent.
+    @Test
+    void keepsTimestampsThroughTheRoundTrip()
+    {
+        final Map<String, Object> json = comparison(
+            "between",
+            Map.of("type", "Field", "name", "created"),
+            Map.of("type", "Value", "scalarType", "Timestamp", "value", "2018-11-01T19:58:59.000Z"),
+            Map.of("type", "Value", "scalarType", "Timestamp", "value", "2019-06-21T14:00:00.000Z")
+        );
+
+        final CNode parsed = coercing.parseValue(json, CONTEXT, Locale.getDefault());
+
+        assertThat(coercing.serialize(parsed, CONTEXT, Locale.getDefault()), is(json));
+    }
+
+
     /// The whole way in and out, through the scalar a query actually declares. The config's coercing
     /// delegates to condition coercings of its own, and this is what says they were given a DomainQL.
     @Test

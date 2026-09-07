@@ -579,8 +579,6 @@ export function getConditionArgCount(name: Function | string): number
 
     const count = conditionMethods[name] || fieldConditions[name];
 
-    //console.log("getConditionArgCount, name = " + name , count);
-
     return typeof count === "number" ? count : 1
 }
 

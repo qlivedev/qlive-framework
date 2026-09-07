@@ -1,4 +1,9 @@
-# Startup and entry points
+---
+title: Startup and entry points
+description: startup(), further entry points, and noSchema().
+sidebar:
+  order: 3
+---
 
 An **entry point** is an HTML file plus the module it loads. Every
 application has at least one -- `index.html` loading `src/main.tsx` -- and
@@ -60,7 +65,8 @@ import "./style.css";
 QLive ships its CSS as a separate artifact rather than pulling it in from
 the JS, so your application decides where it lands in the cascade.
 Everything in it sits in `@layer qlive`, which anything unlayered overrides
-regardless of specificity. See [`docs/styling.md`](../docs/styling.md).
+regardless of specificity. See
+[`docs/styling.md`](https://github.com/quinscape/qlive-framework/blob/main/docs/styling.md).
 
 ## Further entry points
 

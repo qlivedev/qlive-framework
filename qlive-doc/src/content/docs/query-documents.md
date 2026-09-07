@@ -1,4 +1,9 @@
-# Query documents
+---
+title: Query documents
+description: Paging, sorting, update(), and the server-side query.
+sidebar:
+  order: 7
+---
 
 A **query document** is the framework's paged result: rows, the config they
 were fetched with, and the total row count. Server-side it is

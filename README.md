@@ -18,9 +18,11 @@ and the source the end-user template gets extracted from later.
 ## Documentation
 
 - **[`qlive-doc/`](qlive-doc/README.md)** — documentation for the framework
-  *user*, i.e. someone building an application on QLive. Plain Markdown for
-  now, intended to grow a build (most likely GitHub Pages) later. Not part
-  of the Maven reactor or the pnpm workspace; nothing builds it yet.
+  *user*, i.e. someone building an application on QLive. Markdown pages built
+  with Astro Starlight and published to
+  <https://quinscape.github.io/qlive-framework/>. Deliberately outside both
+  the Maven reactor and the pnpm workspace, so its toolchain installs only
+  when someone builds the docs — `pnpm docs:dev`, `pnpm docs:build`.
 - `docs/` — internal development documentation for maintainers.
   `docs/design/` is for ideas not yet realized.
 

@@ -1,4 +1,9 @@
-# Queries and types
+---
+title: Queries and types
+description: GraphQLQuery, generated result types, types.d.ts and converters.
+sidebar:
+  order: 5
+---
 
 ## Declaring a query
 

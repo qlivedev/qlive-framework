@@ -1,4 +1,9 @@
-# Injections
+---
+title: Injections
+description: useInjection() and the rules the static analysis imposes.
+sidebar:
+  order: 6
+---
 
 An injection is a query the server runs **before the page is sent**, whose
 result arrives inside the HTML document. It is what makes a QLive page
@@ -30,7 +35,7 @@ function useInjection<T>(query: GraphQLQuery<T>, params?: InjectParams): T
 It returns `T`, the value of the query's single top-level selection. Where
 that value is a query document, what you get is a **snapshot** of it and
 your component is subscribed: an `update()` re-renders it. See
-[Query documents](query-documents.md).
+[Query documents](../query-documents/).
 
 Rules of hooks apply -- call it at the top level of a view,
 unconditionally.

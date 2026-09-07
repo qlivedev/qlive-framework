@@ -1,4 +1,9 @@
-# Application layout
+---
+title: Application layout
+description: Folder structure, and the constants both halves have to agree on.
+sidebar:
+  order: 2
+---
 
 An application is one Maven module with a Vite frontend inside it.
 `qlive-test` is the reference; the template will be extracted from it.

@@ -1,4 +1,9 @@
-# Filter DSL
+---
+title: Filter DSL
+description: Building conditions and sort fields.
+sidebar:
+  order: 8
+---
 
 The Filter DSL builds the conditions and sort fields a `QueryConfig`
 carries. The same DSL exists on both sides -- `FilterDSL` in TypeScript,

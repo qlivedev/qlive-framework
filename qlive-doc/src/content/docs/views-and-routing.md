@@ -1,11 +1,16 @@
-# Views and routing
+---
+title: Views and routing
+description: How a URL becomes a view module.
+sidebar:
+  order: 4
+---
 
 A **view** is the component a URL renders. Views live under `src/app`, they
 are the only modules that may call `useInjection()`, and they are the only
 modules the server ever resolves a request to.
 
 Anything else is a component. The distinction is not stylistic: see
-[Injections](injections.md).
+[Injections](../injections/).
 
 ## From URL to module
 

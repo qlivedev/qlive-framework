@@ -13,7 +13,10 @@
     "build": "./mvnw install",
     "clean": "./mvnw clean",
     "test": "./mvnw test && pnpm -r test",
-    "generate": "pnpm --filter @quinscape/qlive-test-frontend run generate"
+    "generate": "pnpm --filter @quinscape/qlive-test-frontend run generate",
+    "docs:dev": "pnpm -C qlive-doc dev",
+    "docs:build": "pnpm -C qlive-doc build",
+    "docs:preview": "pnpm -C qlive-doc preview"
   },
   "devDependencies": {
     "concurrently": "^9.0.0",

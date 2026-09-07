@@ -1,4 +1,9 @@
-# Overview
+---
+title: Overview
+description: What QLive is and how a page reaches the browser.
+sidebar:
+  order: 1
+---
 
 QLive is a full-stack framework with a Java half and a TypeScript half. The
 Java half is `qlive`, a Spring Boot library built on
@@ -21,12 +26,12 @@ The frontend build analyses that call statically and records it. The server
 reads that analysis, so by the time a request for the page arrives it
 already knows which queries that page runs. It runs them and ships the
 results **inside the HTML document**. The page arrives with its data in it;
-nothing fetches anything after the first render.
+nothing fetches anything for the first render.
 
 That is the central trade of the framework. What it buys is a page that is
 complete when it paints. What it costs is a constraint: a `useInjection()`
 call has to be readable at build time. See
-[Injections](injections.md) for what that rules out.
+[Injections](../injections/) for what that rules out.
 
 ## How a page is served
 
@@ -57,7 +62,7 @@ Consumers never see the difference: both are `StaticAnalysisProvider`.
 Three things, and they are worth naming because they are the seams:
 
 - **Which module serves a path.** Derived from the analysis and from the
-  path conventions in [Application layout](application-layout.md).
+  path conventions in [Application layout](../application-layout/).
 - **Which queries that module injects, and with what parameters.**
   Recorded by the build's track-usage analysis from the `useInjection()`
   call itself.
@@ -74,4 +79,4 @@ On top of the usual HMR, one extra thing happens: as you edit a module
 holding a `GraphQLQuery`, the plugin pushes the analysis to the backend,
 which parses the query against the live schema and **writes the generated
 result type back into your source file**. See
-[Queries and types](queries-and-types.md).
+[Queries and types](../queries-and-types/).

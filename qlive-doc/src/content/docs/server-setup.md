@@ -1,4 +1,9 @@
-# Server setup
+---
+title: Server setup
+description: The Spring beans an application wires up.
+sidebar:
+  order: 9
+---
 
 The Java half is a Spring Boot application depending on `qlive`, which
 brings DomainQL and jOOQ with it. `qlive-test` is the reference wiring.
@@ -150,7 +155,7 @@ which is a good reason to set it explicitly.
 
 ## Query logic
 
-See [Query documents](query-documents.md) for the document query bean --
+See [Query documents](../query-documents/) for the document query bean --
 one generic method with `@GraphQLTypeParam` covers every type.
 
 ## Security

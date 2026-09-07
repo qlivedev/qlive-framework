@@ -1,0 +1,63 @@
+# Builds qlive-doc and publishes it to GitHub Pages.
+#
+# Only runs when the docs or their toolchain change: qlive-doc is outside the
+# pnpm workspace, so nothing else in the repository can affect the output, and
+# the ~270-package install is not worth paying on every push.
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "qlive-doc/**"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+# One deployment at a time; let a running one finish rather than cancelling it
+# half-published.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: qlive-doc/pnpm-lock.yaml
+
+      - name: Install
+        working-directory: qlive-doc
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        working-directory: qlive-doc
+        run: pnpm build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: qlive-doc/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

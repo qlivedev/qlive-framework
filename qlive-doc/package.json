@@ -1,0 +1,23 @@
+{
+  "name": "@quinscape/qlive-doc",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Framework-user documentation for QLive. Deliberately outside the pnpm workspace: see README.md.",
+  "engines": {
+    "node": ">=22.23.2"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.42.0",
+    "astro": "^7.3.1"
+  },
+  "devDependencies": {
+    "spectral.js": "^3.0.0"
+  }
+}

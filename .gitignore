@@ -10,6 +10,8 @@ dist/
 qlive-test/frontend/node/
 # Scratch output of the codegen smoke check
 qlive-codegen/test/.tmp/
+# Astro build cache for the docs site (dist/ and node_modules/ are covered above)
+qlive-doc/.astro/
 
 # IDE
 .idea/

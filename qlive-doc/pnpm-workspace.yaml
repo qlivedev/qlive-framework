@@ -1,0 +1,13 @@
+# Present so pnpm stops looking upward: this makes qlive-doc its own workspace
+# root rather than a package of the repository's. The docs toolchain is ~270
+# packages that the Java and framework builds have no use for, so it installs
+# only when someone builds the docs.
+packages: []
+
+allowBuilds:
+  esbuild: set this to true or false
+
+# Astro's toolchain compiles native binaries.
+onlyBuiltDependencies:
+  - esbuild
+  - sharp

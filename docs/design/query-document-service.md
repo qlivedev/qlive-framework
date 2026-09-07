@@ -293,11 +293,15 @@ operators, value operations and the two sort operations in one set; the
 node kind (`Condition` vs `Operation`) decides how a name is dispatched
 after the gate.
 
-**Value coercion.** A `Value` arrives carrying its raw JSON payload:
-`ConditionCoercing.parseValue` deliberately does not convert it, only
-`serialize` does. So the transformer runs the named GraphQL scalar's
-coercing and then `field.getDataType().convert(...)`, and binds the
-result. Values are always bound, never inlined.
+**Value coercion is not the transformer's.** A condition arrives as
+JSON, where a timestamp is a string, and reading those is the business
+of the scalar that owns them. `ConditionCoercing` is DomainQLAware, so
+it can ask DomainQL for the coercing registered for the scalar type a
+value node names, and it converts every value in the hierarchy as the
+parse walks it. What reaches the transformer is a condition whose values
+are the Java objects they claim to be, and all it does with one is bind
+it as the type of the field it is compared to. Values are always bound,
+never inlined.
 
 **Node quirks.** `Component` unwraps to its child -- it is a client-side
 composition marker with no server meaning. Null operands inside `and` /

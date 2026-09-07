@@ -142,10 +142,9 @@ public final class ConditionCoercing
 
             for (Object value : values)
             {
-                final Object converted;
-                converted = graphQLType.getCoercing().parseValue(value, graphQLContext, locale);
-
-                serialized.add(converted);
+                serialized.add(
+                    graphQLType.getCoercing().serialize(value, graphQLContext, locale)
+                );
             }
 
             output = new HashMap<>();
@@ -179,6 +178,10 @@ public final class ConditionCoercing
         {
             throw new QLiveException("Invalid node type: " + type);
         }
+
+        // what parseCNode reads back to know which node it is looking at. Without it the config a query
+        // document returns cannot be sent back in, which is exactly what the client's update() does with it
+        output.put("type", type);
 
         if (log.isDebugEnabled())
         {
@@ -256,9 +259,34 @@ public final class ConditionCoercing
             case "Field":
                 return FilterDSL.field((String) input.get("name"));
             case "Value":
-                return FilterDSL.value(input.get("value"), (String) input.get("scalarType"));
+            {
+                final String scalarTypeName = (String) input.get("scalarType");
+                return FilterDSL.value(
+                    parseScalar(scalarTypeName, input.get("value"), graphQLContext, locale),
+                    scalarTypeName
+                );
+            }
             case "Values":
-                return FilterDSL.values((List<Object>) input.get("values"), (String) input.get("scalarType"));
+            {
+                final String scalarTypeName = (String) input.get("scalarType");
+
+                final List<Object> values = (List<Object>) input.get("values");
+                final List<Object> parsed;
+                if (values == null)
+                {
+                    parsed = null;
+                }
+                else
+                {
+                    parsed = new ArrayList<>(values.size());
+                    for (Object value : values)
+                    {
+                        parsed.add(parseScalar(scalarTypeName, value, graphQLContext, locale));
+                    }
+                }
+
+                return FilterDSL.values(parsed, scalarTypeName);
+            }
             case "Component":
                 CNode parsed = parseCNode((Map<String,Object>) input.get("condition"), graphQLContext, locale);
                 return FilterDSL.component((String) input.get("id"), parsed);
@@ -305,8 +333,45 @@ public final class ConditionCoercing
     }
 
 
+    /// Converts one embedded value with the coercing DomainQL has registered for the scalar type the node
+    /// names.
+    ///
+    /// A condition arrives as JSON, where a timestamp is a string and a BigDecimal may be one too. Reading
+    /// those is the business of the scalar that owns them, and being DomainQLAware is what lets this ask.
+    /// Every value in the hierarchy goes through here, however deeply the parse recursed to reach it, so
+    /// what comes out of a parse is a condition whose values are Java objects throughout.
+    private Object parseScalar(
+        String scalarTypeName,
+        Object value,
+        @NonNull GraphQLContext graphQLContext,
+        @NonNull Locale locale
+    )
+    {
+        if (value == null)
+        {
+            return null;
+        }
+
+        if (scalarTypeName == null)
+        {
+            throw new QLiveException("Condition value " + value + " has no scalar type");
+        }
+
+        return getScalarType(scalarTypeName).getCoercing().parseValue(value, graphQLContext, locale);
+    }
+
+
     protected GraphQLScalarType getScalarType(String scalarTypeName)
     {
+        if (domainQL == null)
+        {
+            throw new IllegalStateException(
+                "No DomainQL set on this " + getClass().getSimpleName() + ". It is DomainQLAware, which " +
+                    "means it has to be the instance registered for its scalar, or be given the DomainQL " +
+                    "by whoever holds it."
+            );
+        }
+
         final GraphQLType type = domainQL.getGraphQLSchema().getType(scalarTypeName);
 
         if (!(type instanceof GraphQLScalarType))

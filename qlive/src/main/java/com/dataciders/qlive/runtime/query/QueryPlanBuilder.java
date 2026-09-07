@@ -6,9 +6,7 @@ import com.dataciders.qlive.runtime.QLiveException;
 import com.dataciders.qlive.runtime.query.condition.ConditionTransformer;
 import com.dataciders.qlive.runtime.query.condition.ExistsScope;
 import com.dataciders.qlive.runtime.query.condition.FieldResolver;
-import com.dataciders.qlive.runtime.query.condition.GraphQLScalarConverter;
 import com.dataciders.qlive.runtime.query.condition.ResolvedField;
-import com.dataciders.qlive.runtime.query.condition.ScalarConverter;
 import com.dataciders.qlive.runtime.scalar.FilterDSL;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.TableLookup;
@@ -57,19 +55,10 @@ public class QueryPlanBuilder
 
     private final DomainQL domainQL;
 
-    private final ScalarConverter scalarConverter;
-
 
     public QueryPlanBuilder(DomainQL domainQL)
     {
-        this(domainQL, new GraphQLScalarConverter(domainQL));
-    }
-
-
-    public QueryPlanBuilder(DomainQL domainQL, ScalarConverter scalarConverter)
-    {
         this.domainQL = domainQL;
-        this.scalarConverter = scalarConverter;
     }
 
 
@@ -113,7 +102,7 @@ public class QueryPlanBuilder
 
         final PathResolver resolver = new PathResolver(root, selectByFilter, aliases);
 
-        final ConditionTransformer transformer = new ConditionTransformer(resolver, scalarConverter);
+        final ConditionTransformer transformer = new ConditionTransformer(resolver);
 
         final Condition condition = transformer.transform(config.getCondition());
 

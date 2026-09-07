@@ -34,8 +34,7 @@ class ConditionTransformerTest
     /// Resolves a path to the column of that name on one table, which is all a caller filtering a single
     /// table needs and all these tests need.
     private final ConditionTransformer transformer = new ConditionTransformer(
-        path -> new ResolvedField(TEST_FOO.field(path)),
-        (scalarType, value) -> value
+        path -> new ResolvedField(TEST_FOO.field(path))
     );
 
 

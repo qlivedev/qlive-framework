@@ -117,6 +117,30 @@ class QueryDocumentServiceTest
     }
 
 
+    /// A condition's values arrive as JSON, where a timestamp is a string. By the time one reaches a
+    /// query it is a Timestamp, because the condition scalar converted it with the coercing of the scalar
+    /// type the node named.
+    @Test
+    void readsTypedValuesInConditions()
+    {
+        final Map<String, Object> document = queryDocument(
+            "queryFooDocument",
+            "name created",
+            Map.of(
+                "pageSize", 0,
+                "offset", 0,
+                "sortFields", List.of("name"),
+                "condition", comparison("lt", "created", "Timestamp", "2019-01-01T00:00:00.000Z")
+            )
+        );
+
+        assertThat(
+            rows(document).stream().map(row -> row.get("name")).toList(),
+            contains("Foo #1", "Foo #22", "Foo #33", "Foo #4")
+        );
+    }
+
+
     /// A to-many relation is fetched by a query of its own and stitched back onto the rows it belongs to.
     @Test
     void fetchesToManyRelations()
@@ -192,12 +216,18 @@ class QueryDocumentServiceTest
     }
 
 
-    /// One FilterDSL comparison as it arrives over the wire: the condition scalar's own JSON shape.
     private static Map<String, Object> eq(String field, String scalarType, Object value)
+    {
+        return comparison("eq", field, scalarType, value);
+    }
+
+
+    /// One FilterDSL comparison as it arrives over the wire: the condition scalar's own JSON shape.
+    private static Map<String, Object> comparison(String name, String field, String scalarType, Object value)
     {
         return Map.of(
             "type", "Condition",
-            "name", "eq",
+            "name", name,
             "operands", List.of(
                 Map.of("type", "Field", "name", field),
                 Map.of("type", "Value", "scalarType", scalarType, "value", value)

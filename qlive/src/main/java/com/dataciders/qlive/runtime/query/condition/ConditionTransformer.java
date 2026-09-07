@@ -20,9 +20,14 @@ import java.util.List;
 
 /// Turns a FilterDSL condition graph into JOOQ conditions, sort fields and value expressions.
 ///
-/// Everything that varies between callers is in the two collaborators: {@link FieldResolver} says what a
-/// field path means, {@link ScalarConverter} says how to read a value. A caller filtering a single table
-/// needs nothing else; the query document plugs in a resolver that knows about joins and to-many relations.
+/// The one thing that varies between callers is the {@link FieldResolver}, which says what a field path
+/// means: a caller filtering a single table resolves names against that table, while the query document
+/// plugs in a resolver that knows about joins and to-many relations.
+///
+/// The values are already the Java objects they claim to be -- reading a condition's JSON is
+/// {@link com.dataciders.qlive.runtime.scalar.ConditionCoercing}'s business, and it converts every value in
+/// the hierarchy with the coercing of the scalar type that value names. What is left to do with one here is
+/// to bind it as the type of the field it is compared to.
 ///
 /// Values are always bound, never rendered into the SQL, and operator names are checked against
 /// {@link FilterOperators}' positive list before anything is done with them. Conditions come from browsers.
@@ -30,13 +35,10 @@ public class ConditionTransformer
 {
     private final FieldResolver resolver;
 
-    private final ScalarConverter scalarConverter;
 
-
-    public ConditionTransformer(FieldResolver resolver, ScalarConverter scalarConverter)
+    public ConditionTransformer(FieldResolver resolver)
     {
         this.resolver = resolver;
-        this.scalarConverter = scalarConverter;
     }
 
 
@@ -231,11 +233,7 @@ public class ConditionTransformer
         {
             for (Object value : values.getValues())
             {
-                converted.add(
-                    type.convert(
-                        scalarConverter.convert(values.getScalarType(), value)
-                    )
-                );
+                converted.add(type.convert(value));
             }
         }
 
@@ -284,16 +282,12 @@ public class ConditionTransformer
     {
         final Object raw = value.getValue();
 
-        final Object converted = raw instanceof ComputedValue
-            ? raw
-            : scalarConverter.convert(value.getScalarType(), raw);
-
-        if (converted instanceof ComputedValue computedValue)
+        if (raw instanceof ComputedValue computedValue)
         {
             return computed(computedValue);
         }
 
-        return hint == null ? DSL.val(converted) : DSL.val(converted, (DataType<Object>) hint);
+        return hint == null ? DSL.val(raw) : DSL.val(raw, (DataType<Object>) hint);
     }
 
 

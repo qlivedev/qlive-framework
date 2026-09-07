@@ -4,5 +4,8 @@
 # only when someone builds the docs.
 packages: []
 
+# Astro's toolchain compiles native binaries. sharp is what backs the image
+# service -- without it every <img> in a page fails to optimize at build time.
 allowBuilds:
   esbuild: true
+  sharp: true

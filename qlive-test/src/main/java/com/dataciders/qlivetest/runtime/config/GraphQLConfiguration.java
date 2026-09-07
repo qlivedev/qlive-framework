@@ -51,9 +51,26 @@ public class GraphQLConfiguration
     @Bean
     public DomainQL domainQL() throws IOException
     {
-        final Collection<Object> logicBeans = applicationContext.getBeansWithAnnotation(GraphQLLogic.class).values();
-        final Collection<MetadataProvider> metadataProviders = applicationContext.getBeansOfType(MetadataProvider.class).values();
+        return newDomainQL(
+            dslContext,
+            applicationContext.getBeansWithAnnotation(GraphQLLogic.class).values(),
+            applicationContext.getBeansOfType(MetadataProvider.class).values()
+        );
+    }
 
+
+    /**
+     * Defines the application's domain, kept apart from the bean wiring above so that a test can build the same
+     * schema without a database: nothing here touches the DSLContext until a query executes, so passing null is
+     * enough to get at the schema and its meta data. The logic beans and metadata providers are what the schema
+     * is built out of, so a test has to hand over the same ones to get the same schema.
+     */
+    static DomainQL newDomainQL(
+        DSLContext dslContext,
+        Collection<Object> logicBeans,
+        Collection<MetadataProvider> metadataProviders
+    ) throws IOException
+    {
         final DomainQL domainQL = QLiveDomain.newDomain(dslContext, metadataProviders)
             //.parameterProvider(new AutomatonConnectionProviderFactory(applicationContext))
 

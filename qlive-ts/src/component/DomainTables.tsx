@@ -1,13 +1,13 @@
 import React, {useLayoutEffect, useState} from "react"
 import { isListType, isNonNull, unwrapAll } from "../type-utils"
 import config from "../config"
+import type { DomainQLMeta } from "../config"
 import type {
-    DomainQLMeta,
     GraphQLField,
     GraphQLObjectType,
     GraphQLSchema,
     GraphQLTypeRef
-} from "@quinscape/qlive-ts"
+} from "../GraphQLSchema"
 
 
 function domainFieldId(domainType: GraphQLObjectType, field : GraphQLField ) : string

@@ -153,6 +153,23 @@ const ramp = (from, to) => [
 const darkGrays = ramp(CREAM, INK);
 const lightGrays = ramp(INK, CREAM);
 
+/*
+ * Brand surfaces -- the top bar and the wordmark on it.
+ *
+ * The bar is the orange mixed into each neutral, which lands on a deep teal
+ * against the ink and a light orange against the cream: the mixer carries a
+ * warm hue through green on its way to a blue-black, and both ends of that
+ * belong to the palette.
+ *
+ * The wordmark sits on the bar rather than the page, so it is measured
+ * against the bar and mixed only as far as clearing AA there requires.
+ */
+const darkHeader = blend(ORANGE, INK, 0.70);
+const lightHeader = blend(ORANGE, CREAM, 0.80);
+
+const titleOnDark = readable(ORANGE, CREAM, darkHeader);
+const titleOnLight = readable(ORANGE, INK, lightHeader);
+
 // Subtle fills: the accent taken most of the way to the background.
 const darkAccentLow = blend(ORANGE, INK, 0.82);
 const lightAccentLow = blend(ORANGE, CREAM, 0.84);
@@ -206,6 +223,10 @@ ${row("teal", TEAL, onInk.teal, INK)}
        accent, which is only readable on one of the two backgrounds. */
     --sl-color-text-accent: ${onInk.orange.hex};
 
+    /* the top bar and the wordmark on it */
+    --sl-color-bg-nav: ${darkHeader};
+    --qlive-title: ${titleOnDark.hex};
+
     --sl-color-white: ${CREAM};
 ${grays(darkGrays)}
     --sl-color-black: ${INK};
@@ -223,6 +244,10 @@ ${grays(darkGrays)}
     --sl-color-accent: ${ORANGE};
     --sl-color-accent-high: ${onCream.orange.hex};
     --sl-color-text-accent: ${onCream.orange.hex};
+
+    --sl-color-bg-nav: ${lightHeader};
+    --sl-color-gray-7: ${lightGrays[5]};
+    --qlive-title: ${titleOnLight.hex};
 
     --sl-color-white: ${INK};
 ${grays(lightGrays)}
@@ -243,6 +268,17 @@ ${grays(lightGrays)}
 :root[data-theme="light"] a[aria-current="page"] {
     background: var(--sl-color-accent);
     color: var(--qlive-on-accent);
+}
+
+/* The bar carries its own colour, so what sits on it is measured against the
+   bar rather than the page: the wordmark reads at ${titleOnDark.ratio.toFixed(2)} on the dark bar and
+   ${titleOnLight.ratio.toFixed(2)} on the light one. */
+.header {
+    background: var(--sl-color-bg-nav);
+}
+
+.site-title {
+    color: var(--qlive-title);
 }
 
 /* Amber is the brightest thing in the palette on ink -- kept for the one

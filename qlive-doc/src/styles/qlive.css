@@ -40,6 +40,10 @@
        accent, which is only readable on one of the two backgrounds. */
     --sl-color-text-accent: #ff6b01;
 
+    /* the top bar and the wordmark on it */
+    --sl-color-bg-nav: #05382D;
+    --qlive-title: #ff6b01;
+
     --sl-color-white: #fff8e5;
     --sl-color-gray-1: #98D0E5;
     --sl-color-gray-2: #4D9FD9;
@@ -62,6 +66,10 @@
     --sl-color-accent: #ff6b01;
     --sl-color-accent-high: #8E6D1F;
     --sl-color-text-accent: #8E6D1F;
+
+    --sl-color-bg-nav: #FFDFA7;
+    --sl-color-gray-7: #E5F3E6;
+    --qlive-title: #696724;
 
     --sl-color-white: #000217;
     --sl-color-gray-1: #002A79;
@@ -87,6 +95,17 @@
 :root[data-theme="light"] a[aria-current="page"] {
     background: var(--sl-color-accent);
     color: var(--qlive-on-accent);
+}
+
+/* The bar carries its own colour, so what sits on it is measured against the
+   bar rather than the page: the wordmark reads at 4.57 on the dark bar and
+   4.59 on the light one. */
+.header {
+    background: var(--sl-color-bg-nav);
+}
+
+.site-title {
+    color: var(--qlive-title);
 }
 
 /* Amber is the brightest thing in the palette on ink -- kept for the one

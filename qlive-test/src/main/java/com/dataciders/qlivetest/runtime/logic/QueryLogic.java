@@ -11,6 +11,7 @@ import com.dataciders.qlivetest.domain.tables.pojos.Bar;
 import com.dataciders.qlivetest.domain.tables.pojos.Baz;
 import com.dataciders.qlivetest.domain.tables.pojos.Foo;
 import com.dataciders.qlivetest.domain.tables.pojos.FooType;
+import com.dataciders.qlivetest.model.types.Qux;
 import graphql.schema.DataFetchingEnvironment;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
@@ -47,7 +48,9 @@ public class QueryLogic
                 FooType.class,
                 Bar.class,
                 Baz.class,
-                AppUser.class
+                AppUser.class,
+                // the hand-written Qux, which is what puts it in the generated one's place
+                Qux.class
             }
         )
         Class<T> type,

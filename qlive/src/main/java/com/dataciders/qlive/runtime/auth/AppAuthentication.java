@@ -1,4 +1,4 @@
-package com.dataciders.qlivetest.runtime.auth;
+package com.dataciders.qlive.runtime.auth;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -9,8 +9,7 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Limited view on the app user details for client consumption.
- * 
+ * Limited, immutable view on the current user's {@link AppUserDetails} for client consumption.
  */
 public final class AppAuthentication
 {
@@ -28,7 +27,7 @@ public final class AppAuthentication
     public static final String ANONYMOUS_ID = "af432487-a1b1-4f99-96d4-3b8e9796c95a";
 
     /**
-     * The one anonymous AutomatonAuthentication instance
+     * The one anonymous AppAuthentication instance
      */
     private static final AppAuthentication ANONYMOUS_AUTH;
 
@@ -69,9 +68,10 @@ public final class AppAuthentication
     }
 
     /**
-     * Accesses the spring security context to get the current AutomatonUserDetails.
-     * For anonymous users, {@link #ANONYMOUS_AUTH} auth is returned.
-     * @return
+     * Accesses the spring security context to get the current {@link AppUserDetails}.
+     * For anonymous users, {@link #ANONYMOUS_AUTH} is returned.
+     *
+     * @return the current authentication, never null
      */
     public static AppAuthentication current()
     {

@@ -1,4 +1,4 @@
-package com.dataciders.qlivetest.runtime.auth;
+package com.dataciders.qlive.runtime.auth;
 
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;

@@ -1,4 +1,4 @@
-package com.dataciders.qlivetest.runtime.auth;
+package com.dataciders.qlive.runtime.auth;
 
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.springframework.security.core.GrantedAuthority;

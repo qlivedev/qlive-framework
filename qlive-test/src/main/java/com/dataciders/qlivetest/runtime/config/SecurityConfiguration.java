@@ -1,11 +1,11 @@
 package com.dataciders.qlivetest.runtime.config;
 
+import com.dataciders.qlive.runtime.auth.AppUserDetailsService;
+import com.dataciders.qlive.runtime.auth.DefaultPersistentTokenRepository;
 import com.dataciders.qlive.runtime.controller.GraphQLController;
 import com.dataciders.qlive.runtime.security.GraphQLSecurityErrorHandler;
 import com.dataciders.qlivetest.domain.tables.pojos.AppLogin;
 import com.dataciders.qlivetest.domain.tables.pojos.AppUser;
-import com.dataciders.qlivetest.runtime.auth.AppUserDetailsService;
-import com.dataciders.qlivetest.runtime.auth.DefaultPersistentTokenRepository;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

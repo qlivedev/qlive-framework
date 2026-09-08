@@ -36,6 +36,10 @@ const tsconfig = {
         module: "ESNext",
         moduleResolution: "Bundler",
         customConditions: ["qlive-source"],
+        // qlive-ts exports components, so following its imports reaches .tsx
+        // sources. Without this they are an error before anything about the
+        // generated types has been looked at.
+        jsx: "react-jsx",
         strict: true,
         noEmit: true,
         skipLibCheck: false,

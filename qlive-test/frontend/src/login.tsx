@@ -34,6 +34,16 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <label htmlFor="password">Password</label>
                     <input id="password" name="password" type="password" autoComplete="current-password" required/>
 
+                    <div className="remember-me">
+                        {/*
+                          * "remember-me" is spring security's default name for this parameter, and what
+                          * RememberMeAuthenticationFilter looks for. Ticking it makes the login survive the
+                          * session, backed by the app_login table (see DefaultPersistentTokenRepository).
+                          */}
+                        <input id="remember-me" name="remember-me" type="checkbox"/>
+                        <label htmlFor="remember-me">Stay logged in on this computer</label>
+                    </div>
+
                     <input type="hidden" name={csrfToken!.param} value={csrfToken!.value}/>
 
                     <button type="submit">Log in</button>

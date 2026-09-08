@@ -42,3 +42,17 @@ body
     color: #ffffff;
     font-size: 0.85rem;
 }
+
+/* the one row of the login form that is not a label above its control */
+.login .remember-me
+{
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.login .remember-me label
+{
+    margin: 0;
+}

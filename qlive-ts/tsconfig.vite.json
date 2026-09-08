@@ -1,0 +1,12 @@
+{
+  // The "./vite" entry point, typechecked on its own: it is Node code, and the
+  // browser half must not gain access to node builtins just because this half
+  // needs them. The base config excludes src/vite for the same reason.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": ["node"]
+  },
+  "include": ["src/vite"],
+  "exclude": []
+}

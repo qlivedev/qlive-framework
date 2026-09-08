@@ -10,7 +10,14 @@
     "noEmit": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    // Nothing here runs outside a browser, so no ambient @types package gets
+    // pulled in on its own -- @types/node is a dependency of the "./vite" entry
+    // and would otherwise make process and friends typecheck in runtime code
+    // that cannot use them. What a module imports it still resolves normally.
+    "types": []
   },
-  "include": ["src", "test"]
+  "include": ["src", "test"],
+  // Typechecked by tsconfig.vite.json instead, against Node's lib and types.
+  "exclude": ["src/vite"]
 }

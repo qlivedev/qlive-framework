@@ -75,8 +75,6 @@ absolute directory to keep them consistent.
   },
   "devDependencies": {
     "@quinscape/qlive-codegen": "...",   // the generate-ts CLI
-    "babel-plugin-track-usage": "^0.3.4",
-    "@babel/core": "^8.0.1"
     // ... vite, typescript, vitest
   }
 }
@@ -95,6 +93,8 @@ instants from the first.
 The two pieces QLive needs:
 
 ```ts
+import {trackUsage} from "@quinscape/qlive-ts/vite";
+
 export default defineConfig(({command}) => ({
     base: "/app/",
     plugins: [
@@ -125,6 +125,10 @@ The key is the symbolic name the server looks the call up under, and by
 convention it is the function's own name. `allowIdentifier` on
 `useInjection` is what lets the analysis record *which identifier* was
 passed rather than a static value.
+
+`@quinscape/qlive-ts/vite` is the package's build-time entry point. It is
+Node code your Vite config loads, kept apart from the runtime entry so
+that babel never enters your application bundle's dependency graph.
 
 Proxy `/api/**` and `/graphql` to the backend from the dev server rather
 than pointing the frontend at another origin: keeping them same-origin is

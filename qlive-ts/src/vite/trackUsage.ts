@@ -1,3 +1,7 @@
+/// <reference path="./babel-plugin-track-usage.d.ts" />
+// Referenced rather than left to the tsconfig: an application that resolves qlive-ts through the
+// "qlive-source" condition typechecks this file inside its own program, where nothing else would
+// pull the ambient declarations for the untyped babel plugin in.
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as babel from "@babel/core";
@@ -113,7 +117,7 @@ function toRelativeModuleId(absPath: string, sourceRoot: string): string
     return "./" + withoutExt;
 }
 
-export default function trackUsage(options: TrackUsagePluginOptions): Plugin {
+export function trackUsage(options: TrackUsagePluginOptions): Plugin {
     const outputFileName = options.outputFileName ?? "track-usage.json";
     let command: "build" | "serve" = "build";
     let isDevMode = false;

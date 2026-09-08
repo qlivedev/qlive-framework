@@ -1,7 +1,7 @@
 import {defineConfig} from "vitest/config";
 import react from "@vitejs/plugin-react";
 import {fileURLToPath} from "node:url";
-import trackUsage, {TrackedFunctionSpec} from "./plugins/track-usage-vite-plugin";
+import {trackUsage, type TrackedFunctionSpec} from "@quinscape/qlive-ts/vite";
 
 const rootDir = fileURLToPath(new URL("../..", import.meta.url));
 const frontendSrcDir = fileURLToPath(new URL("./src/", import.meta.url));
@@ -16,6 +16,10 @@ const qliveTsDir = fileURLToPath(new URL("../../qlive-ts/", import.meta.url));
 // Consequence worth knowing: only `vite build` touches dist, so packaging bugs
 // (bad exports map, missing emitted file) surface at build time, not in dev.
 // `pnpm build` runs that build, so CI still catches them.
+//
+// The "@quinscape/qlive-ts/vite" import above is the exception: this file is loaded by Node
+// before any of these aliases exist, so it always comes from dist. Editing the plugin means
+// rebuilding qlive-ts, which is why the root `dev` script does that first.
 const devAliases = {
     "@quinscape/qlive-ts/styles.css": qliveTsDir + "src/styles/qlive.css",
     "@quinscape/qlive-ts": qliveTsDir + "src/index.ts",

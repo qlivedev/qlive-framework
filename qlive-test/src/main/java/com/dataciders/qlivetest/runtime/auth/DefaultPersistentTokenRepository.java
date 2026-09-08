@@ -14,7 +14,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Persistent Token repository based on the app_user table
+ * Persistent token repository for spring security's remember-me feature, backed by the app_login table.
  */
 public class DefaultPersistentTokenRepository<T>
     implements PersistentTokenRepository
@@ -188,6 +188,6 @@ public class DefaultPersistentTokenRepository<T>
             )
         ).where(
             DSL.field(DSL.name(USERNAME)).eq(username)
-        );
+        ).execute();
     }
 }

@@ -10,7 +10,7 @@ are the only modules that may call `useInjection()`, and they are the only
 modules the server ever resolves a request to.
 
 Anything else is a component. The distinction is not stylistic: see
-[Injections](../injections/).
+[Injections](/qlive-framework/injections/).
 
 ## From URL to module
 

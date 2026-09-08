@@ -7,7 +7,7 @@ sidebar:
 
 ## Declaring a query
 
-```ts
+```ts {10-24}
 import {GraphQLQuery, QueryDocumentMethods} from "@quinscape/qlive-ts";
 import {AppUser, Foo, FooDocument} from "../types";
 

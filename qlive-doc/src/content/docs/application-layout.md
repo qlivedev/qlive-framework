@@ -1,5 +1,5 @@
 ---
-title: Application layout
+title: Example Application layout
 description: Folder structure, and the constants both halves have to agree on.
 sidebar:
   order: 2
@@ -7,6 +7,10 @@ sidebar:
 
 An application is one Maven module with a Vite frontend inside it.
 `qlive-test` is the reference; the template will be extracted from it.
+
+The purpose of this is to get you up to speed quickly to develop with QLive. If you are an experienced Spring
+developer, you might have your own way of doing things and so you can just use `qlive-test` to see which components
+you need to copy into your Spring configuration.
 
 ```
 my-app/

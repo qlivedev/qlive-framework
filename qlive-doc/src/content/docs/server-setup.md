@@ -36,21 +36,11 @@ pages that answer 503 forever.
 @Bean
 public DomainQL domainQL() throws IOException
 {
-    return newDomainQL(
-        dslContext,
-        applicationContext.getBeansWithAnnotation(GraphQLLogic.class).values(),
-        applicationContext.getBeansOfType(MetadataProvider.class).values()
-    );
-}
-
-static DomainQL newDomainQL(
-    DSLContext dslContext,
-    Collection<Object> logicBeans,
-    Collection<MetadataProvider> metadataProviders
-) throws IOException
-{
-    return QLiveDomain.newDomain(dslContext, metadataProviders)
-        .logicBeans(logicBeans)
+    return QLiveDomain.newDomainQL(
+            dslContext,
+            applicationContext.getBeansOfType(MetadataProvider.class).values()
+        )   
+        .logicBeans(applicationContext.getBeansWithAnnotation(GraphQLLogic.class).values())
         .objectTypes(Public.PUBLIC)
         // ...
         .build();
@@ -61,11 +51,13 @@ static DomainQL newDomainQL(
 scalars (`QueryConfig`, `Condition`, `FieldExpression`, `ComputedValue` and
 the rest) into a DomainQL environment.
 
-Keep the domain definition separable from the bean wiring: nothing in it
+You can keep the domain definition separable from the bean wiring: nothing in it
 touches the `DSLContext` until a query executes, so a test can build the
 same schema with `null` and assert on it without a database. Hand it the
 same logic beans and metadata providers, or you are testing a different
-schema than you ship.
+schema than you ship. 
+
+(See com.dataciders.qlivetest.runtime.config.GraphQLConfiguration.domainQL)
 
 ### Static analysis, per profile
 
@@ -155,7 +147,7 @@ which is a good reason to set it explicitly.
 
 ## Query logic
 
-See [Query documents](../query-documents/) for the document query bean --
+See [Query documents](/qlive-framework/query-documents/) for the document query bean --
 one generic method with `@GraphQLTypeParam` covers every type.
 
 ## Security

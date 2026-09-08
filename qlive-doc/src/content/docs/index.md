@@ -5,50 +5,41 @@ template: splash
 sidebar:
   hidden: true
 hero:
-  tagline: A full-stack framework whose pages arrive with their data already in them.
+  tagline: A full-stack GraphQL injection framework
   actions:
     - text: Read the overview
-      link: ./overview/
+      link: /qlive-framework/overview/
       icon: right-arrow
     - text: View on GitHub
       link: https://github.com/quinscape/qlive-framework
       icon: external
       variant: minimal
 ---
+## Introduction
 
-## What this is
+QLive is a fullstack framework for running applications using React and Typescript with a Java/Spring Boot server. 
 
-Documentation for the **framework user** -- someone building an
-application on QLive, not someone working on QLive itself.
+## Requirements
 
-Internal development documentation stays in `docs/` in the repository:
-design sketches for ideas not yet realized, and notes aimed at
-maintainers. Nothing here is for maintainers; where a page explains how
-QLive works internally, it is because an application author has to know
-it.
+ * Java 25
+ * pnpm
+ * vite
+ * React 18
+ * Spring Boot
+ * JOOQ
 
-Start with the [Overview](./overview/), which explains what the framework
+## Motivation
+       
+QLive is a conceptually an alternative to React Server components. There are many reasons you want to use a Java server
+if only for the whole Spring Boot eco system. QLive allows components to declare the GraphQL queries they need. 
+The server uses static code analysis of the Typescript code to find all invocations of e.g. the `useInjection` function.
+
+This analysis data allows the preparation of all needed data from the server and embed the results in the first response.
+React components are not hydrated in the React Server component sense but just find all the data they need already present.
+
+It simplifies component lifecycles. Ideally it removes *all* async behavior at page load. The more complex the data, the
+more request latency is saved. It simplifies testing the components. 
+
+Start with the [Overview](/qlive-framework/overview/), which explains what the framework
 does and how a page reaches the browser. The rest follows the order of
 the sidebar.
-
-## Not here yet
-
-A second half of the framework-user documentation does not live here:
-what gets generated into a new application alongside the template
-extracted from `qlive-test`. Some of it will be inherited from these
-pages -- the pnpm and Maven setup, the dev loop -- and some will be
-specific to the generated application. That half waits for the
-templating command.
-
-Styling is documented in
-[`docs/styling.md`](https://github.com/quinscape/qlive-framework/blob/main/docs/styling.md)
-for the moment. It reads as framework-user documentation and is a
-candidate to move here, but it has not been moved.
-
-## Status
-
-Written against the repository as of 2026-09-07. QLive is pre-release:
-nothing is published to a registry yet, and `qlive-test` is both the
-integration test target and the source the application template will be
-extracted from. Where a page describes something that is not settled, it
-says so rather than inventing a story.

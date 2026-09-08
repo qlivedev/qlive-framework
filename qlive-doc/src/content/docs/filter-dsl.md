@@ -4,6 +4,16 @@ description: Building conditions and sort fields.
 sidebar:
   order: 8
 ---
+The FilterDSL is a TypeScript fluent API that produces JSON-like graphs. To enable chaining, the API creates instances 
+with a prototype that allows further operations or conditions. 
+
+It represents a unified condition language where components can express and compose conditions that are then evaluated
+in the right location.
+
+Here, we focus on using the FilterDSL for database operations, but they can just as well be used to filter Java objects
+or JavaScript objects. 
+
+## QueryConfig
 
 The Filter DSL builds the conditions and sort fields a `QueryConfig`
 carries. The same DSL exists on both sides -- `FilterDSL` in TypeScript,
@@ -24,7 +34,11 @@ const {field, value, values, and, or, not, component} = FilterDSL;
 Fluent, reading left to right off a field:
 
 ```ts
-const filter = field("name").eq(value("Foo #1"))
+const filter = field("name")
+    .eq(value("Foo #1"))
+    .and(
+        field("num").greaterThan(value(10))
+    )
 ```
 
 or functional, which is the same graph:
@@ -151,7 +165,9 @@ arrive from browsers, and a name not on this list never reaches reflection.
 
 ```ts
 foos.update({sortFields: ["name"]})
+foos.update({sortFields: ["!created"]})  // this is the same as the following line
 foos.update({sortFields: [field("created").desc()]})
+foos.update({sortFields: [field("a").plus(field("b"))]})
 ```
 
 With no sort fields the primary key is the sort, and the config that comes
@@ -160,13 +176,16 @@ back says so.
 ## Plain objects
 
 The DSL produces nodes that are instances of its own classes. That works
-almost everywhere, but not quite everywhere -- MobX, for one, ignores class
+almost everywhere, but not quite everywhere -- MobX, for example, ignores class
 instances and will not make them observable, and making the whole DSL
 observable would be a large cost for an exotic case.
+
+So if you ever find yourself in the situation where you need a FilterDSL condition graph
+in its pure JSON form, call
 
 ```ts
 const plain = FilterDSL.toJSON(condition);
 ```
 
-converts the graph to plain objects and arrays. It is the same shape the
+which converts the graph to plain objects and arrays. It is the same shape the
 condition travels in.

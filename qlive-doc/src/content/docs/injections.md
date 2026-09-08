@@ -35,7 +35,7 @@ function useInjection<T>(query: GraphQLQuery<T>, params?: InjectParams): T
 It returns `T`, the value of the query's single top-level selection. Where
 that value is a query document, what you get is a **snapshot** of it and
 your component is subscribed: an `update()` re-renders it. See
-[Query documents](../query-documents/).
+[Query documents](/qlive-framework/query-documents/).
 
 Rules of hooks apply -- call it at the top level of a view,
 unconditionally.

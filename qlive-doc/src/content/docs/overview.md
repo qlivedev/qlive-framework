@@ -11,6 +11,10 @@ Java half is `qlive`, a Spring Boot library built on
 half is `@quinscape/qlive-ts`, a React library. They are two halves of one
 thing, not a server and a client that happen to talk.
 
+
+<img src="/qlive-framework/media/injection-light.svg" alt="Data injection diagram" class="dark:sl-hidden" />
+<img src="/qlive-framework/media/injection-dark.svg"  alt="Data injection diagram" class="light:sl-hidden" />
+
 ## The idea
 
 An application's views declare the data they need, in the view, once:
@@ -31,7 +35,7 @@ nothing fetches anything for the first render.
 That is the central trade of the framework. What it buys is a page that is
 complete when it paints. What it costs is a constraint: a `useInjection()`
 call has to be readable at build time. See
-[Injections](../injections/) for what that rules out.
+[Injections](/qlive-framework/injections/) for what that rules out.
 
 ## How a page is served
 
@@ -62,7 +66,7 @@ Consumers never see the difference: both are `StaticAnalysisProvider`.
 Three things, and they are worth naming because they are the seams:
 
 - **Which module serves a path.** Derived from the analysis and from the
-  path conventions in [Application layout](../application-layout/).
+  path conventions in [Application layout](/qlive-framework/application-layout/).
 - **Which queries that module injects, and with what parameters.**
   Recorded by the build's track-usage analysis from the `useInjection()`
   call itself.
@@ -79,4 +83,4 @@ On top of the usual HMR, one extra thing happens: as you edit a module
 holding a `GraphQLQuery`, the plugin pushes the analysis to the backend,
 which parses the query against the live schema and **writes the generated
 result type back into your source file**. See
-[Queries and types](../queries-and-types/).
+[Queries and types](/qlive-framework/queries-and-types/).

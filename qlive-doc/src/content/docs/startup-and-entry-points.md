@@ -11,7 +11,7 @@ may declare more.
 
 ## The main entry point
 
-```tsx
+```tsx {7-10}
 import {findRoot, loadViewForPath, startup} from "@quinscape/qlive-ts";
 import "@quinscape/qlive-ts/styles.css";
 import "./style.css";

@@ -94,7 +94,7 @@ infers `width`/`height` and applies the base prefix:
 **Raw `<img>` in Markdown is passed through untouched** -- its `src` is not
 rewritten, so a relative path silently 404s. Anything written as HTML has to
 carry a URL that already resolves: put the file in `public/` and reference it
-with the base included, `/qlive-framework/diagrams/thing.svg`.
+with the base included, `/qlive-framework/media/thing.svg`.
 
 ### Light and dark
 
@@ -102,8 +102,8 @@ Starlight ships two utility classes for this, and their names say *when the
 element hides*, not which theme it belongs to:
 
 ```html
-<img src="/qlive-framework/diagrams/thing-light.svg" alt="..." class="dark:sl-hidden" />
-<img src="/qlive-framework/diagrams/thing-dark.svg"  alt="..." class="light:sl-hidden" />
+<img src="/qlive-framework/media/thing-light.svg" alt="..." class="dark:sl-hidden" />
+<img src="/qlive-framework/media/thing-dark.svg"  alt="..." class="light:sl-hidden" />
 ```
 
 So `dark:sl-hidden` is the *light* theme's image. Both files must live in
@@ -117,28 +117,32 @@ theme classes.
 
 Because they are swapped they have to be written as HTML rather than
 Markdown image syntax, and raw HTML is passed through untouched -- so they
-live in `public/diagrams/`, not in `src/`:
+live in `public/media/`, not in `src/`:
 
 ```
-public/diagrams/injection-light.svg
-public/diagrams/injection-dark.svg
+public/media/injection-light.svg
+public/media/injection-dark.svg
 ```
 
 and in the page:
 
 ```html
-<img src="../diagrams/injection-light.svg" alt="..." class="dark:sl-hidden" />
-<img src="../diagrams/injection-dark.svg"  alt="..." class="light:sl-hidden" />
+<img src="/qlive-framework/media/injection-light.svg" alt="..." class="dark:sl-hidden" />
+<img src="/qlive-framework/media/injection-dark.svg"  alt="..." class="light:sl-hidden" />
 ```
 
 Three things about that snippet:
 
 - The class names say **when the element hides**, not which theme it is for.
   `dark:sl-hidden` is the light theme's image.
-- The path is relative, `../diagrams/`, not `/qlive-framework/diagrams/`.
-  Both resolve, but the relative one carries no repository name, so it
-  survives a change of `base`. Every documentation page sits one level below
-  the root, so `../` is right for all of them.
+- The path is absolute and carries the base, `/qlive-framework/media/`.
+  A relative `../media/` is tempting because it survives a change of `base`,
+  but it resolves against the page URL, and `astro dev` answers a page both
+  with and without a trailing slash without redirecting between them. On
+  `/qlive-framework/overview` the `../` climbs one level too far, so the
+  image 404s in dev while the built site -- which uses directory URLs --
+  is fine. The absolute form works in both; the price is that changing
+  `base` means editing these paths.
 - Both files are fetched whichever theme is active; the hidden one is
   `display: none`, not unloaded. Keep them small.
 

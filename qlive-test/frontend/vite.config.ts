@@ -1,10 +1,9 @@
 import {defineConfig} from "vitest/config";
 import react from "@vitejs/plugin-react";
 import {fileURLToPath} from "node:url";
-import {trackUsage, type TrackedFunctionSpec} from "@quinscape/qlive-ts/vite";
+import {trackUsage} from "@quinscape/qlive-ts/vite";
 
 const rootDir = fileURLToPath(new URL("../..", import.meta.url));
-const frontendSrcDir = fileURLToPath(new URL("./src/", import.meta.url));
 const qliveTsDir = fileURLToPath(new URL("../../qlive-ts/", import.meta.url));
 
 // qlive-ts is built by tsdown, and its package.json points at dist/ - which is
@@ -25,22 +24,6 @@ const devAliases = {
     "@quinscape/qlive-ts": qliveTsDir + "src/index.ts",
 };
 
-const trackedFunctions : { [name: string]: TrackedFunctionSpec } = {
-    i18n: {
-        module: "@quinscape/qlive-ts", fn: "i18n",
-        varArgs: true
-    },
-    useInjection: {
-        module: "@quinscape/qlive-ts", fn: "useInjection", allowIdentifier: true
-    },
-    noSchema: {
-        module: "@quinscape/qlive-ts", fn: "noSchema"
-    },
-    GraphQLQuery: {
-        module: "@quinscape/qlive-ts", fn: "GraphQLQuery"
-    },
-};
-
 const backendOrigin = "http://localhost:8080";
 
 export default defineConfig(({command}) => ({
@@ -52,11 +35,10 @@ export default defineConfig(({command}) => ({
         alias: command === "serve" ? devAliases : {},
     },
     plugins: [
+        // Which calls get recorded, and the endpoint the snapshots go to in dev, are QLive's own -- the
+        // backend looks them up by name. All this application has to say is where its backend is.
         trackUsage({
-            trackedFunctions,
-            sourceRoot: frontendSrcDir,
-            debug: false,
-            pushUrl: `${backendOrigin}/_dev/track-usage`,
+            backendOrigin,
         }),
         react(),
     ],

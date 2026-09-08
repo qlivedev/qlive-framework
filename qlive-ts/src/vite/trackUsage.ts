@@ -8,7 +8,7 @@ import * as babel from "@babel/core";
 import trackUsageBabelPlugin from "babel-plugin-track-usage";
 import trackUsageData from "babel-plugin-track-usage/data";
 import deepEqual from "deep-equal";
-import type {Plugin} from "vite";
+import type {Plugin, ResolvedConfig} from "vite";
 
 export interface TrackedFunctionSpec
 {
@@ -34,11 +34,46 @@ export interface TrackedFunctionSpec
     allowIdentifier?: boolean;
 }
 
+/**
+ * The calls QLive's own analysis is built on. Their keys are the symbolic names the server looks a call
+ * up under -- ModuleFunctionReferences.USE_INJECTION_CALL_NAME and its neighbours name the same strings
+ * on the Java side -- so what belongs in here is the framework's to state and not an application's to
+ * get right. An application adds its own entries through `trackedFunctions`.
+ */
+export const QLIVE_TRACKED_FUNCTIONS: Record<string, TrackedFunctionSpec> = {
+    i18n: {
+        module: "@quinscape/qlive-ts", fn: "i18n",
+        varArgs: true
+    },
+    useInjection: {
+        module: "@quinscape/qlive-ts", fn: "useInjection", allowIdentifier: true
+    },
+    noSchema: {
+        module: "@quinscape/qlive-ts", fn: "noSchema"
+    },
+    GraphQLQuery: {
+        module: "@quinscape/qlive-ts", fn: "GraphQLQuery"
+    },
+};
+
+/**
+ * Where QLive's TrackUsageDevController receives pushed snapshots. Both halves have to agree on it, so
+ * it is the framework's and not something an application spells out.
+ */
+const TRACK_USAGE_DEV_URI = "/_dev/track-usage";
+
 export interface TrackUsagePluginOptions
 {
-    trackedFunctions: Record<string, TrackedFunctionSpec>;
-    /** Absolute path to the directory tracking is scoped to. Must end with "/". */
-    sourceRoot: string;
+    /**
+     * Calls to record on top of {@link QLIVE_TRACKED_FUNCTIONS}. Merged over those, so an entry under one
+     * of their keys replaces it.
+     */
+    trackedFunctions?: Record<string, TrackedFunctionSpec>;
+    /**
+     * Absolute path to the directory tracking is scoped to. Default: `src/` below Vite's `root`, which is
+     * where an application's own code lives.
+     */
+    sourceRoot?: string;
     debug?: boolean;
     /**
      * Records the source offsets ([start, end]) of every tracked call alongside its arguments. Consumers that
@@ -54,12 +89,23 @@ export interface TrackUsagePluginOptions
     /** Default: "track-usage.json". */
     outputFileName?: string;
     /**
-     * Absolute URL of a backend dev endpoint that live track-usage snapshots get POSTed to
-     * as they change. `vite build` writes track-usage.json to disk for the backend to read,
-     * but `vite dev` never touches disk, so this is dev mode's only way to get fresh data to
-     * a backend that needs it live (e.g. for codegen). Omit to skip pushing entirely.
+     * Origin of the QLive backend, e.g. "http://localhost:8080". Live track-usage snapshots get POSTed
+     * there as they change. `vite build` writes track-usage.json to disk for the backend to read, but
+     * `vite dev` never touches disk, so this is dev mode's only way to get fresh data to a backend that
+     * needs it live (e.g. for codegen). Omit to skip pushing entirely.
      */
-    pushUrl?: string;
+    backendOrigin?: string;
+}
+
+/**
+ * The options as the hooks use them: defaults applied, sourceRoot absolute and terminated.
+ */
+interface ResolvedOptions
+{
+    trackedFunctions: Record<string, TrackedFunctionSpec>;
+    sourceRoot: string;
+    debug?: boolean;
+    indexes: boolean;
 }
 
 interface UsageSnapshot
@@ -67,7 +113,7 @@ interface UsageSnapshot
     usages: Record<string, unknown>;
 }
 
-function shouldTrack(id: string, options: TrackUsagePluginOptions): boolean
+function shouldTrack(id: string, options: ResolvedOptions): boolean
 {
     const filePath = id.split("?")[0];
     return (
@@ -84,7 +130,7 @@ function shouldTrack(id: string, options: TrackUsagePluginOptions): boolean
  * absolute) from the result. So we derive a stable project root one level
  * above our absolute `sourceRoot` and re-express `sourceRoot` relative to it.
  */
-function runBabelOnFile(absPath: string, code: string, options: TrackUsagePluginOptions): void
+function runBabelOnFile(absPath: string, code: string, options: ResolvedOptions): void
 {
     const srcAbs = options.sourceRoot.replace(/\/$/, "");
     const projectRoot = path.dirname(srcAbs);
@@ -103,7 +149,7 @@ function runBabelOnFile(absPath: string, code: string, options: TrackUsagePlugin
                     trackedFunctions: options.trackedFunctions,
                     sourceRoot: relativeSourceRoot,
                     debug: options.debug,
-                    indexes: options.indexes ?? true,
+                    indexes: options.indexes,
                 },
             ],
         ],
@@ -117,8 +163,27 @@ function toRelativeModuleId(absPath: string, sourceRoot: string): string
     return "./" + withoutExt;
 }
 
-export function trackUsage(options: TrackUsagePluginOptions): Plugin {
+/**
+ * Resolves the options against the Vite config, which is the first point at which the defaults are
+ * knowable. The trailing slash is enforced rather than demanded: sourceRoot is compared by prefix, and
+ * one missing slash would silently track a sibling directory whose name starts the same way.
+ */
+function resolveOptions(options: TrackUsagePluginOptions, config: ResolvedConfig): ResolvedOptions
+{
+    const sourceRoot = options.sourceRoot ?? path.join(config.root, "src");
+
+    return {
+        trackedFunctions: {...QLIVE_TRACKED_FUNCTIONS, ...options.trackedFunctions},
+        sourceRoot: sourceRoot.endsWith("/") ? sourceRoot : sourceRoot + "/",
+        debug: options.debug,
+        indexes: options.indexes ?? true,
+    };
+}
+
+export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
     const outputFileName = options.outputFileName ?? "track-usage.json";
+    const pushUrl = options.backendOrigin ? options.backendOrigin + TRACK_USAGE_DEV_URI : undefined;
+    let resolved: ResolvedOptions;
     let command: "build" | "serve" = "build";
     let isDevMode = false;
     let devData: UsageSnapshot = {usages: {}};
@@ -126,7 +191,7 @@ export function trackUsage(options: TrackUsagePluginOptions): Plugin {
     function mergeIntoDevData(absPath: string): boolean
     {
         const fresh = trackUsageData.get() as UsageSnapshot;
-        const key = toRelativeModuleId(absPath, options.sourceRoot);
+        const key = toRelativeModuleId(absPath, resolved.sourceRoot);
         if (!deepEqual(devData.usages[key], fresh.usages[key]))
         {
             devData.usages[key] = fresh.usages[key];
@@ -139,11 +204,11 @@ export function trackUsage(options: TrackUsagePluginOptions): Plugin {
 
     function pushToServer(): void
     {
-        if (!options.pushUrl)
+        if (!pushUrl)
         {
             return;
         }
-        fetch(options.pushUrl, {
+        fetch(pushUrl, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(devData),
@@ -151,7 +216,7 @@ export function trackUsage(options: TrackUsagePluginOptions): Plugin {
             .then((res) => {
                 if (!res.ok && !pushWarned)
                 {
-                    console.warn(`[track-usage] push to ${options.pushUrl} failed: ${res.status} ${res.statusText}`);
+                    console.warn(`[track-usage] push to ${pushUrl} failed: ${res.status} ${res.statusText}`);
                     pushWarned = true;
                 } else if (res.ok)
                 {
@@ -161,7 +226,7 @@ export function trackUsage(options: TrackUsagePluginOptions): Plugin {
             .catch((e) => {
                 if (!pushWarned)
                 {
-                    console.warn(`[track-usage] could not reach ${options.pushUrl} (is the backend running?)`, e);
+                    console.warn(`[track-usage] could not reach ${pushUrl} (is the backend running?)`, e);
                     pushWarned = true;
                 }
             });
@@ -173,6 +238,7 @@ export function trackUsage(options: TrackUsagePluginOptions): Plugin {
 
         configResolved(config)
         {
+            resolved = resolveOptions(options, config);
             command = config.command === "serve" ? "serve" : "build";
             // `command === "serve"` alone isn't enough: Vitest also runs the
             // dev-server pipeline but with mode "test", and `vite --mode
@@ -183,11 +249,11 @@ export function trackUsage(options: TrackUsagePluginOptions): Plugin {
 
         transform(code, id)
         {
-            if (!shouldTrack(id, options))
+            if (!shouldTrack(id, resolved))
             {
                 return null;
             }
-            runBabelOnFile(id, code, options);
+            runBabelOnFile(id, code, resolved);
             if (isDevMode)
             {
                 mergeIntoDevData(id);
@@ -207,7 +273,7 @@ export function trackUsage(options: TrackUsagePluginOptions): Plugin {
 
         configureServer(server)
         {
-            const seedPath = options.seedFile ?? path.join(options.sourceRoot, "..", "dist", outputFileName);
+            const seedPath = options.seedFile ?? path.join(resolved.sourceRoot, "..", "dist", outputFileName);
             try
             {
                 devData = JSON.parse(fs.readFileSync(seedPath, "utf-8"));
@@ -225,14 +291,14 @@ export function trackUsage(options: TrackUsagePluginOptions): Plugin {
             // Only "change" is handled live - adding, renaming or deleting a tracked
             // file requires a dev server restart to be reflected.
             server.watcher.on("change", (file) => {
-                if (!shouldTrack(file, options))
+                if (!shouldTrack(file, resolved))
                 {
                     return;
                 }
                 const code = fs.readFileSync(file, "utf-8");
                 try
                 {
-                    runBabelOnFile(file, code, options);
+                    runBabelOnFile(file, code, resolved);
                 }
                 catch(e)
                 {

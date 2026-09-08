@@ -5,5 +5,5 @@
  * application's vite.config.ts loads, and pulling babel into the runtime bundle's dependency graph to say
  * so would be wrong. The two entries are built separately for the same reason.
  */
-export {trackUsage} from "./trackUsage";
+export {trackUsage, QLIVE_TRACKED_FUNCTIONS} from "./trackUsage";
 export type {TrackUsagePluginOptions, TrackedFunctionSpec} from "./trackUsage";

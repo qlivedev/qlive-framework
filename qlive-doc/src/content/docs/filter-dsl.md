@@ -47,9 +47,9 @@ join.
 explicitly where the inference cannot be right:
 
 ```ts
-value("Foo #1")                       // String
-value(42)                             // Int
-value("2018-11-01T19:58:59.000Z", "Timestamp")
+value("Foo #1")             // String
+value(42)                   // Int
+value(5000, "Currency")
 ```
 
 `values(type, ...vs)` is the collection form, for `in`:

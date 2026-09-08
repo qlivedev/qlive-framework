@@ -205,4 +205,17 @@
         fill: transparent;
     }
 
+    /*
+     * The default error view's only rule. An application that replaces the
+     * view takes its styling with it, so this styles nothing of theirs.
+     */
+    .qlive-error
+    {
+        padding: var(--qlive-space-2) var(--qlive-space-3);
+        border: 1px solid var(--qlive-color-border);
+        border-radius: var(--qlive-radius-md);
+        font-family: var(--qlive-font-sans);
+        color: var(--qlive-color-fg);
+    }
+
 }

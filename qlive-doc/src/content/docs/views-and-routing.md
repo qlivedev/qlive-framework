@@ -18,7 +18,6 @@ Views are registered from the glob you hand to `startup()`:
 
 ```tsx
 await startup({
-    path: location.pathname,
     views: import.meta.glob("./app/**/*.tsx"),
 });
 ```
@@ -40,6 +39,14 @@ reports it rather than picking one.
 
 ## Rendering the view for a path
 
+`startup()` does this for the URL the page was loaded with -- given
+`views`, it resolves the path and renders what it finds, so an application
+that only ever renders the view its URL names writes no routing code at
+all.
+
+The step itself is public, for an application that swaps views without a
+page load -- `startup()` resolves to the React root to render into:
+
 ```tsx
 const View = await loadViewForPath(location.pathname);
 ```
@@ -49,8 +56,11 @@ and loads the module, returning its default export. It throws if no view
 matches, listing the URLs that do exist. Its chunk is fetched at that
 moment -- nothing loaded it up to that point.
 
-The application root, `/app/` itself, addresses no view. `qlive-test`
-renders a landing component of its own there.
+The application root, `/app/` itself, addresses no view. What it renders
+is the `root` option of
+[`startup()`](/qlive-framework/startup-and-entry-points/) -- a component,
+or the name of the view the root should behave as. `qlive-test` renders a
+landing component of its own there.
 
 ## Router helpers
 

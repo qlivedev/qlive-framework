@@ -128,8 +128,10 @@ registerConverter("MyScalar", {
 ```
 
 Registering a second converter for a type replaces the first, so you can
-override the ones QLive brings. Do it after `startup()` if you are
-overriding a built-in.
+override the ones QLive brings. Do that from `startup()`'s
+[`init` hook](/qlive-framework/startup-and-entry-points/): the built-ins
+are registered while `startup()` initialises the config, and the hook is
+the point after that and before the first view renders.
 
 A converter is never called with `null` or `undefined`. Import `Temporal`
 from `@quinscape/qlive-ts`, never from `temporal-polyfill` directly -- a

@@ -1,6 +1,9 @@
+import type {ComponentType} from "react";
+
 import {GraphQLSchema, GraphQLType} from "./GraphQLSchema";
 import {initData} from "./data";
 import {initConverters} from "./converter";
+import DefaultErrorView, {ErrorViewProps} from "./component/ErrorView";
 
 /**
  * Meta-information about types that are generic types on the Java side.
@@ -149,6 +152,23 @@ export type QLiveConfig = {
     queryDocumentTypes?: Set<string>
     typesByName?: Map<string, GraphQLType>
 
+    /**
+     * The component rendered in place of a view QLive could not produce -- a path no view answers, a view
+     * module that failed to load.
+     *
+     * The one member of this config an application writes rather than reads. An initialized config always
+     * carries one, so a caller can render it without a fallback of its own; assign your own in startup()'s
+     * init hook, which runs after the config is initialized and before anything is rendered.
+     *
+     *     await startup({
+     *         views: import.meta.glob("./app/**\/*.tsx"),
+     *         init: async config => {
+     *             config.errorView = MyErrorPage
+     *         }
+     *     })
+     */
+    errorView?: ComponentType<ErrorViewProps>
+
 }
 
 /**
@@ -262,7 +282,7 @@ function initializeDerivedConfig(theConfig: QLiveConfig)
     )
 }
 
-export function init(bs : QLiveBoostrap)
+export function init(bs : QLiveBoostrap): Promise<QLiveConfig>
 {
     const { config, data, csrfToken } = bs
 
@@ -270,6 +290,9 @@ export function init(bs : QLiveBoostrap)
     if (theConfig)
     {
         theConfig.csrfToken = csrfToken
+        // Before the init hook the application may replace it in, so that assigning is all it takes and
+        // every reader can count on finding one.
+        theConfig.errorView = DefaultErrorView
 
         initializeDerivedConfig(theConfig);
 
@@ -279,23 +302,42 @@ export function init(bs : QLiveBoostrap)
     }
     initData(data)
 
-    logObject(
-        "CONFIG",
-        config as {[key : string] : any},
-        (data: {[key : string] : any}, key: string) : void => {
-            if (!notLogged.has(key))
-            {
-                console.log(key, data[key])
+    return Promise.resolve(theConfig!)
+}
+
+/**
+ * Logs the config and the injections the page started with.
+ *
+ * Called by startup() once its init hook has run, not by init() itself: the hook sits between the two and is
+ * where an application replaces the errorView, so logging any earlier would report a config no page ever
+ * runs with.
+ */
+export function logStartup(bs : QLiveBoostrap)
+{
+    if (theConfig)
+    {
+        logObject(
+            "CONFIG",
+            theConfig as {[key : string] : any},
+            (data: {[key : string] : any}, key: string) : void => {
+
+                if (key === "errorView")
+                {
+                    console.log(key, "<" + (theConfig!.errorView?.name || "Custom") + "/>")
+                }
+                else if (!notLogged.has(key))
+                {
+                    console.log(key, data[key])
+                }
             }
-        }
-    );
+        );
+    }
+
     logObject(
         "INJECTED",
-        data,
+        bs.data,
         (data, key) => console.log(key, data[key].data, "( type = \"" + data[key].type+ "\" )", "meta = ", data[key].meta),
     );
-
-    return Promise.resolve()
 }
 
 export default function config(): QLiveConfig {

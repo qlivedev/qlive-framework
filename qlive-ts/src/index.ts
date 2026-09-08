@@ -59,6 +59,7 @@ export {
 export * as FilterDSL from "./FilterDSL";
 
 export { default as DomainTables } from "./component/DomainTables";
+export { default as ErrorBoundary } from "./component/ErrorBoundary";
 
 export { decompileFilter } from "./util/decompileFilter";
 
@@ -110,6 +111,9 @@ export type { QueryConfig, QueryConfigDelta, QueryDocumentSnapshot, QueryDocumen
 export type { ParsedQuery, QuerySelection, OperationType } from "./util/parseQuery";
 
 export type { ViewModules } from "./views";
+
+export type { ErrorViewProps } from "./component/ErrorView";
+export type { ErrorBoundaryProps } from "./component/ErrorBoundary";
 
 export type { DomainTablesProps } from "./component/DomainTables";
 
@@ -185,6 +189,15 @@ export type {
  *                                       a GraphQLQuery builds its own map
  *   views.viewNameForRoute()            resolution step inside
  *                                       loadViewForPath()
+ *   component/ErrorBoundary.ErrorBoundaryState
+ *                                       the boundary's own state. A class
+ *                                       declaration names its state type
+ *                                       whether or not anyone else may say it
+ *   component/ErrorView.DefaultErrorView
+ *                                       what config().errorView holds until an
+ *                                       application assigns its own. Reached
+ *                                       through the config, and replacing it is
+ *                                       an assignment rather than a composition
  *   util/delay                          a setTimeout promise, not framework API
  *   util/viteEnv.isViteDev/viteBaseUrl  reads Vite's import.meta.env, which an
  *                                       application has direct access to

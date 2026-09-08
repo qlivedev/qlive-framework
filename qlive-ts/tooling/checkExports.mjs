@@ -9,6 +9,11 @@
  * omission belonging on the "DELIBERATELY NOT EXPORTED" list at the end of that
  * file, which this reads as its allow list.
  *
+ * The package has more than one entry point, so anything two of them share is
+ * split into a chunk beside index.d.ts rather than inlined into it. Those are
+ * followed, or the whole shared half of the surface would silently stop being
+ * looked at the moment an entry point is added.
+ *
  * Reads the build output, so run `pnpm build` (or `npx tsdown`) first.
  *
  * Usage: node tooling/checkExports.mjs [path/to/index.d.ts]
@@ -37,10 +42,30 @@ const DECLARATION = /^(?:declare (?:function|class|const|let|var|namespace|abstr
 // block, and those are nameable as members of the exported namespace.
 const EXPORT_LIST = /^\s*export \{(.*)\};?\s*$/;
 
+// Chunks are imported by their .js name even from a declaration file.
+const CHUNK_IMPORT = /^import [\s\S]*? from "(\.\/[^"]+)\.js";?\s*$/;
+
+/**
+ * The declaration file and every chunk it pulls declarations out of. One level
+ * deep is enough while the chunks are leaves; a chunk that starts importing
+ * another would need this to recurse.
+ */
+function declarationFiles(entry)
+{
+    const dir = path.dirname(entry);
+    const chunks = fs.readFileSync(entry, "utf8").split("\n")
+        .map(line => CHUNK_IMPORT.exec(line))
+        .filter(match => match !== null)
+        .map(match => path.join(dir, match[1] + ".d.ts"))
+        .filter(file => fs.existsSync(file));
+
+    return [entry, ...new Set(chunks)];
+}
+
 const declared = [];
 const exported = new Set();
 
-for (const line of fs.readFileSync(dtsPath, "utf8").split("\n"))
+for (const line of declarationFiles(dtsPath).flatMap(file => fs.readFileSync(file, "utf8").split("\n")))
 {
     const declaration = DECLARATION.exec(line);
     if (declaration)

@@ -19,8 +19,11 @@ const qliveTsDir = fileURLToPath(new URL("../../qlive-ts/", import.meta.url));
 // The "@quinscape/qlive-ts/vite" import above is the exception: this file is loaded by Node
 // before any of these aliases exist, so it always comes from dist. Editing the plugin means
 // rebuilding qlive-ts, which is why the root `dev` script does that first.
+
+// Subpath entries first: a string alias matches on prefix, so the bare one would swallow them.
 const devAliases = {
     "@quinscape/qlive-ts/styles.css": qliveTsDir + "src/styles/qlive.css",
+    "@quinscape/qlive-ts/filter": qliveTsDir + "src/filter.ts",
     "@quinscape/qlive-ts": qliveTsDir + "src/index.ts",
 };
 

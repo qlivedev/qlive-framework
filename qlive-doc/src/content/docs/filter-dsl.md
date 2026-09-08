@@ -29,6 +29,17 @@ import {FilterDSL} from "@quinscape/qlive-ts";
 const {field, value, values, and, or, not, component} = FilterDSL;
 ```
 
+A module that does little besides build conditions would rather not repeat
+the namespace, and can take the names straight from a second entry point:
+
+```ts
+import {field, value, values, and, or, not, component} from "@quinscape/qlive-ts/filter";
+```
+
+Both routes reach the same module. Conditions built through one are the
+same objects as conditions built through the other, so this is a choice to
+make per module and not once for an application.
+
 ## Building a condition
 
 Fluent, reading left to right off a field:

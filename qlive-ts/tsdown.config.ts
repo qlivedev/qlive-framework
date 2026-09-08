@@ -11,7 +11,7 @@ import {defineConfig} from "tsdown";
  */
 export default defineConfig([
     {
-        entry: {index: "src/index.ts"},
+        entry: {index: "src/index.ts", filter: "src/filter.ts"},
         format: "esm",
         platform: "browser",
         dts: true,

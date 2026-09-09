@@ -76,7 +76,7 @@ module id comes out wrong.
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@quinscape/qlive-codegen": "...",   // the generate-ts CLI
+    "@quinscape/qlive-codegen": "...",   // the codegen CLIs
     // ... vite, typescript, vitest
   }
 }

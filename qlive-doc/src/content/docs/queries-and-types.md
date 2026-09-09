@@ -67,22 +67,38 @@ fragment contributes, so a query using one is refused where it is declared.
 
 ## Generated result types
 
-`Q_FooResult` above is **written by the backend**, not by hand. In the dev
-profile the typing service watches the pushed analysis, parses each query
-against the live schema, and patches the result type back into the module
-at the source offsets the plugin recorded. It also adds the
-`QueryDocumentMethods` import when the query selects a document.
+`Q_FooResult` above is **generated**, not written by hand. Two things
+generate it, from the same analysis and with the same result:
 
-So the loop is: edit the query, save, and the type next to it updates. Keep
-the generated type checked in -- production builds do not run the typing
-service.
+- **the dev backend**, while you work. In the dev profile the typing
+  service watches the pushed analysis, parses each query against the live
+  schema, and patches the result type back into the module at the source
+  offsets the plugin recorded. So the loop is: edit the query, save, and
+  the type next to it updates.
+- **the codegen CLI**, when you ask:
 
-Two requirements, or nothing is generated:
+  ```bash
+  generate-query-types schema.graphql src
+  ```
 
-- the `indexes` option of babel-plugin-track-usage must be on (it is by
-  default) -- without the source offsets there is nowhere to patch;
-- `qlive.dev.ts-source` on the backend has to name the same directory as
-  the plugin's `sourceRoot`.
+  Same rewrite, no backend needed -- it runs the track-usage analysis over
+  `src/` itself and checks the queries against `schema.graphql`. `qlive-test`
+  wires it into `pnpm generate` behind `generate-ts`, which is where it
+  belongs: a schema change and the query types it invalidates are one step.
+
+Either way the type is written into your source, so keep it checked in. A
+build does not generate it -- `pnpm generate` does, and a diff afterwards is
+how you notice a query that no longer matches the schema.
+
+Both add the `QueryDocumentMethods` import when the query selects a
+document, and both need the `indexes` option of babel-plugin-track-usage
+(on by default) -- without the source offsets there is nowhere to patch.
+The dev backend needs one thing more: `qlive.dev.ts-source` has to name the
+same directory as the plugin's `sourceRoot`.
+
+Write `new GraphQLQuery<any>(...)` for a query that has no result type yet.
+The generator replaces the type argument rather than inventing the call, so
+`any` is the placeholder that gets it started.
 
 ## Running a query directly
 
@@ -113,9 +129,10 @@ codegen CLI:
 generate-ts schema.graphql src/types.d.ts
 ```
 
-`qlive-test` wires it up as `pnpm generate`. The output declares one type
-per GraphQL type, the `*Document` types derived from `QueryDocument<T>`,
-and a `DomainObject` union of the schema's object types.
+`qlive-test` wires it up as `pnpm generate`, together with the query result
+types above. The output declares one type per GraphQL type, the `*Document`
+types derived from `QueryDocument<T>`, and a `DomainObject` union of the
+schema's object types.
 
 Nothing typechecks a generated `.d.ts` in a normal build -- applications
 set `skipLibCheck`, and should -- so regenerate it when the schema changes

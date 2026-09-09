@@ -1,7 +1,6 @@
 package com.dataciders.qlive.runtime.controller;
 
 import com.dataciders.qlive.model.ts.TrackUsageData;
-import com.dataciders.qlive.runtime.domain.GraphQLQueryTypingService;
 import com.dataciders.qlive.runtime.service.DevStaticAnalysisProvider;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.slf4j.Logger;
@@ -35,17 +34,11 @@ public class TrackUsageDevController
      */
     public final static String TRACK_USAGE_DEV_URI = "/_dev/track-usage";
 
-    private final GraphQLQueryTypingService graphQLQueryTypingService;
-
     private final DevStaticAnalysisProvider staticAnalysisProvider;
 
 
-    public TrackUsageDevController(
-        GraphQLQueryTypingService graphQLQueryTypingService,
-        DevStaticAnalysisProvider staticAnalysisProvider
-    )
+    public TrackUsageDevController(DevStaticAnalysisProvider staticAnalysisProvider)
     {
-        this.graphQLQueryTypingService = graphQLQueryTypingService;
         this.staticAnalysisProvider = staticAnalysisProvider;
     }
 
@@ -79,9 +72,6 @@ public class TrackUsageDevController
         {
             final TrackUsageData update = JSONUtil.DEFAULT_PARSER.parse(TrackUsageData.class, body);
 
-            // Published before the codegen runs: codegen writes files, while everything reading the analysis
-            // for the current request -- the bootstrap service above all -- wants the update as soon as it
-            // arrives.
             if (full)
             {
                 staticAnalysisProvider.replace(update);
@@ -91,9 +81,6 @@ public class TrackUsageDevController
                 staticAnalysisProvider.merge(update);
             }
 
-            // Only the modules just pushed: types are generated per module, and the ones that did not change
-            // would only be generated into the same source again.
-            graphQLQueryTypingService.updateGraphQLQueryTypes(update);
             return ResponseEntity.noContent().build();
         }
         catch (Exception e)

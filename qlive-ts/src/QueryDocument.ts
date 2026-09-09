@@ -13,6 +13,9 @@ export interface QueryConfig
     sortFields: FieldExpression[];
 }
 
+/**
+ * Describes the relative changes to a pre-existing QueryConfig.
+ */
 export interface QueryConfigDelta
 {
     condition?: FilterExpression | null;

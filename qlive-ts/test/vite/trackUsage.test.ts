@@ -425,6 +425,8 @@ describe("trackUsage", () => {
 
             expect(generatedQuery()).toContain('export type Q_FooResult = Pick<Foo,"id" | "name">');
             expect(generatedQuery()).toContain("new GraphQLQuery<Q_FooResult>");
+            // the domain type the result type picks from, imported relative to where the query sits
+            expect(generatedQuery()).toContain('import { Foo } from "../types";');
         });
 
 
@@ -462,7 +464,7 @@ describe("trackUsage", () => {
 
             // A named schema that is not there is a mistake worth a word, unlike the default one being
             // absent -- an application that generates nothing is a normal application.
-            startPlugin(null, {queryTypes: "no-such-schema.graphql"});
+            startPlugin(null, {queryTypes: {schema: "no-such-schema.graphql"}});
             await waitFor(
                 () => errors.mock.calls.flat().join(" ").includes("no-such-schema.graphql"),
                 "the missing schema to be reported"

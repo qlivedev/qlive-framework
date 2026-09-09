@@ -69,8 +69,9 @@ fragment contributes, so a query using one is refused where it is declared.
 
 `Q_FooResult` above is **generated**, not written by hand. The generator
 parses the query against `schema.graphql` and patches the result type into
-the module at the source offsets the track-usage plugin recorded, adding
-the `QueryDocumentMethods` import when the query selects a document.
+the module at the source offsets the track-usage plugin recorded, along
+with the imports it needs: the domain types it picks fields out of, and
+`QueryDocumentMethods` when the query selects a document.
 
 It runs from two places, and it is the same code in both:
 
@@ -99,8 +100,27 @@ elsewhere, or turn it off, with the plugin's `queryTypes` option. The
 `indexes` option of babel-plugin-track-usage has to stay on (it is by
 default) -- without the source offsets there is nowhere to patch.
 
-A new query is written `new GraphQLQuery(...)`, with no type argument. The
-generator adds one, and replaces it from then on.
+So a new query is written like this, and nothing else:
+
+```ts title="src/app/Q_Bar.ts"
+import {GraphQLQuery} from "@quinscape/qlive-ts";
+
+export const Q_Bar = new GraphQLQuery(
+    // language=GraphQL
+    `query Q_Bar($config: QueryConfig!) {
+        queryBarDocument(config: $config) { rows { id name } }
+    }`
+)
+```
+
+The type argument, the result type and the imports are all added on the
+next save. Domain types come from `src/types.d.ts`, imported relative to
+where the query sits -- `queryTypes.typesModule` and the CLI's third
+argument say so if yours live elsewhere.
+
+Names are only ever added to an import, never taken out: nothing here can
+tell an import a selection stopped needing from one your own code still
+uses.
 
 A query the generator cannot type -- one that does not fit the schema -- is
 reported by name and skipped. The other queries still get theirs, so a

@@ -13,8 +13,10 @@ import {
     isQueryDocumentType,
     renderModule,
     renderResultType,
+    typesImportSpecifier,
     updateGraphQLQueryTypes,
-    withDocumentMethodsImport
+    withDocumentMethodsImport,
+    withNamedImports
 } from "../tooling/queryTypes.js"
 
 /*
@@ -210,6 +212,23 @@ describe("query documents", () => {
 
         expect(rendered).toContain("export type Q_TestResult = TestFoo\n")
         expect(rendered).not.toContain("QueryDocumentMethods")
+    })
+
+
+    it("imports the domain types the result type picks from", () => {
+        // the query module's own place in the tree decides how it reaches them
+        expect(typesImportSpecifier("./app/Q_Foo", "types")).toBe("../types")
+        expect(typesImportSpecifier("./Q_Foo", "types")).toBe("./types")
+        expect(typesImportSpecifier("./app/sub/Q_Foo", "types")).toBe("../../types")
+        expect(typesImportSpecifier("./app/Q_Foo", "model/domain")).toBe("../model/domain")
+
+        // an existing import takes only the names it does not have
+        expect(withNamedImports('import {Foo} from "../types";\n', "../types", ["Foo", "AppUser"]))
+            .toBe('import {Foo, AppUser} from "../types";\n')
+
+        // and one it has all of is left alone, so repeated updates do not pile up names
+        const complete = 'import {Foo, AppUser} from "../types";\n'
+        expect(withNamedImports(complete, "../types", ["Foo"])).toBe(complete)
     })
 
 

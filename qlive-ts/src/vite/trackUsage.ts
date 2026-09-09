@@ -112,15 +112,26 @@ export interface TrackUsagePluginOptions
      */
     pushDebounceMs?: number;
     /**
-     * The GraphQL schema the generated query result types are checked against, relative to Vite's
-     * `root`. While a dev server runs, every saved query gets its `GraphQLQuery<T>` rewritten from it,
-     * so the type next to a query follows the query.
+     * How the query result types are generated. While a dev server runs, every saved query gets its
+     * `GraphQLQuery<T>` rewritten, so the type next to a query follows the query.
      *
-     * Default: "schema.graphql", generating whenever that file is there and `@quinscape/qlive-codegen`
-     * is installed. Naming a file that does not exist is an error -- silence would look like a plugin
-     * that does not work. `false` turns the generation off.
+     * Left out, the types are generated whenever `schema.graphql` is next to the Vite config and
+     * `@quinscape/qlive-codegen` is installed. Given, its schema has to exist -- silence would look
+     * like a plugin that does not work. `false` turns the generation off.
      */
-    queryTypes?: string | false;
+    queryTypes?: QueryTypeOptions | false;
+}
+
+export interface QueryTypeOptions
+{
+    /** GraphQL schema the queries are checked against, relative to Vite's `root`. Default: "schema.graphql". */
+    schema?: string;
+    /**
+     * Module the generated domain types live in, relative to `sourceRoot` and without extension. It is
+     * what a generated result type picks its fields out of, and what the query module gets an import of.
+     * Default: "types", i.e. what `generate-ts` writes to `src/types.d.ts`.
+     */
+    typesModule?: string;
 }
 
 /**
@@ -342,14 +353,12 @@ function resolveScanOptions(options: AnalyzeSourceTreeOptions): ResolvedOptions
  * qlive-ts must not carry `graphql` and `@graphql-tools/*` into the dependency graph of an app that
  * generates nothing -- that is the whole reason the codegen is a package of its own.
  *
- * @param root        Vite's `root`, i.e. the directory the application's package.json sits in
- * @param schemaPath  absolute path of the GraphQL schema
- * @param sourceRoot  absolute path of the tracked source directory
+ * @param root     Vite's `root`, i.e. the directory the application's package.json sits in
+ * @param options  what the generator is built for, with absolute paths
  */
 async function loadQueryTypeGenerator(
     root: string,
-    schemaPath: string,
-    sourceRoot: string
+    options: {schemaPath: string; sourceRoot: string; typesModule?: string}
 ): Promise<QueryTypeGenerator>
 {
     const require = createRequire(path.join(root, "package.json"));
@@ -368,10 +377,10 @@ async function loadQueryTypeGenerator(
     }
 
     const codegen = await import(pathToFileURL(entry).href) as {
-        createQueryTypeGenerator(options: {schemaPath: string; sourceRoot: string}): Promise<QueryTypeGenerator>;
+        createQueryTypeGenerator(o: typeof options): Promise<QueryTypeGenerator>;
     };
 
-    return codegen.createQueryTypeGenerator({schemaPath, sourceRoot});
+    return codegen.createQueryTypeGenerator(options);
 }
 
 
@@ -654,11 +663,15 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
             // otherwise see is a type error in a module they have not touched.
             if (isDevMode && options.queryTypes !== false)
             {
-                const schemaPath = path.resolve(root, options.queryTypes ?? "schema.graphql");
+                const schemaPath = path.resolve(root, options.queryTypes?.schema ?? "schema.graphql");
 
                 if (options.queryTypes !== undefined || fs.existsSync(schemaPath))
                 {
-                    queryTypes = loadQueryTypeGenerator(root, schemaPath, resolved.sourceRoot);
+                    queryTypes = loadQueryTypeGenerator(root, {
+                        schemaPath,
+                        sourceRoot: resolved.sourceRoot,
+                        typesModule: options.queryTypes?.typesModule,
+                    });
                     generateQueryTypes(analyzeSourceTree({
                         sourceRoot: resolved.sourceRoot,
                         trackedFunctions: options.trackedFunctions,

@@ -41,14 +41,8 @@ const RE_TYPE_PARAM = /^new GraphQLQuery<(.*)>/
 /** The same construction written without a type argument, which is how a new query starts out */
 const RE_UNTYPED = /^new GraphQLQuery\(/
 
-/** Finds the named imports of an existing import from {@link QLIVE_PACKAGE}, so we can join them */
-const RE_QLIVE_IMPORT = new RegExp(
-    "import\\s+(?:type\\s+)?\\{([^}]*)}\\s*from\\s*[\"']" + escapeRegExp(QLIVE_PACKAGE) + "[\"']",
-    "d"
-)
-
-/** Finds {@link DOCUMENT_METHODS} among already imported names */
-const RE_DOCUMENT_METHODS_IMPORTED = new RegExp("\\b" + DOCUMENT_METHODS + "\\b")
+/** The module an application's generated domain types live in, relative to the tracked source root */
+export const DEFAULT_TYPES_MODULE = "types"
 
 
 function escapeRegExp(s)
@@ -63,11 +57,13 @@ function escapeRegExp(s)
  * @param {Object} schema       GraphQL schema the queries are checked against
  * @param {Object} analysis     track-usage analysis, i.e. { usages: { "./app/Q_Foo": ... } }
  * @param {string} sourceRoot   directory the module ids in the analysis are relative to
+ * @param {string} [typesModule] module the generated domain types live in, relative to the source root
+ *                               and without extension
  *
  * @returns {{updated: string[], failed: {module: string, message: string}[]}} the modules rewritten,
  * and the ones that could not be
  */
-export function updateGraphQLQueryTypes(schema, analysis, sourceRoot)
+export function updateGraphQLQueryTypes(schema, analysis, sourceRoot, typesModule = DEFAULT_TYPES_MODULE)
 {
     const updated = []
     const failed = []
@@ -79,7 +75,7 @@ export function updateGraphQLQueryTypes(schema, analysis, sourceRoot)
         // module they are actually looking at from getting its type.
         try
         {
-            const rewritten = updateModule(schema, modFnRef, modulePath, sourceRoot)
+            const rewritten = updateModule(schema, modFnRef, modulePath, sourceRoot, typesModule)
             if (rewritten)
             {
                 updated.push(modulePath)
@@ -100,7 +96,7 @@ export function updateGraphQLQueryTypes(schema, analysis, sourceRoot)
  *
  * @returns {boolean} true if the module was rewritten
  */
-function updateModule(schema, modFnRef, modulePath, sourceRoot)
+function updateModule(schema, modFnRef, modulePath, sourceRoot, typesModule)
 {
     const {ctx, selectedOperations} = analyzeGraphQLQuery(schema, modFnRef, modulePath)
 
@@ -109,7 +105,8 @@ function updateModule(schema, modFnRef, modulePath, sourceRoot)
         return false
     }
 
-    const tsCode = renderResultType(schema, selectedOperations)
+    const referenced = new Set()
+    const tsCode = renderResultType(schema, selectedOperations, referenced)
 
     const file = moduleFile(sourceRoot, ctx.modulePath)
     if (!fs.existsSync(file))
@@ -133,7 +130,11 @@ function updateModule(schema, modFnRef, modulePath, sourceRoot)
     const updatedSource = renderModule(
         moduleInfo,
         tsCode,
-        isQueryDocumentResult(schema, selectedOperations[0])
+        isQueryDocumentResult(schema, selectedOperations[0]),
+        {
+            module: typesImportSpecifier(ctx.modulePath, typesModule),
+            names: [...referenced]
+        }
     )
 
     if (updatedSource === source)
@@ -397,10 +398,12 @@ function refuseFragment(where, selection, typeName)
  * @param {Object} schema                GraphQL schema
  * @param {Object[]} selectedOperations  selected operations, of which the first is the one the result
  *                                       type describes
+ * @param {Set<string>} [referenced]     collects the domain types the expression names, which are the
+ *                                       ones the module has to import
  *
  * @returns {string} TS code expression
  */
-export function renderResultType(schema, selectedOperations)
+export function renderResultType(schema, selectedOperations, referenced = new Set())
 {
     const operation = selectedOperations[0]
     const typeName = getFieldTypeName(operation)
@@ -413,7 +416,8 @@ export function renderResultType(schema, selectedOperations)
             operation.selectedKids,
             fieldsMatch(fieldType, operation.selectedKids),
             false,
-            0
+            0,
+            referenced
         )
         // a scalar or enum valued method has no selection set describing it
         : typeName
@@ -431,13 +435,15 @@ export function renderResultType(schema, selectedOperations)
  * @param {boolean} allComplete     true if the containing type is complete
  * @param {boolean} isListType      true to wrap the result in Array<>
  * @param {number} level            recursion level
+ * @param {Set<string>} referenced  collects the domain types named here
  *
  * @returns {string} TS code expression
  */
-function renderType(schema, typeName, selectedFields, allComplete, isListType, level)
+function renderType(schema, typeName, selectedFields, allComplete, isListType, level, referenced)
 {
     if (allComplete)
     {
+        referenced.add(typeName)
         return typeName
     }
 
@@ -451,6 +457,9 @@ function renderType(schema, typeName, selectedFields, allComplete, isListType, l
     const completed = selectedFields.filter(sf => sf.complete)
     if (completed.length)
     {
+        // Recorded where it is written out, and nowhere else: a selection that picks nothing renders
+        // as a redefinition alone, and naming the type would leave the module an import it never uses.
+        referenced.add(typeName)
         out += "Pick<" + completed[0].type + "," + renderPickFields(selectedFields) + ">"
     }
 
@@ -458,7 +467,7 @@ function renderType(schema, typeName, selectedFields, allComplete, isListType, l
     {
         // The intersection only has two sides when the picked half is there: everything selected
         // being aliased or incomplete leaves the redefinition standing on its own.
-        out += (out.length ? " & " : "") + renderPickRest(schema, typeName, selectedFields, level)
+        out += (out.length ? " & " : "") + renderPickRest(schema, typeName, selectedFields, level, referenced)
     }
 
     return isListType ? "Array<" + out + ">" : out
@@ -473,10 +482,11 @@ function renderType(schema, typeName, selectedFields, allComplete, isListType, l
  * @param {string} typeName         containing type
  * @param {Object[]} selectedFields selected fields
  * @param {number} level            recursion level
+ * @param {Set<string>} referenced  collects the domain types named here
  *
  * @returns {string} TS code term
  */
-function renderPickRest(schema, typeName, selectedFields, level)
+function renderPickRest(schema, typeName, selectedFields, level, referenced)
 {
     if (!schema.getType(typeName))
     {
@@ -498,7 +508,8 @@ function renderPickRest(schema, typeName, selectedFields, level)
                     selectedField.selectedKids,
                     fieldsMatch(fieldType, selectedField.selectedKids),
                     isList(selectedField),
-                    level + 1
+                    level + 1,
+                    referenced
                 )
             }
 
@@ -608,10 +619,12 @@ export function isQueryDocumentType(type)
  * @param {Object} moduleInfo       analyzed module
  * @param {string} tsCode           result type expression as rendered by {@link renderResultType}
  * @param {boolean} isQueryDocument true if the query selects a query document
+ * @param {Object} [domainTypes]    the domain types the result type names and where to import them
+ *                                  from, as {module, names}
  *
  * @returns {string} new TS source of the module
  */
-export function renderModule(moduleInfo, tsCode, isQueryDocument)
+export function renderModule(moduleInfo, tsCode, isQueryDocument, domainTypes = null)
 {
     const typeName = moduleInfo.variableName + "Result"
 
@@ -619,11 +632,20 @@ export function renderModule(moduleInfo, tsCode, isQueryDocument)
     // document is typed exactly like the one it came from -- selection and all.
     const resultType = isQueryDocument ? tsCode + " & " + DOCUMENT_METHODS + "<" + typeName + ">" : tsCode
 
-    const prologue =
-        (isQueryDocument ? withDocumentMethodsImport(moduleInfo.prologue) : moduleInfo.prologue) +
-        "export type " + typeName + " = " + resultType + "\n\n"
+    // The domain types first, so that a prologue getting both ends up with the QLive import on top --
+    // which is the order the modules are written in.
+    let imports = moduleInfo.prologue
+    if (domainTypes?.names.length)
+    {
+        imports = withNamedImports(imports, domainTypes.module, domainTypes.names)
+    }
+    if (isQueryDocument)
+    {
+        imports = withDocumentMethodsImport(imports)
+    }
 
-    return prologue + moduleInfo.leftSideOfDefinition + " = " +
+    return imports + "export type " + typeName + " = " + resultType + "\n\n" +
+        moduleInfo.leftSideOfDefinition + " = " +
         moduleInfo.graphQLQueryDefinition + moduleInfo.epilogue
 }
 
@@ -631,37 +653,84 @@ export function renderModule(moduleInfo, tsCode, isQueryDocument)
 /**
  * Returns the given module prologue with {@link DOCUMENT_METHODS} imported from {@link QLIVE_PACKAGE}.
  *
- * The generated result type is the only place referring to that name, so the user should not have to
- * keep an import for it around. An existing import from the QLive package takes the name in, otherwise
- * a new import is prepended.
- *
  * @param {string} prologue  module source in front of the generated result type
  *
  * @returns {string} prologue importing the document methods
  */
 export function withDocumentMethodsImport(prologue)
 {
-    const match = RE_QLIVE_IMPORT.exec(prologue)
+    return withNamedImports(prologue, QLIVE_PACKAGE, [DOCUMENT_METHODS])
+}
+
+
+/**
+ * Returns the given module prologue importing the given names from the given module.
+ *
+ * The generated result type is the only place referring to those names, so the user should not have to
+ * keep the imports for them in step by hand -- neither the QLive types the type is built from, nor the
+ * domain types it picks fields out of. An existing import from that module takes the missing names in,
+ * otherwise a new import is prepended.
+ *
+ * Names are only ever added. One that a selection stopped needing is left alone: this cannot tell an
+ * import gone stale from one the module's own code still uses.
+ *
+ * @param {string} prologue    module source in front of the generated result type
+ * @param {string} module      module specifier to import from
+ * @param {string[]} names     names that have to be imported
+ *
+ * @returns {string} prologue importing the names
+ */
+export function withNamedImports(prologue, module, names)
+{
+    const match = namedImportOf(module).exec(prologue)
+
     if (!match)
     {
-        return "import { " + DOCUMENT_METHODS + " } from \"" + QLIVE_PACKAGE + "\";\n" + prologue
+        return "import { " + names.join(", ") + " } from \"" + module + "\";\n" + prologue
     }
 
-    const names = match[1]
-    if (RE_DOCUMENT_METHODS_IMPORTED.test(names))
+    const existing = match[1]
+    const missing = names.filter(name => !new RegExp("\\b" + name + "\\b").test(existing))
+    if (!missing.length)
     {
         return prologue
     }
 
-    const imported = names.replace(/\s+$/, "")
+    const imported = existing.replace(/\s+$/, "")
     // whatever separated the last name from the closing brace stays, so a multi-line import stays multi-line
-    const trailing = names.substring(imported.length)
+    const trailing = existing.substring(imported.length)
     const separator = !imported.length ? "" : (imported.endsWith(",") ? " " : ", ")
 
     const [start, end] = match.indices[1]
     return prologue.substring(0, start) +
-        imported + separator + DOCUMENT_METHODS + trailing +
+        imported + separator + missing.join(", ") + trailing +
         prologue.substring(end)
+}
+
+
+/** Finds the named imports of an existing import from the given module, so we can join them */
+function namedImportOf(module)
+{
+    return new RegExp(
+        "import\\s+(?:type\\s+)?\\{([^}]*)}\\s*from\\s*[\"']" + escapeRegExp(module) + "[\"']",
+        "d"
+    )
+}
+
+
+/**
+ * Returns the specifier the given module has to import the domain types under.
+ *
+ * @param {string} modulePath  module id of the query module, e.g. "./app/Q_Foo"
+ * @param {string} typesModule types module, relative to the source root and without extension
+ *
+ * @returns {string} relative module specifier, e.g. "../types"
+ */
+export function typesImportSpecifier(modulePath, typesModule)
+{
+    const relative = path.posix.relative(path.posix.dirname(modulePath), "./" + typesModule)
+
+    return relative.startsWith(".") ? relative : "./" + relative
 }
 
 

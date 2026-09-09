@@ -1,3 +1,4 @@
+import { TestFooDocument, TestFoo, TestUser } from "../types";
 import { GraphQLQuery, QueryDocumentMethods } from "@quinscape/qlive-ts";
 
 export type Q_TestResult = Pick<TestFooDocument,"type" | "config"> & {

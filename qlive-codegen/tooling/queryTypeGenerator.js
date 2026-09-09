@@ -12,20 +12,22 @@ import path from "node:path"
 import {GraphQLFileLoader} from "@graphql-tools/graphql-file-loader"
 import {loadSchema} from "@graphql-tools/load"
 
-import {updateGraphQLQueryTypes} from "./queryTypes.js"
+import {DEFAULT_TYPES_MODULE, updateGraphQLQueryTypes} from "./queryTypes.js"
 
 
 /**
  * Builds the generator for one application.
  *
  * @param {Object} options
- * @param {string} options.schemaPath  GraphQL schema the queries are checked against
- * @param {string} options.sourceRoot  directory the module ids of an analysis are relative to
+ * @param {string} options.schemaPath   GraphQL schema the queries are checked against
+ * @param {string} options.sourceRoot   directory the module ids of an analysis are relative to
+ * @param {string} [options.typesModule] module the generated domain types live in, relative to the
+ *                                       source root and without extension. Default: "types"
  *
- * @returns {Promise<{update: (analysis: Object) => string[]}>} generator whose update() takes a
- * track-usage analysis -- whole or a slice of changed modules -- and returns the modules it rewrote
+ * @returns {Promise<{update: (analysis: Object) => Object}>} generator whose update() takes a
+ * track-usage analysis -- whole or a slice of changed modules -- and reports what it rewrote
  */
-export async function createQueryTypeGenerator({schemaPath, sourceRoot})
+export async function createQueryTypeGenerator({schemaPath, sourceRoot, typesModule = DEFAULT_TYPES_MODULE})
 {
     if (!fs.existsSync(schemaPath))
     {
@@ -40,6 +42,6 @@ export async function createQueryTypeGenerator({schemaPath, sourceRoot})
     const resolvedRoot = path.resolve(sourceRoot)
 
     return {
-        update: analysis => updateGraphQLQueryTypes(schema, analysis, resolvedRoot)
+        update: analysis => updateGraphQLQueryTypes(schema, analysis, resolvedRoot, typesModule)
     }
 }

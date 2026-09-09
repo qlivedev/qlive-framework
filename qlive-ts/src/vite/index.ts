@@ -10,5 +10,6 @@ export type {
     TrackUsagePluginOptions,
     TrackedFunctionSpec,
     AnalyzeSourceTreeOptions,
+    QueryTypeOptions,
     TrackUsageAnalysis
 } from "./trackUsage";

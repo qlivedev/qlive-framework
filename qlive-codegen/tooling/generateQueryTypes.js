@@ -15,9 +15,9 @@ import {analyzeSourceTree} from "@quinscape/qlive-ts/vite"
 import {createQueryTypeGenerator} from "./queryTypeGenerator.js"
 
 
-async function generateQueryTypes(schemaPath, sourceRoot)
+async function generateQueryTypes(schemaPath, sourceRoot, typesModule)
 {
-    const generator = await createQueryTypeGenerator({schemaPath, sourceRoot})
+    const generator = await createQueryTypeGenerator({schemaPath, sourceRoot, typesModule})
 
     // The same babel pass the track-usage plugin runs, so the queries found here are the ones the
     // dev server generates from -- same names, same source offsets, same "must be a literal" rule.
@@ -42,13 +42,13 @@ async function generateQueryTypes(schemaPath, sourceRoot)
 }
 
 
-if (process.argv.length !== 4)
+if (process.argv.length !== 4 && process.argv.length !== 5)
 {
-    console.error("Usage: generate-query-types <schema-file> <source-root>")
+    console.error("Usage: generate-query-types <schema-file> <source-root> [types-module]")
     process.exit(1)
 }
 
-generateQueryTypes(process.argv[2], process.argv[3]).catch(error => {
+generateQueryTypes(process.argv[2], process.argv[3], process.argv[4]).catch(error => {
     console.error(error.message ?? error)
     process.exit(2)
 })

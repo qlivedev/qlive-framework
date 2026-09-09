@@ -16,7 +16,6 @@ import graphql.parser.Parser;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
-import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeUtil;
@@ -251,14 +250,14 @@ public class GraphQLQueryTypingService
         boolean processQueries
     )
     {
-        final String queryTypeName = graphQLSchema.getQueryType().getName();
-        final String mutationTypeName = graphQLSchema.getMutationType().getName();
-        final String rootTypeName = processQueries ? queryTypeName : mutationTypeName;
-        final GraphQLObjectType rootType = (GraphQLObjectType) graphQLSchema.getType(rootTypeName);
+        final GraphQLObjectType rootType =
+            processQueries ? graphQLSchema.getQueryType() : graphQLSchema.getMutationType();
         if (rootType == null)
         {
-            throw new IllegalStateException("GraphQLType " + rootTypeName + " not found");
+            // A schema without a mutation type is a schema whose queries are all this pass can find.
+            return new QueryInfo(null, true);
         }
+        final String rootTypeName = rootType.getName();
 
         boolean allComplete = true;
         for (OperationDefinition definition : ctx.definitions)
@@ -295,7 +294,7 @@ public class GraphQLQueryTypingService
                     continue;
                 }
 
-                TSResult result = follow(where, field, queryTypeName, 1);
+                TSResult result = follow(where, field, rootTypeName, 1);
                 selectedOperations.add(new SelectionTypeNode(
                     rootType.getName(), field,
                     fieldDef.getType(),
@@ -341,7 +340,8 @@ public class GraphQLQueryTypingService
 
         List<SelectionTypeNode> selectedFields = new ArrayList<>();
         boolean allComplete = true;
-        if (fieldType instanceof GraphQLScalarType)
+        // Scalars and enums both end the traversal: they carry no selection set to follow.
+        if (!(fieldType instanceof GraphQLObjectType))
         {
             selectedFields.add(new SelectionTypeNode(
                 typeName, field,
@@ -507,11 +507,6 @@ public class GraphQLQueryTypingService
 
             StringBuilder tb = new StringBuilder();
 
-            if (isList)
-            {
-                tb.append("Array<");
-            }
-
             final List<SelectionTypeNode> completed = selectedFields.stream().filter(sf -> sf.complete).toList();
             if (!completed.isEmpty())
             {
@@ -525,17 +520,16 @@ public class GraphQLQueryTypingService
 
             if (selectedFields.stream().anyMatch(sf -> !sf.complete))
             {
+                // The intersection only has two sides when the picked half is there: everything
+                // selected being aliased or incomplete leaves the redefinition standing on its own.
                 if (tb.length() > 0)
                 {
                     tb.append(" & ");
                 }
                 tb.append(renderPickRest(typeName, selectedFields, level));
             }
-            if (isList)
-            {
-                tb.append(">");
-            }
-            return tb.toString();
+
+            return isList ? "Array<" + tb + ">" : tb.toString();
         }
     }
 

@@ -15,7 +15,15 @@ public class TestDomainConfig
 {
     public static DomainQL domainQL(Object... logicBeans)
     {
-        Collection<MetadataProvider> metadataProviders = Collections.emptyList();
+        return domainQL(Collections.emptyList(), logicBeans);
+    }
+
+
+    /**
+     * The same domain with meta data providers, for the tests that read what a provider wrote.
+     */
+    public static DomainQL domainQL(Collection<MetadataProvider> metadataProviders, Object... logicBeans)
+    {
         return QLiveDomain.newDomain(null, metadataProviders)
             //.parameterProvider(new AutomatonConnectionProviderFactory(applicationContext))
 

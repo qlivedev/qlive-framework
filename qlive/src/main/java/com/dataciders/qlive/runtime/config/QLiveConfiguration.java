@@ -62,9 +62,9 @@ public class QLiveConfiguration
     /// framework knows nothing about.
     @Bean
     @Order(Ordered.LOWEST_PRECEDENCE)
-    public InjectionArgumentProcessor queryConfigArgumentProcessor()
+    public InjectionArgumentProcessor queryConfigArgumentProcessor(DomainQL domainQL)
     {
-        return new QueryConfigArgumentProcessor();
+        return new QueryConfigArgumentProcessor(domainQL);
     }
 
 

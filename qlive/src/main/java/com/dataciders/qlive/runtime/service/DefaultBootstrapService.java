@@ -61,7 +61,7 @@ public class DefaultBootstrapService
             domainQL,
             graphQL,
             staticAnalysisProvider,
-            List.of(new QueryConfigArgumentProcessor())
+            List.of(new QueryConfigArgumentProcessor(domainQL))
         );
     }
 
@@ -79,9 +79,7 @@ public class DefaultBootstrapService
         this.servletContext = servletContext;
         this.domainQL = domainQL;
         this.staticAnalysisProvider = staticAnalysisProvider;
-        this.injectionService = new InjectionService(
-            graphQL, domainQL.getGraphQLSchema(), argumentProcessors
-        );
+        this.injectionService = new InjectionService(graphQL, domainQL, argumentProcessors);
 
         // the whole model just exists to be sent to the client. We only need it in JSON string form,
         // over and over for every full page load forever. The JSONHolder allows us to only generate it once and then

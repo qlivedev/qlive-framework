@@ -1,5 +1,7 @@
 import type {ComponentType} from "react";
 
+import type {QueryConfigDelta} from "./QueryDocument";
+
 import {GraphQLSchema, GraphQLType} from "./GraphQLSchema";
 import {initData} from "./data";
 import {initConverters} from "./converter";
@@ -229,6 +231,20 @@ export interface DomainQLTypeMetaProps {
      * NameFieldProvider.
      */
     nameFields?: string[]
+
+    /**
+     * What querying rows of this type looks like when nothing says otherwise: a page size, a sort order, a condition
+     * every query of the type carries. A delta, so a type naming only a page size leaves the rest at the defaults a
+     * query config has anyway.
+     *
+     * Written server-side by QLive's QueryConfigMetadataProvider, which an application registers as a MetadataProvider
+     * bean if it wants type-level defaults at all -- absent everywhere in one that does not.
+     *
+     * The server applies this to the queries a view injects with useInjection(), whose parameters are static and have
+     * no config to update. Nothing on the client applies it: read it where you build a query config from scratch and
+     * want it to start where the injected ones start.
+     */
+    queryConfig?: QueryConfigDelta
 }
 
 /**

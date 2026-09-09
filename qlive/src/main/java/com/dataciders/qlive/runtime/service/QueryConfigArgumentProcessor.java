@@ -1,6 +1,10 @@
 package com.dataciders.qlive.runtime.service;
 
 import com.dataciders.qlive.model.QueryConfig;
+import com.dataciders.qlive.runtime.meta.QueryConfigMeta;
+import de.quinscape.domainql.DomainQL;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLTypeUtil;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -9,9 +13,17 @@ import java.util.Map;
 /// they are.
 ///
 /// A call names the fields it cares about and no others -- the same thing QueryConfigDelta is on the client,
-/// where update() spreads it over the document's current config. Here there is no current one, so the fields
-/// are applied over a fresh {@link QueryConfig}, and what reaches GraphQL is the complete config that
-/// config's own defaults describe.
+/// where update() spreads it over the document's current config. Here there is no current one, so the config
+/// is assembled from what there is, most general first:
+///
+///  1. the defaults a fresh {@link QueryConfig} describes,
+///  2. the delta the type being queried declares, if it declares one -- see {@link QueryConfigMeta},
+///  3. the delta the `useInjection()` call itself names.
+///
+/// Which type that is comes from the query rather than from the config: the variable is passed to a field
+/// returning a query document, and that document's rows are what is being queried. The first of the fields
+/// the variable is used at whose rows declare a delta is the one that counts, which for the one field a
+/// config is normally passed to is simply that field.
 ///
 /// The numbers are narrowed on the way: these came out of the analysis JSON, where an integer is a Long.
 /// Everything else is passed on untouched, so a condition or a sort field written out in the call is still
@@ -22,6 +34,15 @@ public class QueryConfigArgumentProcessor
     /// GraphQL name of the query config scalar, as {@link com.dataciders.qlive.runtime.domain.QLiveDomain}
     /// registers it.
     public final static String QUERY_CONFIG_TYPE = "QueryConfig";
+
+    private final DomainQL domainQL;
+
+
+    /// @param domainQL  the domain, which is what carries the per-type deltas as meta data
+    public QueryConfigArgumentProcessor(DomainQL domainQL)
+    {
+        this.domainQL = domainQL;
+    }
 
 
     @Override
@@ -44,15 +65,42 @@ public class QueryConfigArgumentProcessor
         final QueryConfig defaults = new QueryConfig();
 
         final Map<String, Object> config = new LinkedHashMap<>();
+
+        final Map<String, Object> declared = declaredDelta(argument);
+        if (declared != null)
+        {
+            config.putAll(declared);
+        }
+
         delta.forEach((field, fieldValue) -> config.put(String.valueOf(field), fieldValue));
 
-        config.put("offset", intValue(argument, "offset", delta.get("offset"), defaults.getOffset()));
+        config.put("offset", intValue(argument, "offset", config.get("offset"), defaults.getOffset()));
         config.put(
             "pageSize",
-            intValue(argument, "pageSize", delta.get("pageSize"), defaults.getPageSize())
+            intValue(argument, "pageSize", config.get("pageSize"), defaults.getPageSize())
         );
 
         return config;
+    }
+
+
+    /// The delta declared for what this argument queries, or `null` where nothing declares one.
+    private Map<String, Object> declaredDelta(InjectionArgument argument)
+    {
+        for (GraphQLFieldDefinition field : argument.usedAt())
+        {
+            final Map<String, Object> delta = QueryConfigMeta.deltaForDocumentType(
+                domainQL,
+                GraphQLTypeUtil.unwrapAll(field.getType()).getName()
+            );
+
+            if (delta != null)
+            {
+                return delta;
+            }
+        }
+
+        return null;
     }
 
 

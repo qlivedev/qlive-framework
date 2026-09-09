@@ -1,6 +1,9 @@
 package com.dataciders.qlive.runtime.service;
 
 import com.dataciders.qlive.runtime.QLiveException;
+import graphql.schema.GraphQLFieldDefinition;
+
+import java.util.List;
 
 /// One static argument of a `useInjection()` call, as an {@link InjectionArgumentProcessor} is handed it.
 ///
@@ -12,11 +15,16 @@ import com.dataciders.qlive.runtime.QLiveException;
 /// @param variable  name of the GraphQL variable the value is passed as
 /// @param typeName  name of the variable's declared type, unwrapped of `!` and `[]`
 /// @param value     the recorded value, never `null`
+/// @param usedAt    the fields of the query the variable is passed to, outermost first. A type alone does
+///                  not always say what a value means -- what a query config starts out as depends on what
+///                  is being queried, see {@link QueryConfigArgumentProcessor} -- and this is where the
+///                  query says that. Empty where the variable is declared and never passed to a field.
 public record InjectionArgument(
     String module,
     String variable,
     String typeName,
-    Object value
+    Object value,
+    List<GraphQLFieldDefinition> usedAt
 )
 {
     /// An exception saying that this argument is not what its type needs, naming where it sits.

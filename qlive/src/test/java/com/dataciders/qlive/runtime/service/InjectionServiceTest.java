@@ -5,6 +5,9 @@ import com.dataciders.qlive.model.ts.TrackUsageData;
 import com.dataciders.qlive.runtime.QLiveException;
 import com.dataciders.qlive.runtime.domain.TestDomainConfig;
 import com.dataciders.qlive.runtime.domain.TestLogic;
+import com.dataciders.qlive.runtime.meta.QueryConfigDelta;
+import com.dataciders.qlive.runtime.meta.QueryConfigMetadataProvider;
+import com.dataciders.qlive.testdomain.tables.pojos.TestFoo;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.GraphQL;
@@ -89,7 +92,7 @@ class InjectionServiceTest
 
         injectionService = new InjectionService(
             GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build(),
-            domainQL.getGraphQLSchema()
+            domainQL
         );
     }
 
@@ -509,7 +512,7 @@ class InjectionServiceTest
 
         final InjectionService service = new InjectionService(
             GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build(),
-            domainQL.getGraphQLSchema(),
+            domainQL,
             List.of(new FixedPageSize(42))
         );
 
@@ -527,7 +530,7 @@ class InjectionServiceTest
 
         final InjectionService service = new InjectionService(
             GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build(),
-            domainQL.getGraphQLSchema(),
+            domainQL,
             List.of(new InjectionArgumentProcessor()
             {
                 @Override
@@ -557,6 +560,81 @@ class InjectionServiceTest
     }
 
 
+    @Test
+    void startsAQueryConfigAtWhatTheQueriedTypeDeclares()
+    {
+        // The call says where to start reading and nothing else. What a page of Foos is, and in which order,
+        // is the type's to say -- and the query is what says that Foos are what is being queried here.
+        final Map<String, Injection> injections = injectionsWithDeclaredDefaults("""
+            { "offset": 2 }
+            """);
+
+        assertThat(configOf(injections.get("Q_Test")).get("offset"), is(2));
+        assertThat(configOf(injections.get("Q_Test")).get("pageSize"), is(20));
+        assertThat(sortFieldsOf(injections.get("Q_Test")), contains("name"));
+    }
+
+
+    @Test
+    void letsTheCallOverrideWhatTheQueriedTypeDeclares()
+    {
+        // The type says what a page of Foos usually is, this one view says otherwise. The nearer word wins,
+        // the same way it does over the defaults of a config itself.
+        final Map<String, Injection> injections = injectionsWithDeclaredDefaults("""
+            { "pageSize": 7 }
+            """);
+
+        assertThat(configOf(injections.get("Q_Test")).get("pageSize"), is(7));
+
+        // and what the call left out still comes from the type
+        assertThat(sortFieldsOf(injections.get("Q_Test")), contains("name"));
+    }
+
+
+    /**
+     * Injects Q_Test with the given call parameters, against a domain where TestFoo declares a query config
+     * delta of its own.
+     */
+    private static Map<String, Injection> injectionsWithDeclaredDefaults(String config)
+    {
+        final DomainQL domainQL = TestDomainConfig.domainQL(
+            List.of(
+                QueryConfigMetadataProvider.newProvider()
+                    .forType(
+                        TestFoo.class,
+                        QueryConfigDelta.newDelta()
+                            .pageSize(20)
+                            .sortFields("name")
+                    )
+            ),
+            new TestLogic()
+        );
+
+        final InjectionService service = new InjectionService(
+            GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build(),
+            domainQL
+        );
+
+        return service.provideInjections(
+            analysis("""
+                {
+                    "./app/Home": {
+                        "requires": [ "./app/Q_Test" ],
+                        "calls": {
+                            "useInjection": [ [ { "__identifier": "Q_Test" }, { "config": %s } ] ]
+                        }
+                    },
+                    "./app/Q_Test": {
+                        "requires": [],
+                        "calls": { "GraphQLQuery": [ [ "%s" ] ] }
+                    }
+                }
+                """.formatted(config.strip(), Q_TEST)),
+            "./app/Home"
+        );
+    }
+
+
     /**
      * An application's processor for a type the framework already handles.
      */
@@ -575,6 +653,13 @@ class InjectionServiceTest
         {
             return Map.of("offset", 0, "pageSize", pageSize);
         }
+    }
+
+
+    @SuppressWarnings("unchecked")
+    private static List<String> sortFieldsOf(Injection injection)
+    {
+        return (List<String>) configOf(injection).get("sortFields");
     }
 
 

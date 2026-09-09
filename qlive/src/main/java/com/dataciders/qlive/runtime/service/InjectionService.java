@@ -6,20 +6,26 @@ import com.dataciders.qlive.model.ts.TrackUsageData;
 import com.dataciders.qlive.runtime.QLiveException;
 import com.dataciders.qlive.runtime.QLivePaths;
 import com.dataciders.qlive.runtime.util.GraphQLUtil;
+import de.quinscape.domainql.DomainQL;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
+import graphql.language.Argument;
 import graphql.language.Document;
 import graphql.language.Field;
+import graphql.language.InlineFragment;
 import graphql.language.ListType;
 import graphql.language.NonNullType;
 import graphql.language.OperationDefinition;
 import graphql.language.Selection;
+import graphql.language.SelectionSet;
 import graphql.language.Type;
 import graphql.language.TypeName;
 import graphql.language.VariableDefinition;
+import graphql.language.VariableReference;
 import graphql.parser.Parser;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLFieldsContainer;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLTypeUtil;
@@ -71,9 +77,9 @@ public class InjectionService
 
 
     /// An injection service handling the argument types the framework itself brings, i.e. `QueryConfig`.
-    public InjectionService(GraphQL graphQL, GraphQLSchema schema)
+    public InjectionService(GraphQL graphQL, DomainQL domainQL)
     {
-        this(graphQL, schema, List.of(new QueryConfigArgumentProcessor()));
+        this(graphQL, domainQL, List.of(new QueryConfigArgumentProcessor(domainQL)));
     }
 
 
@@ -82,11 +88,11 @@ public class InjectionService
     ///                            a list left without a {@link QueryConfigArgumentProcessor} is one where
     ///                            query configs reach GraphQL as the partial deltas they were written as.
     public InjectionService(
-        GraphQL graphQL, GraphQLSchema schema, List<InjectionArgumentProcessor> argumentProcessors
+        GraphQL graphQL, DomainQL domainQL, List<InjectionArgumentProcessor> argumentProcessors
     )
     {
         this.graphQL = graphQL;
-        this.schema = schema;
+        this.schema = domainQL.getGraphQLSchema();
         this.argumentProcessors = List.copyOf(argumentProcessors);
     }
 
@@ -358,6 +364,8 @@ public class InjectionService
         String module, OperationDefinition operation, Map<String, Object> variables
     )
     {
+        final Map<String, List<GraphQLFieldDefinition>> usages = variableUsages(operation);
+
         for (VariableDefinition definition : operation.getVariableDefinitions())
         {
             final String typeName = typeNameOf(definition.getType());
@@ -378,8 +386,95 @@ public class InjectionService
 
             variables.put(
                 definition.getName(),
-                process(processor, definition.getType(), module, definition.getName(), typeName, value)
+                process(
+                    processor,
+                    definition.getType(),
+                    module,
+                    definition.getName(),
+                    typeName,
+                    value,
+                    usages.getOrDefault(definition.getName(), List.of())
+                )
             );
+        }
+    }
+
+
+    /// Where each variable of the operation is passed to, which is what says what a value is *for* rather
+    /// than only what type it has.
+    ///
+    /// Read off the query the same way the execution will read it: down the selection set, resolving every
+    /// field against the type its parent turned out to be. A variable passed inside an object literal, or
+    /// one only reachable through a fragment spread, is not found -- the processors this feeds all degrade
+    /// to what the type alone says, so a query written that way loses the extra rather than breaking.
+    private Map<String, List<GraphQLFieldDefinition>> variableUsages(OperationDefinition operation)
+    {
+        final GraphQLObjectType root = rootTypeOf(operation);
+        if (root == null || operation.getSelectionSet() == null)
+        {
+            return Map.of();
+        }
+
+        final Map<String, List<GraphQLFieldDefinition>> usages = new LinkedHashMap<>();
+        collectUsages(root, operation.getSelectionSet(), usages);
+
+        return usages;
+    }
+
+
+    private void collectUsages(
+        GraphQLFieldsContainer parent,
+        SelectionSet selectionSet,
+        Map<String, List<GraphQLFieldDefinition>> usages
+    )
+    {
+        for (Selection<?> selection : selectionSet.getSelections())
+        {
+            switch (selection)
+            {
+                case Field field ->
+                {
+                    final GraphQLFieldDefinition definition = parent.getFieldDefinition(field.getName());
+                    if (definition == null)
+                    {
+                        // Not in the schema, so executing the query will report it. Nothing to say about
+                        // its arguments in the meantime.
+                        continue;
+                    }
+
+                    for (Argument argument : field.getArguments())
+                    {
+                        if (argument.getValue() instanceof VariableReference reference)
+                        {
+                            usages.computeIfAbsent(reference.getName(), name -> new ArrayList<>())
+                                .add(definition);
+                        }
+                    }
+
+                    if (field.getSelectionSet() != null &&
+                        GraphQLTypeUtil.unwrapAll(definition.getType()) instanceof GraphQLFieldsContainer sub)
+                    {
+                        collectUsages(sub, field.getSelectionSet(), usages);
+                    }
+                }
+
+                case InlineFragment fragment when fragment.getSelectionSet() != null ->
+                {
+                    final GraphQLFieldsContainer container = fragment.getTypeCondition() == null
+                        ? parent
+                        : schema.getType(fragment.getTypeCondition().getName())
+                            instanceof GraphQLFieldsContainer named ? named : null;
+
+                    if (container != null)
+                    {
+                        collectUsages(container, fragment.getSelectionSet(), usages);
+                    }
+                }
+
+                default ->
+                {
+                }
+            }
         }
     }
 
@@ -414,7 +509,8 @@ public class InjectionService
         String module,
         String variable,
         String typeName,
-        Object value
+        Object value,
+        List<GraphQLFieldDefinition> usedAt
     )
     {
         if (value == null)
@@ -425,21 +521,25 @@ public class InjectionService
         return switch (type)
         {
             case NonNullType nonNull ->
-                process(processor, nonNull.getType(), module, variable, typeName, value);
+                process(processor, nonNull.getType(), module, variable, typeName, value, usedAt);
 
             case ListType list when value instanceof List<?> elements ->
             {
                 final List<Object> processed = new ArrayList<>(elements.size());
                 for (Object element : elements)
                 {
-                    processed.add(process(processor, list.getType(), module, variable, typeName, element));
+                    processed.add(
+                        process(processor, list.getType(), module, variable, typeName, element, usedAt)
+                    );
                 }
                 yield Collections.unmodifiableList(processed);
             }
 
-            case ListType list -> process(processor, list.getType(), module, variable, typeName, value);
+            case ListType list ->
+                process(processor, list.getType(), module, variable, typeName, value, usedAt);
 
-            default -> processor.process(new InjectionArgument(module, variable, typeName, value));
+            default ->
+                processor.process(new InjectionArgument(module, variable, typeName, value, usedAt));
         };
     }
 
@@ -573,9 +673,7 @@ public class InjectionService
     /// report that properly.
     private String typeOf(OperationDefinition operation)
     {
-        final GraphQLObjectType root = operation.getOperation() == OperationDefinition.Operation.MUTATION
-            ? schema.getMutationType()
-            : schema.getQueryType();
+        final GraphQLObjectType root = rootTypeOf(operation);
 
         if (root == null || operation.getSelectionSet() == null)
         {
@@ -595,6 +693,15 @@ public class InjectionService
         }
 
         return null;
+    }
+
+
+    /// The type the operation's own selections are resolved against.
+    private GraphQLObjectType rootTypeOf(OperationDefinition operation)
+    {
+        return operation.getOperation() == OperationDefinition.Operation.MUTATION
+            ? schema.getMutationType()
+            : schema.getQueryType();
     }
 
 

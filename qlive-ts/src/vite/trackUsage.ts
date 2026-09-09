@@ -35,8 +35,8 @@ export interface TrackedFunctionSpec
 }
 
 /**
- * The calls QLive's own analysis is built on. Their keys are the symbolic names the server looks up a call under --
- * ModuleFunctionReferences.USE_INJECTION_CALL_NAME and its neighbours name the same strings
+ * The calls QLive's own analysis is built on. Their keys are the symbolic names the server looks a call
+ * up under -- ModuleFunctionReferences.USE_INJECTION_CALL_NAME and its neighbours name the same strings
  * on the Java side -- so what belongs in here is the framework's to state and not an application's to
  * get right. An application adds its own entries through `trackedFunctions`.
  */
@@ -457,7 +457,8 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
                     }
                     else
                     {
-                        server.ws.send({type: "full-reload"});
+                        // Nothing is pushed, so there is nothing for the reload to wait for.
+                        reloadBrowser?.();
                     }
                 }
                 errorCount = 0

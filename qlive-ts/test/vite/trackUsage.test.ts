@@ -91,12 +91,13 @@ describe("trackUsage", () => {
     }
 
 
-    function startPlugin(): TestPlugin
+    /** `null` starts the plugin the way an application without a QLive backend configures it. */
+    function startPlugin(backendOrigin: string | null = "http://localhost:8080"): TestPlugin
     {
         const plugin = trackUsage({
             sourceRoot,
             seedFile: path.join(projectRoot, "no-such-seed.json"),
-            backendOrigin: "http://localhost:8080",
+            backendOrigin: backendOrigin ?? undefined,
             pushDebounceMs: DEBOUNCE_MS,
         }) as unknown as TestPlugin;
 
@@ -184,6 +185,21 @@ describe("trackUsage", () => {
         startPlugin();
         await tick();
 
+        expect(pushes).toHaveLength(0);
+    });
+
+
+    it("reloads straight away when there is no backend to tell", async () => {
+        // Without a backendOrigin the plugin pushes nothing at all, so the reload has nothing to wait for.
+        const plugin = startPlugin(null);
+        plugin.transform(Q_FOO, moduleFile("app/Q_Foo.ts"));
+
+        write("app/Q_Foo.ts", Q_FOO.replace("{ foo }", "{ bar }"));
+        watcher.emit("change", moduleFile("app/Q_Foo.ts"));
+
+        expect(reloads).toBe(1);
+
+        await tick();
         expect(pushes).toHaveLength(0);
     });
 

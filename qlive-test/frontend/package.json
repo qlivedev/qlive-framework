@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
     "preview": "vite preview",
-    "generate": "generate-ts schema.graphql src/types.d.ts && generate-query-types schema.graphql src"
+    "generate": "generate-ts schema.graphql src/types.d.ts && generate-query-types schema.graphql src",
+    "generate:schema": "generate-schema http://localhost:8080 schema.graphql"
   },
   "dependencies": {
     "@quinscape/qlive-ts": "workspace:*",

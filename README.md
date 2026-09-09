@@ -6,8 +6,8 @@ command; nothing is published to iterate locally.
 ```
 qlive/                     Java library, version 1.0.0-SNAPSHOT
 qlive-ts/                  @quinscape/qlive-ts, linked by pnpm workspace (built with tsdown; dev aliases to its TS source)
-qlive-codegen/             @quinscape/qlive-codegen, the codegen CLIs (schema.graphql -> types.d.ts, and the
-                           query result types the dev backend otherwise writes)
+qlive-codegen/             @quinscape/qlive-codegen, the codegen CLIs (schema.graphql -> types.d.ts and the
+                           query result types; and optionally schema.graphql itself, from a running backend)
 qlive-test/                Spring Boot app, depends on qlive as a SNAPSHOT
   frontend/                 Vite + React app, depends on qlive-ts via "workspace:*"
 qlive-doc/                 framework-user documentation (plain .md for now)

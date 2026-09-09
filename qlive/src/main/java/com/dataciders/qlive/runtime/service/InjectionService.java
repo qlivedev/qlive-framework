@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,10 +67,9 @@ public class InjectionService
 
     private final GraphQLSchema schema;
 
-    /// The plans built from one analysis snapshot. Held as one object so that a snapshot and the plans made
-    /// from it are swapped together: a request either plans against the new snapshot or reads plans that all
-    /// came from the old one, never a mix of the two.
-    private volatile PlanCache cache;
+    /// The plans built so far, by module. Each entry carries the references it was built from, so an entry
+    /// is only rebuilt when the analysis it actually read has changed -- see {@link CachedPlans}.
+    private final Map<String, CachedPlans> cache = new ConcurrentHashMap<>();
 
 
     public InjectionService(GraphQL graphQL, GraphQLSchema schema)
@@ -152,15 +152,35 @@ public class InjectionService
     }
 
 
-    private record PlanCache(TrackUsageData analysis, Map<String, List<InjectionPlan>> plans)
+    /// One module's plans together with the references they were read from: the module's own and those of
+    /// every module it imports, which is where {@link #findQuery} looks for the injected query.
+    ///
+    /// The analysis is not one immutable snapshot in dev -- the dev server pushes the modules a save changed
+    /// and the rest keep the references they were pushed with. Comparing those references by identity is
+    /// what lets a saved file cost the plans of the modules that read it and of no others.
+    private record CachedPlans(Map<String, ModuleFunctionReferences> sources, List<InjectionPlan> plans)
     {
+        /// Whether the given analysis still says what these plans were built from. A module that has since
+        /// appeared or gone counts as a change: it changes what an injected identifier resolves to.
+        boolean readsSameAs(TrackUsageData analysis)
+        {
+            for (Map.Entry<String, ModuleFunctionReferences> source : sources.entrySet())
+            {
+                if (analysis.getModuleFunctionReferences(source.getKey()) != source.getValue())
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 
 
-    /// One module's plans, built once per analysis snapshot.
+    /// One module's plans, built once per version of the analysis they read.
     ///
     /// Planning parses every query the module can reach, which is work that only changes when the frontend
-    /// does -- once per `vite build` in production, and in dev whenever the dev server pushes an edit.
+    /// does -- once per `vite build` in production, and in dev whenever the dev server pushes an edit to one
+    /// of the modules that plan was read from.
     private List<InjectionPlan> plansFor(TrackUsageData analysis, String module)
     {
         if (module == null)
@@ -168,25 +188,27 @@ public class InjectionService
             return List.of();
         }
 
-        PlanCache current = cache;
-        if (current == null || current.analysis() != analysis)
+        final CachedPlans cached = cache.get(module);
+        if (cached != null && cached.readsSameAs(analysis))
         {
-            current = new PlanCache(analysis, new ConcurrentHashMap<>());
-            cache = current;
+            return cached.plans();
         }
 
-        return current.plans().computeIfAbsent(module, m -> buildPlans(analysis, m));
+        final CachedPlans built = buildPlans(analysis, module);
+        cache.put(module, built);
+        return built.plans();
     }
 
 
     /// Plans the injections of one view, which are the `useInjection()` calls of that view's own module and
     /// no others.
-    private List<InjectionPlan> buildPlans(TrackUsageData analysis, String module)
+    private CachedPlans buildPlans(TrackUsageData analysis, String module)
     {
         final ModuleFunctionReferences refs = analysis.getModuleFunctionReferences(module);
+        final Map<String, ModuleFunctionReferences> sources = sourcesOf(analysis, module, refs);
         if (refs == null)
         {
-            return List.of();
+            return new CachedPlans(sources, List.of());
         }
 
         final List<InjectionPlan> plans = new ArrayList<>();
@@ -216,7 +238,31 @@ public class InjectionService
             }
         }
 
-        return List.copyOf(plans);
+        return new CachedPlans(sources, List.copyOf(plans));
+    }
+
+
+    /// The references one module's plans are read from, so that {@link CachedPlans} can tell when they no
+    /// longer say what they said. Modules the analysis does not know are recorded as `null`, because one
+    /// turning up later adds a candidate to {@link #findQuery}.
+    private static Map<String, ModuleFunctionReferences> sourcesOf(
+        TrackUsageData analysis,
+        String module,
+        ModuleFunctionReferences refs
+    )
+    {
+        final Map<String, ModuleFunctionReferences> sources = new HashMap<>();
+        sources.put(module, refs);
+
+        if (refs != null)
+        {
+            for (String required : refs.getRequires())
+            {
+                sources.put(required, analysis.getModuleFunctionReferences(required));
+            }
+        }
+
+        return sources;
     }
 
 

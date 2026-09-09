@@ -398,6 +398,69 @@ class InjectionServiceTest
     }
 
 
+    /**
+     * The dev server pushes the modules one save changed, so a module that was not saved keeps the exact
+     * references it was pushed with. The plans read from a changed module have to be built again anyway --
+     * here the query the view injects is renamed, which the injection is keyed by.
+     */
+    @Test
+    void rebuildsThePlansOfAViewWhoseQueryChanged()
+    {
+        final DevStaticAnalysisProvider provider = new DevStaticAnalysisProvider();
+        provider.replace(VIEW_INJECTS);
+
+        assertThat(
+            injectionService.provideInjections(provider.getTrackUsageData(), "./app/Home").keySet(),
+            contains("Q_Test")
+        );
+
+        // ./app/Home is not in this push and keeps its references: what changed is the module it imports
+        provider.merge(analysis("""
+            {
+                "./app/Q_Test": {
+                    "requires": [],
+                    "calls": { "GraphQLQuery": [ [ "%s" ] ] }
+                }
+            }
+            """.formatted(Q_TEST.replace("Q_Test", "Q_Renamed"))));
+
+        assertThat(
+            injectionService.provideInjections(provider.getTrackUsageData(), "./app/Home").keySet(),
+            contains("Q_Renamed")
+        );
+    }
+
+
+    /**
+     * The counterpart: a push that touches neither the view nor anything it imports leaves its injections
+     * exactly as they were.
+     */
+    @Test
+    void keepsTheInjectionsOfAViewAnUnrelatedPushDoesNotTouch()
+    {
+        final DevStaticAnalysisProvider provider = new DevStaticAnalysisProvider();
+        provider.replace(VIEW_INJECTS);
+
+        final Map<String, Injection> before =
+            injectionService.provideInjections(provider.getTrackUsageData(), "./app/Home");
+
+        provider.merge(analysis("""
+            {
+                "./app/Other": {
+                    "requires": [],
+                    "calls": {}
+                }
+            }
+            """));
+
+        final Map<String, Injection> after =
+            injectionService.provideInjections(provider.getTrackUsageData(), "./app/Home");
+
+        assertThat(after.keySet(), is(before.keySet()));
+        assertThat(pageSizeOf(after.get("Q_Test")), is(pageSizeOf(before.get("Q_Test"))));
+    }
+
+
     private static Integer pageSizeOf(Injection injection)
     {
         return (Integer) configOf(injection).get("pageSize");

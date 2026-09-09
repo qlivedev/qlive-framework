@@ -55,4 +55,15 @@ public class TestLogic
 
         return document;
     }
+
+
+    /**
+     * Echoes back the page size of every given config, so that a list-typed injection argument can be seen
+     * arriving the way a single one is.
+     */
+    @GraphQLQuery
+    public @NotNull List<Integer> queryPageSizes(@NotNull List<QueryConfig> configs)
+    {
+        return configs.stream().map(QueryConfig::getPageSize).toList();
+    }
 }

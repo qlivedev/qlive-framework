@@ -1,6 +1,5 @@
 package com.dataciders.qlive.runtime.service;
 
-import com.dataciders.qlive.model.QueryConfig;
 import com.dataciders.qlive.model.bootstrap.Injection;
 import com.dataciders.qlive.model.ts.ModuleFunctionReferences;
 import com.dataciders.qlive.model.ts.TrackUsageData;
@@ -58,24 +57,37 @@ public class InjectionService
     /// with `InjectParams.__id` on the client, which is what reads the data back out.
     private final static String ID_PARAM = "__id";
 
-    /// GraphQL name of the query config scalar, as {@link com.dataciders.qlive.runtime.domain.QLiveDomain}
-    /// registers it. Variables of that type get the treatment in
-    /// {@link #completeQueryConfig(String, String, Map)}.
-    private final static String QUERY_CONFIG_TYPE = "QueryConfig";
-
     private final GraphQL graphQL;
 
     private final GraphQLSchema schema;
+
+    /// The processors that turn recorded call parameters into GraphQL variables, in the order they are
+    /// asked -- see {@link InjectionArgumentProcessor}.
+    private final List<InjectionArgumentProcessor> argumentProcessors;
 
     /// The plans built so far, by module. Each entry carries the references it was built from, so an entry
     /// is only rebuilt when the analysis it actually read has changed -- see {@link CachedPlans}.
     private final Map<String, CachedPlans> cache = new ConcurrentHashMap<>();
 
 
+    /// An injection service handling the argument types the framework itself brings, i.e. `QueryConfig`.
     public InjectionService(GraphQL graphQL, GraphQLSchema schema)
+    {
+        this(graphQL, schema, List.of(new QueryConfigArgumentProcessor()));
+    }
+
+
+    /// @param argumentProcessors  what turns the recorded parameters of a `useInjection()` call into the
+    ///                            variables its query is executed with. The framework's own are not implied:
+    ///                            a list left without a {@link QueryConfigArgumentProcessor} is one where
+    ///                            query configs reach GraphQL as the partial deltas they were written as.
+    public InjectionService(
+        GraphQL graphQL, GraphQLSchema schema, List<InjectionArgumentProcessor> argumentProcessors
+    )
     {
         this.graphQL = graphQL;
         this.schema = schema;
+        this.argumentProcessors = List.copyOf(argumentProcessors);
     }
 
 
@@ -324,7 +336,7 @@ public class InjectionService
         final Object id = variables.remove(ID_PARAM);
         final String injectionId = id != null ? String.valueOf(id) : declared.operation().getName();
 
-        completeQueryConfigs(module, declared.operation(), variables);
+        processArguments(module, declared.operation(), variables);
 
         return new InjectionPlan(
             injectionId,
@@ -336,80 +348,99 @@ public class InjectionService
     }
 
 
-    /// Completes every query config among the given variables.
+    /// Turns the recorded parameters of one call into the variables its query is executed with, by handing
+    /// each of them to the processor that handles its declared type.
     ///
-    /// The parameters of a useInjection() call are not GraphQL variables yet when they get here: they were
-    /// TypeScript when the developer wrote them, and JSON by the time the analysis carried them across, and
-    /// nothing in between owes GraphQL anything. This is the last point in front of the execution where
-    /// that can be put right, which is why it is put right here rather than by widening what the coercing
-    /// downstream accepts -- a config posted by a browser stays exactly as strict as it was.
-    private static void completeQueryConfigs(
+    /// Which processor that is follows from the query itself: the operation says what type it declared each
+    /// variable as, and {@link InjectionArgumentProcessor#handles(String)} says who answers for that type.
+    /// A variable of a type nobody claims is passed on as the analysis recorded it.
+    private void processArguments(
         String module, OperationDefinition operation, Map<String, Object> variables
     )
     {
         for (VariableDefinition definition : operation.getVariableDefinitions())
         {
-            if (!QUERY_CONFIG_TYPE.equals(typeNameOf(definition.getType())))
+            final String typeName = typeNameOf(definition.getType());
+
+            // A variable the call did not name is left alone: a query that insists on one should report a
+            // missing one, not be handed a default nobody asked for.
+            final Object value = variables.get(definition.getName());
+            if (typeName == null || value == null)
             {
                 continue;
             }
 
-            // A variable the call did not name is left alone: a query that insists on its config should
-            // report a missing one, not be handed a default nobody asked for.
-            if (variables.get(definition.getName()) instanceof Map<?, ?> delta)
+            final InjectionArgumentProcessor processor = processorFor(typeName);
+            if (processor == null)
             {
-                variables.put(
-                    definition.getName(),
-                    completeQueryConfig(module, definition.getName(), delta)
-                );
+                continue;
             }
+
+            variables.put(
+                definition.getName(),
+                process(processor, definition.getType(), module, definition.getName(), typeName, value)
+            );
         }
     }
 
 
-    /// One query config, as the delta over a default config that it is.
-    ///
-    /// A call names the fields it cares about and no others -- the same thing QueryConfigDelta is on the
-    /// client, where update() spreads it over the document's current config. Here there is no current one,
-    /// so the fields are applied over a fresh {@link QueryConfig}, and what reaches GraphQL is the complete
-    /// config that config's own defaults describe.
-    ///
-    /// The numbers are narrowed on the way: these came out of the analysis JSON, where an integer is a Long.
-    /// Everything else is passed on untouched, so a condition or a sort field written out in the call is
-    /// still read by the coercing that owns it.
-    private static Map<String, Object> completeQueryConfig(String module, String variable, Map<?, ?> delta)
+    /// The processor answering for the given type, or `null` where none does.
+    private InjectionArgumentProcessor processorFor(String typeName)
     {
-        final QueryConfig defaults = new QueryConfig();
-
-        final Map<String, Object> config = new LinkedHashMap<>();
-        delta.forEach((field, fieldValue) -> config.put(String.valueOf(field), fieldValue));
-
-        config.put("offset", intValue(module, variable, "offset", delta.get("offset"), defaults.getOffset()));
-        config.put(
-            "pageSize",
-            intValue(module, variable, "pageSize", delta.get("pageSize"), defaults.getPageSize())
-        );
-
-        return config;
+        for (InjectionArgumentProcessor processor : argumentProcessors)
+        {
+            if (processor.handles(typeName))
+            {
+                return processor;
+            }
+        }
+        return null;
     }
 
 
-    private static int intValue(String module, String variable, String field, Object value, int defaultValue)
+    /// One value through its processor, element by element where the variable is declared as a list.
+    ///
+    /// The type a processor is picked by is the unwrapped one, so a `[QueryConfig!]!` is that processor's
+    /// business as much as a `QueryConfig!` is -- which it can only be if the list is opened here. Opening
+    /// it here rather than in every processor is also what keeps a list from being the one place a value
+    /// quietly goes through unprocessed.
+    ///
+    /// Which values are elements is read off the declared type and not off the value, so a processor for a
+    /// type whose values are themselves lists still gets whole values. A single value where a list is
+    /// declared is one element, the way GraphQL's own coercing reads it.
+    private static Object process(
+        InjectionArgumentProcessor processor,
+        Type<?> type,
+        String module,
+        String variable,
+        String typeName,
+        Object value
+    )
     {
         if (value == null)
         {
-            return defaultValue;
+            return null;
         }
 
-        if (value instanceof Number number)
+        return switch (type)
         {
-            return number.intValue();
-        }
+            case NonNullType nonNull ->
+                process(processor, nonNull.getType(), module, variable, typeName, value);
 
-        throw new QLiveException(
-            "Module '" + module + "' injects a query config with a non-numeric " + field + " (" + value +
-                ") in its '" + variable + "' parameter."
-        );
+            case ListType list when value instanceof List<?> elements ->
+            {
+                final List<Object> processed = new ArrayList<>(elements.size());
+                for (Object element : elements)
+                {
+                    processed.add(process(processor, list.getType(), module, variable, typeName, element));
+                }
+                yield Collections.unmodifiableList(processed);
+            }
+
+            case ListType list -> process(processor, list.getType(), module, variable, typeName, value);
+
+            default -> processor.process(new InjectionArgument(module, variable, typeName, value));
+        };
     }
 
 

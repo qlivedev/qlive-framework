@@ -34,6 +34,12 @@ class InjectionServiceTest
         "query Q_Test($config: QueryConfig!) { queryTestFooDocument(config: $config) { type config } }";
 
     /**
+     * A query taking a list of the same type, which the test logic answers with the page size of each.
+     */
+    private final static String Q_SIZES =
+        "query Q_Sizes($configs: [QueryConfig!]!) { queryPageSizes(configs: $configs) }";
+
+    /**
      * A component doing what only a view may do.
      */
     private final static TrackUsageData COMPONENT_INJECTS = analysis("""
@@ -458,6 +464,124 @@ class InjectionServiceTest
 
         assertThat(after.keySet(), is(before.keySet()));
         assertThat(pageSizeOf(after.get("Q_Test")), is(pageSizeOf(before.get("Q_Test"))));
+    }
+
+
+    @Test
+    void completesEveryQueryConfigOfAListArgument()
+    {
+        // A list is not the one place an argument goes through unprocessed: each element is the processor's
+        // business, so each arrives as the complete config its delta stands for.
+        final Map<String, Injection> injections = injectionService.provideInjections(
+            analysis("""
+                {
+                    "./app/Home": {
+                        "requires": [ "./app/Q_Sizes" ],
+                        "calls": {
+                            "useInjection": [
+                                [
+                                    { "__identifier": "Q_Sizes" },
+                                    { "configs": [ { "pageSize": 7 }, { "offset": 1 } ] }
+                                ]
+                            ]
+                        }
+                    },
+                    "./app/Q_Sizes": {
+                        "requires": [],
+                        "calls": { "GraphQLQuery": [ [ "%s" ] ] }
+                    }
+                }
+                """.formatted(Q_SIZES)),
+            "./app/Home"
+        );
+
+        assertThat(pageSizesOf(injections.get("Q_Sizes")), contains(7, 0));
+    }
+
+
+    @Test
+    void letsTheApplicationProcessAnArgumentTypeOfItsOwn()
+    {
+        // What an application contributes as a bean, here handed over directly: a processor claiming a type
+        // decides what the variables of that type are executed with, the framework's own understanding of
+        // QueryConfig included.
+        final DomainQL domainQL = TestDomainConfig.domainQL(new TestLogic());
+
+        final InjectionService service = new InjectionService(
+            GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build(),
+            domainQL.getGraphQLSchema(),
+            List.of(new FixedPageSize(42))
+        );
+
+        final Map<String, Injection> injections = service.provideInjections(VIEW_INJECTS, "./app/Home");
+
+        // the call said 7, the processor says otherwise
+        assertThat(pageSizeOf(injections.get("Q_Test")), is(42));
+    }
+
+
+    @Test
+    void reportsWhatTheApplicationsProcessorRejects()
+    {
+        final DomainQL domainQL = TestDomainConfig.domainQL(new TestLogic());
+
+        final InjectionService service = new InjectionService(
+            GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build(),
+            domainQL.getGraphQLSchema(),
+            List.of(new InjectionArgumentProcessor()
+            {
+                @Override
+                public boolean handles(String typeName)
+                {
+                    return true;
+                }
+
+                @Override
+                public Object process(InjectionArgument argument)
+                {
+                    throw argument.reject("no reason at all");
+                }
+            })
+        );
+
+        final QLiveException e = assertThrows(
+            QLiveException.class,
+            () -> service.provideInjections(VIEW_INJECTS, "./app/Home")
+        );
+
+        // where the offending argument sits, which is the only place the mistake is still visible
+        assertThat(e.getMessage(), containsString("./app/Home"));
+        assertThat(e.getMessage(), containsString("QueryConfig"));
+        assertThat(e.getMessage(), containsString("config"));
+        assertThat(e.getMessage(), containsString("no reason at all"));
+    }
+
+
+    /**
+     * An application's processor for a type the framework already handles.
+     */
+    private record FixedPageSize(int pageSize)
+        implements InjectionArgumentProcessor
+    {
+        @Override
+        public boolean handles(String typeName)
+        {
+            return "QueryConfig".equals(typeName);
+        }
+
+
+        @Override
+        public Object process(InjectionArgument argument)
+        {
+            return Map.of("offset", 0, "pageSize", pageSize);
+        }
+    }
+
+
+    @SuppressWarnings("unchecked")
+    private static List<Integer> pageSizesOf(Injection injection)
+    {
+        return (List<Integer>) ((Map<String, Object>) injection.getData()).get("queryPageSizes");
     }
 
 

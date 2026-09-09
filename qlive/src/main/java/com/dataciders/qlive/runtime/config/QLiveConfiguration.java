@@ -2,6 +2,8 @@ package com.dataciders.qlive.runtime.config;
 
 import com.dataciders.qlive.runtime.service.BootstrapService;
 import com.dataciders.qlive.runtime.service.DefaultBootstrapService;
+import com.dataciders.qlive.runtime.service.InjectionArgumentProcessor;
+import com.dataciders.qlive.runtime.service.QueryConfigArgumentProcessor;
 import com.dataciders.qlive.runtime.service.StaticAnalysisProvider;
 import de.quinscape.domainql.DomainQL;
 import com.dataciders.qlive.model.condition.ConditionParser;
@@ -11,9 +13,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
+import java.util.List;
 
 @Configuration
 public class QLiveConfiguration
@@ -38,11 +43,28 @@ public class QLiveConfiguration
      */
     @Bean
     public BootstrapService bootstrapService(
-        DomainQL domainQL, GraphQL graphQL, StaticAnalysisProvider staticAnalysis
+        DomainQL domainQL,
+        GraphQL graphQL,
+        StaticAnalysisProvider staticAnalysis,
+        List<InjectionArgumentProcessor> argumentProcessors
     )
         throws IOException
     {
-        return new DefaultBootstrapService(servletContext, domainQL, graphQL, staticAnalysis);
+        return new DefaultBootstrapService(
+            servletContext, domainQL, graphQL, staticAnalysis, argumentProcessors
+        );
+    }
+
+
+    /// Completes the query configs an injection passes. Registered last, so that an application that wants
+    /// query configs of its own understanding only has to say `@Order` on its own processor -- see
+    /// {@link InjectionArgumentProcessor}, which is also where an application adds a processor for types the
+    /// framework knows nothing about.
+    @Bean
+    @Order(Ordered.LOWEST_PRECEDENCE)
+    public InjectionArgumentProcessor queryConfigArgumentProcessor()
+    {
+        return new QueryConfigArgumentProcessor();
     }
 
 

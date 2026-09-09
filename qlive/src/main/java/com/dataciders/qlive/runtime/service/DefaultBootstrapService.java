@@ -56,10 +56,32 @@ public class DefaultBootstrapService
         StaticAnalysisProvider staticAnalysisProvider
     )
     {
+        this(
+            servletContext,
+            domainQL,
+            graphQL,
+            staticAnalysisProvider,
+            List.of(new QueryConfigArgumentProcessor())
+        );
+    }
+
+
+    /// @param argumentProcessors  what turns the static parameters of an application's `useInjection()` calls
+    ///                            into GraphQL variables, see {@link InjectionArgumentProcessor}
+    public DefaultBootstrapService(
+        ServletContext servletContext,
+        @Lazy DomainQL domainQL,
+        @Lazy GraphQL graphQL,
+        StaticAnalysisProvider staticAnalysisProvider,
+        List<InjectionArgumentProcessor> argumentProcessors
+    )
+    {
         this.servletContext = servletContext;
         this.domainQL = domainQL;
         this.staticAnalysisProvider = staticAnalysisProvider;
-        this.injectionService = new InjectionService(graphQL, domainQL.getGraphQLSchema());
+        this.injectionService = new InjectionService(
+            graphQL, domainQL.getGraphQLSchema(), argumentProcessors
+        );
 
         // the whole model just exists to be sent to the client. We only need it in JSON string form,
         // over and over for every full page load forever. The JSONHolder allows us to only generate it once and then

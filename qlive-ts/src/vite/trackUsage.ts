@@ -271,9 +271,11 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
         const reload = reloadPending;
         reloadPending = false;
 
-        if (!full && modules.length === 0)
+        if (modules.length === 0)
         {
-            // An earlier push already took these modules, so the browser has nothing left to wait for.
+            // Nothing the backend does not have: an earlier push took these modules, or -- at a dev-server
+            // start with no seed file to read -- there is no analysis yet. Pushing that emptiness would only
+            // cost the backend its "not ready" answer, which is the one the frontend knows how to retry.
             reloadIf(reload);
             return;
         }

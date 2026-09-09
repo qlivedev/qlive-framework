@@ -2,8 +2,10 @@
 // Referenced rather than left to the tsconfig: an application that resolves qlive-ts through the
 // "qlive-source" condition typechecks this file inside its own program, where nothing else would
 // pull the ambient declarations for the untyped babel plugin in.
+import {createRequire} from "node:module";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import {pathToFileURL} from "node:url";
 import * as babel from "@babel/core";
 import trackUsageBabelPlugin from "babel-plugin-track-usage";
 import trackUsageData from "babel-plugin-track-usage/data";
@@ -109,6 +111,16 @@ export interface TrackUsagePluginOptions
      * they are worth sending as one push. Default: 200.
      */
     pushDebounceMs?: number;
+    /**
+     * The GraphQL schema the generated query result types are checked against, relative to Vite's
+     * `root`. While a dev server runs, every saved query gets its `GraphQLQuery<T>` rewritten from it,
+     * so the type next to a query follows the query.
+     *
+     * Default: "schema.graphql", generating whenever that file is there and `@quinscape/qlive-codegen`
+     * is installed. Naming a file that does not exist is an error -- silence would look like a plugin
+     * that does not work. `false` turns the generation off.
+     */
+    queryTypes?: string | false;
 }
 
 /**
@@ -120,6 +132,18 @@ interface ResolvedOptions
     sourceRoot: string;
     debug?: boolean;
     indexes: boolean;
+}
+
+/**
+ * Rewrites the `GraphQLQuery<T>` of every module handed to it. This is what
+ * `@quinscape/qlive-codegen` returns; the plugin only ever calls update().
+ */
+interface QueryTypeGenerator
+{
+    update(analysis: UsageSnapshot): {
+        updated: string[];
+        failed: {module: string; message: string}[];
+    };
 }
 
 interface UsageSnapshot
@@ -311,11 +335,53 @@ function resolveScanOptions(options: AnalyzeSourceTreeOptions): ResolvedOptions
 }
 
 
+/**
+ * Loads the query result type generator out of the *application's* `@quinscape/qlive-codegen`.
+ *
+ * Resolved from the application rather than imported, because it is the application's build tool:
+ * qlive-ts must not carry `graphql` and `@graphql-tools/*` into the dependency graph of an app that
+ * generates nothing -- that is the whole reason the codegen is a package of its own.
+ *
+ * @param root        Vite's `root`, i.e. the directory the application's package.json sits in
+ * @param schemaPath  absolute path of the GraphQL schema
+ * @param sourceRoot  absolute path of the tracked source directory
+ */
+async function loadQueryTypeGenerator(
+    root: string,
+    schemaPath: string,
+    sourceRoot: string
+): Promise<QueryTypeGenerator>
+{
+    const require = createRequire(path.join(root, "package.json"));
+
+    let entry: string;
+    try
+    {
+        entry = require.resolve("@quinscape/qlive-codegen");
+    }
+    catch
+    {
+        throw new Error(
+            `@quinscape/qlive-codegen is not installed. It is what generates the query result types; ` +
+            `add it as a devDependency, or pass queryTypes: false to do without them.`
+        );
+    }
+
+    const codegen = await import(pathToFileURL(entry).href) as {
+        createQueryTypeGenerator(options: {schemaPath: string; sourceRoot: string}): Promise<QueryTypeGenerator>;
+    };
+
+    return codegen.createQueryTypeGenerator({schemaPath, sourceRoot});
+}
+
+
 export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
     const outputFileName = options.outputFileName ?? "track-usage.json";
     const pushUrl = options.backendOrigin ? options.backendOrigin + TRACK_USAGE_DEV_URI : undefined;
     const pushDebounceMs = options.pushDebounceMs ?? 200;
     let resolved: ResolvedOptions;
+    /** Vite's `root`, i.e. where the application's package.json and schema.graphql live. */
+    let root = "";
     let command: "build" | "serve" = "build";
     let isDevMode = false;
     let devData: UsageSnapshot = {usages: {}};
@@ -331,6 +397,46 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
     let reloadPending = false;
     /** Reloads the browser, once there is a dev server to do it through. */
     let reloadBrowser: (() => void) | undefined;
+    /** Rewrites the query result types, or null while they are switched off. Created once per server. */
+    let queryTypes: Promise<QueryTypeGenerator | null> = Promise.resolve(null);
+
+
+    /**
+     * Brings the result types of the given modules back in line with their queries.
+     *
+     * Failures are reported rather than thrown: a query that does not fit the schema is something the
+     * developer is in the middle of writing, and taking the dev server down over it would be a poor way
+     * of saying so.
+     */
+    async function generateQueryTypes(usages: Record<string, unknown>): Promise<void>
+    {
+        const generator = await queryTypes.catch((e) => {
+            console.error(`[track-usage] query result types are off: ${e.message ?? e}`);
+            return null;
+        });
+        if (!generator)
+        {
+            return;
+        }
+
+        try
+        {
+            const {updated, failed} = generator.update({usages});
+
+            if (updated.length)
+            {
+                console.info(`[track-usage] updated query result types in ${updated.join(", ")}`);
+            }
+            for (const {module, message} of failed)
+            {
+                console.error(`[track-usage] no result type for ${module}: ${message}`);
+            }
+        }
+        catch (e)
+        {
+            console.error(`[track-usage] query result type generation failed: ${(e as Error).message ?? e}`);
+        }
+    }
 
     /**
      * Records one module's fresh analysis, reporting whether it differs from what the backend already has.
@@ -492,6 +598,7 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
         configResolved(config)
         {
             resolved = resolveOptions(options, config);
+            root = config.root;
             command = config.command === "serve" ? "serve" : "build";
             // `command === "serve"` alone isn't enough: Vitest also runs the
             // dev-server pipeline but with mode "test", and `vite --mode
@@ -542,6 +649,25 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
                 pushToServer();
             }
 
+            // Once per server, and before the first save: a checked-in result type can be behind its query
+            // -- someone else edited it, or the schema moved -- and the first thing the developer would
+            // otherwise see is a type error in a module they have not touched.
+            if (isDevMode && options.queryTypes !== false)
+            {
+                const schemaPath = path.resolve(root, options.queryTypes ?? "schema.graphql");
+
+                if (options.queryTypes !== undefined || fs.existsSync(schemaPath))
+                {
+                    queryTypes = loadQueryTypeGenerator(root, schemaPath, resolved.sourceRoot);
+                    generateQueryTypes(analyzeSourceTree({
+                        sourceRoot: resolved.sourceRoot,
+                        trackedFunctions: options.trackedFunctions,
+                        debug: options.debug,
+                        indexes: resolved.indexes,
+                    }).usages);
+                }
+            }
+
             let errorCount = 0
 
             // Only "change" is handled live - adding, renaming or deleting a tracked
@@ -567,6 +693,12 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
                 }
                 if (mergeIntoDevData(file))
                 {
+                    // The write shifts the source offsets of the very call it was generated from, so this
+                    // module comes back through here once more -- and renders the same type, which is
+                    // where it stops.
+                    const key = toRelativeModuleId(file, resolved.sourceRoot);
+                    generateQueryTypes({[key]: (trackUsageData.get() as UsageSnapshot).usages[key]});
+
                     if (isDevMode && pushUrl)
                     {
                         // The reload waits for the push. The backend renders the page from this analysis, so

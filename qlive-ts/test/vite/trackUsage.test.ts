@@ -92,13 +92,17 @@ describe("trackUsage", () => {
 
 
     /** `null` starts the plugin the way an application without a QLive backend configures it. */
-    function startPlugin(backendOrigin: string | null = "http://localhost:8080"): TestPlugin
+    function startPlugin(
+        backendOrigin: string | null = "http://localhost:8080",
+        extra: Partial<TrackUsagePluginOptions> = {}
+    ): TestPlugin
     {
         const plugin = resolvePlugin({
             sourceRoot,
             seedFile: path.join(projectRoot, "no-such-seed.json"),
             backendOrigin: backendOrigin ?? undefined,
             pushDebounceMs: DEBOUNCE_MS,
+            ...extra,
         });
 
         plugin.configureServer({
@@ -338,5 +342,134 @@ describe("trackUsage", () => {
         // be touched again.
         expect(pushes).toHaveLength(2);
         expect(Object.keys(pushes[1].usages).sort()).toEqual(["./app/Home", "./app/Q_Foo"]);
+    });
+
+
+    /**
+     * The generation itself is qlive-codegen's, and tested there against the same fixtures. What is the
+     * plugin's is when it runs and what happens when it cannot: a dev server that dies over a query the
+     * developer is halfway through writing would be worse than no generation at all.
+     */
+    describe("query result types", () => {
+
+        const SCHEMA = `
+            schema { query: QueryType }
+            type QueryType { foo: Foo! }
+            type Foo { id: String!, name: String!, num: Int! }
+        `;
+
+        const Q_TYPED = `
+            import {GraphQLQuery} from "@quinscape/qlive-ts";
+
+            export const Q_Foo = new GraphQLQuery<any>("query Q_Foo { foo { id name } }");
+        `;
+
+        /** Makes the application's `@quinscape/qlive-codegen` resolvable from the temp project. */
+        function installCodegen(): void
+        {
+            const dir = path.join(projectRoot, "node_modules", "@quinscape");
+            fs.mkdirSync(dir, {recursive: true});
+            fs.symlinkSync(
+                path.resolve(import.meta.dirname, "../../../qlive-codegen"),
+                path.join(dir, "qlive-codegen"),
+                "dir"
+            );
+        }
+
+
+        function generatedQuery(): string
+        {
+            return fs.readFileSync(moduleFile("app/Q_Typed.ts"), "utf-8");
+        }
+
+
+        /**
+         * Waits for something the plugin does off the back of loading the codegen and its schema. That is
+         * real I/O rather than a timer, which is why this block runs on real timers and polls.
+         */
+        async function waitFor(condition: () => boolean, what: string): Promise<void>
+        {
+            for (let i = 0; i < 100; i++)
+            {
+                if (condition())
+                {
+                    return;
+                }
+                await new Promise((resolve) => setTimeout(resolve, 20));
+            }
+            throw new Error("timed out waiting for " + what);
+        }
+
+
+        /** Long enough for a generation to have happened, for the cases asserting that none did. */
+        async function quiet(): Promise<void>
+        {
+            await new Promise((resolve) => setTimeout(resolve, 250));
+        }
+
+
+        beforeEach(() => {
+            vi.useRealTimers();
+
+            fs.writeFileSync(path.join(projectRoot, "package.json"), "{}", "utf-8");
+            write("app/Q_Typed.ts", Q_TYPED);
+        });
+
+
+        it("writes the result type when the dev server starts", async () => {
+            fs.writeFileSync(path.join(projectRoot, "schema.graphql"), SCHEMA, "utf-8");
+            installCodegen();
+
+            startPlugin(null);
+            await waitFor(() => generatedQuery() !== Q_TYPED, "the result type");
+
+            expect(generatedQuery()).toContain('export type Q_FooResult = Pick<Foo,"id" | "name">');
+            expect(generatedQuery()).toContain("new GraphQLQuery<Q_FooResult>");
+        });
+
+
+        it("follows an edited query", async () => {
+            fs.writeFileSync(path.join(projectRoot, "schema.graphql"), SCHEMA, "utf-8");
+            installCodegen();
+
+            startPlugin(null);
+            await waitFor(() => generatedQuery() !== Q_TYPED, "the result type");
+
+            write("app/Q_Typed.ts", generatedQuery().replace("foo { id name }", "foo { id name num }"));
+            watcher.emit("change", moduleFile("app/Q_Typed.ts"));
+
+            // every field of Foo is selected, so the whole type stands in for the selection
+            await waitFor(
+                () => generatedQuery().includes("export type Q_FooResult = Foo\n"),
+                "the result type of the edited query"
+            );
+        });
+
+
+        it("leaves the sources alone when there is no schema next to the config", async () => {
+            installCodegen();
+
+            startPlugin(null);
+            await quiet();
+
+            expect(generatedQuery()).toBe(Q_TYPED);
+        });
+
+
+        it("keeps the dev server up when the generator cannot be built", async () => {
+            installCodegen();
+            const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+
+            // A named schema that is not there is a mistake worth a word, unlike the default one being
+            // absent -- an application that generates nothing is a normal application.
+            startPlugin(null, {queryTypes: "no-such-schema.graphql"});
+            await waitFor(
+                () => errors.mock.calls.flat().join(" ").includes("no-such-schema.graphql"),
+                "the missing schema to be reported"
+            );
+
+            expect(generatedQuery()).toBe(Q_TYPED);
+            errors.mockRestore();
+        });
     });
 });

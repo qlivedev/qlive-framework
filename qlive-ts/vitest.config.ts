@@ -12,5 +12,14 @@ export default defineConfig({
     test: {
         include: ["test/**/*.test.{ts,tsx}"],
         passWithNoTests: true,
+        server: {
+            deps: {
+                // The track-usage plugin loads the application's codegen with a plain dynamic import,
+                // and in a dev server that is Node loading it, not Vite. Left to Vitest's module graph
+                // it resolves graphql to its ESM build there and to its CJS build inside the codegen's
+                // own externalized dependencies -- two realms, and every type check across them fails.
+                external: [/qlive-codegen/],
+            },
+        },
     },
 });

@@ -99,7 +99,13 @@
     "name":"CNode",
     "description":"Abstract base class for all types in the FilterDSL condition hierarchy.",
     "fieldDocs":[
-      
+      {
+        "name":"type",
+        "description":"The discriminator the FilterDSL JSON carries, derived from the class name. It is read-only in both\ndirections of the word: there is no field behind it, and a parser must not try to set it. It is\nstill generated, because it is what tells a reader which node it is looking at -- see\nConditionParser, which selects the subclass by it.",
+        "paramDocs":[
+          
+        ]
+      }
     ]
   },
   {

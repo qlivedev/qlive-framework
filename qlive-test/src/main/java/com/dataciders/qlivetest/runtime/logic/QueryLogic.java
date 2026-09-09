@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 
-
+/// Example logic
 @GraphQLLogic
 public class QueryLogic
 {
@@ -35,9 +35,7 @@ public class QueryLogic
     }
 
 
-    /**
-     * Queries [T] objects based on the given query config
-     */
+    /// Queries [T] objects based on the given query config
     @GraphQLQuery
     public <T> @NotNull QueryDocument<T> queryDocument(
         @GraphQLTypeParam(
@@ -49,7 +47,7 @@ public class QueryLogic
                 Bar.class,
                 Baz.class,
                 AppUser.class,
-                // the hand-written Qux, which is what puts it in the generated one's place
+                // the handwritten Qux, which is what puts it in the generated one's place
                 Qux.class
             }
         )

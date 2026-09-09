@@ -1,5 +1,5 @@
 import {FilterDSL, useInjection} from "@quinscape/qlive-ts";
-import {Q_Foo} from "./Q_Foo";
+import {Q_Foo, Q_FooResult} from "./Q_Foo";
 
 const {field, value} = FilterDSL;
 
@@ -11,7 +11,7 @@ export default function Home() {
     // The parameters are the query's GraphQL variables, and they have to be written out like this:
     // the server runs the query before the page is sent, reading this very call out of the build's
     // static analysis, so anything it cannot see at build time is not there when the query runs.
-    const foos = useInjection(Q_Foo, {config: {pageSize: 5}});
+    const foos : Q_FooResult = useInjection(Q_Foo, {config: {pageSize: 5}});
 
     // const filter =
     //     field("name").eq(value("Foo #1")).or(field("owner.login").eq(value("admin")))
@@ -29,7 +29,7 @@ export default function Home() {
             <div className="toolbar">
 
             <button type="button" onClick={ () => {
-                foos.update({offset: 1}).then(result => { console.log(result) });
+                foos.update({offset: 1})
             }}>
                 Test
             </button>

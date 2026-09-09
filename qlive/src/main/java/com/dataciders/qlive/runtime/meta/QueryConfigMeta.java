@@ -3,12 +3,14 @@ package com.dataciders.qlive.runtime.meta;
 import com.dataciders.qlive.runtime.util.Util;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.GenericTypeReference;
+import de.quinscape.domainql.OutputType;
 import de.quinscape.domainql.meta.DomainQLTypeMeta;
 
 import java.util.Map;
 import java.util.Optional;
 
-/// The type meta data entry saying what a query config of a type starts out as, and how it is read back.
+/// The type meta data entries saying what a query config of a type starts out as and how far it may go, and
+/// how they are read back.
 ///
 /// A type's query config delta is the application's answer to "what does querying this look like when
 /// nothing says otherwise" -- a page size, a sort order, a condition every query of that type carries. It is
@@ -19,10 +21,16 @@ import java.util.Optional;
 /// declares this on the domain type it owns, and every query returning a document of those rows gets it,
 /// whatever the degenerified document type ends up being called.
 ///
-/// Written with {@link QueryConfigMetadataProvider}, which an application registers as a bean if it wants
-/// this at all -- nothing here happens to an application that declares nothing. Read on the way into an
-/// injection, see {@link com.dataciders.qlive.runtime.service.QueryConfigArgumentProcessor}, and readable by
-/// the client, which is sent the same meta data.
+/// Beside it sits the maximum page size, which is the opposite kind of statement: not what a query starts
+/// out as but what it is held to, whoever asks and however the config got here. See
+/// {@link #maxPageSizeForType(DomainQL, Class)}.
+///
+/// Both are written with {@link QueryConfigMetadataProvider}, which an application registers as a bean if it
+/// wants any of this -- nothing here happens to an application that declares nothing. The delta is read on
+/// the way into an injection, see {@link com.dataciders.qlive.runtime.service.QueryConfigArgumentProcessor},
+/// the maximum where a query is executed, see
+/// {@link com.dataciders.qlive.runtime.query.DefaultQueryDocumentService}. Both are readable by the client,
+/// which is sent the same meta data.
 public final class QueryConfigMeta
 {
     private QueryConfigMeta()
@@ -33,6 +41,10 @@ public final class QueryConfigMeta
     /// Name of the type meta data property holding the delta. Has to agree with `DomainQLTypeMetaProps` on
     /// the client, which declares the same name to TypeScript.
     public final static String QUERY_CONFIG = "queryConfig";
+
+    /// Name of the type meta data property holding the maximum page size. Has to agree with
+    /// `DomainQLTypeMetaProps` on the client, which declares the same name to TypeScript.
+    public final static String MAX_PAGE_SIZE = "maxPageSize";
 
     /// Key the DomainQL meta data holds its type meta data under. Not a constant of DomainQLMeta's own,
     /// which only names its addenda -- taken from there because {@link
@@ -63,14 +75,51 @@ public final class QueryConfigMeta
     /// @param typeName  name of a GraphQL type, known or not
     ///
     /// @return the delta, or `null` where the type is unknown or declares none
-    @SuppressWarnings("unchecked")
     public static Map<String, Object> deltaForType(DomainQL domainQL, String typeName)
+    {
+        final DomainQLTypeMeta typeMeta = typeMeta(domainQL, typeName);
+
+        return typeMeta == null ? null : typeMeta.getMeta(QUERY_CONFIG);
+    }
+
+
+    /// The maximum page size declared for the given Java type, which is how a query has it in hand: what it
+    /// returns is rows of a POJO, and which GraphQL type that is is the domain's to say.
+    ///
+    /// @param javaType  a Java type, exposed by the domain or not
+    ///
+    /// @return the maximum, or 0 where the type is not exposed or declares none
+    public static int maxPageSizeForType(DomainQL domainQL, Class<?> javaType)
+    {
+        final OutputType outputType = domainQL.getTypeRegistry().lookup(javaType);
+
+        return outputType == null ? 0 : maxPageSizeForType(domainQL, outputType.getName());
+    }
+
+
+    /// The maximum page size declared for the given type.
+    ///
+    /// @param typeName  name of a GraphQL type, known or not
+    ///
+    /// @return the maximum, or 0 where the type is unknown or declares none. 0 is also what a query config
+    ///         says when it wants every row, so "no maximum" and "no limit" are the same number throughout.
+    public static int maxPageSizeForType(DomainQL domainQL, String typeName)
+    {
+        final DomainQLTypeMeta typeMeta = typeMeta(domainQL, typeName);
+
+        final Object maxPageSize = typeMeta == null ? null : typeMeta.getMeta(MAX_PAGE_SIZE);
+
+        return maxPageSize instanceof Number number ? number.intValue() : 0;
+    }
+
+
+    /// The meta data of the given type, or `null` where the domain has none for it.
+    @SuppressWarnings("unchecked")
+    private static DomainQLTypeMeta typeMeta(DomainQL domainQL, String typeName)
     {
         final Map<String, DomainQLTypeMeta> types =
             (Map<String, DomainQLTypeMeta>) domainQL.getMetaData().getData().get(TYPES);
 
-        final DomainQLTypeMeta typeMeta = types.get(typeName);
-
-        return typeMeta == null ? null : typeMeta.getMeta(QUERY_CONFIG);
+        return types.get(typeName);
     }
 }

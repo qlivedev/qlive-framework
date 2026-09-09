@@ -245,6 +245,16 @@ export interface DomainQLTypeMetaProps {
      * want it to start where the injected ones start.
      */
     queryConfig?: QueryConfigDelta
+
+    /**
+     * The largest page any query over rows of this type comes back with. Absent where the type sets no limit, which is
+     * also what a page size of 0 asks for.
+     *
+     * Written server-side by QLive's QueryConfigMetadataProvider and enforced there: a config asking for a larger page
+     * -- or for all rows -- is held to this, and the config that comes back on the document says so. Read it to keep a
+     * page size control from offering what the server will not give, not to enforce anything.
+     */
+    maxPageSize?: number
 }
 
 /**

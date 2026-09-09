@@ -159,3 +159,32 @@ Either way a path naming nothing at all is an error, never a condition
 quietly dropped, and operator names are checked against a positive list
 before anything is done with them. Values are always bound, never rendered
 into the SQL.
+
+### Maximum page size
+
+A page size of 0 asks for every row there is, and a config comes from the
+browser. A type can say how far that goes:
+
+```java
+@Bean
+public MetadataProvider queryConfigMetadata()
+{
+    return QueryConfigMetadataProvider.newProvider()
+        .maxPageSize(Foo.class, 100);
+}
+```
+
+Every query over rows of that type is held to it, whoever asked and however
+the config got there -- an injection, an `update()`, a logic bean building
+one by hand. A larger page, and an unlimited one, become that page size.
+
+The config that comes back on the document says the page size that was
+applied, so a client that hit the maximum sees it: `rowCount` is still
+everything the condition matches, the next `update()` spreads over the
+applied config, and a cut page does not look like the last page of a short
+table. The maximum itself travels to the client as type meta data under
+`maxPageSize`, for the page size controls that would rather not offer what
+the server will not give.
+
+A type that declares none is unlimited, which is what every type is until
+an application says otherwise.

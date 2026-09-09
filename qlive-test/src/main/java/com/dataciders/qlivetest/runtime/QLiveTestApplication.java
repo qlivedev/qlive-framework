@@ -2,7 +2,7 @@ package com.dataciders.qlivetest.runtime;
 
 import com.dataciders.qlive.runtime.config.QLiveConfiguration;
 import com.dataciders.qlivetest.runtime.config.DevConfiguration;
-import com.dataciders.qlivetest.runtime.config.GraphQLConfiguration;
+import com.dataciders.qlivetest.runtime.config.DomainQLConfiguration;
 import com.dataciders.qlivetest.runtime.config.JOQQConfiguration;
 import com.dataciders.qlivetest.runtime.config.SecurityConfiguration;
 import com.dataciders.qlivetest.runtime.config.WebConfiguration;
@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Import;
 @Import({
 	JOQQConfiguration.class,
 	DevConfiguration.class,
-	GraphQLConfiguration.class,
+	DomainQLConfiguration.class,
 	QLiveConfiguration.class,
 	SecurityConfiguration.class,
 	WebConfiguration.class

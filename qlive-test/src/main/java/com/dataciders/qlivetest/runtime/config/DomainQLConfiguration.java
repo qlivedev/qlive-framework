@@ -28,9 +28,9 @@ import static com.dataciders.qlivetest.domain.Tables.*;
  * Exemplary configuration of GraphQL in a project.
  */
 @Configuration
-public class GraphQLConfiguration
+public class DomainQLConfiguration
 {
-    private final static Logger log = LoggerFactory.getLogger(GraphQLConfiguration.class);
+    private final static Logger log = LoggerFactory.getLogger(DomainQLConfiguration.class);
 
 
     private final ApplicationContext applicationContext;
@@ -38,7 +38,7 @@ public class GraphQLConfiguration
 
 
     @Autowired
-    public GraphQLConfiguration(
+    public DomainQLConfiguration(
         ApplicationContext applicationContext,
         DSLContext dslContext
     )

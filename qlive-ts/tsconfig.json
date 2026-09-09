@@ -18,6 +18,7 @@
     "types": []
   },
   "include": ["src", "test"],
-  // Typechecked by tsconfig.vite.json instead, against Node's lib and types.
-  "exclude": ["src/vite"]
+  // Typechecked by tsconfig.vite.json instead, against Node's lib and types --
+  // the tests of that half go with it, because they import it.
+  "exclude": ["src/vite", "test/vite"]
 }

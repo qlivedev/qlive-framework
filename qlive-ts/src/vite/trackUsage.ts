@@ -683,9 +683,14 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
 
             let errorCount = 0
 
-            // Only "change" is handled live - adding, renaming or deleting a tracked
-            // file requires a dev server restart to be reflected.
-            server.watcher.on("change", (file) => {
+            // "add" as well as "change": a query written into a new file is the case the generated result
+            // type matters most for, and an editor saving atomically -- writing a temp file and renaming it
+            // into place -- announces that as an add and nothing else. Vite watches with ignoreInitial, so
+            // this is new files only and not every file at startup.
+            //
+            // Renaming and deleting a tracked file still want a dev server restart: what the analysis holds
+            // under the old module id stays there.
+            const reanalyze = (file: string): void => {
                 if (!shouldTrack(file, resolved))
                 {
                     return;
@@ -726,7 +731,10 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
                     }
                 }
                 errorCount = 0
-            });
+            };
+
+            server.watcher.on("add", reanalyze);
+            server.watcher.on("change", reanalyze);
         },
     };
 }

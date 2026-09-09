@@ -448,6 +448,25 @@ describe("trackUsage", () => {
         });
 
 
+        it("types a query added while the server runs", async () => {
+            fs.writeFileSync(path.join(projectRoot, "schema.graphql"), SCHEMA, "utf-8");
+            installCodegen();
+
+            startPlugin(null);
+            await waitFor(() => generatedQuery() !== Q_TYPED, "the result type");
+
+            // An editor saving a new file atomically announces it as an add and nothing else, so a
+            // watcher listening for changes alone would never see the query at all.
+            write("app/Q_Added.ts", Q_TYPED.replace("Q_Foo", "Q_Added"));
+            watcher.emit("add", moduleFile("app/Q_Added.ts"));
+
+            await waitFor(
+                () => fs.readFileSync(moduleFile("app/Q_Added.ts"), "utf-8").includes("Q_AddedResult"),
+                "the result type of the added query"
+            );
+        });
+
+
         it("leaves the sources alone when there is no schema next to the config", async () => {
             installCodegen();
 

@@ -113,8 +113,9 @@ export const Q_Bar = new GraphQLQuery(
 )
 ```
 
-The type argument, the result type and the imports are all added on the
-next save. Domain types come from `src/types.d.ts`, imported relative to
+The type argument, the result type and the imports are all added when the
+dev server sees the file -- creating it is enough, saving it again is not
+needed. Domain types come from `src/types.d.ts`, imported relative to
 where the query sits -- `queryTypes.typesModule` and the CLI's third
 argument say so if yours live elsewhere.
 

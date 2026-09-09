@@ -208,6 +208,10 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
     let needsFullPush = true;
     let pushTimer: ReturnType<typeof setTimeout> | undefined;
     let pushWarned = false;
+    /** Set when an edit is waiting for its push to reach the backend before the browser reloads. */
+    let reloadPending = false;
+    /** Reloads the browser, once there is a dev server to do it through. */
+    let reloadBrowser: (() => void) | undefined;
 
     /**
      * Records one module's fresh analysis, reporting whether it differs from what the backend already has.
@@ -261,8 +265,16 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
 
         const full = needsFullPush;
         const modules = full ? Object.keys(devData.usages) : [...changedModules];
+
+        // Taken with the modules, so that an edit made while this push is in flight keeps its own reload:
+        // that one belongs to the next push, which is the one carrying it to the backend.
+        const reload = reloadPending;
+        reloadPending = false;
+
         if (!full && modules.length === 0)
         {
+            // An earlier push already took these modules, so the browser has nothing left to wait for.
+            reloadIf(reload);
             return;
         }
 
@@ -289,6 +301,9 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
                 // slice into and says so. Everything it missed goes out in one full push.
                 if (res.status === 409 && !full)
                 {
+                    // Handed on rather than done here: the resync is the push that gets this edit to the
+                    // backend, so it is the one the browser waits for.
+                    reloadPending = reload;
                     needsFullPush = true;
                     pushToServer();
                     return;
@@ -306,6 +321,7 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
                 {
                     pushWarned = false;
                 }
+                reloadIf(reload);
             })
             .catch((e) => {
                 requeue(full, modules);
@@ -314,7 +330,22 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
                     console.warn(`[track-usage] could not reach ${url} (is the backend running?)`, e);
                     pushWarned = true;
                 }
+                reloadIf(reload);
             });
+    }
+
+
+    /**
+     * Reloads the browser for an edit whose push has been dealt with -- including one that failed, because
+     * the developer is looking at the change they just made and the warning above says why the backend does
+     * not have it. Not reloading would make an unreachable backend look like a broken dev server.
+     */
+    function reloadIf(reload: boolean): void
+    {
+        if (reload)
+        {
+            reloadBrowser?.();
+        }
     }
 
     /**
@@ -381,6 +412,8 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
             {
                 devData = {usages: {}};
             }
+            reloadBrowser = () => server.ws.send({type: "full-reload"});
+
             // Immediately and in full: the backend answers page requests from this data, and the first of
             // them arrives before the browser has asked the dev server for a single module.
             if (isDevMode)
@@ -413,11 +446,17 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
                 }
                 if (mergeIntoDevData(file))
                 {
-                    if (isDevMode)
+                    if (isDevMode && pushUrl)
                     {
+                        // The reload waits for the push. The backend renders the page from this analysis, so
+                        // a browser reloading first is served the page the edit was meant to change.
+                        reloadPending = true;
                         schedulePush();
                     }
-                    server.ws.send({type: "full-reload"});
+                    else
+                    {
+                        server.ws.send({type: "full-reload"});
+                    }
                 }
                 errorCount = 0
             });

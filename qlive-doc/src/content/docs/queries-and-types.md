@@ -67,38 +67,45 @@ fragment contributes, so a query using one is refused where it is declared.
 
 ## Generated result types
 
-`Q_FooResult` above is **generated**, not written by hand. Two things
-generate it, from the same analysis and with the same result:
+`Q_FooResult` above is **generated**, not written by hand. The generator
+parses the query against `schema.graphql` and patches the result type into
+the module at the source offsets the track-usage plugin recorded, adding
+the `QueryDocumentMethods` import when the query selects a document.
 
-- **the dev backend**, while you work. In the dev profile the typing
-  service watches the pushed analysis, parses each query against the live
-  schema, and patches the result type back into the module at the source
-  offsets the plugin recorded. So the loop is: edit the query, save, and
-  the type next to it updates.
+It runs from two places, and it is the same code in both:
+
+- **the track-usage plugin**, while a dev server runs. Once at startup, so
+  a type someone else left behind is caught before you trip over it, then
+  per save. The loop is: edit the query, save, and the type next to it
+  updates. No backend involved.
 - **the codegen CLI**, when you ask:
 
   ```bash
   generate-query-types schema.graphql src
   ```
 
-  Same rewrite, no backend needed -- it runs the track-usage analysis over
-  `src/` itself and checks the queries against `schema.graphql`. `qlive-test`
-  wires it into `pnpm generate` behind `generate-ts`, which is where it
-  belongs: a schema change and the query types it invalidates are one step.
+  `qlive-test` wires it into `pnpm generate` behind `generate-ts`, which is
+  where it belongs: a schema change and the query types it invalidates are
+  one step.
 
-Either way the type is written into your source, so keep it checked in. A
-build does not generate it -- `pnpm generate` does, and a diff afterwards is
-how you notice a query that no longer matches the schema.
+Either way the type is written into your source, so keep it checked in.
+`vite build` does not generate it -- the dev server and `pnpm generate` do,
+and a diff after either is how you notice a query that no longer matches
+the schema.
 
-Both add the `QueryDocumentMethods` import when the query selects a
-document, and both need the `indexes` option of babel-plugin-track-usage
-(on by default) -- without the source offsets there is nowhere to patch.
-The dev backend needs one thing more: `qlive.dev.ts-source` has to name the
-same directory as the plugin's `sourceRoot`.
+The plugin generates whenever `schema.graphql` is next to your
+`vite.config.ts` and `@quinscape/qlive-codegen` is installed. Point it
+elsewhere, or turn it off, with the plugin's `queryTypes` option. The
+`indexes` option of babel-plugin-track-usage has to stay on (it is by
+default) -- without the source offsets there is nowhere to patch.
 
-Write `new GraphQLQuery<any>(...)` for a query that has no result type yet.
-The generator replaces the type argument rather than inventing the call, so
-`any` is the placeholder that gets it started.
+A new query is written `new GraphQLQuery(...)`, with no type argument. The
+generator adds one, and replaces it from then on.
+
+A query the generator cannot type -- one that does not fit the schema -- is
+reported by name and skipped. The other queries still get theirs, so a
+query halfway through an edit does not hold up the module you are looking
+at. `generate-query-types` exits non-zero when any query was skipped.
 
 ## Running a query directly
 

@@ -51,7 +51,7 @@ annotations.
 |---|---|---|
 | Where the app is mounted | `base: "/app/"` in `vite.config.ts` | `QLivePaths.APP_BASE` |
 | Where views live | the `import.meta.glob()` pattern, `./app/**/*.tsx` | `QLivePaths.VIEW_ROOT`, `./app/` |
-| Where tracked modules are rooted | the track-usage plugin's `sourceRoot`, `src/` by default | `qlive.dev.ts-source` (dev only) |
+| Where tracked modules are rooted | the track-usage plugin's `sourceRoot`, `src/` by default | the module ids in the pushed analysis |
 | Type declarations | `src/types.d.ts` | `schema.graphql` it was generated from |
 
 `/app/sub/view` is served by the module `./app/sub/View` because of the

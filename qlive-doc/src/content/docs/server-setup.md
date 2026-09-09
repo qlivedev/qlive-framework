@@ -122,33 +122,29 @@ public GraphQLController graphQLController(GraphQL graphQL)
 is a second, dev-only endpoint exempt from CSRF, enabled with the `dev`
 profile.
 
-### Dev-only: the query typing service
+### Dev-only: receiving the pushed analysis
 
 ```java
 @Bean
 @Profile("dev")
-public GraphQLQueryTypingService hotReloadTypingService(
-    DomainQL domainQL,
-    @Value("${qlive.dev.ts-source:frontend/src}") String tsSource
-) throws IOException { ... }
+public DevStaticAnalysisProvider devStaticAnalysisProvider() { ... }
 
 @Bean
 @Profile("dev")
 public TrackUsageDevController trackUsageDevController(
-    GraphQLQueryTypingService typingService,
     DevStaticAnalysisProvider provider
 ) { ... }
 ```
 
-This is what writes generated result types back into your query modules --
-for the modules of the push that arrived, so a save costs the types of what
-you edited and not of the whole frontend. The Vite plugin collects a save's
-modules for `pushDebounceMs` before pushing them.
+`vite build` writes `track-usage.json` to disk for the backend to read, but
+`vite dev` never touches disk. So in dev the plugin pushes the analysis
+here instead, and this is what the backend answers page requests from --
+which query a view injects, which paths declared `noSchema()`.
 
-`qlive.dev.ts-source` has to name the same directory as the Vite plugin's
-`sourceRoot`, because the module paths in the pushed data are relative to
-it. A relative value resolves against the backend's working directory,
-which is a good reason to set it explicitly.
+A push carries only the modules one save changed; the plugin collects them
+for `pushDebounceMs` first. Nothing is generated here: the
+[query result types](/qlive-framework/graphql-and-typescript/) are written
+by the plugin, in the frontend, where the sources are.
 
 ## Query logic
 

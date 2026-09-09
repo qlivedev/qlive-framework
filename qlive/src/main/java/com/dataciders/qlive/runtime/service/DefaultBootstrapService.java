@@ -79,10 +79,6 @@ public class DefaultBootstrapService
             this.qlConfigJSON.toJSON().length(),
             this.reducedConfigJSON.toJSON().length()
         );
-        if (log.isDebugEnabled())
-        {
-            log.debug("QLiveConfig JSON: {}", this.qlConfigJSON.toJSON());
-        }
     }
 
     /// Creates a {@link QLiveConfig} bean hierarchy.

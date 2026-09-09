@@ -40,6 +40,8 @@ React components are not hydrated in the React Server component sense but just f
 It simplifies component lifecycles. Ideally it removes *all* async behavior at page load. The more complex the data, the
 more request latency is saved. It simplifies testing the components. 
 
+## Getting Started
+
 Start with the [Overview](/qlive-framework/overview/), which explains what the framework
 does and how a page reaches the browser. The rest follows the order of
 the sidebar.

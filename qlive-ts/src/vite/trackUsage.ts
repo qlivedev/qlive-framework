@@ -35,10 +35,11 @@ export interface TrackedFunctionSpec
 }
 
 /**
- * The calls QLive's own analysis is built on. Their keys are the symbolic names the server looks a call
- * up under -- ModuleFunctionReferences.USE_INJECTION_CALL_NAME and its neighbours name the same strings
+ * The calls QLive's own analysis is built on. Their keys are the symbolic names the server looks up a call under --
+ * ModuleFunctionReferences.USE_INJECTION_CALL_NAME and its neighbours name the same strings
  * on the Java side -- so what belongs in here is the framework's to state and not an application's to
- * get right. An application adds its own entries through `trackedFunctions`.
+ * get right. An application adds its own entries through `trackedFunctions`, and is refused a key that
+ * is already one of these.
  */
 export const QLIVE_TRACKED_FUNCTIONS: Record<string, TrackedFunctionSpec> = {
     i18n: {
@@ -71,8 +72,9 @@ const FULL_PUSH_QUERY = "?full=true";
 export interface TrackUsagePluginOptions
 {
     /**
-     * Calls to record on top of {@link QLIVE_TRACKED_FUNCTIONS}. Merged over those, so an entry under one
-     * of their keys replaces it.
+     * Calls to record on top of {@link QLIVE_TRACKED_FUNCTIONS}. Their keys have to be the application's
+     * own: one of QLive's is refused rather than merged over, because the server reads the framework's
+     * calls back out under exactly those names.
      */
     trackedFunctions?: Record<string, TrackedFunctionSpec>;
     /**
@@ -183,9 +185,24 @@ function toRelativeModuleId(absPath: string, sourceRoot: string): string
 function resolveOptions(options: TrackUsagePluginOptions, config: ResolvedConfig): ResolvedOptions
 {
     const sourceRoot = options.sourceRoot ?? path.join(config.root, "src");
+    const trackedFunctions = options.trackedFunctions ?? {};
+
+    // Said out loud rather than settled by the spread order below. An application cannot make its own
+    // version of one of these work: the server reads them back out by name, and everything between the
+    // call and that read is the framework's. Silently ignoring the entry would leave a config that does
+    // nothing, and silently taking it would take QLive's own calls out of the analysis.
+    const reserved = Object.keys(trackedFunctions).filter((name) => name in QLIVE_TRACKED_FUNCTIONS);
+    if (reserved.length > 0)
+    {
+        throw new Error(
+            `[track-usage] trackedFunctions may not redefine ${reserved.join(", ")}: QLive records its own ` +
+            `calls under those names and the server looks them up there. Use a name of your own -- the key ` +
+            `is only what the analysis files the call under, so the same function can be tracked twice.`
+        );
+    }
 
     return {
-        trackedFunctions: {...QLIVE_TRACKED_FUNCTIONS, ...options.trackedFunctions},
+        trackedFunctions: {...trackedFunctions, ...QLIVE_TRACKED_FUNCTIONS},
         sourceRoot: sourceRoot.endsWith("/") ? sourceRoot : sourceRoot + "/",
         debug: options.debug,
         indexes: options.indexes ?? true,

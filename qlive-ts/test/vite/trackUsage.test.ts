@@ -5,7 +5,7 @@ import * as path from "node:path";
 import trackUsageData from "babel-plugin-track-usage/data";
 import type {Plugin, ResolvedConfig, ViteDevServer} from "vite";
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
-import {trackUsage} from "../../src/vite/trackUsage";
+import {type TrackUsagePluginOptions, trackUsage} from "../../src/vite/trackUsage";
 
 /**
  * Covers what the plugin does with a backend: which modules a push carries, and when the browser is told to
@@ -94,23 +94,32 @@ describe("trackUsage", () => {
     /** `null` starts the plugin the way an application without a QLive backend configures it. */
     function startPlugin(backendOrigin: string | null = "http://localhost:8080"): TestPlugin
     {
-        const plugin = trackUsage({
+        const plugin = resolvePlugin({
             sourceRoot,
             seedFile: path.join(projectRoot, "no-such-seed.json"),
             backendOrigin: backendOrigin ?? undefined,
             pushDebounceMs: DEBOUNCE_MS,
-        }) as unknown as TestPlugin;
+        });
+
+        plugin.configureServer({
+            watcher,
+            ws: {send: () => { reloads++; }},
+        } as unknown as ViteDevServer);
+
+        return plugin;
+    }
+
+
+    /** The plugin up to the point where its options have been resolved, which is where they are checked. */
+    function resolvePlugin(options: TrackUsagePluginOptions): TestPlugin
+    {
+        const plugin = trackUsage(options) as unknown as TestPlugin;
 
         plugin.configResolved({
             root: projectRoot,
             command: "serve",
             mode: "development",
         } as unknown as ResolvedConfig);
-
-        plugin.configureServer({
-            watcher,
-            ws: {send: () => { reloads++; }},
-        } as unknown as ViteDevServer);
 
         return plugin;
     }
@@ -201,6 +210,24 @@ describe("trackUsage", () => {
 
         await tick();
         expect(pushes).toHaveLength(0);
+    });
+
+
+    it("refuses to track one of QLive's own calls under its own name", () => {
+        // The server reads those names back out of the analysis, so an application's version of one cannot
+        // work -- and quietly dropping the entry would leave config that does nothing.
+        expect(() => resolvePlugin({
+            sourceRoot,
+            trackedFunctions: {useInjection: {module: "./service/mine", fn: "useInjection"}},
+        })).toThrow(/useInjection/);
+    });
+
+
+    it("tracks an application's own calls alongside QLive's", () => {
+        expect(() => resolvePlugin({
+            sourceRoot,
+            trackedFunctions: {track: {module: "./service/analytics", fn: "track"}},
+        })).not.toThrow();
     });
 
 

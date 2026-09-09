@@ -120,7 +120,7 @@ application configures none of it. `backendOrigin` is all it needs: the dev
 endpoint the analysis is POSTed to belongs to the framework as well.
 
 An application that wants its *own* calls analysed adds them under
-`trackedFunctions`, which is merged over QLive's:
+`trackedFunctions`, which is merged with QLive's:
 
 ```ts
 trackUsage({
@@ -136,6 +136,14 @@ convention it is the function's own name. `allowIdentifier` on a spec is
 what lets the analysis record *which identifier* was passed rather than a
 static value; QLive uses it for `useInjection`. The full default set is
 exported as `QLIVE_TRACKED_FUNCTIONS` if you want to look at it.
+
+One of QLive's own keys is refused rather than overridden, and the dev
+server or build stops with the name in the message. The server reads those
+calls back out of the analysis under exactly those names, so a replacement
+cannot be made to work from the application side -- everything between the
+call and that read belongs to the framework. Nothing stops you tracking the
+same function under a key of your own: the key only says what the analysis
+files the call under.
 
 Proxy `/api/**` and `/graphql` to the backend from the dev server rather
 than pointing the frontend at another origin: keeping them same-origin is

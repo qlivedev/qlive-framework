@@ -2,6 +2,7 @@ package com.dataciders.qlivetest.runtime.config;
 
 import com.dataciders.qlive.runtime.auth.AppUserDetailsService;
 import com.dataciders.qlive.runtime.auth.DefaultPersistentTokenRepository;
+import com.dataciders.qlive.runtime.QLivePaths;
 import com.dataciders.qlive.runtime.controller.GraphQLController;
 import com.dataciders.qlive.runtime.security.GraphQLSecurityErrorHandler;
 import com.dataciders.qlivetest.domain.tables.pojos.AppLogin;
@@ -10,6 +11,8 @@ import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -17,6 +20,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+
+import java.util.Arrays;
 
 @Configuration
 public class SecurityConfiguration
@@ -30,9 +35,12 @@ public class SecurityConfiguration
             "/index.jsp",
             "/static/**",
             "/index.jsp",
-            "/error",
-            "/_dev/**"
+            "/error"
         };
+
+    /// The profile QLive's development endpoints belong to. Outside it they are refused, see
+    /// {@link QLivePaths#DEV_URIS}.
+    private final static Profiles DEV_PROFILE = Profiles.of("dev");
 
     /**
      * Login page and form target. Reachable without authentication like {@link #PUBLIC_URIS}, but
@@ -49,10 +57,15 @@ public class SecurityConfiguration
 
     private final DSLContext dslContext;
 
+    private final boolean devMode;
 
-    public SecurityConfiguration(DSLContext dslContext)
+
+    public SecurityConfiguration(DSLContext dslContext, Environment environment)
     {
         this.dslContext = dslContext;
+        // acceptsProfiles rather than a look at spring.profiles.active, so that the
+        // spring.profiles.default this application runs on counts as well
+        this.devMode = environment.acceptsProfiles(DEV_PROFILE);
     }
 
 
@@ -69,16 +82,32 @@ public class SecurityConfiguration
             )
             .authorizeHttpRequests(
                 auth ->
+                {
                     auth.requestMatchers(PUBLIC_URIS).permitAll()
                         // spelled out here rather than left to formLogin's permitAll(), which appends its
                         // rules behind the "/**" one below and would therefore never be reached
-                        .requestMatchers(LOGIN_URI).permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/**").hasRole("USER")
+                        .requestMatchers(LOGIN_URI).permitAll();
+
+                    // Ahead of the "/**" rule, which would otherwise let any logged-in user at them. In dev
+                    // they are open, which is what the Vite dev server needs; outside it, they are refused to
+                    // everyone, admins included. The mappings exist in every profile -- Spring evaluates
+                    // @Profile for bean definitions, not for the request mappings of a bean that exists --
+                    // so this rule is the whole of what stops them being used.
+                    if (devMode)
+                    {
+                        auth.requestMatchers(QLivePaths.DEV_URIS).permitAll();
+                    }
+                    else
+                    {
+                        auth.requestMatchers(QLivePaths.DEV_URIS).denyAll();
+                    }
+                    auth.requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/**").hasRole("USER");
+                }
             )
 
             .csrf(
-                csrf -> csrf.ignoringRequestMatchers(PUBLIC_URIS)
+                csrf -> csrf.ignoringRequestMatchers(csrfExemptUris())
             )
 
             // Without a configured authentication mechanism, Spring Security answers every
@@ -121,6 +150,24 @@ public class SecurityConfiguration
                         .key(rememberMeKey)
             )
             .build();
+    }
+
+
+    /**
+     * The URIs no CSRF token is demanded for. QLive's development endpoints are among them only where they
+     * can be reached at all -- a pattern that is refused anyway has no business weakening the rule that
+     * would refuse it.
+     */
+    private String[] csrfExemptUris()
+    {
+        if (!devMode)
+        {
+            return PUBLIC_URIS;
+        }
+
+        final String[] exempt = Arrays.copyOf(PUBLIC_URIS, PUBLIC_URIS.length + 1);
+        exempt[PUBLIC_URIS.length] = QLivePaths.DEV_URIS;
+        return exempt;
     }
 
 

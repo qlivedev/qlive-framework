@@ -12,19 +12,21 @@ not have.
 So we introduced a way to automatically derive the correct Typescript types for a GraphQL Query. The standard we use
 here is derived both from the needs of Typescript and the injection mechanism.
 
+## Query rules
+
 The standard is that every query is defined in its own file and that the exported name matches the internal query name.
 
 Also, every query is allowed to only defined one query method. This might seem like a loss at first, but the main reason 
 for that is effectively fetching data and with the injection mechanism it does not matter how many queries we use since 
 it all is done in one go on the server anyway. 
 
+### Query Example
 
-## Declaring a query
-
-```ts {10-24} title="src/app/Q_Foo.ts"
+```ts {11-24} title="src/app/Q_Foo.ts"
 import {GraphQLQuery, QueryDocumentMethods} from "@quinscape/qlive-ts";
 import {AppUser, Foo, FooDocument} from "../types";
 
+// generated
 export type Q_FooResult = Pick<FooDocument, "type" | "config"> & {
     rows: Array<Pick<Foo, "id" | "name" | "description"> & {
         owner: Pick<AppUser, "id" | "login">
@@ -58,8 +60,8 @@ Two rules the analysis depends on:
   invisible to the analysis, cannot be injected, and gets no generated type.
 
 `T` in `GraphQLQuery<T>` is what **one execution** yields: the value of the
-query's single top-level selection, unwrapped. Not an object keyed by the
-result key -- above, `Q_Foo` yields the document, not `{xxx: document}`.
+query's single top-level selection, unwrapped. Aliasing the one method changes
+nothing.
 
 Fragments are not supported, spreads or inline. Both the generated result
 type and the client's conversion map would silently miss the fields a

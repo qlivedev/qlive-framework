@@ -1,5 +1,6 @@
 package com.dataciders.qlive.runtime.controller;
 
+import com.dataciders.qlive.runtime.QLivePaths;
 import com.dataciders.qlive.runtime.util.GraphQLUtil;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.ExecutionResult;
@@ -8,7 +9,6 @@ import graphql.GraphQLError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,8 +35,9 @@ public class GraphQLController
     public final static String GRAPHQL_URI = "/graphql";
 
     /**
-     * Special development GraphQL end point for development that can be enabled using the "dev" profile. This end-point
-     * is exempt from CSRF protection requirements.
+     * Special development GraphQL end point. Unauthenticated and exempt from CSRF protection, which is what
+     * lets the frontend tooling use it, and why it is refused outside the dev profile -- see
+     * {@link QLivePaths#DEV_URIS}.
      */
     public final static String GRAPHQL_DEV_URI = "/_dev/graphql";
 
@@ -69,7 +70,12 @@ public class GraphQLController
     }
 
 
-    @Profile("dev")
+    /**
+     * The development endpoint, mapped in every profile. Spring evaluates {@code @Profile} for bean
+     * definitions and not for the request mappings of a bean that exists, so an annotation here would
+     * read as a gate while being none. What decides whether this can be reached is the application's
+     * security configuration refusing {@link QLivePaths#DEV_URIS} outside the dev profile.
+     */
     @RequestMapping(value = GRAPHQL_DEV_URI, method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> serveGraphQLDev(@RequestBody Map<String,Object> body)
     {

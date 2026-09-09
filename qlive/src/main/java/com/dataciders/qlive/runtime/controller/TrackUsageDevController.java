@@ -29,8 +29,9 @@ public class TrackUsageDevController
     private final static Logger log = LoggerFactory.getLogger(TrackUsageDevController.class);
 
     /**
-     * Special development end point that receives pushed track-usage analysis. Exempt
-     * from CSRF protection requirements, like other "/_dev/**" endpoints.
+     * Special development end point that receives pushed track-usage analysis. Unauthenticated and exempt
+     * from CSRF protection like QLive's other development endpoints, and refused outside the dev profile
+     * for the same reason -- see {@link com.dataciders.qlive.runtime.QLivePaths#DEV_URIS}.
      */
     public final static String TRACK_USAGE_DEV_URI = "/_dev/track-usage";
 

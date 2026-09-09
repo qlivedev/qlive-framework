@@ -27,4 +27,18 @@ public final class QLivePaths
     /// frontend -- so the convention is stated here instead. It is also what says where useInjection() may
     /// be called: below this, and nowhere else.
     public final static String VIEW_ROOT = "./app/";
+
+    /// Ant pattern covering every endpoint QLive maps for development only, e.g.
+    /// {@link com.dataciders.qlive.runtime.controller.GraphQLController#GRAPHQL_DEV_URI} and
+    /// {@link com.dataciders.qlive.runtime.controller.TrackUsageDevController#TRACK_USAGE_DEV_URI}.
+    ///
+    /// These are unauthenticated and exempt from CSRF, which is what makes them usable from the Vite dev
+    /// server, and exactly why an application's security configuration has to refuse them outside the dev
+    /// profile. Spring maps a handler method whatever the profile -- `@Profile` is evaluated for bean
+    /// definitions, not for the request mappings of a bean that exists -- so security is what decides
+    /// whether they can be reached, and nothing else is.
+    ///
+    /// Named here so that an application says which rule applies to them without having to know what QLive
+    /// maps below the prefix.
+    public final static String DEV_URIS = "/_dev/**";
 }

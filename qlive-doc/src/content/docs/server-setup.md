@@ -153,7 +153,7 @@ one generic method with `@GraphQLTypeParam` covers every type.
 
 ## Security
 
-Two things are worth knowing because they are easy to get wrong.
+Three things are worth knowing because they are easy to get wrong.
 
 **The GraphQL endpoint wants GraphQL-shaped errors.** Spring Security's own
 answers are aimed at a browser following links: an unauthenticated request
@@ -184,6 +184,37 @@ to a browser and want the redirect.
 without authentication, but do not put it in the list of URIs excluded from
 CSRF: that POST is exactly the request that has to stay protected, so a
 foreign page cannot log a user in as someone else.
+
+**The dev endpoints have to be closed outside the dev profile, by you.**
+QLive maps `/_dev/graphql` and `/_dev/track-usage` for the frontend
+tooling. They are unauthenticated and CSRF-exempt -- that is what makes
+them usable from the Vite dev server, and what makes them a hole anywhere
+else. `QLivePaths.DEV_URIS` is the pattern covering them:
+
+```java
+if (environment.acceptsProfiles(Profiles.of("dev")))
+{
+    auth.requestMatchers(QLivePaths.DEV_URIS).permitAll();
+}
+else
+{
+    auth.requestMatchers(QLivePaths.DEV_URIS).denyAll();
+}
+```
+
+Ahead of your `/**` rule, or that one lets any logged-in user at them --
+which is the point of the rule, and not something CSRF covers for you. CSRF
+stops a foreign page using a visitor's session; it stops nobody who calls
+the endpoint directly and fetches a token for their own session the way
+your frontend does. Keep them CSRF-exempt only in dev as well, but do not
+mistake that for the gate.
+
+Do not reach for `@Profile` on the controller method instead: Spring
+evaluates it for bean definitions, not for the request mappings of a bean
+that exists, so it reads as a gate while being none. The mappings are there
+in every profile; your security configuration is the whole of what decides
+whether they answer. `acceptsProfiles` rather than a look at
+`spring.profiles.active`, so that a `spring.profiles.default` counts too.
 
 ## Metadata providers
 

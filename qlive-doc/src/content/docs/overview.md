@@ -79,8 +79,12 @@ entry point or view a request resolves to.
 ## The dev loop
 
 `pnpm dev` runs the Spring Boot backend and the Vite dev server together.
-On top of the usual HMR, one extra thing happens: as you edit a module
-holding a `GraphQLQuery`, the plugin pushes the analysis to the backend,
-which parses the query against the live schema and **writes the generated
-result type back into your source file**. See
-[Queries and types](/qlive-framework/queries-and-types/).
+On top of the usual HMR, we're updating the server about current state of the Typescript sources.
+
+All the functionality relying on static analysis is provided with fresh data.
+
+If you edit a module holding a `GraphQLQuery` the system **corrects the correct Typescript type back into your source file**.
+
+The next view you invoke will correctly reflect the new data selection. 
+
+See [GraphQL and Typescript](/qlive-framework/queries-and-types/).

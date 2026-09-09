@@ -97,23 +97,18 @@ export class GraphQLQuery<T>
         return (o as Record<symbol, unknown>)[secret] as GraphQLQuery<T> || null
     }
 
-    execute(params: GraphQLParams): Promise<T>
+    async execute(params: GraphQLParams): Promise<T>
     {
         const map = this.conversionMap;
 
-        return graphql<any>(this, convertVariablesToServer(params, map))
-            .then(data => {
-
-                const result = firstValue(convertResultFromServer(data, map)) as T;
-
-                if (result instanceof QueryDocument)
-                {
-                    // gives the document the query it came from, which is what
-                    // update() re-executes -- inject() does the same for its value
-                    this.register(result)
-                }
-
-                return result;
-            });
+        const data = await graphql<any>(this, convertVariablesToServer(params, map));
+        const result = firstValue(convertResultFromServer(data, map)) as T;
+        if (result instanceof QueryDocument)
+        {
+            // gives the document the query it came from, which is what
+            // update() re-executes -- inject() does the same for its value
+            this.register(result);
+        }
+        return result;
     }
 }

@@ -24,7 +24,7 @@ export { default as config } from "./config";
 export { default as i18n } from "./i18n";
 
 export { useInjection } from "./useInjection";
-export { default as data } from "./data";
+export { default as data, injectionSource } from "./data";
 export { GraphQLQuery } from "./GraphQLQuery";
 export { default as graphql, firstValue } from "./util/graphql";
 export { QueryDocument } from "./QueryDocument";
@@ -184,7 +184,10 @@ export type {
  *   inject.inject()                     the plain read of an injection, without
  *                                       the subscription that makes an update
  *                                       show up. useInjection() is the way in;
- *                                       data() covers the raw value + meta case
+ *                                       data() covers the value + meta case, and
+ *                                       injectionSource() the ids no view claimed
+ *   data.storeInjection()               the other half of inject(): what it
+ *                                       converted, kept for the next read
  *   util/conversionMap.buildConversionMap
  *                                       a GraphQLQuery builds its own map
  *   views.viewNameForRoute()            resolution step inside

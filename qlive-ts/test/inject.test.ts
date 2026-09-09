@@ -74,4 +74,30 @@ describe("inject", () => {
         expect(doc).toBeInstanceOf(QueryDocument)
         expect(doc).not.toBe(inject(Q_Foo))
     })
+
+    it("fails on an injection id the page came without", () => {
+        expect(() => inject(Q_Foo, {__id: "Third"})).toThrow(/Third/)
+    })
+
+    it("converts again when a new page brings new data under a known id", async () => {
+        const before = inject(Q_Foo)
+
+        const next = queryResult()
+        next.xxx.rows[0].name = "Foo #2"
+
+        await init({
+            config: testConfig,
+            csrfToken: testCsrfToken(),
+            data: {
+                Q_Foo: {data: next, type: "FooDocument", meta: null}
+            }
+        })
+
+        const after = inject(Q_Foo)
+
+        // that the id was read on the last page says nothing about this page's data
+        expect(after).not.toBe(before)
+        expect(after.rows[0].name).toBe("Foo #2")
+        expect(after.rows[0].created).toBeInstanceOf(Temporal.Instant)
+    })
 })

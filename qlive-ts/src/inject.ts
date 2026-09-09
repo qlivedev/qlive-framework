@@ -1,6 +1,6 @@
 import {GraphQLQuery} from "./GraphQLQuery";
 import {firstValue, GraphQLParams} from "./util/graphql";
-import data from "./data";
+import data, {injectionSource, storeInjection} from "./data";
 import {convertResultFromServer} from "./converter";
 import {QueryDocument} from "./QueryDocument";
 
@@ -10,9 +10,6 @@ export type InjectParams = GraphQLParams & {
      */
     __id?: string
 }
-
-/** injection ids whose data has been converted, see inject() */
-const converted = new Set<string>()
 
 /**
  * Reads the data the server injected for the given query, converting it on first use.
@@ -35,16 +32,26 @@ export default function inject<T>(query: GraphQLQuery<T>, params: InjectParams =
     const { __id } = params
 
     const injectionId = __id || query.queryName;
-    const injection = data(injectionId);
+    let injection = data(injectionId);
 
-    // The server ships the injection as the JSON it got out of GraphQL. Converting it
-    // needs the selections of the query, which is only here now -- so it happens on
-    // first use and the result replaces the raw data, an injection being read as often
-    // as its view renders.
-    if (!converted.has(injectionId))
+    if (!injection)
     {
-        injection.value = convertResultFromServer(injection.value, query.conversionMap)
-        converted.add(injectionId)
+        const source = injectionSource(injectionId)
+        if (!source)
+        {
+            throw new Error("No injection '" + injectionId + "' in the data of this page")
+        }
+
+        // The server ships the injection as the JSON it got out of GraphQL. Converting it
+        // needs the selections of the query, which is only here now -- so it happens on
+        // first use and the converted injection is what every later read of that id gets,
+        // an injection being read as often as its view renders.
+        injection = {
+            value: convertResultFromServer(source.data, query.conversionMap),
+            type: source.type,
+            meta: source.meta
+        }
+        storeInjection(injectionId, injection)
     }
 
     const result = firstValue(injection.value) as T;

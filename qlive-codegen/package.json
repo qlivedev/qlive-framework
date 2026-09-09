@@ -5,7 +5,8 @@
   "type": "module",
   "description": "Schema-to-TypeScript codegen for QLive. Build-time only, and deliberately a separate package: graphql and @graphql-tools are ~5MB that the qlive-ts runtime never imports, so apps that do not run codegen should not carry them.",
   "bin": {
-    "generate-ts": "tooling/generateTS.js"
+    "generate-ts": "tooling/generateTS.js",
+    "generate-query-types": "tooling/generateQueryTypes.js"
   },
   "scripts": {
     "test": "vitest run"
@@ -17,6 +18,9 @@
     "@graphql-tools/graphql-file-loader": "^8.1.12",
     "@graphql-tools/load": "^8.1.8",
     "graphql": "^16.13.1"
+  },
+  "peerDependencies": {
+    "@quinscape/qlive-ts": "workspace:*"
   },
   "devDependencies": {
     "@quinscape/qlive-ts": "workspace:*",

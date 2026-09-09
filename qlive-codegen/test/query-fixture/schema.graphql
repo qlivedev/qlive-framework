@@ -1,0 +1,95 @@
+# Fixture for the query result type generation.
+#
+# The schema QLive's own GraphQLQueryTypingServiceTest builds its DomainQL from, printed as SDL. The
+# expectations on both sides are written against these types, which is what makes them comparable:
+# the dev backend and this generator have to render the same query the same way.
+
+schema {
+    query: QueryType
+    mutation: MutationType
+}
+
+"Generalized query configuration"
+scalar QueryConfig
+
+"SQL timestamp equivalent"
+scalar Timestamp
+
+"Auto-generated from TestLogic"
+type QueryType {
+    queryTestFooDocument(config: QueryConfig!): TestFooDocument!
+    queryTestUserDocument(config: QueryConfig!): TestUserDocument!
+}
+
+"Auto-generated from TestLogic"
+type MutationType {
+    mDummy: Boolean
+}
+
+"Generated from public.test_foo"
+type TestFoo {
+    "DB column 'created'"
+    created: Timestamp!
+    "DB column 'description'"
+    description: String
+    "DB column 'flag'"
+    flag: Boolean!
+    "Target of 'type'"
+    fooType: TestFooType!
+    "DB column 'id'"
+    id: String!
+    "DB column 'name'"
+    name: String!
+    "DB column 'num'"
+    num: Int!
+    "Target of 'owner_id'"
+    owner: TestUser!
+    "DB foreign key column 'owner_id'"
+    ownerId: String!
+    "DB foreign key column 'type'"
+    type: String!
+}
+
+"Generated for com.dataciders.qlive.model.QueryDocument<TestFoo>"
+type TestFooDocument {
+    config: QueryConfig!
+    rowCount: Int
+    rows: [TestFoo]!
+    type: String!
+}
+
+"Generated from public.test_foo_type"
+type TestFooType {
+    "DB column 'name'"
+    name: String!
+    "DB column 'ordinal'"
+    ordinal: Int!
+}
+
+"Generated from public.test_user"
+type TestUser {
+    "DB column 'created'"
+    created: Timestamp!
+    "DB column 'disabled'"
+    disabled: Boolean
+    "DB column 'id'"
+    id: String!
+    "DB column 'last_login'"
+    lastLogin: Timestamp
+    "DB column 'login'"
+    login: String!
+    "DB column 'password'"
+    password: String!
+    "DB column 'roles'"
+    roles: String!
+    "Many-to-many objects from test_foo.owner_id"
+    testFoos: [TestFoo]!
+}
+
+"Generated for com.dataciders.qlive.model.QueryDocument<TestUser>"
+type TestUserDocument {
+    config: QueryConfig!
+    rowCount: Int
+    rows: [TestUser]!
+    type: String!
+}

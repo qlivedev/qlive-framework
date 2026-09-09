@@ -245,9 +245,9 @@ describe("module rewriting", () => {
         fs.writeFileSync(path.join(sourceRoot, "sub", "Q_Test.ts"), template, "utf8")
 
         const analysis = analyzeSourceTree({sourceRoot})
-        const updated = updateGraphQLQueryTypes(schema, analysis, sourceRoot)
+        const {updated, failed} = updateGraphQLQueryTypes(schema, analysis, sourceRoot)
 
-        return {updated, source: fs.readFileSync(path.join(sourceRoot, "sub", "Q_Test.ts"), "utf8")}
+        return {updated, failed, source: fs.readFileSync(path.join(sourceRoot, "sub", "Q_Test.ts"), "utf8")}
     }
 
 
@@ -267,9 +267,10 @@ describe("module rewriting", () => {
 
 
     it("writes the result type into the module the query lives in", () => {
-        const {updated, source} = generateInto(template)
+        const {updated, failed, source} = generateInto(template)
 
         expect(updated).toEqual(["./sub/Q_Test"])
+        expect(failed).toEqual([])
         expect(source).toBe(fs.readFileSync(path.join(fixtureDir, "Q_Test.expected.ts"), "utf8"))
     })
 
@@ -286,9 +287,29 @@ describe("module rewriting", () => {
     })
 
 
-    it("says what to write when the constructor has no type parameter yet", () => {
-        expect(() => generateInto(template.replace("new GraphQLQuery<any>", "new GraphQLQuery")))
-            .toThrow(/new GraphQLQuery<any>\(\.\.\.\)/)
+    it("adds the type argument to a query written without one", () => {
+        // so that `new GraphQLQuery(...)` is all a new query has to say
+        expect(generateInto(template.replace("new GraphQLQuery<any>", "new GraphQLQuery")).source)
+            .toBe(fs.readFileSync(path.join(fixtureDir, "Q_Test.expected.ts"), "utf8"))
+    })
+
+
+    it("reports a query it cannot type and keeps the others", () => {
+        fs.rmSync(sourceRoot, {recursive: true, force: true})
+        fs.mkdirSync(path.join(sourceRoot, "sub"), {recursive: true})
+        fs.writeFileSync(path.join(sourceRoot, "sub", "Q_Test.ts"), template, "utf8")
+        fs.writeFileSync(
+            path.join(sourceRoot, "sub", "Q_Broken.ts"),
+            template.replace("Q_Test", "Q_Broken").replace("rows {", "rows { nosuchfield "),
+            "utf8"
+        )
+
+        const {updated, failed} = updateGraphQLQueryTypes(schema, analyzeSourceTree({sourceRoot}), sourceRoot)
+
+        expect(updated).toEqual(["./sub/Q_Test"])
+        expect(failed).toHaveLength(1)
+        expect(failed[0].module).toBe("./sub/Q_Broken")
+        expect(failed[0].message).toContain("nosuchfield")
     })
 })
 

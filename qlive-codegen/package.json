@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./tooling/queryTypeGenerator.js",
+    "./package.json": "./package.json"
+  },
   "description": "Schema-to-TypeScript codegen for QLive. Build-time only, and deliberately a separate package: graphql and @graphql-tools are ~5MB that the qlive-ts runtime never imports, so apps that do not run codegen should not carry them.",
   "bin": {
     "generate-ts": "tooling/generateTS.js",

@@ -38,6 +38,9 @@ const RE_VAR_NAME = /.*((export)\s+?const\s+([A-Z][A-Za-z0-9_$]*))\s*=.*/ds
 
 const RE_TYPE_PARAM = /^new GraphQLQuery<(.*)>/
 
+/** The same construction written without a type argument, which is how a new query starts out */
+const RE_UNTYPED = /^new GraphQLQuery\(/
+
 /** Finds the named imports of an existing import from {@link QLIVE_PACKAGE}, so we can join them */
 const RE_QLIVE_IMPORT = new RegExp(
     "import\\s+(?:type\\s+)?\\{([^}]*)}\\s*from\\s*[\"']" + escapeRegExp(QLIVE_PACKAGE) + "[\"']",
@@ -61,54 +64,85 @@ function escapeRegExp(s)
  * @param {Object} analysis     track-usage analysis, i.e. { usages: { "./app/Q_Foo": ... } }
  * @param {string} sourceRoot   directory the module ids in the analysis are relative to
  *
- * @returns {string[]} the module ids whose source was rewritten
+ * @returns {{updated: string[], failed: {module: string, message: string}[]}} the modules rewritten,
+ * and the ones that could not be
  */
 export function updateGraphQLQueryTypes(schema, analysis, sourceRoot)
 {
     const updated = []
+    const failed = []
 
     for (const [modulePath, modFnRef] of Object.entries(analysis.usages ?? {}))
     {
-        const {ctx, selectedOperations} = analyzeGraphQLQuery(schema, modFnRef, modulePath)
-
-        if (!selectedOperations.length)
+        // Per module, because the callers run over a whole source tree: a query that does not fit the
+        // schema is one the developer is in the middle of writing, and it has no business stopping the
+        // module they are actually looking at from getting its type.
+        try
         {
-            continue
+            const rewritten = updateModule(schema, modFnRef, modulePath, sourceRoot)
+            if (rewritten)
+            {
+                updated.push(modulePath)
+            }
         }
-
-        const tsCode = renderResultType(schema, selectedOperations)
-
-        const file = moduleFile(sourceRoot, ctx.modulePath)
-        if (!fs.existsSync(file))
+        catch (e)
         {
-            throw new Error(
-                `Module '${ctx.modulePath}' declares a GraphQLQuery but ${file} does not exist. A query ` +
-                `belongs in a ".ts" module of its own.`
-            )
-        }
-        const source = fs.readFileSync(file, "utf8")
-        const moduleInfo = analyzeModule(ctx, source)
-
-        const updatedSource = moduleInfo && renderModule(
-            moduleInfo,
-            tsCode,
-            isQueryDocumentResult(schema, selectedOperations[0])
-        )
-
-        if (!updatedSource)
-        {
-            console.warn(
-                `[qlive] module '${ctx.modulePath}' seems to be invalid TypeScript at this point. Ignoring it.`
-            )
-        }
-        else if (updatedSource !== source)
-        {
-            fs.writeFileSync(file, updatedSource, "utf8")
-            updated.push(ctx.modulePath)
+            failed.push({module: modulePath, message: e.message ?? String(e)})
         }
     }
 
-    return updated
+    return {updated, failed}
+}
+
+
+/**
+ * Brings one module's result type in line with its query.
+ *
+ * @returns {boolean} true if the module was rewritten
+ */
+function updateModule(schema, modFnRef, modulePath, sourceRoot)
+{
+    const {ctx, selectedOperations} = analyzeGraphQLQuery(schema, modFnRef, modulePath)
+
+    if (!selectedOperations.length)
+    {
+        return false
+    }
+
+    const tsCode = renderResultType(schema, selectedOperations)
+
+    const file = moduleFile(sourceRoot, ctx.modulePath)
+    if (!fs.existsSync(file))
+    {
+        throw new Error(
+            `declares a GraphQLQuery but ${file} does not exist. A query belongs in a ".ts" module of ` +
+            `its own.`
+        )
+    }
+
+    const source = fs.readFileSync(file, "utf8")
+    const moduleInfo = analyzeModule(ctx, source)
+
+    if (!moduleInfo)
+    {
+        // The recorded offsets do not fit the source any more, which is what a module halfway through
+        // an edit looks like. The next save brings both back together.
+        return false
+    }
+
+    const updatedSource = renderModule(
+        moduleInfo,
+        tsCode,
+        isQueryDocumentResult(schema, selectedOperations[0])
+    )
+
+    if (updatedSource === source)
+    {
+        return false
+    }
+
+    fs.writeFileSync(file, updatedSource, "utf8")
+    return true
 }
 
 
@@ -671,24 +705,40 @@ export function analyzeModule(ctx, source)
     const graphQlDef = source.substring(start, end)
     const variableName = match[3]
 
-    if (!RE_TYPE_PARAM.test(graphQlDef))
-    {
-        throw new Error(
-            `${ctx.modulePath}: '${variableName}' is constructed without a type parameter. Write ` +
-            `new GraphQLQuery<any>(...) once -- the generated result type takes that slot.`
-        )
-    }
-
     return {
         variableName,
         prologue,
         leftSideOfDefinition: match[1],
-        graphQLQueryDefinition: graphQlDef.replace(
-            RE_TYPE_PARAM,
-            () => "new GraphQLQuery<" + variableName + "Result>"
-        ),
+        graphQLQueryDefinition: withTypeArgument(graphQlDef, variableName + "Result"),
         epilogue
     }
+}
+
+
+/**
+ * Returns the constructor call typed with the given result type, replacing whatever type argument it
+ * carries. A call written without one gets it added, so `new GraphQLQuery(...)` is all a new query has
+ * to say -- the type it yields is the generator's to fill in either way.
+ *
+ * @param {string} definition  the recorded `new GraphQLQuery...` source
+ * @param {string} typeName    result type to put in the type argument
+ *
+ * @returns {string} the typed call
+ */
+function withTypeArgument(definition, typeName)
+{
+    const typed = "new GraphQLQuery<" + typeName + ">"
+
+    if (RE_TYPE_PARAM.test(definition))
+    {
+        return definition.replace(RE_TYPE_PARAM, () => typed)
+    }
+    if (RE_UNTYPED.test(definition))
+    {
+        return definition.replace(RE_UNTYPED, () => typed + "(")
+    }
+
+    throw new Error("recorded source is not a GraphQLQuery construction: " + definition)
 }
 
 

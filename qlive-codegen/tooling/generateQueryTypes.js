@@ -3,45 +3,42 @@
 /*
  * CLI that regenerates the result type of every GraphQLQuery in an application's source tree.
  *
- * The dev backend does this live, but only in the dev profile, so this is how a build -- or anyone
- * without a running backend -- brings the checked-in types back in line with the queries and the
- * schema. It writes into the source tree, exactly like the backend does, and reports what it touched.
+ * The track-usage plugin does the same thing per save while a dev server runs. This is the way to ask
+ * for it: after a schema change, in CI, or from `pnpm generate`. It writes into the source tree and
+ * reports what it touched.
  */
 
-import fs from "node:fs"
 import path from "node:path"
 
-import {GraphQLFileLoader} from "@graphql-tools/graphql-file-loader"
-import {loadSchema} from "@graphql-tools/load"
 import {analyzeSourceTree} from "@quinscape/qlive-ts/vite"
 
-import {updateGraphQLQueryTypes} from "./queryTypes.js"
+import {createQueryTypeGenerator} from "./queryTypeGenerator.js"
 
 
 async function generateQueryTypes(schemaPath, sourceRoot)
 {
-    if (!fs.existsSync(schemaPath))
-    {
-        throw new Error("Could not find schema " + schemaPath)
-    }
-    if (!fs.existsSync(sourceRoot))
-    {
-        throw new Error("Could not find source root " + sourceRoot)
-    }
+    const generator = await createQueryTypeGenerator({schemaPath, sourceRoot})
 
-    const schema = await loadSchema(schemaPath, {loaders: [new GraphQLFileLoader()]})
-
-    // The same babel pass the Vite plugin runs, so the queries found here are the ones the dev
-    // backend is handed -- same names, same source offsets, same "must be a literal" rule.
-    const analysis = analyzeSourceTree({sourceRoot: path.resolve(sourceRoot)})
-
-    const updated = updateGraphQLQueryTypes(schema, analysis, path.resolve(sourceRoot))
+    // The same babel pass the track-usage plugin runs, so the queries found here are the ones the
+    // dev server generates from -- same names, same source offsets, same "must be a literal" rule.
+    const {updated, failed} = generator.update(analyzeSourceTree({sourceRoot: path.resolve(sourceRoot)}))
 
     console.log(
         updated.length
             ? `Updated query result types in:\n${updated.map(m => "    " + m).join("\n")}`
             : "Query result types are up-to-date"
     )
+
+    if (failed.length)
+    {
+        // Named one by one and then refused: a query that does not fit the schema is exactly what this
+        // is run to find out, and a build that carried on would hide it until the next typecheck.
+        console.error(
+            `\nCould not generate query result types for:\n` +
+            failed.map(f => `    ${f.module}: ${f.message}`).join("\n")
+        )
+        process.exitCode = 2
+    }
 }
 
 

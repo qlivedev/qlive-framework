@@ -31,8 +31,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -75,11 +73,6 @@ public class GraphQLQueryTypingService
     /** Finds {@link #DOCUMENT_METHODS} among already imported names */
     final static Pattern RE_DOCUMENT_METHODS_IMPORTED = Pattern.compile("\\b" + DOCUMENT_METHODS + "\\b");
 
-    private int timeoutMillis = 300;
-
-    private Timer timer = null;
-
-
     public GraphQLQueryTypingService(DomainQL domainQL, File tsSourcePath)
     {
         log.trace("Create GraphQLQueryTypingService");
@@ -91,85 +84,12 @@ public class GraphQLQueryTypingService
 
 
     /**
+     * Updates the TS query sources of the modules in the given track usage data.
      * <p>
-     * Use a timer to delay triggering the TrackUsage update a few milliseconds. If any new updates come in during that
-     * time, the timer is cancelled and a new one is created.
-     * </p><p>
-     * The method returns the given track usage data unchanged to conform with the signature of Consumer&lt;
-     * TrackUsageData&gt;
-     * </p>
+     * Only those modules are looked at, so in dev -- where the Vite plugin pushes an editing round's changed
+     * modules and does the debouncing -- this is the work that one save actually caused.
      *
-     * @param refs New TrackUsage content
-     *
-     * @return the same track usage data
-     */
-    public TrackUsageData triggerDebouncedUpdate(TrackUsageData refs)
-    {
-        try
-        {
-            if (timer != null)
-            {
-                timer.cancel();
-            }
-
-            timer = new Timer();
-            timer.schedule(
-                new TimerTask()
-                {
-                    @Override
-                    public void run()
-                    {
-                        try
-                        {
-                            timer = null;
-                            updateGraphQLQueryTypes(refs);
-                        }
-                        catch (Exception e)
-                        {
-                            log.error("Error updating TrackUsageData", e);
-                        }
-                    }
-                },
-                timeoutMillis
-            );
-        }
-        catch (Exception e)
-        {
-            log.error("Error updating TrackUsageData", e);
-        }
-
-        return refs;
-    }
-
-
-    /**
-     * Returns the current timeout milliseconds for debounced updates.
-     *
-     * @return timeout in milliseconds
-     */
-    public int getTimeoutMillis()
-    {
-        return timeoutMillis;
-    }
-
-
-    /**
-     * Reconfigures the update delay for debounced updates (default is 300 milliseconds)
-     *
-     * @param timeoutMillis delay in milliseconds
-     */
-    public void setTimeoutMillis(int timeoutMillis)
-    {
-        this.timeoutMillis = timeoutMillis;
-    }
-
-
-    /**
-     * Updates all TS query sources according to the given updated track usage data,
-     * <p>
-     * (Also see {@link #triggerDebouncedUpdate(TrackUsageData)})
-     *
-     * @param refs track usage data
+     * @param refs track usage data, whole or a slice of it
      */
     public void updateGraphQLQueryTypes(TrackUsageData refs)
     {

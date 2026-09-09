@@ -43,7 +43,7 @@ public class DevConfiguration
         final File tsSourcePath = new File(tsSource).getCanonicalFile();
 
         // Fail here rather than once per push: a wrong directory otherwise only shows up as a recurring
-        // "Error updating TrackUsageData" from the debounce timer thread.
+        // "Error processing pushed track-usage data" for every module the dev server pushes.
         if (!tsSourcePath.isDirectory())
         {
             throw new IllegalStateException(
@@ -61,8 +61,8 @@ public class DevConfiguration
     }
 
     /**
-     * Where the analysis snapshots pushed by the Vite dev server land, so that the rest of the server can read
-     * the same data the codegen runs on -- the bootstrap service asks it which paths declared noSchema().
+     * Where the analysis pushed by the Vite dev server lands, so that the rest of the server can read the
+     * same data the codegen runs on -- the bootstrap service asks it which paths declared noSchema().
      */
     @Profile("dev")
     @Bean

@@ -21,7 +21,8 @@ import org.springframework.web.bind.annotation.RequestParam;
  * never touches disk, so the frontend tooling pushes the analysis here instead as it changes.
  * <p>
  * A push carries only the modules one editing round changed, which is what the plugin has anyway and
- * saves both halves the whole analysis per keystroke.
+ * saves both halves the whole analysis per keystroke. It is the plugin that debounces, so what arrives
+ * here is applied as it comes.
  */
 @Controller
 public class TrackUsageDevController
@@ -78,9 +79,9 @@ public class TrackUsageDevController
         {
             final TrackUsageData update = JSONUtil.DEFAULT_PARSER.parse(TrackUsageData.class, body);
 
-            // Published before the codegen runs: the typing service debounces and writes files, while
-            // everything reading the analysis for the current request -- the bootstrap service above all --
-            // wants the update as soon as it arrives.
+            // Published before the codegen runs: codegen writes files, while everything reading the analysis
+            // for the current request -- the bootstrap service above all -- wants the update as soon as it
+            // arrives.
             if (full)
             {
                 staticAnalysisProvider.replace(update);
@@ -90,7 +91,9 @@ public class TrackUsageDevController
                 staticAnalysisProvider.merge(update);
             }
 
-            graphQLQueryTypingService.triggerDebouncedUpdate(update);
+            // Only the modules just pushed: types are generated per module, and the ones that did not change
+            // would only be generated into the same source again.
+            graphQLQueryTypingService.updateGraphQLQueryTypes(update);
             return ResponseEntity.noContent().build();
         }
         catch (Exception e)

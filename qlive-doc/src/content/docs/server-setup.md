@@ -140,7 +140,11 @@ public TrackUsageDevController trackUsageDevController(
 ) { ... }
 ```
 
-This is what writes generated result types back into your query modules.
+This is what writes generated result types back into your query modules --
+for the modules of the push that arrived, so a save costs the types of what
+you edited and not of the whole frontend. The Vite plugin collects a save's
+modules for `pushDebounceMs` before pushing them.
+
 `qlive.dev.ts-source` has to name the same directory as the Vite plugin's
 `sourceRoot`, because the module paths in the pushed data are relative to
 it. A relative value resolves against the backend's working directory,

@@ -101,6 +101,12 @@ export interface TrackUsagePluginOptions
      * for codegen). Omit to skip pushing entirely.
      */
     backendOrigin?: string;
+    /**
+     * How long to collect changed modules before pushing them to `backendOrigin`, in milliseconds. One save
+     * can transform several modules, and the backend regenerates types for every module it is handed, so
+     * they are worth sending as one push. Default: 200.
+     */
+    pushDebounceMs?: number;
 }
 
 /**
@@ -189,6 +195,7 @@ function resolveOptions(options: TrackUsagePluginOptions, config: ResolvedConfig
 export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
     const outputFileName = options.outputFileName ?? "track-usage.json";
     const pushUrl = options.backendOrigin ? options.backendOrigin + TRACK_USAGE_DEV_URI : undefined;
+    const pushDebounceMs = options.pushDebounceMs ?? 200;
     let resolved: ResolvedOptions;
     let command: "build" | "serve" = "build";
     let isDevMode = false;
@@ -199,6 +206,7 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
     /** Set when the backend needs the whole analysis instead of a slice, i.e. before the first push and after
      *  the backend has been restarted. */
     let needsFullPush = true;
+    let pushTimer: ReturnType<typeof setTimeout> | undefined;
     let pushWarned = false;
 
     /**
@@ -218,12 +226,34 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
     }
 
     /**
+     * Collects further changes before pushing: one save transforms several modules, and the backend
+     * regenerates types for every module it is handed.
+     */
+    function schedulePush(): void
+    {
+        if (!pushUrl)
+        {
+            return;
+        }
+        if (pushTimer !== undefined)
+        {
+            clearTimeout(pushTimer);
+        }
+        pushTimer = setTimeout(pushToServer, pushDebounceMs);
+    }
+
+    /**
      * Sends what the backend does not have yet: the modules changed since the last push, or the whole
      * analysis while {@link needsFullPush} stands. Nothing to send is not a push -- the dev server transforms
      * every module the browser asks for, and all but the edited one match what was pushed before.
      */
     function pushToServer(): void
     {
+        if (pushTimer !== undefined)
+        {
+            clearTimeout(pushTimer);
+            pushTimer = undefined;
+        }
         if (!pushUrl)
         {
             return;
@@ -327,7 +357,7 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
             runBabelOnFile(id, code, resolved);
             if (isDevMode && mergeIntoDevData(id))
             {
-                pushToServer();
+                schedulePush();
             }
             return null;
         },
@@ -385,7 +415,7 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
                 {
                     if (isDevMode)
                     {
-                        pushToServer();
+                        schedulePush();
                     }
                     server.ws.send({type: "full-reload"});
                 }

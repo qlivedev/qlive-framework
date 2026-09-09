@@ -1,13 +1,27 @@
 ---
-title: Queries and types
+title: GraphQL and Typescript
 description: GraphQLQuery, generated result types, types.d.ts and converters.
 sidebar:
   order: 5
 ---
+Since we're using both Typescript and GraphQL as basis for our project, we tried to unite them as much as we could. In 
+general, we generate Typescript types from the GraphQL schema. GraphQL queries however introduce another complication 
+because they are all about selecting from types that claim to have all kinds of fields the selected data actually does
+not have.
+
+So we introduced a way to automatically derive the correct Typescript types for a GraphQL Query. The standard we use
+here is derived both from the needs of Typescript and the injection mechanism.
+
+The standard is that every query is defined in its own file and that the exported name matches the internal query name.
+
+Also, every query is allowed to only defined one query method. This might seem like a loss at first, but the main reason 
+for that is effectively fetching data and with the injection mechanism it does not matter how many queries we use since 
+it all is done in one go on the server anyway. 
+
 
 ## Declaring a query
 
-```ts {10-24}
+```ts {10-24} title="src/app/Q_Foo.ts"
 import {GraphQLQuery, QueryDocumentMethods} from "@quinscape/qlive-ts";
 import {AppUser, Foo, FooDocument} from "../types";
 
@@ -20,7 +34,7 @@ export type Q_FooResult = Pick<FooDocument, "type" | "config"> & {
 export const Q_Foo = new GraphQLQuery<Q_FooResult>(
     // language=GraphQL
     `query Q_Foo($config: QueryConfig!) {
-        xxx: queryFooDocument(config: $config) {
+        queryFooDocument(config: $config) {
             type
             config
             rows {

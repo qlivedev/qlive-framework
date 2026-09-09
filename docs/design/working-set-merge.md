@@ -738,11 +738,11 @@ The condition model ends up with three implementations, and it is worth
 seeing them as one thing with three backends rather than as three
 features that happen to share a syntax:
 
-| backend | evaluates against | drives |
-| --- | --- | --- |
-| jOOQ | SQL | query documents -- built |
-| Java, in memory | a Java object | pubsub message filtering |
-| JS, in memory | a JS object | client-side filtering in the browser |
+| backend | applies to | compiles to | drives |
+| --- | --- | --- | --- |
+| jOOQ | SQL | a jOOQ `Condition` | query documents -- built |
+| Java | a Java object | a predicate tree | pubsub message filtering |
+| JS | a JS object | a generated function | filtering in the browser |
 
 The third is already spoken for: `DomainTables` carries filter plumbing
 that nothing sets, kept deliberately because the search it will grow is
@@ -772,11 +772,52 @@ start rather than being retrofitted:
   copies is already one too many; four would be untenable. Either one is
   generated from the other, or a test asserts they agree.
 
-**An operator a backend cannot do must throw.** The in-memory evaluators
-will not cover everything jOOQ does -- `likeRegex` against a database's
-regex dialect, for one -- and the failure has to be loud. A filter that
-quietly evaluates to false delivers no messages, shows no rows, and looks
-exactly like a filter that correctly matched nothing.
+### Compile once, apply many
+
+None of the three is an interpreter over the condition tree. Each
+*transforms* a condition into something executable, once, and what it
+produces is then applied per row or per message. The subscription case is
+the one that makes this obvious -- a filter registered once and evaluated
+against every published message for as long as the connection lives -- but
+it is equally true of a table filtering a page of rows, and the jOOQ
+backend already works this way by nature.
+
+Automaton's `JavaFilterTransformer` is halfway there: it builds a tree of
+`Filter` objects once instead of re-reading the JSON. What it still pays
+on every evaluation is the part worth removing, and it is mostly not the
+operators:
+
+- **Field paths.** `field("owner.login")` should become a resolved
+  accessor at transform time, not a string split per evaluation. On a
+  deep path this dominates the operator cost.
+- **Values.** The operands of a condition are constants. A timestamp
+  arrives as a string and becomes an instant once, not per message --
+  which is what `ConditionCoercing` already does for the SQL side.
+- **Types.** A compiled filter is bound to the domain type it filters, so
+  every field's type is known before the first evaluation rather than
+  discovered at each one.
+
+**How far to take the transform is per platform, and should be.** In the
+browser, building a source string and handing it to `new Function` is
+genuinely faster than any tree of closures -- one function the engine
+compiles and inlines, no dispatch per node -- so that is what the JS
+backend should do, with a closure tree as the fallback for pages whose
+CSP forbids `unsafe-eval`, which a framework cannot assume away. In Java,
+a composed predicate tree is the right stopping point: generating
+bytecode would be a lot of machinery for a gain nobody has measured, and
+pubsub message volume is not where that would first show up. What matters
+is that both sit behind one interface, so the fixture suite tests
+behaviour rather than strategy and either can be taken further later
+without a caller noticing.
+
+**An operator a backend cannot do throws at transform time**, which is
+the second reason to separate the two phases. The in-memory backends will
+not cover everything jOOQ does -- `likeRegex` against a database's regex
+dialect, for one -- and the right moment to say so is when a subscription
+is registered or a table's filter is set, naming the operator, with
+somebody still looking at it. A filter that quietly evaluates to false
+delivers no messages, shows no rows, and is indistinguishable from one
+that correctly matched nothing.
 
 This wants its own design document once it is built rather than
 discussed; it is written down here because two of the three backends are

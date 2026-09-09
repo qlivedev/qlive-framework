@@ -77,9 +77,10 @@ public ProdStaticAnalysisProvider prodStaticAnalysisProvider()
 }
 ```
 
-The dev provider holds the last snapshot pushed by the Vite dev server; the
-production one reads `track-usage.json` from the classpath, where the Maven
-build puts Vite's output. The production one is also where an application's
+The dev provider holds what the Vite dev server has pushed so far -- a push
+carries the modules one save changed, and the provider merges it into the
+rest; the production one reads `track-usage.json` from the classpath, where
+the Maven build puts Vite's output. The production one is also where an application's
 use of the analysis is **checked**: the whole of it is present before the
 first request, so a build whose injections are not where they belong fails
 at startup rather than on the page that happens to hit the mistake. The dev

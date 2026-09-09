@@ -44,7 +44,7 @@ class BootstrapInjectionTest
     @BeforeEach
     void pushBuiltAnalysis()
     {
-        staticAnalysisProvider.update(new ProdStaticAnalysisProvider().getTrackUsageData());
+        staticAnalysisProvider.replace(new ProdStaticAnalysisProvider().getTrackUsageData());
     }
 
 

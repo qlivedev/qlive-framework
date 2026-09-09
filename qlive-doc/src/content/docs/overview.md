@@ -55,7 +55,7 @@ reason:
 
 | | production | `vite dev` |
 |---|---|---|
-| Analysis | `track-usage.json` written by `vite build`, read off the classpath | POSTed to `/_dev/track-usage` by the Vite plugin as you edit |
+| Analysis | `track-usage.json` written by `vite build`, read off the classpath | POSTed to `/_dev/track-usage` by the Vite plugin as you edit, one save's changed modules at a time |
 | Provider bean | `ProdStaticAnalysisProvider` | `DevStaticAnalysisProvider` |
 | Missing analysis | fails at startup -- a build error | answers "not ready"; the frontend retries |
 

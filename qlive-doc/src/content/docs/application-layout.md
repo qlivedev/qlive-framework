@@ -117,7 +117,7 @@ babel never enters your application bundle's dependency graph.
 calls those are is QLive's own business -- the server looks each one up by
 a symbolic name it has compiled in -- so the plugin brings them along and an
 application configures none of it. `backendOrigin` is all it needs: the dev
-endpoint the snapshots are POSTed to belongs to the framework as well.
+endpoint the analysis is POSTed to belongs to the framework as well.
 
 An application that wants its *own* calls analysed adds them under
 `trackedFunctions`, which is merged over QLive's:

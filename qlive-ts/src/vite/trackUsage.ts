@@ -57,10 +57,16 @@ export const QLIVE_TRACKED_FUNCTIONS: Record<string, TrackedFunctionSpec> = {
 };
 
 /**
- * Where QLive's TrackUsageDevController receives pushed snapshots. Both halves have to agree on it, so
+ * Where QLive's TrackUsageDevController receives pushed analysis. Both halves have to agree on it, so
  * it is the framework's and not something an application spells out.
  */
 const TRACK_USAGE_DEV_URI = "/_dev/track-usage";
+
+/**
+ * Marks a push as the complete analysis rather than a slice of changed modules, which is what the backend
+ * needs to start from a known state.
+ */
+const FULL_PUSH_QUERY = "?full=true";
 
 export interface TrackUsagePluginOptions
 {
@@ -89,10 +95,10 @@ export interface TrackUsagePluginOptions
     /** Default: "track-usage.json". */
     outputFileName?: string;
     /**
-     * Origin of the QLive backend, e.g. "http://localhost:8080". Live track-usage snapshots get POSTed
-     * there as they change. `vite build` writes track-usage.json to disk for the backend to read, but
-     * `vite dev` never touches disk, so this is dev mode's only way to get fresh data to a backend that
-     * needs it live (e.g. for codegen). Omit to skip pushing entirely.
+     * Origin of the QLive backend, e.g. "http://localhost:8080". Live track-usage data gets POSTed there as
+     * it changes. `vite build` writes track-usage.json to disk for the backend to read, but `vite dev` never
+     * touches disk, so this is dev mode's only way to get fresh data to a backend that needs it live (e.g.
+     * for codegen). Omit to skip pushing entirely.
      */
     backendOrigin?: string;
 }
@@ -188,6 +194,16 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
     let isDevMode = false;
     let devData: UsageSnapshot = {usages: {}};
 
+    /** Modules whose analysis has changed since the last successful push. */
+    const changedModules = new Set<string>();
+    /** Set when the backend needs the whole analysis instead of a slice, i.e. before the first push and after
+     *  the backend has been restarted. */
+    let needsFullPush = true;
+    let pushWarned = false;
+
+    /**
+     * Records one module's fresh analysis, reporting whether it differs from what the backend already has.
+     */
     function mergeIntoDevData(absPath: string): boolean
     {
         const fresh = trackUsageData.get() as UsageSnapshot;
@@ -195,41 +211,96 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
         if (!deepEqual(devData.usages[key], fresh.usages[key]))
         {
             devData.usages[key] = fresh.usages[key];
+            changedModules.add(key);
             return true
         }
         return false
     }
 
-    let pushWarned = false;
-
+    /**
+     * Sends what the backend does not have yet: the modules changed since the last push, or the whole
+     * analysis while {@link needsFullPush} stands. Nothing to send is not a push -- the dev server transforms
+     * every module the browser asks for, and all but the edited one match what was pushed before.
+     */
     function pushToServer(): void
     {
         if (!pushUrl)
         {
             return;
         }
-        fetch(pushUrl, {
+
+        const full = needsFullPush;
+        const modules = full ? Object.keys(devData.usages) : [...changedModules];
+        if (!full && modules.length === 0)
+        {
+            return;
+        }
+
+        // Cleared before the request, so that edits made while it is in flight are pushed by the next one.
+        // A failed push puts them back.
+        changedModules.clear();
+        needsFullPush = false;
+
+        const usages: Record<string, unknown> = {};
+        for (const module of modules)
+        {
+            usages[module] = devData.usages[module];
+        }
+
+        const url = full ? pushUrl + FULL_PUSH_QUERY : pushUrl;
+
+        fetch(url, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(devData),
+            body: JSON.stringify({usages}),
         })
             .then((res) => {
-                if (!res.ok && !pushWarned)
+                // The backend holds the analysis in memory only, so a restarted one has nothing to merge a
+                // slice into and says so. Everything it missed goes out in one full push.
+                if (res.status === 409 && !full)
                 {
-                    console.warn(`[track-usage] push to ${pushUrl} failed: ${res.status} ${res.statusText}`);
-                    pushWarned = true;
-                } else if (res.ok)
+                    needsFullPush = true;
+                    pushToServer();
+                    return;
+                }
+
+                if (!res.ok)
+                {
+                    requeue(full, modules);
+                    if (!pushWarned)
+                    {
+                        console.warn(`[track-usage] push to ${url} failed: ${res.status} ${res.statusText}`);
+                        pushWarned = true;
+                    }
+                } else
                 {
                     pushWarned = false;
                 }
             })
             .catch((e) => {
+                requeue(full, modules);
                 if (!pushWarned)
                 {
-                    console.warn(`[track-usage] could not reach ${pushUrl} (is the backend running?)`, e);
+                    console.warn(`[track-usage] could not reach ${url} (is the backend running?)`, e);
                     pushWarned = true;
                 }
             });
+    }
+
+    /**
+     * Takes a failed push's modules back into the queue. No retry is scheduled: the backend is unreachable or
+     * unhappy, and the next edit is soon enough to try again without hammering it in between.
+     */
+    function requeue(full: boolean, modules: string[]): void
+    {
+        if (full)
+        {
+            needsFullPush = true;
+        }
+        else
+        {
+            modules.forEach((module) => changedModules.add(module));
+        }
     }
 
     return {
@@ -254,9 +325,8 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
                 return null;
             }
             runBabelOnFile(id, code, resolved);
-            if (isDevMode)
+            if (isDevMode && mergeIntoDevData(id))
             {
-                mergeIntoDevData(id);
                 pushToServer();
             }
             return null;
@@ -281,6 +351,8 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
             {
                 devData = {usages: {}};
             }
+            // Immediately and in full: the backend answers page requests from this data, and the first of
+            // them arrives before the browser has asked the dev server for a single module.
             if (isDevMode)
             {
                 pushToServer();

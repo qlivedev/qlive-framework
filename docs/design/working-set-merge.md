@@ -732,11 +732,13 @@ same thing in both places -- which is an argument for keeping the
 in-memory evaluator to message filtering rather than offering it as
 general client-side filtering.
 
-## Three condition backends
+## The condition model
 
-The condition model ends up with three implementations, and it is worth
-seeing them as one thing with three backends rather than as three
-features that happen to share a syntax:
+The condition model ends up with three implementations. The reason to
+care is not that a condition can travel between them -- that is a weak
+case, and it barely happens. It is that there is one vocabulary, learned
+once, with tooling around it, and that the tooling is worth more than any
+individual condition ever is.
 
 | backend | applies to | compiles to | drives |
 | --- | --- | --- | --- |
@@ -749,28 +751,54 @@ that nothing sets, kept deliberately because the search it will grow is
 meant to be a client-side FilterDSL expression rather than a typed
 string. So all three have a caller, and two of them do not exist.
 
-**The risk is silent divergence**, and it grows with each backend. The
-same condition evaluated in three places should mean the same thing, and
-nothing currently makes that true -- the SQL and Java semantics already
-differ on collation, null comparison and case folding, as above, and a
-third implementation written from the same prose will differ again in its
-own way.
+### What the standard is worth
 
-Two things keep it honest, and both are cheap if they exist from the
-start rather than being retrofitted:
+More of it exists than it looks. A condition can be built fluently
+(`FilterDSL.ts`), parsed (`ConditionParser`), carried as a scalar
+(`ConditionType`), transported inside a query config, rendered back to
+readable source on *both* sides (`decompileFilter` in TypeScript,
+`FilterDSLDecompiler` in Java), and it has a page in the framework-user
+documentation. That is a standard with a toolchain, not a syntax.
 
-- **One fixture suite, three runners.** A set of `(condition, object,
-  expected)` cases as data, executed by the jOOQ backend against
-  qlive-test's database, by the Java evaluator as a unit test, and by the
-  JS evaluator under vitest. Divergence becomes a failing test rather
-  than a bug report from an application that filtered the same thing two
-  ways and got two answers.
-- **One operator vocabulary.** The list already exists twice --
-  `FilterOperators.POSITIVE_LIST` plus `LOGIC` in Java, and
-  `FIELD_CONDITIONS` / `CONDITION_METHODS` / `FIELD_OPERATIONS` in
-  `FilterDSL.ts`, which carry the arities as well. Two hand-maintained
-  copies is already one too many; four would be untenable. Either one is
-  generated from the other, or a test asserts they agree.
+And because a condition is JSON all the way down, everything that is
+usually hard is free: a saved search is a stored condition, an audit log
+can record the condition a query ran with, an error message can print the
+filter that failed, a support case can be reproduced by pasting one.
+
+**The editor is the piece worth building, and it should be a runtime
+one.** Automaton had a node-based editor as a developer tool. What is
+worth having here is aimed at the end user instead: a filter builder
+inside the running application, whose output is a condition that goes
+straight into `update({ condition })`, because a query config already
+carries exactly that. Saving one is saving JSON. Showing somebody what
+they built is the decompiler that already exists.
+
+**What a runtime editor needs and does not have is the operator
+vocabulary as data.** Today it is a gate: `FilterOperators.POSITIVE_LIST`
+answers "is this allowed" and `FilterDSL.ts` carries names and arities to
+generate its fluent methods. An editor has to *enumerate* -- which
+operators exist, how many operands each takes, which ones make sense for
+a timestamp as against a string, what to call them in a dropdown. That is
+the same list promoted from a whitelist to a description, and it is a
+better reason to have one source of truth for it than the duplication is.
+
+**A shared fixture suite is how the standard gets defined** rather than
+described. Each backend needs a statement of what correct is regardless
+of the other two; writing it once as data -- `(condition, object,
+expected)` cases, run by the jOOQ backend against qlive-test's database,
+by the Java evaluator as a unit test, and by the JS evaluator under
+vitest -- is cheaper than writing it three times as prose, and it is the
+artifact a fourth implementation would be written against. Agreement
+between them falls out of that; it is not what the exercise is for.
+
+They will not agree everywhere regardless -- SQL `contains` is the
+database's collation, Java's is `String.contains`, and null comparison
+and case folding differ too. That matters in exactly one place in
+practice: a client deciding locally whether a row it has modified still
+satisfies the condition its document was queried with. Everywhere else a
+condition is evaluated once, in one place, and the divergence is
+invisible. Worth pinning down in the fixtures, not worth treating as a
+crisis.
 
 ### Compile once, apply many
 
@@ -895,6 +923,10 @@ type analysis.
    the field accessor, the classes, the apply-and-remerge loop.
 8. **An edit view in qlive-test** exercising the whole thing, which is
    also the template an application copies from.
+9. `register()` should refuse a row that selected no `version`
+  or only warn.** 
+10. We don't cate about **Cascading deletes.** The user either deletes everything right or they add their own delete cascade in their database
+
 
 ## Open items
 
@@ -913,8 +945,6 @@ type analysis.
   further along than it looks -- `/api/update` and `initData()` are the
   data half and both exist. The working set is the reason it needs a
   guard at all, which is how it got named here.
-- **Cascading deletes.** Deleting a `Bar` should presumably take its
-  `BarLink` rows with it. Nothing here does that yet.
 - **Validation.** Automaton carried `ValidationRules` through the same
   path. Out of scope; the application's own mutation-time concern for
   now.
@@ -937,7 +967,3 @@ type analysis.
   library can add its own context over layer 2 without the framework
   having guessed at one, and the hand-written edit view in step 8 is the
   evidence of how badly one is wanted.
-- **Whether `register()` should refuse a row that selected no `version`
-  or only warn.** Refusing is proposed above; it is the kind of thing
-  that is obvious in one direction until the first application hits it on
-  a read-only row it happened to pass in.

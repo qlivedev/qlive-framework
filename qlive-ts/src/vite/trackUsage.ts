@@ -209,6 +209,108 @@ function resolveOptions(options: TrackUsagePluginOptions, config: ResolvedConfig
     };
 }
 
+/**
+ * The analysis of one source tree, as `babel-plugin-track-usage` records it. Keyed by module id
+ * relative to `sourceRoot` ("./app/Q_Foo"), which is how the backend addresses a module as well.
+ */
+export interface TrackUsageAnalysis
+{
+    usages: Record<string, unknown>;
+}
+
+export interface AnalyzeSourceTreeOptions
+{
+    /** Absolute path to the directory to analyze, i.e. the `sourceRoot` the plugin would be given. */
+    sourceRoot: string;
+    /** Calls to record on top of {@link QLIVE_TRACKED_FUNCTIONS}, same rules as the plugin's. */
+    trackedFunctions?: Record<string, TrackedFunctionSpec>;
+    debug?: boolean;
+    /** See {@link TrackUsagePluginOptions.indexes}. Default: true. */
+    indexes?: boolean;
+}
+
+/**
+ * Runs the track-usage analysis over a whole source tree in one go, outside of Vite.
+ *
+ * The plugin gets its analysis handed to it file by file, as Vite transforms them, which is the wrong
+ * shape for a tool that is not a dev server -- the codegen CLI wants the whole tree before it starts.
+ * Both go through the same babel pass, so what a build-time generator sees is what the dev-time one
+ * sees: the same recorded calls under the same names, at the same source offsets.
+ *
+ * @param options    what to analyze and how
+ *
+ * @returns the analysis of every tracked file below `sourceRoot`
+ */
+export function analyzeSourceTree(options: AnalyzeSourceTreeOptions): TrackUsageAnalysis
+{
+    const resolved = resolveScanOptions(options);
+
+    // The plugin's data is a module-global accumulator, so a scan starts from a clean one rather than
+    // on top of whatever a plugin instance in the same process left behind.
+    trackUsageData.clear();
+
+    for (const file of collectSources(resolved.sourceRoot, resolved))
+    {
+        runBabelOnFile(file, fs.readFileSync(file, "utf-8"), resolved);
+    }
+
+    return trackUsageData.get() as TrackUsageAnalysis;
+}
+
+
+/**
+ * Collects the files below `dir` the analysis applies to, in a stable order so that two runs over an
+ * unchanged tree produce byte-identical output.
+ */
+function collectSources(dir: string, options: ResolvedOptions): string[]
+{
+    const found: string[] = [];
+
+    for (const entry of fs.readdirSync(dir, {withFileTypes: true}).sort((a, b) => a.name < b.name ? -1 : 1))
+    {
+        const absPath = path.join(dir, entry.name);
+        if (entry.isDirectory())
+        {
+            found.push(...collectSources(absPath, options));
+        }
+        else if (entry.isFile() && shouldTrack(absPath, options))
+        {
+            found.push(absPath);
+        }
+    }
+
+    return found;
+}
+
+
+/**
+ * The subset of {@link resolveOptions} that needs no Vite config: `sourceRoot` is given rather than
+ * derived from `root`, and nothing here pushes or writes a bundle.
+ */
+function resolveScanOptions(options: AnalyzeSourceTreeOptions): ResolvedOptions
+{
+    const trackedFunctions = options.trackedFunctions ?? {};
+
+    const reserved = Object.keys(trackedFunctions).filter((name) => name in QLIVE_TRACKED_FUNCTIONS);
+    if (reserved.length > 0)
+    {
+        throw new Error(
+            `[track-usage] trackedFunctions may not redefine ${reserved.join(", ")}: QLive records its own ` +
+            `calls under those names and the server looks them up there.`
+        );
+    }
+
+    const sourceRoot = path.resolve(options.sourceRoot);
+
+    return {
+        trackedFunctions: {...trackedFunctions, ...QLIVE_TRACKED_FUNCTIONS},
+        sourceRoot: sourceRoot.endsWith("/") ? sourceRoot : sourceRoot + "/",
+        debug: options.debug,
+        indexes: options.indexes ?? true,
+    };
+}
+
+
 export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
     const outputFileName = options.outputFileName ?? "track-usage.json";
     const pushUrl = options.backendOrigin ? options.backendOrigin + TRACK_USAGE_DEV_URI : undefined;

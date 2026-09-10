@@ -276,9 +276,15 @@ be read back for the resolution UI.
 
 ### E -- commit
 
-No conflicts: batch-insert the version records, hand them to the
-in-memory version holders, return `DONE`. Otherwise return the conflicts
-and roll back.
+No conflicts: batch-insert the version records, publish them, return
+`DONE`. Otherwise return the conflicts and roll back.
+
+**Published, not handed over.** The records go out as a Spring
+`ApplicationEvent` rather than straight into the in-memory version
+holders. The holders are then one listener and a websocket push module is
+the second, which is the difference between adding push and rewriting
+this step -- see "When push arrives", where the version record is already
+the notification. It costs one event class now.
 
 **Cleanup.** A scheduled task drops version records older than the
 lifetime from memory and from the database. Without it `app_version`
@@ -892,6 +898,12 @@ is easier to see now than after the second one is written.
   written leaves the working set dirty and the guard armed.
 - **"The stored state moved" is an input to the store**, not a shape the
   merge response happens to have. See "When push arrives".
+- **`QueryDocument` needs the same entry point**, and does not have one:
+  `rows`, `config` and `rowCount` are public and mutable while `notify()`
+  is private, so nothing outside the document can move its state and have
+  React hear about it. Whatever the working set gets called, the query
+  document grows the same seam -- it is the other store a push message
+  lands in.
 
 ## Build order
 
@@ -912,6 +924,14 @@ type analysis.
    `DefaultMergeService`, `MergeLogic` as the framework's `@GraphQLLogic`
    bean, optimistic locking, deletions, conflicts as data. No masks yet:
    any concurrent change is a conflict on every field.
+
+   `MergeLogic` and every other framework-side bean is declared
+   explicitly in `QLiveConfiguration`. An application's component scan
+   does not reach `com.dataciders.qlive.*` -- qlive-test's is narrowed to
+   its own logic and service packages -- so `@GraphQLLogic` being
+   meta-annotated `@Component` picks up nothing. Declared, it is found by
+   the `getBeansWithAnnotation` / `getBeansOfType` calls the application's
+   own DomainQL configuration already makes, which is all it takes.
 4. **Field masks and auto-merge.** `EntityVersion`, `VersionHolder`, the
    chain walk, the cleanup task. This is where the pseudo-conflict case
    starts merging silently.

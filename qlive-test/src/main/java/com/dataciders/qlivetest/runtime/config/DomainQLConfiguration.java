@@ -85,7 +85,6 @@ public class DomainQLConfiguration
     {
         final DomainQL domainQL = QLiveDomain.newDomain(dslContext, metadataProviders)
             //.parameterProvider(new AutomatonConnectionProviderFactory(applicationContext))
-
             .logicBeans(logicBeans)
 
             .objectTypes(Public.PUBLIC)
@@ -122,7 +121,7 @@ public class DomainQLConfiguration
             .configureNameField("name")
 
             /*
-                documentation for the types defined in the automaton library
+                documentation for the types defined in the QLive library
              */
             .withTypeDocsFrom(
                 new ClassPathResource("qlive-typedocs.json").getInputStream()

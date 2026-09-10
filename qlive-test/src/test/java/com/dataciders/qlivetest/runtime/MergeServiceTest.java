@@ -10,6 +10,7 @@ import com.dataciders.qlive.model.merge.MergeResult;
 import com.dataciders.qlive.model.merge.MergeStatus;
 import com.dataciders.qlive.runtime.QLiveException;
 import com.dataciders.qlive.runtime.merge.MergeService;
+import com.dataciders.qlive.runtime.merge.VersionHolder;
 import de.quinscape.domainql.generic.GenericScalar;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -19,10 +20,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static com.dataciders.qlivetest.domain.Tables.APP_VERSION;
 import static com.dataciders.qlivetest.domain.Tables.BAR;
 import static com.dataciders.qlivetest.domain.Tables.BAR_LINK;
 import static com.dataciders.qlivetest.domain.Tables.BAZ;
@@ -52,6 +55,9 @@ class MergeServiceTest
 
     @Autowired
     private DSLContext dslContext;
+
+    @Autowired
+    private VersionHolder versionHolder;
 
     /// Ids of the rows this test created, for the cleanup that has to run either way.
     private final List<String> bars = new ArrayList<>();
@@ -103,8 +109,9 @@ class MergeServiceTest
     }
 
 
-    /// The lock itself. The row moved since it was read, so the statement matches nothing, and what comes
-    /// back names the row, the version standing now and every field the change wanted to write.
+    /// The lock itself, and what the mask narrows it to. The row moved since it was read, the statement
+    /// matches nothing, and of the two fields this change wanted to write only the one the other write also
+    /// touched is a decision.
     @Test
     void refusesAChangeAgainstAVersionThatMoved()
     {
@@ -133,12 +140,102 @@ class MergeServiceTest
         // the base a second attempt has to be made against
         assertThat(conflict.getVersion(), is(moved));
 
-        // without a record of what the other write touched, every field this one touched is suspect
-        assertThat(fieldNames(conflict), contains("name", "num"));
+        // 'name' is nobody else's opinion, so there is nothing to decide about it
+        assertThat(fieldNames(conflict), contains("num"));
 
-        // and nothing was written
+        // and nothing was written, the merge being all or nothing however few fields clashed
         assertThat(bar(id).get(BAR.NAME), is("Merge #2"));
         assertThat(bar(id).get(BAR.NUM), is(22));
+    }
+
+
+    /// The case the whole mechanism exists for, and the common one. Somebody else changed a field this
+    /// change never touched, so both edits belong in the row: the write is simply made again against the
+    /// version they left behind, and nobody is asked anything.
+    @Test
+    void mergesOverAChangeThatTouchedOtherFields()
+    {
+        final String id = newId(bars);
+        merge(newBar(id, "Merge #11", 11));
+
+        final String base = bar(id).get(BAR.VERSION);
+
+        // somebody else saves first and goes home
+        merge(change("Bar", id, base, field("num", "Int", 111)));
+
+        assertThat(
+            merge(change("Bar", id, base, field("name", "String", "Merge #11 renamed"))).getStatus(),
+            is(MergeStatus.DONE)
+        );
+
+        final Record stored = bar(id);
+        assertThat(stored.get(BAR.NAME), is("Merge #11 renamed"));
+        assertThat(stored.get(BAR.NUM), is(111));
+    }
+
+
+    /// A real conflict names the fields both writes touched. The ones only theirs touched come with it
+    /// marked informational -- the merge takes those silently, and they are here so a form can show what
+    /// moved under the user rather than only what clashed.
+    @Test
+    void attachesWhatMovedBesidesWhatClashed()
+    {
+        final String id = newId(bars);
+        merge(newBar(id, "Merge #12", 12));
+
+        final String base = bar(id).get(BAR.VERSION);
+        merge(
+            change(
+                "Bar", id, base,
+                field("name", "String", "saved by somebody else"),
+                field("num", "Int", 122)
+            )
+        );
+
+        final MergeConflict conflict = merge(
+            resolving(),
+            change("Bar", id, base, field("name", "String", "typed by me"))
+        ).getConflicts().get(0);
+
+        assertThat(fieldNames(conflict), contains("name", "num"));
+
+        final MergeConflictField name = conflictField(conflict, "name");
+        assertThat(name.isInformational(), is(false));
+        assertThat(name.getMine().getValue(), is("typed by me"));
+        assertThat(name.getStored().getValue(), is("saved by somebody else"));
+
+        // nobody here has an opinion about num, so there is nothing to decide and no value of ours to carry
+        final MergeConflictField num = conflictField(conflict, "num");
+        assertThat(num.isInformational(), is(true));
+        assertThat(num.getMine(), is(nullValue()));
+        assertThat(num.getStored().getValue(), is(122));
+    }
+
+
+    /// What an expired base version costs. Without a record of the other write there is no telling which
+    /// fields it touched, so every field this change touched is named -- the conservative answer, and the
+    /// only one available.
+    @Test
+    void assumesEveryFieldWhereTheRecordIsGone()
+    {
+        final String id = newId(bars);
+        merge(newBar(id, "Merge #13", 13));
+
+        final String base = bar(id).get(BAR.VERSION);
+        merge(change("Bar", id, base, field("num", "Int", 133)));
+
+        // the record of that write outlives its usefulness and goes, from the table and from the memory in
+        // front of it
+        dslContext.deleteFrom(APP_VERSION).where(APP_VERSION.ENTITY_ID.eq(id)).execute();
+        versionHolder.dropOlderThan(Timestamp.from(Instant.now().plusSeconds(1)));
+
+        final MergeConflict conflict = merge(
+            change("Bar", id, base, field("name", "String", "never written"))
+        ).getConflicts().get(0);
+
+        // 'name' would have merged silently a moment ago
+        assertThat(fieldNames(conflict), contains("name"));
+        assertThat(bar(id).get(BAR.NAME), is("Merge #13"));
     }
 
 
@@ -452,6 +549,15 @@ class MergeServiceTest
         deletion.setVersion(version);
 
         return deletion;
+    }
+
+
+    private static MergeConflictField conflictField(MergeConflict conflict, String name)
+    {
+        return conflict.getFields().stream()
+            .filter(field -> field.getField().equals(name))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("No field '" + name + "' in " + conflict));
     }
 
 

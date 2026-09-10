@@ -16,6 +16,7 @@ import { isListType, unwrapAll } from "./type-utils.js"
  */
 const GRAPHQL_TO_TYPESCRIPT = {
     "BigDecimal" : "bigint",
+    "BigInteger" : "bigint",
     "Boolean" : "boolean",
     "Byte" : "number",
     "ComputedValue" : "FilterDSL.ComputedValue",

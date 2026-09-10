@@ -10,6 +10,7 @@ import de.quinscape.domainql.jsonb.JSONB;
 import de.quinscape.domainql.jsonb.JSONBScalar;
 import de.quinscape.domainql.meta.MetadataProvider;
 import de.quinscape.domainql.scalar.BigDecimalScalar;
+import de.quinscape.domainql.scalar.BigIntegerScalar;
 import com.dataciders.qlive.model.QueryConfig;
 import com.dataciders.qlive.model.condition.CNode;
 import com.dataciders.qlive.runtime.scalar.ComputedValueCoercing;
@@ -23,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Collection;
 
 /**
@@ -46,6 +48,7 @@ public class QLiveDomain
             .withAdditionalScalar(CNode.class, FieldExpressionType.newFieldExpressionType())
             .withAdditionalScalar(GenericScalar.class, GenericScalarType.newGenericScalar())
             .withAdditionalScalar(BigDecimal.class, BigDecimalScalar.newScalar())
+            .withAdditionalScalar(BigInteger.class, BigIntegerScalar.newScalar())
 
             .withAdditionalScalar(
                 QueryConfig.class,

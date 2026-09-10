@@ -68,6 +68,10 @@ export { decompileFilter } from "./util/decompileFilter";
 // they mean next to a merge prefix and not much without one.
 export * as MergeMeta from "./merge/meta";
 
+export { WorkingSet } from "./merge/WorkingSet";
+export { useWorkingSet } from "./merge/useWorkingSet";
+export { mergeWorkingSet } from "./merge/mergeWorkingSet";
+
 /**
  * Declares that this entry point needs no domain schema.
  *
@@ -123,6 +127,19 @@ export type { ErrorBoundaryProps } from "./component/ErrorBoundary";
 export type { DomainTablesProps } from "./component/DomainTables";
 
 export type { MergeTypeMeta, LinkRelation } from "./merge/meta";
+
+export type { RegisteredDocument, WorkingSetSnapshot, WorkingSetOptions } from "./merge/WorkingSet";
+
+export type {
+    MergeStatus,
+    FieldChange,
+    EntityChange,
+    EntityDeletion,
+    MergeConfig,
+    MergeConflictField,
+    MergeConflict,
+    MergeResult
+} from "./merge/types";
 
 export type {
     Converter,

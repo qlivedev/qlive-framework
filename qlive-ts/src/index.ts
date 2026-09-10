@@ -63,6 +63,11 @@ export { default as ErrorBoundary } from "./component/ErrorBoundary";
 
 export { decompileFilter } from "./util/decompileFilter";
 
+// What the schema and the type meta data say about merging a type. Namespaced
+// the way FilterDSL is: isLinkType, versionedTypes and ignoredFields say what
+// they mean next to a merge prefix and not much without one.
+export * as MergeMeta from "./merge/meta";
+
 /**
  * Declares that this entry point needs no domain schema.
  *
@@ -116,6 +121,8 @@ export type { ErrorViewProps } from "./component/ErrorView";
 export type { ErrorBoundaryProps } from "./component/ErrorBoundary";
 
 export type { DomainTablesProps } from "./component/DomainTables";
+
+export type { MergeTypeMeta, LinkRelation } from "./merge/meta";
 
 export type {
     Converter,

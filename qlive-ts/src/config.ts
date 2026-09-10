@@ -1,6 +1,7 @@
 import type {ComponentType} from "react";
 
 import type {QueryConfigDelta} from "./QueryDocument";
+import type {MergeTypeMeta} from "./merge/meta";
 
 import {GraphQLSchema, GraphQLType} from "./GraphQLSchema";
 import {initData} from "./data";
@@ -255,6 +256,19 @@ export interface DomainQLTypeMetaProps {
      * page size control from offering what the server will not give, not to enforce anything.
      */
     maxPageSize?: number
+
+    /**
+     * What this type declares about merging it: whether a conflict comes back to the view to resolve, which fields
+     * never count as one, whether a non-overlapping change may merge silently, and whether the type is a link table.
+     *
+     * Written server-side by QLive's MergeMetadataProvider, which an application registers as a MetadataProvider bean
+     * if it declares any of this -- absent everywhere in one that does not, and on every type that declared nothing.
+     *
+     * Whether a type takes part in merging at all is *not* in here: that is the type having a "version" field, which
+     * both ends derive from the schema. Read it through the functions in merge/meta rather than off the map, so that
+     * "declared nothing" and "no such type" answer the same way.
+     */
+    merge?: MergeTypeMeta
 }
 
 /**

@@ -1,6 +1,9 @@
 # WorkingSet and merge (design)
 
-Status: designed, not built. Written 2026-09-09.
+Status: the build order below is built, steps 1 to 8. What is designed
+and not built is everything the build order never listed: the unload
+guard and the navigation guard it registers, parking a change set, and
+push. Written 2026-09-09.
 
 Write support for QLive, modelled on the MVCC merge built in Automaton.
 This is a re-design, not a port: the mechanisms that earned their keep
@@ -396,11 +399,20 @@ of its scalars and link arrays becomes the base snapshot to diff
 against. An object without an `id` is no entity -- there is nothing to
 name it by -- but the rows below it still are.
 
-A row of a versioned type whose `version` was not selected is an error
-naming both the type and the query -- `register()` cannot make up a base
-version, and failing there is much better than failing at merge time with
-a lost update. This is the one new obligation on the framework user: a
-query whose rows are to be edited selects `id` and `version`.
+A row of a versioned type whose `version` was not selected is registered
+like any other and refuses to be edited, in an error naming both the type
+and the query that read it. **The refusal is at the edit and not at the
+registration**, which is the answer to build order item 9: `register()`
+walks everything a query selected and most of what a query selects is
+displayed rather than edited, so insisting there would make a query
+unregisterable because of the lookup table behind a dropdown. `edit()`,
+`delete()` and a link diff that would otherwise send a deletion with no
+base all refuse -- still long before a merge could lose an update, which
+is the whole reason to say anything.
+
+The obligation on the framework user is unchanged and is the one new one:
+a query whose rows are to be edited selects `id` and `version`, and `id`
+on every link in a link array it means to edit.
 
 ### Headless by construction
 
@@ -549,11 +561,24 @@ silent no-op -- it is the mistake that would otherwise show up as a form
 that never marks anything.
 
 Beside `field(name)` the accessor answers about the entity as a whole --
-`changedFields()`, `conflictedFields()`, `movedFields()` -- so a banner,
-a tab marker or a "next conflict" button needs no field list of its own.
-`merge.of(otherEntity)` returns the accessor for another entity without a
-second hook, which is what a form editing a `Bar` and its `BarLink` rows
-in one place needs.
+`changedFields()`, `conflictedFields()`, `resolvedFields()`,
+`movedFields()` -- so a banner, a tab marker or a "next conflict" button
+needs no field list of its own. `merge.of(otherEntity)` returns the
+accessor for another entity without a second hook, which is what a form
+editing a `Bar` and its `BarLink` rows in one place needs.
+
+**A field's status is derived, not remembered.** What is stored, what the
+user changed and what they decided are three maps on the entity, and
+`unchanged` / `changed` / `conflict` / `resolved` / `moved` falls out of
+which of them the field is in. Nothing keeps the merge response around,
+which is what makes the push case the same case: a message saying a field
+moved produces the same status a conflict does, through the same entry
+point.
+
+**That entry point is `ws.storedState()`** -- the row, the version it
+stands at now, and the fields that moved with their values. `merge()`
+calls it for every conflict that came back and is today's only caller.
+See "When push arrives", where this is the seam that was left for it.
 
 **The view flag** is `"mine" | "stored" | "merged"` and it changes what a
 draft read returns. In `"stored"` the whole form shows what is in the
@@ -577,14 +602,32 @@ The application puts `className={ field.className }` on its input and
 styles it, or overrides the stylesheet. What the framework will not do is
 render the input.
 
-**Resolving.** `field.resolve("mine" | "stored" | someValue)` records a
-choice, which is only ever a correction: every conflict already stands
-resolved as `mine` the moment it comes back, because the person present
-typed that value on purpose and the person who did not is not here to
-argue. Nothing is undecided, nothing blocks, and `ws.merge()` can be
-called again immediately -- it re-writes with the stored version as the
-base, which is Automaton's apply-and-remerge loop without the modal in
-front of it.
+**Resolving.** `field.resolve("mine" | "stored")` records a choice, which
+is only ever a correction: every conflict already stands resolved as
+`mine` the moment it comes back, because the person present typed that
+value on purpose and the person who did not is not here to argue. Nothing
+is undecided, nothing blocks, and `ws.merge()` can be called again
+immediately -- it re-writes with the stored version as the base, which is
+Automaton's apply-and-remerge loop without the modal in front of it.
+
+`field.resolveWith(value)` is the third case, a value neither side had.
+It is a second call rather than a third argument to the first because the
+two choices are strings, and a field whose value is a string could not
+tell `resolve("stored")` from somebody meaning to store the word.
+
+**Choosing `stored` holds the user's value back rather than dropping
+it.** The merge stops sending that field and the form shows the stored
+one, but what they typed is still there, so changing their mind is one
+call and not a retype. Typing over a clashing field is something else
+again -- a new value rather than a choice between the two that clashed --
+and the field goes back to being one nobody has decided about.
+
+**What "no change" means moves with the database.** A field the user
+types back to the value the row was read with is no change, as before;
+once somebody else has written that field, it is their value the
+comparison is against. Otherwise a user who deliberately typed the old
+value back would have their change dropped and the other write left
+standing.
 
 **The second save is the acknowledgement, and it is the user's.** The
 working set never re-sends by itself. Defaulting to `mine` *and*
@@ -1006,7 +1049,20 @@ is easier to see now than after the second one is written.
 - **`park()` fails loudly or not at all.** A stash that did not get
   written leaves the working set dirty and the guard armed.
 - **"The stored state moved" is an input to the store**, not a shape the
-  merge response happens to have. See "When push arrives".
+  merge response happens to have. `ws.storedState()`, called by `merge()`
+  today and by a push message next. See "When push arrives".
+- **A field's status is derived from the three maps**, not recorded when
+  a merge comes back. That is what makes the push case the same case.
+- **A decision holds the other value back rather than dropping it.**
+  Choosing `stored` stops the field being written and keeps what the user
+  typed, so changing their mind costs one call.
+- **`resolve()` and `resolveWith()` are two calls.** The choices are
+  strings and so are plenty of field values.
+- **A versioned row read without its version fails at the edit**, not at
+  the registration. See build order item 9.
+- **The view flag lives on the working set and every draft read goes
+  through it**, so switching it re-renders a form that knows nothing
+  about merging against other values.
 - **`QueryDocument` needs the same entry point**, and does not have one:
   `rows`, `config` and `rowCount` are public and mutable while `notify()`
   is private, so nothing outside the document can move its state and have
@@ -1056,9 +1112,15 @@ type analysis.
    the field accessor, the classes, the apply-and-remerge loop.
 8. **An edit view in qlive-test** exercising the whole thing, which is
    also the template an application copies from.
-9. `register()` should refuse a row that selected no `version`
-  or only warn.** 
-10. We don't care about **Cascading deletes.** The user either deletes everything right or they add their own delete cascade in their database
+9. **`register()` and a row that selected no `version`.** Settled: it
+   refuses neither there nor only warns. A warning in a framework is
+   noise nobody reads, and refusing at registration refuses a query
+   because of a table nobody is editing. The row is registered, carries
+   the sentence, and throws it at `edit()`, `delete()` or a link diff
+   that would delete it. See "A store, like a query document".
+10. **Cascading deletes** are not the framework's. The user either
+    deletes everything right or they put a cascade on the foreign key,
+    which the database has and does better.
 
 
 ## Open items
@@ -1096,7 +1158,8 @@ type analysis.
   it in a React context, which is what Automaton had in domainql-form's
   FormContext -- but QLive ships no form library, and a `MergeScope`
   provider is either the first piece of one or a context with a single
-  consumer. Deliberately left open: the layering above means a form
-  library can add its own context over layer 2 without the framework
-  having guessed at one, and the hand-written edit view in step 8 is the
-  evidence of how badly one is wanted.
+  consumer. Deliberately left open, and step 8 is the evidence so far: the
+  edit view passes the accessor one level, to the component rendering the
+  association editor, and wants nothing. That is one hand-written form of
+  three fields, so it argues for waiting rather than against a context --
+  the tree that would want one is the one a form library builds.

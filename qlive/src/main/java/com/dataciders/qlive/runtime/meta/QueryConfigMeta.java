@@ -46,13 +46,6 @@ public final class QueryConfigMeta
     /// `DomainQLTypeMetaProps` on the client, which declares the same name to TypeScript.
     public final static String MAX_PAGE_SIZE = "maxPageSize";
 
-    /// Key the DomainQL meta data holds its type meta data under. Not a constant of DomainQLMeta's own,
-    /// which only names its addenda -- taken from there because {@link
-    /// de.quinscape.domainql.meta.DomainQLMeta#getTypeMeta(String)} answers an unknown type with an
-    /// exception, and asking about one is exactly what this does.
-    private final static String TYPES = "types";
-
-
     /// The delta declared for the row type of the given query document type.
     ///
     /// @param documentTypeName  name of a degenerified QueryDocument type, e.g. "FooDocument"
@@ -77,7 +70,7 @@ public final class QueryConfigMeta
     /// @return the delta, or `null` where the type is unknown or declares none
     public static Map<String, Object> deltaForType(DomainQL domainQL, String typeName)
     {
-        final DomainQLTypeMeta typeMeta = typeMeta(domainQL, typeName);
+        final DomainQLTypeMeta typeMeta = Util.typeMeta(domainQL, typeName);
 
         return typeMeta == null ? null : typeMeta.getMeta(QUERY_CONFIG);
     }
@@ -105,21 +98,10 @@ public final class QueryConfigMeta
     ///         says when it wants every row, so "no maximum" and "no limit" are the same number throughout.
     public static int maxPageSizeForType(DomainQL domainQL, String typeName)
     {
-        final DomainQLTypeMeta typeMeta = typeMeta(domainQL, typeName);
+        final DomainQLTypeMeta typeMeta = Util.typeMeta(domainQL, typeName);
 
         final Object maxPageSize = typeMeta == null ? null : typeMeta.getMeta(MAX_PAGE_SIZE);
 
         return maxPageSize instanceof Number number ? number.intValue() : 0;
-    }
-
-
-    /// The meta data of the given type, or `null` where the domain has none for it.
-    @SuppressWarnings("unchecked")
-    private static DomainQLTypeMeta typeMeta(DomainQL domainQL, String typeName)
-    {
-        final Map<String, DomainQLTypeMeta> types =
-            (Map<String, DomainQLTypeMeta>) domainQL.getMetaData().getData().get(TYPES);
-
-        return types.get(typeName);
     }
 }

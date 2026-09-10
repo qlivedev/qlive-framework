@@ -2,10 +2,12 @@ package com.dataciders.qlive.runtime.util;
 
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.GenericTypeReference;
+import de.quinscape.domainql.meta.DomainQLTypeMeta;
 import com.dataciders.qlive.model.QueryDocument;
 import org.jooq.tools.StringUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class Util
@@ -62,5 +64,27 @@ public class Util
             r -> r.getGenericType().equals(QueryDocument.class.getName()) &&
                 r.getType().equals(name)
         ).findFirst();
+    }
+
+
+    /// Key the DomainQL meta data holds its type meta data under. Not a constant of DomainQLMeta's own,
+    /// which only names its addenda.
+    private final static String TYPES = "types";
+
+
+    /// The meta data of the given type, or `null` where the domain has none for it.
+    ///
+    /// Answers rather than throws, which is the reason to go through this rather than through [
+    /// de.quinscape.domainql.meta.DomainQLMeta#getTypeMeta(String)]: that one raises on an unknown name, and
+    /// asking about a name that may be no type at all is what every reader of type meta data does.
+    ///
+    /// @param typeName  name of a GraphQL type, known or not
+    @SuppressWarnings("unchecked")
+    public static DomainQLTypeMeta typeMeta(DomainQL domainQL, String typeName)
+    {
+        final Map<String, DomainQLTypeMeta> types =
+            (Map<String, DomainQLTypeMeta>) domainQL.getMetaData().getData().get(TYPES);
+
+        return types.get(typeName);
     }
 }

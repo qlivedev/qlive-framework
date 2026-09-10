@@ -603,8 +603,20 @@ export class WorkingSet
 
         if (changes.length === 0 && deletions.length === 0)
         {
-            // Nothing to write, so nothing to refresh either: the documents are holding what a merge would
-            // have gone and fetched again. A form that saves an untouched row costs a round trip otherwise.
+            if (!this.dirty)
+            {
+                // Nothing to write and nothing that wanted writing: the documents are holding what a merge
+                // would have gone and fetched again. A form that saves an untouched row costs a round trip
+                // otherwise.
+                return {status: "DONE", conflicts: []}
+            }
+
+            // Nothing left to write because what was asked for is already true -- an association both
+            // people removed. That is a merge that landed, and the documents are stale by exactly the write
+            // that made it true, so they are refreshed like after any other.
+            await this.refresh()
+            this.notify()
+
             return {status: "DONE", conflicts: []}
         }
 
@@ -1081,6 +1093,14 @@ export class WorkingSet
 
                 const id = linkIdOf(link, entity, relation)
                 const known = this.entities.get(key(relation.linkType, id))
+
+                if (known?.gone)
+                {
+                    // somebody else removed the association already, which is the outcome this deletion
+                    // was for. Nothing to write, and sending it again would only fail the merge over a
+                    // state the user asked for and has
+                    continue
+                }
 
                 if (known?.unversioned)
                 {

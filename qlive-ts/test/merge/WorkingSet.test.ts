@@ -735,6 +735,67 @@ describe("what comes back", () => {
 })
 
 
+/**
+ * The conflict a link deletion comes back with when somebody else removed the association first: the row is
+ * gone, so there is no version to move on and no field to choose between.
+ */
+function linkGone(id: string = "link-1")
+{
+    return mergeResponse({
+        status: "CONFLICT",
+        conflicts: [{type: "BarLink", id, storedVersion: null, deleted: true, fields: []} as any]
+    })
+}
+
+
+describe("an association somebody else changed", () => {
+
+    it("does not send the deletion a second time", async () => {
+
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        const bar = ws.edit(document.rows[0])
+        bar.name = "Mine"
+        bar.bazLinks = []
+
+        respondWith(linkGone())
+        await ws.merge()
+
+        // saving again is the user's to make, and the association they wanted gone is gone already
+        const second = respondWith(mergeResponse({status: "CONFLICT", conflicts: []}))
+        await ws.merge()
+
+        const {changes, deletions} = sentVariables(second)
+
+        expect(deletions).toEqual([])
+        expect(changes).toMatchObject([{type: "Bar", id: "bar-1", version: "v1"}])
+    })
+
+    it("counts a merge whose whole work was done for it as landed", async () => {
+
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        ws.edit(document.rows[0]).bazLinks = []
+
+        respondWith(linkGone())
+        expect((await ws.merge()).status).toBe("CONFLICT")
+
+        // nothing left to send, and the documents are stale by exactly the write that made it so -- a
+        // merge that landed rather than a form that saved nothing
+        const second = respondWith(documentResponse())
+        const result = await ws.merge()
+
+        expect(result.status).toBe("DONE")
+        expect(ws.dirty).toBe(false)
+        expect(JSON.parse(second.mock.calls[0][1].body).query).toContain("Q_Bars")
+    })
+})
+
+
 describe("taking it back", () => {
 
     it("restores the registered values and forgets the conflicts", async () => {

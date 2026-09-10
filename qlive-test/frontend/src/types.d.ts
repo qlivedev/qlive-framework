@@ -1,7 +1,19 @@
 /*
     Generated types. Do *not* edit. Run "pnpm generate" to update from schema.graphql
 */
-import { QueryConfig, Temporal } from "@quinscape/qlive-ts"
+import { GenericScalar, QueryConfig, Temporal } from "@quinscape/qlive-ts"
+
+/** How a merge ended.
+
+Two outcomes and no third one. Everything that is neither -- a type nobody exposes, a field name that
+matches no column, a constraint the database refuses -- is a programming error rather than a state of the
+data, and comes back as a GraphQL error instead of as a status a caller has to branch on. */
+export type MergeStatus =
+    /** At least one row could not be written as asked, and nothing was written at all. The result carries one
+conflict per row that stood in the way. */
+    "CONFLICT" |
+    /** Everything in the working set landed. Nothing else is written, and the transaction committed. */
+    "DONE"
 
 /** Database storage for spring security's remember-me feature */
 export type AppLogin = {
@@ -234,15 +246,73 @@ export type FooTypeDocument = {
     type: string
 }
 
-/** Auto-generated from QueryLogic */
+/** One row the merge could not write, and why.
+
+A conflict is data. The framework ships no dialog and nothing here blocks: the merge rolled back, the user
+still has everything they typed, and the form they were editing is where they decide what to do about it. */
+export type MergeConflict = {
+
+    _type: "MergeConflict",
+
+    /** true if the row is not there at all -- removed by somebody else, or never created. There is nothing to
+merge into and nothing to choose between, so no fields come with it. */
+    deleted: boolean
+    /** The fields that clashed. Empty for a deletion, which touches no fields, and empty where the row is
+gone. */
+    fields: MergeConflictField[]
+    /** Id of the row. */
+    id: string
+    /** GraphQL name of the type whose row this is. */
+    type: string
+    /** The version standing in the database now, and the base a second attempt has to be made against. Null
+where the row is gone, and null for a type that carries no version field. */
+    version?: string
+}
+
+/** One field of a row that could not be written as asked.
+
+The vocabulary is deliberately not "ours" and "theirs". Whoever wrote first is gone; the only person still
+here is the one whose save just bounced, and what they are choosing between is the value they typed and the
+value that is in the database. So: mine and stored. */
+export type MergeConflictField = {
+
+    _type: "MergeConflictField",
+
+    /** Name of the field, as the GraphQL type spells it. */
+    field: string
+    /** The value the user meant to write, echoed back. Null where the conflict carries no values, i.e. where
+either the type or the caller did not ask to resolve conflicts. */
+    mine?: GenericScalar
+    /** The value that is in the database. Null where the conflict carries no values, and null as a value in
+its own right where the stored value is null -- the GenericScalar is there either way when values are
+carried at all. */
+    stored?: GenericScalar
+}
+
+/** What came of one merge.
+
+All or nothing: either every change and every deletion landed, or none of them did and the conflicts say
+which rows stood in the way. There is no partial success to reconcile, which is what lets a working set
+keep holding exactly what the user has not saved yet. */
+export type MergeResult = {
+
+    _type: "MergeResult",
+
+    /** One entry per row that could not be written. Empty when the merge is done. */
+    conflicts: MergeConflict[]
+    /** Whether the merge landed. */
+    status: MergeStatus
+}
+
+/** Auto-generated from QueryLogic, MergeLogic */
 export type MutationType = {
 
     _type: "MutationType",
 
-    mDummy?: boolean
+    mergeWorkingSet: MergeResult
 }
 
-/** Auto-generated from QueryLogic */
+/** Auto-generated from QueryLogic, MergeLogic */
 export type QueryType = {
 
     _type: "QueryType",
@@ -311,5 +381,5 @@ export type QuxDocument = {
 }
 
 export type DomainObject = AppLogin | AppUser | AppUserDocument | AppVersion | Bar | BarDocument | BarLink | Baz |
-    BazDocument | Foo | FooDocument | FooType | FooTypeDocument | MutationType | QueryType | Qux |
-    QuxDocument
+    BazDocument | Foo | FooDocument | FooType | FooTypeDocument | MergeConflict | MergeConflictField | MergeResult |
+    MutationType | QueryType | Qux | QuxDocument

@@ -166,6 +166,11 @@ public class BarLink extends TableImpl<BarLinkRecord> {
     }
 
     @Override
+    public List<UniqueKey<BarLinkRecord>> getUniqueKeys() {
+        return Arrays.asList(Keys.UC_BAR_LINK_BAR_BAZ);
+    }
+
+    @Override
     public List<ForeignKey<BarLinkRecord, ?>> getReferences() {
         return Arrays.asList(Keys.BAR_LINK__FK_BAR_LINK_TO_BAR, Keys.BAR_LINK__FK_BAR_LINK_TO_BAZ);
     }

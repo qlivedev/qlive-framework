@@ -59,6 +59,7 @@ public class Keys {
     public static final UniqueKey<AppVersionRecord> PK_APP_VERSION = Internal.createUniqueKey(AppVersion.APP_VERSION, DSL.name("pk_app_version"), new TableField[] { AppVersion.APP_VERSION.ID }, true);
     public static final UniqueKey<BarRecord> PK_BAR = Internal.createUniqueKey(Bar.BAR, DSL.name("pk_bar"), new TableField[] { Bar.BAR.ID }, true);
     public static final UniqueKey<BarLinkRecord> PK_BAR_LINK = Internal.createUniqueKey(BarLink.BAR_LINK, DSL.name("pk_bar_link"), new TableField[] { BarLink.BAR_LINK.ID }, true);
+    public static final UniqueKey<BarLinkRecord> UC_BAR_LINK_BAR_BAZ = Internal.createUniqueKey(BarLink.BAR_LINK, DSL.name("uc_bar_link_bar_baz"), new TableField[] { BarLink.BAR_LINK.BAR_ID, BarLink.BAR_LINK.BAZ_ID }, true);
     public static final UniqueKey<BazRecord> PK_BAZ = Internal.createUniqueKey(Baz.BAZ, DSL.name("pk_baz"), new TableField[] { Baz.BAZ.ID }, true);
     public static final UniqueKey<FooRecord> PK_FOO = Internal.createUniqueKey(Foo.FOO, DSL.name("pk_foo"), new TableField[] { Foo.FOO.ID }, true);
     public static final UniqueKey<FooTypeRecord> FOO_TYPE_NAME_KEY = Internal.createUniqueKey(FooType.FOO_TYPE, DSL.name("foo_type_name_key"), new TableField[] { FooType.FOO_TYPE.NAME }, true);

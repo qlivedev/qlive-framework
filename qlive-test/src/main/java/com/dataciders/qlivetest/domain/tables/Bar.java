@@ -7,6 +7,7 @@ package com.dataciders.qlivetest.domain.tables;
 import com.dataciders.qlivetest.domain.Keys;
 import com.dataciders.qlivetest.domain.Public;
 import com.dataciders.qlivetest.domain.tables.BarLink.BarLinkPath;
+import com.dataciders.qlivetest.domain.tables.Baz.BazPath;
 import com.dataciders.qlivetest.domain.tables.records.BarRecord;
 
 import java.sql.Timestamp;
@@ -184,6 +185,14 @@ public class Bar extends TableImpl<BarRecord> {
             _barLink = new BarLinkPath(this, null, Keys.BAR_LINK__FK_BAR_LINK_TO_BAR.getInverseKey());
 
         return _barLink;
+    }
+
+    /**
+     * Get the implicit many-to-many join path to the <code>public.baz</code>
+     * table
+     */
+    public BazPath baz() {
+        return barLink().baz();
     }
 
     @Override

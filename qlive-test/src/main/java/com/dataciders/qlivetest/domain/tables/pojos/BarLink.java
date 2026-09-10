@@ -10,6 +10,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -32,7 +33,10 @@ import javax.annotation.processing.Generated;
 @Entity
 @Table(
     name = "bar_link",
-    schema = "public"
+    schema = "public",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uc_bar_link_bar_baz", columnNames = { "bar_id", "baz_id" })
+    }
 )
 public class BarLink extends GeneratedDomainObject implements Serializable {
 

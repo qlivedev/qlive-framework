@@ -1038,7 +1038,7 @@ type analysis.
    also the template an application copies from.
 9. `register()` should refuse a row that selected no `version`
   or only warn.** 
-10. We don't cate about **Cascading deletes.** The user either deletes everything right or they add their own delete cascade in their database
+10. We don't care about **Cascading deletes.** The user either deletes everything right or they add their own delete cascade in their database
 
 
 ## Open items

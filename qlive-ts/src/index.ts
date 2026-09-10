@@ -70,6 +70,7 @@ export * as MergeMeta from "./merge/meta";
 
 export { WorkingSet } from "./merge/WorkingSet";
 export { useWorkingSet } from "./merge/useWorkingSet";
+export { useMerge } from "./merge/useMerge";
 export { mergeWorkingSet } from "./merge/mergeWorkingSet";
 
 /**
@@ -128,7 +129,20 @@ export type { DomainTablesProps } from "./component/DomainTables";
 
 export type { MergeTypeMeta, LinkRelation } from "./merge/meta";
 
-export type { RegisteredDocument, WorkingSetSnapshot, WorkingSetOptions } from "./merge/WorkingSet";
+export type {
+    RegisteredDocument,
+    WorkingSetSnapshot,
+    WorkingSetOptions,
+    StoredState
+} from "./merge/WorkingSet";
+
+export type {
+    MergeAccessor,
+    MergeField,
+    MergeFieldStatus,
+    MergeView,
+    Resolution
+} from "./merge/MergeAccessor";
 
 export type {
     MergeStatus,
@@ -225,6 +239,19 @@ export type {
  *                                       application assigns its own. Reached
  *                                       through the config, and replacing it is
  *                                       an assignment rather than a composition
+ *   merge/MergeAccessor.createAccessor  what WorkingSet#accessor() calls. The
+ *                                       accessor is made by the working set
+ *                                       holding the entity, and there is no
+ *                                       entity to make one for outside it
+ *   merge/MergeAccessor.MergeHost/MergeEntity
+ *                                       the two shapes createAccessor() is
+ *                                       handed, named so that the accessor
+ *                                       depends on no store rather than to be
+ *                                       implemented by anyone
+ *   merge/WorkingSet.workingSetOf       how useMerge() gets from a draft to the
+ *                                       working set that made it. An
+ *                                       application holds the working set it
+ *                                       made and needs no way back to it
  *   util/delay                          a setTimeout promise, not framework API
  *   util/viteEnv.isViteDev/viteBaseUrl  reads Vite's import.meta.env, which an
  *                                       application has direct access to

@@ -3,6 +3,15 @@ import {GraphQLQuery} from "../GraphQLQuery";
 import {GraphQLField} from "../GraphQLSchema";
 import {QueryConfigDelta} from "../QueryDocument";
 import {findType, LIST, unwrapAll, unwrapNonNull} from "../type-utils";
+import {
+    createAccessor,
+    MergeAccessor,
+    MergeEntity,
+    MergeHost,
+    MergeView,
+    Resolution,
+    valueOf
+} from "./MergeAccessor";
 import {mergeWorkingSet} from "./mergeWorkingSet";
 import * as MergeMeta from "./meta";
 import {EntityChange, EntityDeletion, FieldChange, MergeConflict, MergeResult} from "./types";
@@ -13,6 +22,12 @@ import {EntityChange, EntityDeletion, FieldChange, MergeConflict, MergeResult} f
  * survive a spread into a plain object.
  */
 const DRAFT = Symbol("QLive WorkingSet draft")
+
+/**
+ * Carries the working set a draft belongs to, which is how useMerge() finds one without being handed it.
+ * The same reasons as DRAFT: a symbol collides with no field and does not survive a spread.
+ */
+const SET = Symbol("QLive WorkingSet")
 
 /**
  * A query document as a working set uses one: the type of its rows, the rows, and the way to run the query
@@ -46,9 +61,46 @@ export type WorkingSetSnapshot = {
      */
     conflicts: MergeConflict[]
 
+    /**
+     * Which values a draft read returns: the user's own edits, what is in the database, or the two folded
+     * together. "merged" until something sets it otherwise.
+     */
+    view: MergeView
+
     merge: () => Promise<MergeResult>
     undo: () => void
     clear: () => void
+    setView: (view: MergeView) => void
+}
+
+/**
+ * What somebody else's write left in the database, as the working set takes it.
+ *
+ * An input to the store rather than the shape a merge response happens to have: a field's state is the base
+ * it was registered with, the change the user made, and the value that is stored, and a failed merge is
+ * merely today's only source of the third. A push message saying a row moved is the next one, and nothing
+ * below this has to change for it.
+ */
+export type StoredState = {
+    type: string
+    id: string
+
+    /**
+     * The version the row stands at now, which is what a second attempt is written against. Left out where
+     * the sender does not know it, and null is not that -- an unversioned type has none.
+     */
+    version?: string | null
+
+    /**
+     * true where the row is gone. Nothing to merge into, so no fields come with it.
+     */
+    deleted?: boolean
+
+    /**
+     * The stored values by field name, in the live form of their type. Only the fields that moved: what is
+     * not named here is what the row was read with.
+     */
+    fields?: Record<string, unknown>
 }
 
 /**
@@ -88,6 +140,18 @@ type Entity = {
     /** what the user set, by field name: scalar values, and whole arrays for a link field */
     changes: Map<string, unknown>
 
+    /**
+     * what the database holds now, for the fields somebody else's write moved. Empty until a merge comes
+     * back with a conflict, which is today's only way to hear about one
+     */
+    stored: Map<string, unknown>
+
+    /** what the user decided about a field both writes changed */
+    resolutions: Map<string, Resolution>
+
+    /** true where the row is not in the database any more, somebody else having deleted it */
+    gone: boolean
+
     /** the row itself, or the object a created entity stands on */
     target: Record<string, any>
 
@@ -125,6 +189,15 @@ export class WorkingSet
 
     private snapshot: WorkingSetSnapshot | null;
 
+    /** which values a read returns, for every draft and every accessor at once */
+    private viewFlag: MergeView;
+
+    /** the accessor per entity, dropped whenever anything changes, the way the snapshot is */
+    private accessors: Map<string, MergeAccessor>;
+
+    /** what an accessor reaches the store through, built once because it never varies */
+    private readonly host: MergeHost;
+
 
     constructor(options: WorkingSetOptions = {})
     {
@@ -135,6 +208,15 @@ export class WorkingSet
         this.conflicts = []
         this.subscribers = []
         this.snapshot = null
+        this.viewFlag = "merged"
+        this.accessors = new Map()
+
+        this.host = {
+            view: () => this.viewFlag,
+            resolve: (entity, field, choice) => this.resolveField(entity as Entity, field, choice),
+            resolveWith: (entity, field, value) => this.resolveFieldWith(entity as Entity, field, value),
+            accessor: row => this.accessor(row)
+        }
     }
 
 
@@ -218,6 +300,9 @@ export class WorkingSet
             deleted: false,
             base: new Map(),
             changes: new Map(),
+            stored: new Map(),
+            resolutions: new Map(),
+            gone: false,
             target: {id},
             draft: null
         }
@@ -229,7 +314,7 @@ export class WorkingSet
         {
             if (name !== "id")
             {
-                this.change(entity, name, value)
+                this.record(entity, name, value)
             }
         }
 
@@ -276,12 +361,115 @@ export class WorkingSet
         const entity = this.entityOf(row)
         const out: Record<string, any> = {...entity.target}
 
-        for (const [name, value] of entity.changes)
+        // the merged values whatever the view flag says, that flag being about what a form shows and this
+        // being about what the row is
+        for (const name of [...entity.changes.keys(), ...entity.stored.keys()])
         {
-            out[name] = value
+            out[name] = valueOf(entity, name, "merged")
         }
 
         return out as unknown as T
+    }
+
+
+    /**
+     * The merge state of one row: what has happened to each of its fields, and the way to a decision about
+     * one two writes changed.
+     *
+     * The plain call under useMerge(), for anything that is not a React component -- a form library binding
+     * to it, a test, a headless check of whether anything is left to decide.
+     *
+     * @param row       row of a registered document, or a draft of one
+     *
+     * @throws if the row belongs to no entity of this working set
+     */
+    accessor(row: object): MergeAccessor
+    {
+        const entity = this.entityOf(row)
+        const id = key(entity.type, entity.id)
+        const found = this.accessors.get(id)
+
+        if (found)
+        {
+            return found
+        }
+
+        const made = createAccessor(this.host, entity)
+        this.accessors.set(id, made)
+
+        return made
+    }
+
+
+    /**
+     * Which values a draft read returns.
+     */
+    get view(): MergeView
+    {
+        return this.viewFlag
+    }
+
+
+    /**
+     * Switches every draft of this working set over to another view at once.
+     *
+     * The form does not change and no input has to know: a read goes through the draft, so this re-renders
+     * the same form against the user's own values, against what is in the database, or against the two
+     * folded together.
+     *
+     * @param view      which values to return
+     */
+    setView = (view: MergeView): void =>
+    {
+        if (view !== this.viewFlag)
+        {
+            this.viewFlag = view
+            this.notify()
+        }
+    }
+
+
+    /**
+     * Takes what somebody else's write left in the database.
+     *
+     * The fields it names become the values a "stored" read returns and the ones a merged read takes where
+     * the user has no opinion of their own; a field both writes changed becomes a conflict for the user to
+     * decide. A row this working set does not hold is not an error -- with push, most of what arrives is
+     * about rows nobody here is editing.
+     *
+     * merge() calls this for every conflict that came back, which is today's only caller. It is public
+     * because the second one is a push message and nothing about it would differ.
+     *
+     * @param state     the row, the version it stands at, and the fields that moved
+     */
+    storedState(state: StoredState): void
+    {
+        const entity = this.entities.get(key(state.type, state.id))
+
+        if (!entity)
+        {
+            return
+        }
+
+        if (state.version)
+        {
+            // The base moves to what is in the database, which is what makes a second save possible at all.
+            // Every conflict stands resolved as the user's own value until they say otherwise -- the person
+            // present typed it on purpose, and the one who did not is not here to argue.
+            entity.version = state.version
+        }
+
+        if (state.deleted)
+        {
+            entity.gone = true
+        }
+
+        for (const [name, value] of Object.entries(state.fields ?? {}))
+        {
+            entity.stored.set(name, value)
+        }
+
+        this.notify()
     }
 
 
@@ -292,7 +480,7 @@ export class WorkingSet
     {
         for (const entity of this.entities.values())
         {
-            if (entity.isNew || entity.deleted || entity.changes.size > 0)
+            if (entity.isNew || entity.deleted || pending(entity).length > 0)
             {
                 return true
             }
@@ -303,8 +491,12 @@ export class WorkingSet
 
 
     /**
-     * Takes every change back, leaving the rows as they were registered. Conflicts go with them: they
-     * describe a write that no longer exists.
+     * Takes every change back, leaving the rows as they were registered. Conflicts go with them, and so do
+     * the decisions taken about them: they are all about a write that no longer exists.
+     *
+     * What stays is what the working set was told about the database -- the fields somebody else moved are
+     * still moved, and a form still shows them as such. That is knowledge rather than unsaved work, and
+     * throwing it away would only mean showing the user values that are no longer there.
      */
     undo = (): void =>
     {
@@ -317,6 +509,7 @@ export class WorkingSet
             else
             {
                 entity.changes.clear()
+                entity.resolutions.clear()
                 entity.deleted = false
             }
         }
@@ -336,6 +529,7 @@ export class WorkingSet
         this.entities = new Map()
         this.rows = new WeakMap()
         this.conflicts = []
+        this.viewFlag = "merged"
         this.notify()
     }
 
@@ -414,16 +608,13 @@ export class WorkingSet
 
             for (const conflict of result.conflicts)
             {
-                const entity = this.entities.get(key(conflict.type, conflict.id))
-
-                if (entity && conflict.storedVersion)
-                {
-                    // The base moves to what is in the database, which is what makes a second save possible
-                    // at all. Every conflict stands resolved as the user's own value until they say
-                    // otherwise -- the person present typed it on purpose, and the one who did not is not
-                    // here to argue.
-                    entity.version = conflict.storedVersion
-                }
+                this.storedState({
+                    type: conflict.type,
+                    id: conflict.id,
+                    version: conflict.storedVersion,
+                    deleted: conflict.deleted,
+                    fields: storedFields(conflict)
+                })
             }
         }
 
@@ -453,9 +644,11 @@ export class WorkingSet
             this.snapshot = {
                 dirty: this.dirty,
                 conflicts: this.conflicts,
+                view: this.viewFlag,
                 merge: this.merge,
                 undo: this.undo,
-                clear: this.clear
+                clear: this.clear,
+                setView: this.setView
             }
         }
 
@@ -470,6 +663,7 @@ export class WorkingSet
     private notify(): void
     {
         this.snapshot = null
+        this.accessors = new Map()
 
         for (const subscriber of this.subscribers)
         {
@@ -580,6 +774,9 @@ export class WorkingSet
             deleted: false,
             base,
             changes: new Map(),
+            stored: new Map(),
+            resolutions: new Map(),
+            gone: false,
             target: row,
             draft: null
         })
@@ -650,8 +847,13 @@ export class WorkingSet
                     return entity
                 }
 
-                return typeof name === "string" && entity.changes.has(name)
-                    ? entity.changes.get(name)
+                if (name === SET)
+                {
+                    return this
+                }
+
+                return typeof name === "string" && (entity.changes.has(name) || entity.stored.has(name))
+                    ? valueOf(entity, name, this.viewFlag)
                     : Reflect.get(target, name, receiver)
             },
 
@@ -671,11 +873,23 @@ export class WorkingSet
 
 
     /**
-     * Records one field of one entity as changed, or takes the change back where the value is what the row
-     * was registered with -- a field the user typed over and then typed back is not a change, and a row
-     * whose every change came back is not dirty.
+     * Records one field of one entity as changed and tells the subscribers.
      */
     private change(entity: Entity, name: string, value: unknown): void
+    {
+        this.record(entity, name, value)
+        this.notify()
+    }
+
+
+    /**
+     * Records one field of one entity as changed, or takes the change back where the value is what the
+     * database holds -- a field the user typed over and then typed back is not a change, and a row whose
+     * every change came back is not dirty.
+     *
+     * Tells nobody, which is what lets a caller making several changes at once notify only when it is done.
+     */
+    private record(entity: Entity, name: string, value: unknown): void
     {
         if (name === "id" || name === MergeMeta.VERSION)
         {
@@ -689,7 +903,7 @@ export class WorkingSet
 
         if (relation)
         {
-            this.changeLinks(entity, relation, value)
+            this.recordLinks(entity, relation, value)
             return
         }
 
@@ -700,7 +914,11 @@ export class WorkingSet
 
         const next = value === undefined ? null : value
 
-        if (entity.base.has(name) && sameValue(entity.base.get(name), next))
+        // what "no change" means is what the database holds, so a field somebody else moved is compared
+        // against their value rather than against the one this row was read with
+        const known = entity.stored.has(name) ? entity.stored : entity.base
+
+        if (known.has(name) && sameValue(known.get(name), next))
         {
             entity.changes.delete(name)
         }
@@ -709,6 +927,41 @@ export class WorkingSet
             entity.changes.set(name, next)
         }
 
+        // a value typed over a clash is a new value rather than a choice between the two that clashed, so
+        // the field goes back to being one nobody has decided about
+        entity.resolutions.delete(name)
+    }
+
+
+    /**
+     * Records what the user decided about a field both writes changed.
+     *
+     * Nothing is thrown away either way: choosing "stored" holds the user's own value back rather than
+     * dropping it, which is what lets them change their mind without typing it again.
+     */
+    private resolveField(entity: Entity, name: string, choice: Resolution): void
+    {
+        if (!entity.stored.has(name))
+        {
+            throw new Error(
+                `Nothing to decide about ${entity.type}.${name}: nobody else wrote it. A field is resolved ` +
+                `when two writes changed it, which is what a conflict says.`
+            )
+        }
+
+        entity.resolutions.set(name, choice)
+        this.notify()
+    }
+
+
+    /**
+     * Records a third value as the user's decision -- neither what they typed nor what is stored, which is
+     * what a description somebody merged by hand is.
+     */
+    private resolveFieldWith(entity: Entity, name: string, value: unknown): void
+    {
+        this.record(entity, name, value)
+        entity.resolutions.set(name, "mine")
         this.notify()
     }
 
@@ -721,7 +974,7 @@ export class WorkingSet
      * time against the array the row was registered with, so an association taken away and put back is no
      * change at all and costs the merge nothing.
      */
-    private changeLinks(entity: Entity, relation: MergeMeta.LinkRelation, value: unknown): void
+    private recordLinks(entity: Entity, relation: MergeMeta.LinkRelation, value: unknown): void
     {
         if (!Array.isArray(value))
         {
@@ -751,8 +1004,6 @@ export class WorkingSet
         {
             entity.changes.set(relation.field, value)
         }
-
-        this.notify()
     }
 
 
@@ -842,7 +1093,7 @@ export class WorkingSet
     {
         const changes: FieldChange[] = []
 
-        for (const [name, value] of entity.changes)
+        for (const name of pending(entity))
         {
             if (MergeMeta.linkRelation(entity.type, name))
             {
@@ -850,6 +1101,8 @@ export class WorkingSet
                 // diffLinks() makes
                 continue
             }
+
+            const value = entity.changes.get(name)
 
             changes.push({
                 field: name,
@@ -899,6 +1152,60 @@ function version_(type: string, id: string, base: Map<string, unknown>, source: 
             : `${type} ${id} was registered without its version. '${type}' is versioned, so the merge writes ` +
             `its rows against the version they were read at -- select "${MergeMeta.VERSION}" in ${source}.`
     )
+}
+
+
+/**
+ * The working set that made the given draft.
+ *
+ * How useMerge() finds one without being handed it, and the reason a row that is not a draft is a mistake
+ * rather than a silent no-op there: nothing else in the row says which working set it belongs to.
+ *
+ * @throws if the value is not a draft of any working set
+ */
+export function workingSetOf(row: any): WorkingSet
+{
+    const set = row && typeof row === "object" ? row[SET] : undefined
+
+    if (!(set instanceof WorkingSet))
+    {
+        throw new Error(
+            "Not a draft: " + JSON.stringify(row) + ". A draft is what ws.edit() returns, and it is what " +
+            "knows the working set it belongs to."
+        )
+    }
+
+    return set
+}
+
+
+/**
+ * The fields of one entity a merge would write: what the user changed, minus the ones they decided to
+ * leave to the value that is stored.
+ */
+function pending(entity: Entity): string[]
+{
+    return [...entity.changes.keys()].filter(name => entity.resolutions.get(name) !== "stored")
+}
+
+
+/**
+ * The stored values one conflict carries, by field name.
+ *
+ * A field whose value was withheld -- a type that did not opt in to resolution, or a caller with nobody to
+ * show it to -- is in here as undefined rather than left out: that the field moved is worth marking in the
+ * form whether or not there is a value to put next to it.
+ */
+function storedFields(conflict: MergeConflict): Record<string, unknown>
+{
+    const fields: Record<string, unknown> = {}
+
+    for (const field of conflict.fields)
+    {
+        fields[field.field] = field.stored?.value
+    }
+
+    return fields
 }
 
 

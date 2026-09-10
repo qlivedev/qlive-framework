@@ -19,9 +19,17 @@ scalar Long
 scalar QueryConfig
 scalar Timestamp
 
+"Stands in for an enum the schema declares."
+enum Colour {
+    "Documented so the value doc comment path is exercised too"
+    RED
+    GREEN
+}
+
 "Carries one field per mapped scalar."
 type Widget {
     id: String!
+    colour: Colour!
     amount: BigDecimal
     flag: Boolean
     small: Byte

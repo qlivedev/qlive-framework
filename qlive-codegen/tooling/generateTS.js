@@ -142,6 +142,22 @@ function typeDocs(typeDef)
 }
 
 
+/*
+ * A GraphQL enum becomes a union of its values as string literals, which is
+ * what the value actually is on the wire. A TypeScript enum would be a runtime
+ * object, and a .d.ts declaring one promises code that is never generated.
+ */
+function enumDefinition(typeDef)
+{
+    const values = typeDef.enumValues.map(
+        valueDef => (valueDef.description ? `    /** ${ valueDef.description } */\n` : "") +
+            `    "${ valueDef.name }"`
+    )
+
+    return `${ typeDocs(typeDef) }export type ${ typeDef.name } =\n${ values.join(" |\n") }\n\n`
+}
+
+
 function generateTypeDefinitions(schemaPath, output)
 {
     loadSchema(schemaPath).then(schema => {
@@ -152,11 +168,18 @@ function generateTypeDefinitions(schemaPath, output)
                 typeDef.name[0] !== "_"
             )
 
+        const enums = schema.types.filter(typeDef =>
+                typeDef.kind === "ENUM" &&
+                typeDef.name[0] !== "_"
+            )
+
         //fs.writeFileSync("schema.json", JSON.stringify(schema, null, 4), "utf8")
         //console.log("schema.json", JSON.stringify(schema, null, 4))
 
         const imported = new Set()
-        let typeDefinitions = ""
+
+        // before the object types, which is where the references to them are
+        let typeDefinitions = enums.map(enumDefinition).join("")
 
         types.forEach(typeDef => {
 

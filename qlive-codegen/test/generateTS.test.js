@@ -73,6 +73,18 @@ describe("generated type definitions", () => {
         expect(generated).toContain("export type DomainObject =")
     })
 
+    it("declares an enum as the strings it travels as", () => {
+        expect(generated).toContain(
+            'export type Colour =\n' +
+            '    /** Documented so the value doc comment path is exercised too */\n' +
+            '    "RED" |\n' +
+            '    "GREEN"'
+        )
+
+        // an enum is a value, not a row, so it has no place in the row union
+        expect(generated).not.toContain("Colour |")
+    })
+
     it("typechecks against qlive-ts", () => {
         fs.writeFileSync(path.join(outDir, "tsconfig.json"), JSON.stringify(tsconfig, null, 4), "utf8")
 

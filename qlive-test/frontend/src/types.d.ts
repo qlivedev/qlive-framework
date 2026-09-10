@@ -286,13 +286,22 @@ where the row is gone, and null for a type that carries no version field. */
 
 The vocabulary is deliberately not "ours" and "theirs". Whoever wrote first is gone; the only person still
 here is the one whose save just bounced, and what they are choosing between is the value they typed and the
-value that is in the database. So: mine and stored. */
+value that is in the database. So: mine and stored.
+
+Not every field in here is a decision. A field the other write touched and this one did not is attached
+as informational, so that a form can show what moved under the user rather than only what clashed. */
 export type MergeConflictField = {
 
     _type: "MergeConflictField",
 
     /** Name of the field, as the GraphQL type spells it. */
     field: string
+    /** true if the field is here to be seen rather than decided about: the other write changed it, this one
+did not, and the merge takes their value silently. Catching up on a field nobody here has an opinion
+about is not a decision anybody needs to make.
+
+An informational field carries no mine, there being no value of ours to carry. */
+    informational: boolean
     /** The value the user meant to write, echoed back. Null where the conflict carries no values, i.e. where
 either the type or the caller did not ask to resolve conflicts. */
     mine?: GenericScalar

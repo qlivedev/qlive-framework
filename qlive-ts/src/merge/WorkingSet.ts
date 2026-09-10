@@ -79,10 +79,13 @@ type Entity = {
     isNew: boolean
     deleted: boolean
 
-    /** the scalar values the row was registered with, which a change is a change against */
+    /**
+     * what the row was registered with and what a change is a change against: its scalar values, plus the
+     * rows of every link array below it, which is the base the associations are diffed against
+     */
     base: Map<string, unknown>
 
-    /** what the user set, by field name. The whole of what a merge sends for this row. */
+    /** what the user set, by field name: scalar values, and whole arrays for a link field */
     changes: Map<string, unknown>
 
     /** the row itself, or the object a created entity stands on */
@@ -165,7 +168,11 @@ export class WorkingSet
      * ```ts
      * const bar = ws.edit(row)
      * bar.name = "New name"
+     * bar.bazLinks = [...bar.bazLinks, {baz}]
      * ```
+     *
+     * A link array is set like any other field and means something else: it says which rows this one is
+     * associated with, and the merge turns the difference into inserts and deletions of the link type.
      *
      * One draft per row, so two components editing the same row edit the same draft. A draft is not the
      * row -- `draft !== row` -- and it is read rather than kept: hold the row, call this on every render.
@@ -353,22 +360,38 @@ export class WorkingSet
     {
         const changes: EntityChange[] = []
         const deletions: EntityDeletion[] = []
+        const deleted = new Set<string>()
 
         for (const entity of this.entities.values())
         {
             if (entity.deleted)
             {
                 deletions.push({type: entity.type, id: entity.id, version: entity.version})
+                deleted.add(key(entity.type, entity.id))
+                continue
             }
-            else if (entity.isNew || entity.changes.size > 0)
+
+            const fields = this.fieldChanges(entity)
+
+            if (entity.isNew || fields.length > 0)
             {
                 changes.push({
                     type: entity.type,
                     id: entity.id,
                     version: entity.version,
                     new: entity.isNew,
-                    changes: this.fieldChanges(entity)
+                    changes: fields
                 })
+            }
+        }
+
+        // the link diffs after every row, so that a link insert follows the rows it names rather than
+        // sitting in front of one of them
+        for (const entity of this.entities.values())
+        {
+            if (!entity.deleted)
+            {
+                this.diffLinks(entity, changes, deletions, deleted)
             }
         }
 
@@ -517,6 +540,14 @@ export class WorkingSet
             {
                 const rows = Array.isArray(value) ? value : [value]
                 rows.forEach(nested => this.walkRow(nested, named.name!, source))
+
+                if (Array.isArray(value) && MergeMeta.linkRelation(type, field.name))
+                {
+                    // the associations as they stand, which is what a write to the field is diffed against.
+                    // A copy of the array and not the array: the one the row holds is the view's to render
+                    // and is free to be replaced.
+                    base.set(field.name, [...value])
+                }
             }
             else
             {
@@ -562,32 +593,46 @@ export class WorkingSet
      */
     private entityOf(row: object): Entity
     {
+        const entity = this.known(row)
+
+        if (entity)
+        {
+            return entity
+        }
+
         const drafted: Entity | undefined = (row as any)[DRAFT]
+
+        throw new Error(
+            drafted
+                ? `${drafted.type} ${drafted.id} is a draft of another working set, or of one this one no ` +
+                `longer holds.`
+                : "Not a row of this working set: " + JSON.stringify(row) + ". Rows come from a document " +
+                "register() walked, or from create()."
+        )
+    }
+
+
+    /**
+     * The entity the given value belongs to, or null where it belongs to none -- which is a question rather
+     * than a mistake for anything that may or may not be one, such as a link the user put in an array.
+     */
+    private known(row: any): Entity | null
+    {
+        if (!row || typeof row !== "object")
+        {
+            return null
+        }
+
+        const drafted: Entity | undefined = row[DRAFT]
 
         if (drafted)
         {
-            if (this.entities.get(key(drafted.type, drafted.id)) !== drafted)
-            {
-                throw new Error(
-                    `${drafted.type} ${drafted.id} is a draft of another working set, or of one this one no ` +
-                    `longer holds.`
-                )
-            }
-
-            return drafted
+            return this.entities.get(key(drafted.type, drafted.id)) === drafted ? drafted : null
         }
 
-        const entity = this.entities.get(this.rows.get(row)!)
+        const found = this.rows.get(row)
 
-        if (!entity)
-        {
-            throw new Error(
-                "Not a row of this working set: " + JSON.stringify(row) + ". Rows come from a document " +
-                "register() walked, or from create()."
-            )
-        }
-
-        return entity
+        return found ? this.entities.get(found) ?? null : null
     }
 
 
@@ -640,6 +685,14 @@ export class WorkingSet
             )
         }
 
+        const relation = MergeMeta.linkRelation(entity.type, name)
+
+        if (relation)
+        {
+            this.changeLinks(entity, relation, value)
+            return
+        }
+
         if (unwrapAll(fieldOf(entity.type, name).type).kind === "OBJECT")
         {
             throw new Error(`Cannot change ${entity.type}.${name}: it is not a scalar field.`)
@@ -661,6 +714,127 @@ export class WorkingSet
 
 
     /**
+     * Records a whole link array as the associations the row is to have.
+     *
+     * A link array is set rather than changed field by field -- `bar.bazLinks = [...bar.bazLinks, {baz}]`
+     * or the same with a filter -- and what is kept is the array, not a diff. The diff is made at merge
+     * time against the array the row was registered with, so an association taken away and put back is no
+     * change at all and costs the merge nothing.
+     */
+    private changeLinks(entity: Entity, relation: MergeMeta.LinkRelation, value: unknown): void
+    {
+        if (!Array.isArray(value))
+        {
+            throw new Error(
+                `Cannot set ${entity.type}.${relation.field} to something that is not an array. A link ` +
+                `array holds ${relation.linkType} rows, and it is set to the ones the row is to have.`
+            )
+        }
+
+        if (!entity.isNew && !entity.base.has(relation.field))
+        {
+            throw new Error(
+                `Cannot change ${entity.type}.${relation.field}: the query the rows came from did not ` +
+                `select it, so there is nothing to diff against and the merge would insert links that are ` +
+                `already there. Select "${relation.field}" with the id of every link in it.`
+            )
+        }
+
+        const held = targetIds(linkBase(entity, relation), relation)
+        const wanted = targetIds(value, relation)
+
+        if (held.size === wanted.size && [...wanted].every(id => held.has(id)))
+        {
+            entity.changes.delete(relation.field)
+        }
+        else
+        {
+            entity.changes.set(relation.field, value)
+        }
+
+        this.notify()
+    }
+
+
+    /**
+     * Turns one entity's changed link arrays into the link rows they mean: an association the base had and
+     * the array no longer has is a deleted link row, one the array has and the base did not is a new one.
+     *
+     * Nothing here writes the type on the other side. Editing bar.bazLinks inserts and deletes BarLink rows
+     * and never touches Baz, which is what the GraphQL type of the field already says and what the user of
+     * the framework means by setting it.
+     */
+    private diffLinks(
+        entity: Entity, changes: EntityChange[], deletions: EntityDeletion[], deleted: Set<string>
+    ): void
+    {
+        for (const [name, value] of entity.changes)
+        {
+            const relation = MergeMeta.linkRelation(entity.type, name)
+
+            if (!relation)
+            {
+                continue
+            }
+
+            const base = linkBase(entity, relation)
+            const wanted = targetIds(value as any[], relation)
+            const held = targetIds(base, relation)
+
+            for (const link of base)
+            {
+                if (wanted.has(targetIdOf(link, relation)))
+                {
+                    continue
+                }
+
+                const id = linkIdOf(link, entity, relation)
+
+                if (!deleted.has(key(relation.linkType, id)))
+                {
+                    deleted.add(key(relation.linkType, id))
+                    deletions.push({
+                        type: relation.linkType,
+                        id,
+                        version: this.entities.get(key(relation.linkType, id))?.version ?? null
+                    })
+                }
+            }
+
+            for (const link of value as any[])
+            {
+                const targetId = targetIdOf(link, relation)
+
+                if (held.has(targetId))
+                {
+                    continue
+                }
+
+                held.add(targetId)
+
+                if (this.known(link)?.isNew)
+                {
+                    // a link row the application made itself, e.g. because the link type carries a field of
+                    // its own. It is a row of this working set and goes out as one, foreign keys and all.
+                    continue
+                }
+
+                changes.push({
+                    type: relation.linkType,
+                    id: uuid(),
+                    version: null,
+                    new: true,
+                    changes: [
+                        linkField(relation.linkType, relation.sourceField, entity.id),
+                        linkField(relation.linkType, relation.targetField, targetId)
+                    ]
+                })
+            }
+        }
+    }
+
+
+    /**
      * The changes of one entity as the mutation takes them: a field name and the value wrapped in the
      * scalar type the field has, which is what lets one mutation write every type in the domain.
      */
@@ -670,6 +844,13 @@ export class WorkingSet
 
         for (const [name, value] of entity.changes)
         {
+            if (MergeMeta.linkRelation(entity.type, name))
+            {
+                // no field of this row at all: it becomes inserts and deletions of the link type, which
+                // diffLinks() makes
+                continue
+            }
+
             changes.push({
                 field: name,
                 value: {type: scalarTypeName(entity.type, name), value}
@@ -763,6 +944,84 @@ function scalarTypeName(type: string, name: string): string
     const named = unwrapAll(field.type).name!
 
     return unwrapNonNull(field.type).kind === LIST ? "[" + named + "]" : named
+}
+
+
+/**
+ * The links the given entity was registered with, which a write to that field is diffed against. Empty for
+ * an entity that was created here and therefore has no associations yet.
+ */
+function linkBase(entity: Entity, relation: MergeMeta.LinkRelation): any[]
+{
+    return (entity.base.get(relation.field) as any[]) ?? []
+}
+
+
+/**
+ * The rows the given links associate with, by id. A set, because what a link array says is which rows are
+ * associated -- naming one of them twice says nothing more than naming it once.
+ */
+function targetIds(links: any[], relation: MergeMeta.LinkRelation): Set<string>
+{
+    return new Set(links.map(link => targetIdOf(link, relation)))
+}
+
+
+/**
+ * The id of the row one link associates with, which is what identifies the link among its siblings: two
+ * links of the same array to the same row are one association.
+ *
+ * Read from the foreign key, or from the row on the other side where the link carries it. That second form
+ * is the short one -- `[...bar.bazLinks, {baz}]` -- and it is also the one a view can render straight away,
+ * the association being the row rather than its id.
+ */
+function targetIdOf(link: any, relation: MergeMeta.LinkRelation): string
+{
+    const id = link?.[relation.targetField] ??
+        (relation.targetObject ? link?.[relation.targetObject]?.id : undefined)
+
+    if (typeof id !== "string" || id.length === 0)
+    {
+        throw new Error(
+            `A ${relation.linkType} of ${relation.sourceType}.${relation.field} says nothing about which ` +
+            `${relation.targetType} it links to. Give it "${relation.targetField}"` +
+            (relation.targetObject ? ` or "${relation.targetObject}".` : ".")
+        )
+    }
+
+    return id
+}
+
+
+/**
+ * The id of a link row the merge is to delete.
+ *
+ * @throws if the row has none. A link that was read without its id cannot be deleted, and the query that
+ *         read it is where that is fixed
+ */
+function linkIdOf(link: any, entity: Entity, relation: MergeMeta.LinkRelation): string
+{
+    const id = link?.id
+
+    if (typeof id !== "string" || id.length === 0)
+    {
+        throw new Error(
+            `A ${relation.linkType} of ${entity.type} ${entity.id} was taken out of ` +
+            `"${relation.field}" and has no id, so there is nothing to delete. Select "id" on ` +
+            `"${relation.field}" in the query the rows came from.`
+        )
+    }
+
+    return id
+}
+
+
+/**
+ * One foreign key of a new link row, in the form the mutation takes it.
+ */
+function linkField(linkType: string, name: string, value: string): FieldChange
+{
+    return {field: name, value: {type: scalarTypeName(linkType, name), value}}
 }
 
 

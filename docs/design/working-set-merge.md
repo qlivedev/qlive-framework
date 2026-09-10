@@ -56,7 +56,7 @@ differently from a version control merge:
 
 **`GenericScalar` is already registered.** `QLiveDomain.newDomain()`
 registers `GenericScalar`, `DomainObject` and the rest. A change can
-therefore travel as `{ field, value: { scalarType, value } }` and
+therefore travel as `{ field, value: { type, value } }` and
 DomainQL coerces the value to the Java type the field actually has. That
 is what makes one generic mutation possible, and it is the whole reason
 no `*Input` type is needed:
@@ -89,13 +89,22 @@ QLive's state model is the one `QueryDocument` uses: a mutable store with
 tracking has to be rebuilt on that, and it is the one part of this design
 that is not a port. See "Drafts are proxies".
 
-**`_type` is currently a fiction.** `generateTS.js` writes
-`_type: "Bar"` into every generated domain type, but nothing stamps it at
-runtime and `renderPickFields()` leaves it out of the `Pick<>` a query
-result type is built from. A working set has to know what an object *is*
-to record a change against it, so this becomes real: the converter stamps
-`_type` on every object node it converts, and the pick always includes
-it. The generated types stop lying, which they were doing either way.
+**`_type` is gone.** `generateTS.js` wrote `_type: "Bar"` into every
+generated domain type, nothing stamped it at runtime, and
+`renderPickFields()` left it out of the `Pick<>` a query result type is
+built from -- a property declared everywhere and present nowhere. It
+could have been made real, by stamping it in the converter and always
+picking it. It was dropped instead.
+
+A working set does have to know what an object *is* to record a change
+against it, and the schema says so. The walk starts at the row type of
+the document being registered, and the type of a field says whether the
+value under it is a row of its own. That is knowledge the client has
+anyway; it costs nothing on the wire, it keeps a property off every row
+of every query for the sake of the few that are edited, and it covers a
+row `ws.create()` made, which no converter ever saw. The one thing
+`_type` would buy that this does not is runtime type inspection without
+the schema, and an application that wants that can read the schema.
 
 **`QueryDocumentService` is the read side of the same coin.** Rows come
 out of it as plain objects with their relations filled in. Those objects
@@ -379,10 +388,13 @@ const ws = new WorkingSet()
 ws.register(document)          // base versions for every row and relation
 ```
 
-`register()` walks the object graph. Anything with a `_type` and an `id`
-is an entity; its `version` is the base the merge will be checked
-against, and a deep copy of its scalars and link arrays becomes the base
-snapshot to diff against.
+`register()` walks the object graph along the schema: the document says
+what its rows are, and the type of a field says whether the value under
+it is a row of its own. Anything with an `id` is an entity; its
+`version` is the base the merge will be checked against, and a deep copy
+of its scalars and link arrays becomes the base snapshot to diff
+against. An object without an `id` is no entity -- there is nothing to
+name it by -- but the rows below it still are.
 
 A row of a versioned type whose `version` was not selected is an error
 naming both the type and the query -- `register()` cannot make up a base
@@ -938,8 +950,8 @@ is easier to see now than after the second one is written.
 - **New entities get client-generated UUIDs.** A working set has to be
   able to wire up references between new objects before the server sees
   any of them.
-- **`_type` becomes a runtime property**, stamped by the converter and
-  always included in the generated `Pick<>`.
+- **`_type` is dropped from the generated types.** What an object is
+  comes from the schema, which the client has anyway.
 - **Unversioned types are writable through the working set**, without
   conflict detection. Adding a `version` column is how a type opts in.
 - **Detection and auto-merge are automatic, resolution is declared.**

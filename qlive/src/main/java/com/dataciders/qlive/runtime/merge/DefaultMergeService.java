@@ -628,7 +628,7 @@ public class DefaultMergeService
         final MergeConflict conflict = new MergeConflict();
         conflict.setType(change.typeName);
         conflict.setId(change.change.getId());
-        conflict.setVersion(storedVersion);
+        conflict.setStoredVersion(storedVersion);
 
         final boolean withValues =
             config != null && config.isResolveConflicts() &&
@@ -759,7 +759,7 @@ public class DefaultMergeService
         }
         else if (versionField != null)
         {
-            conflict.setVersion((String) stored.get(versionField));
+            conflict.setStoredVersion((String) stored.get(versionField));
         }
 
         return conflict;

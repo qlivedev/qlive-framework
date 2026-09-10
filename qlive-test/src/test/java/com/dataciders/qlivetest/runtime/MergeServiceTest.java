@@ -138,7 +138,7 @@ class MergeServiceTest
         assertThat(conflict.isDeleted(), is(false));
 
         // the base a second attempt has to be made against
-        assertThat(conflict.getVersion(), is(moved));
+        assertThat(conflict.getStoredVersion(), is(moved));
 
         // 'name' is nobody else's opinion, so there is nothing to decide about it
         assertThat(fieldNames(conflict), contains("num"));
@@ -409,7 +409,7 @@ class MergeServiceTest
         ).getConflicts().get(0);
 
         assertThat(conflict.isDeleted(), is(true));
-        assertThat(conflict.getVersion(), is(nullValue()));
+        assertThat(conflict.getStoredVersion(), is(nullValue()));
         assertThat(conflict.getFields(), is(empty()));
     }
 
@@ -431,7 +431,7 @@ class MergeServiceTest
 
         final MergeConflict conflict = result.getConflicts().get(0);
         assertThat(conflict.isDeleted(), is(false));
-        assertThat(conflict.getVersion(), is(bar(id).get(BAR.VERSION)));
+        assertThat(conflict.getStoredVersion(), is(bar(id).get(BAR.VERSION)));
         assertThat(conflict.getFields(), is(empty()));
 
         assertThat(bar(id), is(notNullValue()));

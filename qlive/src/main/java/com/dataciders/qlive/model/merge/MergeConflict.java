@@ -16,7 +16,7 @@ public class MergeConflict
 
     private String id;
 
-    private String version;
+    private String storedVersion;
 
     private boolean deleted;
 
@@ -58,16 +58,21 @@ public class MergeConflict
     /**
      * The version standing in the database now, and the base a second attempt has to be made against. Null
      * where the row is gone, and null for a type that carries no version field.
+     *
+     * Not called "version", and it cannot be: a type with a field of that name is a versioned type, on this
+     * end and on the client, and that rule is what makes the two ends unable to disagree about who takes
+     * part. A conflict is not a row and does not take part. The name it has instead is the one
+     * MergeConflictField already uses for the value that is in the database.
      */
-    public String getVersion()
+    public String getStoredVersion()
     {
-        return version;
+        return storedVersion;
     }
 
 
-    public void setVersion(String version)
+    public void setStoredVersion(String storedVersion)
     {
-        this.version = version;
+        this.storedVersion = storedVersion;
     }
 
 
@@ -111,7 +116,7 @@ public class MergeConflict
         return super.toString() + ": "
             + "type = '" + type + '\''
             + ", id = '" + id + '\''
-            + ", version = '" + version + '\''
+            + ", storedVersion = '" + storedVersion + '\''
             + ", deleted = " + deleted
             + ", fields = " + fields
             ;

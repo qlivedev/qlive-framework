@@ -36,7 +36,7 @@ class MergeMutationTest
         "mutation M($changes: [EntityChangeInput]!, $deletions: [EntityDeletionInput]!, " +
             "$mergeConfig: MergeConfigInput!) {" +
             "  result: mergeWorkingSet(changes: $changes, deletions: $deletions, mergeConfig: $mergeConfig) {" +
-            "    status conflicts { type id version deleted fields { field mine stored } }" +
+            "    status conflicts { type id storedVersion deleted fields { field mine stored } }" +
             "  }" +
             "}";
 
@@ -119,7 +119,7 @@ class MergeMutationTest
         assertThat(conflict.get("type"), is("Bar"));
         assertThat(conflict.get("id"), is(id));
         assertThat(conflict.get("deleted"), is(false));
-        assertThat(conflict.get("version"), is(bar(id).get(BAR.VERSION)));
+        assertThat(conflict.get("storedVersion"), is(bar(id).get(BAR.VERSION)));
 
         @SuppressWarnings("unchecked")
         final List<Map<String, Object>> fields = (List<Map<String, Object>>) conflict.get("fields");

@@ -240,13 +240,18 @@ type MergeConflict {
     fields: [MergeConflictField]!
     "Id of the row."
     id: String!
-    "GraphQL name of the type whose row this is."
-    type: String!
     """
     The version standing in the database now, and the base a second attempt has to be made against. Null
     where the row is gone, and null for a type that carries no version field.
+
+    Not called "version", and it cannot be: a type with a field of that name is a versioned type, on this
+    end and on the client, and that rule is what makes the two ends unable to disagree about who takes
+    part. A conflict is not a row and does not take part. The name it has instead is the one
+    MergeConflictField already uses for the value that is in the database.
     """
-    version: String
+    storedVersion: String
+    "GraphQL name of the type whose row this is."
+    type: String!
 }
 
 """

@@ -1,5 +1,8 @@
 package com.dataciders.qlive.runtime.config;
 
+import com.dataciders.qlive.runtime.merge.DefaultMergeService;
+import com.dataciders.qlive.runtime.merge.MergeLogic;
+import com.dataciders.qlive.runtime.merge.MergeService;
 import com.dataciders.qlive.runtime.service.BootstrapService;
 import com.dataciders.qlive.runtime.service.DefaultBootstrapService;
 import com.dataciders.qlive.runtime.service.InjectionArgumentProcessor;
@@ -9,9 +12,11 @@ import de.quinscape.domainql.DomainQL;
 import com.dataciders.qlive.model.condition.ConditionParser;
 import graphql.GraphQL;
 import jakarta.servlet.ServletContext;
+import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -80,5 +85,33 @@ public class QLiveConfiguration
     {
         return new ConditionParser();
     }
-    
+
+
+    /// The write side of the framework, writing the application's own JOOQ schema.
+    ///
+    /// An application that needs something else registers a {@link MergeService} bean of its own; nothing
+    /// below reaches past the interface.
+    @Bean
+    public MergeService mergeService(DomainQL domainQL, DSLContext dslContext)
+    {
+        return new DefaultMergeService(domainQL, dslContext);
+    }
+
+
+    /// The framework's own GraphQL logic bean, and the reason every one of them is declared here rather than
+    /// annotated and left to be found.
+    ///
+    /// `@GraphQLLogic` is meta-annotated `@Component`, which only means anything to a component scan -- and
+    /// an application's scan covers the application's packages. Declared, this bean is picked up by the
+    /// `getBeansWithAnnotation()` call the application's DomainQL configuration already makes, which is all
+    /// it takes and the only thing that works.
+    ///
+    /// The merge service is injected lazily because the domain is built out of the logic beans: asking for
+    /// the service here, eagerly, would ask for the {@link DomainQL} it needs while it is still being built.
+    @Bean
+    public MergeLogic mergeLogic(@Lazy MergeService mergeService)
+    {
+        return new MergeLogic(mergeService);
+    }
+
 }

@@ -2,6 +2,7 @@ package com.dataciders.qlive.runtime.scalar;
 
 import com.dataciders.qlive.model.QueryConfig;
 import com.dataciders.qlive.model.condition.CNode;
+import com.dataciders.qlive.model.condition.Component;
 import com.dataciders.qlive.model.condition.Condition;
 import com.dataciders.qlive.model.condition.Value;
 import com.dataciders.qlive.model.condition.Values;
@@ -132,6 +133,33 @@ class ConditionCoercingTest
         );
 
         final CNode parsed = coercing.parseValue(json, CONTEXT, Locale.getDefault());
+
+        assertThat(coercing.serialize(parsed, CONTEXT, Locale.getDefault()), is(json));
+    }
+
+
+    /// A component is the client's marker for which part of a filter form a condition came from. The
+    /// database has no use for it and the transformer drops it, but what the client gets back has to still
+    /// have it: the form finds its own part of the condition by that id, and a component the way back home
+    /// loses is a filter field that comes back empty.
+    @Test
+    void keepsComponentsThroughTheRoundTrip()
+    {
+        final Map<String, Object> json = Map.of(
+            "type", "Component",
+            "id", "nameFilter",
+            "condition", comparison(
+                "eq",
+                Map.of("type", "Field", "name", "name"),
+                Map.of("type", "Value", "scalarType", "String", "value", "Foo #1")
+            )
+        );
+
+        final CNode parsed = coercing.parseValue(json, CONTEXT, Locale.getDefault());
+
+        final Component component = (Component) parsed;
+        assertThat(component.getId(), is("nameFilter"));
+        assertThat(component.getCondition(), is(instanceOf(Condition.class)));
 
         assertThat(coercing.serialize(parsed, CONTEXT, Locale.getDefault()), is(json));
     }

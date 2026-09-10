@@ -96,6 +96,68 @@
     ]
   },
   {
+    "name":"AppVersion",
+    "description":"One recorded change to a row of a versioned type: who made it, when, and which fields it touched. A row's version column names the record describing the state it is in now, and prev chains that record to the one before it, so the fields changed between any two versions are the union of the masks in between. Written only by the merge, pruned after the version record lifetime -- which is why nothing has a foreign key onto it: a row outlives the records describing how it got here.",
+    "fieldDocs":[
+      {
+        "name":"created",
+        "description":"When the change was made. What the cleanup of expired version records goes by.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"entityId",
+        "description":"Id of the row that changed",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"entityType",
+        "description":"GraphQL name of the type whose row changed",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"fieldLayout",
+        "description":"Hash of the field-name list the mask was written against. A record whose layout does not match the schema in front of us has its mask read as unknown, so a deployment that reorders fields makes a mask conservative rather than wrong.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"fieldMask",
+        "description":"Bit per field of the type, set for the fields this change touched. The bit index is the position of the field in the type's alphabetically sorted field list, and fieldLayout is what makes reading that back safe.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"id",
+        "description":"Version id, and what the version column of the changed row holds",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"ownerId",
+        "description":"The user who made the change. What lets a subscriber filter out its own writes.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"prev",
+        "description":"The version this change was made against, or null for the first recorded change of the row. Best-effort: the record it names may have been pruned, which reads as \"assume every field changed\" rather than as an error.",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
     "name":"CNode",
     "description":"Abstract base class for all types in the FilterDSL condition hierarchy.",
     "fieldDocs":[

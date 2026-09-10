@@ -123,6 +123,22 @@ public class BazRecord extends UpdatableRecordImpl<BazRecord> {
         return (String) get(4);
     }
 
+    /**
+     * Setter for <code>public.baz.version</code>.
+     */
+    public void setVersion(String value) {
+        set(5, value);
+    }
+
+    /**
+     * Getter for <code>public.baz.version</code>.
+     */
+    @Column(name = "version", length = 36)
+    @Size(max = 36)
+    public String getVersion() {
+        return (String) get(5);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -146,7 +162,7 @@ public class BazRecord extends UpdatableRecordImpl<BazRecord> {
     /**
      * Create a detached, initialised BazRecord
      */
-    public BazRecord(String id, String name, Integer num, Timestamp created, String description) {
+    public BazRecord(String id, String name, Integer num, Timestamp created, String description, String version) {
         super(Baz.BAZ);
 
         setId(id);
@@ -154,6 +170,7 @@ public class BazRecord extends UpdatableRecordImpl<BazRecord> {
         setNum(num);
         setCreated(created);
         setDescription(description);
+        setVersion(version);
         resetChangedOnNotNull();
     }
 
@@ -169,6 +186,7 @@ public class BazRecord extends UpdatableRecordImpl<BazRecord> {
             setNum(value.getNum());
             setCreated(value.getCreated());
             setDescription(value.getDescription());
+            setVersion(value.getVersion());
             resetChangedOnNotNull();
         }
     }

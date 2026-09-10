@@ -41,6 +41,7 @@ public class BarLink extends GeneratedDomainObject implements Serializable {
     private String id;
     private String barId;
     private String bazId;
+    private String version;
 
     public BarLink() {}
 
@@ -48,16 +49,19 @@ public class BarLink extends GeneratedDomainObject implements Serializable {
         this.id = value.id;
         this.barId = value.barId;
         this.bazId = value.bazId;
+        this.version = value.version;
     }
 
     public BarLink(
         String id,
         String barId,
-        String bazId
+        String bazId,
+        String version
     ) {
         this.id = id;
         this.barId = barId;
         this.bazId = bazId;
+        this.version = version;
     }
 
     /**
@@ -112,6 +116,22 @@ public class BarLink extends GeneratedDomainObject implements Serializable {
         this.bazId = bazId;
     }
 
+    /**
+     * Getter for <code>public.bar_link.version</code>.
+     */
+    @Column(name = "version", length = 36)
+    @Size(max = 36)
+    public String getVersion() {
+        return this.version;
+    }
+
+    /**
+     * Setter for <code>public.bar_link.version</code>.
+     */
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -139,6 +159,12 @@ public class BarLink extends GeneratedDomainObject implements Serializable {
         }
         else if (!this.bazId.equals(other.bazId))
             return false;
+        if (this.version == null) {
+            if (other.version != null)
+                return false;
+        }
+        else if (!this.version.equals(other.version))
+            return false;
         return true;
     }
 
@@ -149,6 +175,7 @@ public class BarLink extends GeneratedDomainObject implements Serializable {
         result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
         result = prime * result + ((this.barId == null) ? 0 : this.barId.hashCode());
         result = prime * result + ((this.bazId == null) ? 0 : this.bazId.hashCode());
+        result = prime * result + ((this.version == null) ? 0 : this.version.hashCode());
         return result;
     }
 
@@ -159,6 +186,7 @@ public class BarLink extends GeneratedDomainObject implements Serializable {
         sb.append(id);
         sb.append(", ").append(barId);
         sb.append(", ").append(bazId);
+        sb.append(", ").append(version);
 
         sb.append(")");
         return sb.toString();

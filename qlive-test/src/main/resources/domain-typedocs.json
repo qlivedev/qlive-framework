@@ -47,6 +47,11 @@
                 "name": "type",
                 "description": "type foreign key",
                 "paramDocs": []
+            },
+            {
+                "name": "version",
+                "description": "Id of the app_version record describing the state this row is in now. Selected by any query whose rows are to be edited -- the merge checks its write against it, and a working set cannot register a row without one.",
+                "paramDocs": []
             }
         ]
     },

@@ -62,6 +62,26 @@ type AppUserDocument {
     type: String!
 }
 
+"One recorded change to a row of a versioned type: who made it, when, and which fields it touched. A row's version column names the record describing the state it is in now, and prev chains that record to the one before it, so the fields changed between any two versions are the union of the masks in between. Written only by the merge, pruned after the version record lifetime -- which is why nothing has a foreign key onto it: a row outlives the records describing how it got here."
+type AppVersion {
+    "When the change was made. What the cleanup of expired version records goes by."
+    created: Timestamp!
+    "Id of the row that changed"
+    entityId: String!
+    "GraphQL name of the type whose row changed"
+    entityType: String!
+    "Hash of the field-name list the mask was written against. A record whose layout does not match the schema in front of us has its mask read as unknown, so a deployment that reorders fields makes a mask conservative rather than wrong."
+    fieldLayout: String!
+    "Bit per field of the type, set for the fields this change touched. The bit index is the position of the field in the type's alphabetically sorted field list, and fieldLayout is what makes reading that back safe."
+    fieldMask: BigInteger!
+    "Version id, and what the version column of the changed row holds"
+    id: String!
+    "The user who made the change. What lets a subscriber filter out its own writes."
+    ownerId: String!
+    "The version this change was made against, or null for the first recorded change of the row. Best-effort: the record it names may have been pruned, which reads as \"assume every field changed\" rather than as an error."
+    prev: String
+}
+
 "Generated from public.bar"
 type Bar {
     "Many-to-many objects from bar_link.bar_id"
@@ -76,6 +96,8 @@ type Bar {
     name: String!
     "DB column 'num'"
     num: Int!
+    "DB column 'version'"
+    version: String
 }
 
 "Container for Bar queries"
@@ -101,6 +123,8 @@ type BarLink {
     bazId: String!
     "DB column 'id'"
     id: String!
+    "DB column 'version'"
+    version: String
 }
 
 "Generated from public.baz"
@@ -117,6 +141,8 @@ type Baz {
     name: String!
     "DB column 'num'"
     num: Int!
+    "DB column 'version'"
+    version: String
 }
 
 "Container for Baz queries"
@@ -151,6 +177,8 @@ type Foo {
     ownerId: String!
     "DB foreign key column 'type'"
     type: String!
+    "Id of the app_version record describing the state this row is in now. Selected by any query whose rows are to be edited -- the merge checks its write against it, and a working set cannot register a row without one."
+    version: String
 }
 
 "Container for Foo queries"
@@ -249,6 +277,9 @@ type QuxDocument {
 
 "BigDecimal wrapped as string"
 scalar BigDecimal
+
+"BigInteger wrapped as string"
+scalar BigInteger
 
 "8-bit integer"
 scalar Byte

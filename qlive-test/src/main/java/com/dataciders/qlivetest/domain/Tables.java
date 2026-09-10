@@ -6,6 +6,7 @@ package com.dataciders.qlivetest.domain;
 
 import com.dataciders.qlivetest.domain.tables.AppLogin;
 import com.dataciders.qlivetest.domain.tables.AppUser;
+import com.dataciders.qlivetest.domain.tables.AppVersion;
 import com.dataciders.qlivetest.domain.tables.Bar;
 import com.dataciders.qlivetest.domain.tables.BarLink;
 import com.dataciders.qlivetest.domain.tables.Baz;
@@ -38,6 +39,11 @@ public class Tables {
      * The table <code>public.app_user</code>.
      */
     public static final AppUser APP_USER = AppUser.APP_USER;
+
+    /**
+     * The table <code>public.app_version</code>.
+     */
+    public static final AppVersion APP_VERSION = AppVersion.APP_VERSION;
 
     /**
      * The table <code>public.bar</code>.

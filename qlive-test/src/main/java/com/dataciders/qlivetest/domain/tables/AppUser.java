@@ -6,6 +6,7 @@ package com.dataciders.qlivetest.domain.tables;
 
 import com.dataciders.qlivetest.domain.Keys;
 import com.dataciders.qlivetest.domain.Public;
+import com.dataciders.qlivetest.domain.tables.AppVersion.AppVersionPath;
 import com.dataciders.qlivetest.domain.tables.Foo.FooPath;
 import com.dataciders.qlivetest.domain.tables.records.AppUserRecord;
 
@@ -183,6 +184,19 @@ public class AppUser extends TableImpl<AppUserRecord> {
     @Override
     public List<UniqueKey<AppUserRecord>> getUniqueKeys() {
         return Arrays.asList(Keys.UC_APP_USER_LOGIN);
+    }
+
+    private transient AppVersionPath _appVersion;
+
+    /**
+     * Get the implicit to-many join path to the <code>public.app_version</code>
+     * table
+     */
+    public AppVersionPath appVersion() {
+        if (_appVersion == null)
+            _appVersion = new AppVersionPath(this, null, Keys.APP_VERSION__FK_APP_VERSION_OWNER_ID.getInverseKey());
+
+        return _appVersion;
     }
 
     private transient FooPath _foo;

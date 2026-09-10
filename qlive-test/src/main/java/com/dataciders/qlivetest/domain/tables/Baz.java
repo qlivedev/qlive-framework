@@ -89,6 +89,11 @@ public class Baz extends TableImpl<BazRecord> {
      */
     public final TableField<BazRecord, String> DESCRIPTION = createField(DSL.name("description"), SQLDataType.CLOB, this, "");
 
+    /**
+     * The column <code>public.baz.version</code>.
+     */
+    public final TableField<BazRecord, String> VERSION = createField(DSL.name("version"), SQLDataType.VARCHAR(36), this, "");
+
     private Baz(Name alias, Table<BazRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

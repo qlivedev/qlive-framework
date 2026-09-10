@@ -81,6 +81,11 @@ public class BarLink extends TableImpl<BarLinkRecord> {
      */
     public final TableField<BarLinkRecord, String> BAZ_ID = createField(DSL.name("baz_id"), SQLDataType.VARCHAR(36).nullable(false), this, "");
 
+    /**
+     * The column <code>public.bar_link.version</code>.
+     */
+    public final TableField<BarLinkRecord, String> VERSION = createField(DSL.name("version"), SQLDataType.VARCHAR(36), this, "");
+
     private BarLink(Name alias, Table<BarLinkRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

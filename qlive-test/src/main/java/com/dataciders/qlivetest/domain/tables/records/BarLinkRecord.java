@@ -91,6 +91,22 @@ public class BarLinkRecord extends UpdatableRecordImpl<BarLinkRecord> {
         return (String) get(2);
     }
 
+    /**
+     * Setter for <code>public.bar_link.version</code>.
+     */
+    public void setVersion(String value) {
+        set(3, value);
+    }
+
+    /**
+     * Getter for <code>public.bar_link.version</code>.
+     */
+    @Column(name = "version", length = 36)
+    @Size(max = 36)
+    public String getVersion() {
+        return (String) get(3);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -114,12 +130,13 @@ public class BarLinkRecord extends UpdatableRecordImpl<BarLinkRecord> {
     /**
      * Create a detached, initialised BarLinkRecord
      */
-    public BarLinkRecord(String id, String barId, String bazId) {
+    public BarLinkRecord(String id, String barId, String bazId, String version) {
         super(BarLink.BAR_LINK);
 
         setId(id);
         setBarId(barId);
         setBazId(bazId);
+        setVersion(version);
         resetChangedOnNotNull();
     }
 
@@ -133,6 +150,7 @@ public class BarLinkRecord extends UpdatableRecordImpl<BarLinkRecord> {
             setId(value.getId());
             setBarId(value.getBarId());
             setBazId(value.getBazId());
+            setVersion(value.getVersion());
             resetChangedOnNotNull();
         }
     }

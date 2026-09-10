@@ -6,6 +6,7 @@ package com.dataciders.qlivetest.domain;
 
 import com.dataciders.qlivetest.domain.tables.AppLogin;
 import com.dataciders.qlivetest.domain.tables.AppUser;
+import com.dataciders.qlivetest.domain.tables.AppVersion;
 import com.dataciders.qlivetest.domain.tables.Bar;
 import com.dataciders.qlivetest.domain.tables.BarLink;
 import com.dataciders.qlivetest.domain.tables.Baz;
@@ -52,6 +53,11 @@ public class Public extends SchemaImpl {
      * The table <code>public.app_user</code>.
      */
     public final AppUser APP_USER = AppUser.APP_USER;
+
+    /**
+     * The table <code>public.app_version</code>.
+     */
+    public final AppVersion APP_VERSION = AppVersion.APP_VERSION;
 
     /**
      * The table <code>public.bar</code>.
@@ -102,6 +108,7 @@ public class Public extends SchemaImpl {
         return Arrays.asList(
             AppLogin.APP_LOGIN,
             AppUser.APP_USER,
+            AppVersion.APP_VERSION,
             Bar.BAR,
             BarLink.BAR_LINK,
             Baz.BAZ,

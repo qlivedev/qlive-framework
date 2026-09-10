@@ -6,6 +6,7 @@ package com.dataciders.qlivetest.domain;
 
 import com.dataciders.qlivetest.domain.tables.AppLogin;
 import com.dataciders.qlivetest.domain.tables.AppUser;
+import com.dataciders.qlivetest.domain.tables.AppVersion;
 import com.dataciders.qlivetest.domain.tables.Bar;
 import com.dataciders.qlivetest.domain.tables.BarLink;
 import com.dataciders.qlivetest.domain.tables.Baz;
@@ -14,6 +15,7 @@ import com.dataciders.qlivetest.domain.tables.FooType;
 import com.dataciders.qlivetest.domain.tables.Qux;
 import com.dataciders.qlivetest.domain.tables.records.AppLoginRecord;
 import com.dataciders.qlivetest.domain.tables.records.AppUserRecord;
+import com.dataciders.qlivetest.domain.tables.records.AppVersionRecord;
 import com.dataciders.qlivetest.domain.tables.records.BarLinkRecord;
 import com.dataciders.qlivetest.domain.tables.records.BarRecord;
 import com.dataciders.qlivetest.domain.tables.records.BazRecord;
@@ -51,6 +53,7 @@ public class Keys {
     public static final UniqueKey<AppLoginRecord> PK_APP_LOGIN = Internal.createUniqueKey(AppLogin.APP_LOGIN, DSL.name("pk_app_login"), new TableField[] { AppLogin.APP_LOGIN.SERIES }, true);
     public static final UniqueKey<AppUserRecord> PK_APP_USER = Internal.createUniqueKey(AppUser.APP_USER, DSL.name("pk_app_user"), new TableField[] { AppUser.APP_USER.ID }, true);
     public static final UniqueKey<AppUserRecord> UC_APP_USER_LOGIN = Internal.createUniqueKey(AppUser.APP_USER, DSL.name("uc_app_user_login"), new TableField[] { AppUser.APP_USER.LOGIN }, true);
+    public static final UniqueKey<AppVersionRecord> PK_APP_VERSION = Internal.createUniqueKey(AppVersion.APP_VERSION, DSL.name("pk_app_version"), new TableField[] { AppVersion.APP_VERSION.ID }, true);
     public static final UniqueKey<BarRecord> PK_BAR = Internal.createUniqueKey(Bar.BAR, DSL.name("pk_bar"), new TableField[] { Bar.BAR.ID }, true);
     public static final UniqueKey<BarLinkRecord> PK_BAR_LINK = Internal.createUniqueKey(BarLink.BAR_LINK, DSL.name("pk_bar_link"), new TableField[] { BarLink.BAR_LINK.ID }, true);
     public static final UniqueKey<BazRecord> PK_BAZ = Internal.createUniqueKey(Baz.BAZ, DSL.name("pk_baz"), new TableField[] { Baz.BAZ.ID }, true);
@@ -63,6 +66,7 @@ public class Keys {
     // FOREIGN KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final ForeignKey<AppVersionRecord, AppUserRecord> APP_VERSION__FK_APP_VERSION_OWNER_ID = Internal.createForeignKey(AppVersion.APP_VERSION, DSL.name("fk_app_version_owner_id"), new TableField[] { AppVersion.APP_VERSION.OWNER_ID }, Keys.PK_APP_USER, new TableField[] { AppUser.APP_USER.ID }, true);
     public static final ForeignKey<BarLinkRecord, BarRecord> BAR_LINK__FK_BAR_LINK_TO_BAR = Internal.createForeignKey(BarLink.BAR_LINK, DSL.name("fk_bar_link_to_bar"), new TableField[] { BarLink.BAR_LINK.BAR_ID }, Keys.PK_BAR, new TableField[] { Bar.BAR.ID }, true);
     public static final ForeignKey<BarLinkRecord, BazRecord> BAR_LINK__FK_BAR_LINK_TO_BAZ = Internal.createForeignKey(BarLink.BAR_LINK, DSL.name("fk_bar_link_to_baz"), new TableField[] { BarLink.BAR_LINK.BAZ_ID }, Keys.PK_BAZ, new TableField[] { Baz.BAZ.ID }, true);
     public static final ForeignKey<FooRecord, AppUserRecord> FOO__FK_FOO_OWNER_ID = Internal.createForeignKey(Foo.FOO, DSL.name("fk_foo_owner_id"), new TableField[] { Foo.FOO.OWNER_ID }, Keys.PK_APP_USER, new TableField[] { AppUser.APP_USER.ID }, true);

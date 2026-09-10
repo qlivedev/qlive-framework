@@ -55,6 +55,29 @@ export type AppUserDocument = {
     type: string
 }
 
+/** One recorded change to a row of a versioned type: who made it, when, and which fields it touched. A row's version column names the record describing the state it is in now, and prev chains that record to the one before it, so the fields changed between any two versions are the union of the masks in between. Written only by the merge, pruned after the version record lifetime -- which is why nothing has a foreign key onto it: a row outlives the records describing how it got here. */
+export type AppVersion = {
+
+    _type: "AppVersion",
+
+    /** When the change was made. What the cleanup of expired version records goes by. */
+    created: Temporal.Instant
+    /** Id of the row that changed */
+    entityId: string
+    /** GraphQL name of the type whose row changed */
+    entityType: string
+    /** Hash of the field-name list the mask was written against. A record whose layout does not match the schema in front of us has its mask read as unknown, so a deployment that reorders fields makes a mask conservative rather than wrong. */
+    fieldLayout: string
+    /** Bit per field of the type, set for the fields this change touched. The bit index is the position of the field in the type's alphabetically sorted field list, and fieldLayout is what makes reading that back safe. */
+    fieldMask: bigint
+    /** Version id, and what the version column of the changed row holds */
+    id: string
+    /** The user who made the change. What lets a subscriber filter out its own writes. */
+    ownerId: string
+    /** The version this change was made against, or null for the first recorded change of the row. Best-effort: the record it names may have been pruned, which reads as "assume every field changed" rather than as an error. */
+    prev?: string
+}
+
 /** Generated from public.bar */
 export type Bar = {
 
@@ -72,6 +95,8 @@ export type Bar = {
     name: string
     /** DB column 'num' */
     num: number
+    /** DB column 'version' */
+    version?: string
 }
 
 /** Container for Bar queries */
@@ -103,6 +128,8 @@ export type BarLink = {
     bazId: string
     /** DB column 'id' */
     id: string
+    /** DB column 'version' */
+    version?: string
 }
 
 /** Generated from public.baz */
@@ -122,6 +149,8 @@ export type Baz = {
     name: string
     /** DB column 'num' */
     num: number
+    /** DB column 'version' */
+    version?: string
 }
 
 /** Container for Baz queries */
@@ -162,6 +191,8 @@ export type Foo = {
     ownerId: string
     /** DB foreign key column 'type' */
     type: string
+    /** Id of the app_version record describing the state this row is in now. Selected by any query whose rows are to be edited -- the merge checks its write against it, and a working set cannot register a row without one. */
+    version?: string
 }
 
 /** Container for Foo queries */
@@ -279,5 +310,6 @@ export type QuxDocument = {
     type: string
 }
 
-export type DomainObject = AppLogin | AppUser | AppUserDocument | Bar | BarDocument | BarLink | Baz | BazDocument |
-    Foo | FooDocument | FooType | FooTypeDocument | MutationType | QueryType | Qux | QuxDocument
+export type DomainObject = AppLogin | AppUser | AppUserDocument | AppVersion | Bar | BarDocument | BarLink | Baz |
+    BazDocument | Foo | FooDocument | FooType | FooTypeDocument | MutationType | QueryType | Qux |
+    QuxDocument

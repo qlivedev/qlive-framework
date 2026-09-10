@@ -44,6 +44,7 @@ public class Baz extends GeneratedDomainObject implements Serializable {
     private Integer num;
     private Timestamp created;
     private String description;
+    private String version;
 
     public Baz() {}
 
@@ -53,6 +54,7 @@ public class Baz extends GeneratedDomainObject implements Serializable {
         this.num = value.num;
         this.created = value.created;
         this.description = value.description;
+        this.version = value.version;
     }
 
     public Baz(
@@ -60,13 +62,15 @@ public class Baz extends GeneratedDomainObject implements Serializable {
         String name,
         Integer num,
         Timestamp created,
-        String description
+        String description,
+        String version
     ) {
         this.id = id;
         this.name = name;
         this.num = num;
         this.created = created;
         this.description = description;
+        this.version = version;
     }
 
     /**
@@ -151,6 +155,22 @@ public class Baz extends GeneratedDomainObject implements Serializable {
         this.description = description;
     }
 
+    /**
+     * Getter for <code>public.baz.version</code>.
+     */
+    @Column(name = "version", length = 36)
+    @Size(max = 36)
+    public String getVersion() {
+        return this.version;
+    }
+
+    /**
+     * Setter for <code>public.baz.version</code>.
+     */
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -190,6 +210,12 @@ public class Baz extends GeneratedDomainObject implements Serializable {
         }
         else if (!this.description.equals(other.description))
             return false;
+        if (this.version == null) {
+            if (other.version != null)
+                return false;
+        }
+        else if (!this.version.equals(other.version))
+            return false;
         return true;
     }
 
@@ -202,6 +228,7 @@ public class Baz extends GeneratedDomainObject implements Serializable {
         result = prime * result + ((this.num == null) ? 0 : this.num.hashCode());
         result = prime * result + ((this.created == null) ? 0 : this.created.hashCode());
         result = prime * result + ((this.description == null) ? 0 : this.description.hashCode());
+        result = prime * result + ((this.version == null) ? 0 : this.version.hashCode());
         return result;
     }
 
@@ -214,6 +241,7 @@ public class Baz extends GeneratedDomainObject implements Serializable {
         sb.append(", ").append(num);
         sb.append(", ").append(created);
         sb.append(", ").append(description);
+        sb.append(", ").append(version);
 
         sb.append(")");
         return sb.toString();

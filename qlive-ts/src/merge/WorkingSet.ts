@@ -153,8 +153,9 @@ type Entity = {
     gone: boolean
 
     /**
-     * why this row cannot be edited, where it cannot: a row of a versioned type registered without its
-     * version has no base to hold a write to, and null everywhere else
+     * why this row's own fields cannot be written, where they cannot: a row of a versioned type registered
+     * without its version has no base to hold that write to, and null everywhere else. Its associations are
+     * another matter -- those are rows of the link type and are held to the versions of those
      */
     unversioned: string | null
 
@@ -234,10 +235,11 @@ export class WorkingSet
      * an entity, whatever type it is and however deep it sits, so registering the document a view renders
      * registers everything that view can edit.
      *
-     * A row of a versioned type that came without its version is registered like any other and refuses to
-     * be edited, naming the query that read it. Registering walks everything a query selected, most of
-     * which a view only displays, so the query that reads a lookup table for a dropdown is not the place to
-     * insist -- and the row somebody does try to edit still fails long before a merge could lose an update.
+     * A row of a versioned type that came without its version is registered like any other and refuses the
+     * write that would need one, naming the query that read it. Registering walks everything a query
+     * selected, most of which a view only displays, so the query that reads a lookup table for a dropdown is
+     * not the place to insist -- and the field somebody does try to change still fails long before a merge
+     * could lose an update.
      *
      * @param document      query document, or the snapshot a view holds of one
      */
@@ -271,12 +273,11 @@ export class WorkingSet
      *
      * @param row       row of a registered document, or a draft of one
      *
-     * @throws if the row belongs to no entity of this working set, or if it is a versioned row that was
-     *         read without its version
+     * @throws if the row belongs to no entity of this working set
      */
     edit<T extends object>(row: T): T
     {
-        const entity = this.editable(row)
+        const entity = this.entityOf(row)
 
         if (!entity.draft)
         {
@@ -822,7 +823,7 @@ export class WorkingSet
 
 
     /**
-     * The entity the given row or draft belongs to, where it may be written to.
+     * The entity the given row or draft belongs to, where the row itself may be written.
      *
      * @throws if it belongs to none of this working set's, or if it is a versioned row that was read
      *         without its version
@@ -941,6 +942,14 @@ export class WorkingSet
         if (unwrapAll(fieldOf(entity.type, name).type).kind === "OBJECT")
         {
             throw new Error(`Cannot change ${entity.type}.${name}: it is not a scalar field.`)
+        }
+
+        if (entity.unversioned)
+        {
+            // Here rather than at edit(), because this is the one write the version is the base for. The
+            // link arrays above went out already: those become rows of the link type, held to the versions
+            // of *those*, so a view that only edits associations never needs this row's.
+            throw new Error(entity.unversioned)
         }
 
         const next = value === undefined ? null : value
@@ -1167,8 +1176,9 @@ function key(type: string, id: string): string
  *
  * That last case is not refused here. Registration walks everything a query selected and most of it is only
  * displayed, so the query that fills a dropdown is the wrong place to insist on a version. What it gets
- * instead is the sentence edit() throws the moment somebody does try to change the row -- written here,
- * where the query that read it is still known, and still long before a merge could lose an update.
+ * instead is the sentence thrown the moment somebody does try to write one of the row's own fields, or to
+ * delete it -- written here, where the query that read it is still known, and still long before a merge
+ * could lose an update.
  */
 function versionOf(
     type: string, id: string, base: Map<string, unknown>, source: string

@@ -41,7 +41,8 @@ const Q_BARS = new GraphQLQuery<QueryDocument<any>>(
 
 /**
  * A query with the same rows and no version selected on them, which is the mistake register() exists to
- * catch.
+ * catch. The links below them keep theirs: what a version is the base for is the row's own fields, so this
+ * is a query that can still edit the associations.
  */
 const Q_BARS_UNVERSIONED = new GraphQLQuery<QueryDocument<any>>(
     `query Q_BarsUnversioned($config: QueryConfig!) {
@@ -49,10 +50,33 @@ const Q_BARS_UNVERSIONED = new GraphQLQuery<QueryDocument<any>>(
             type
             config
             rowCount
-            rows { id name num }
+            rows {
+                id
+                name
+                num
+                bazLinks {
+                    id
+                    version
+                    barId
+                    bazId
+                    baz { id name version }
+                }
+            }
         }
     }`
 )
+
+
+/**
+ * Registers the rows of Q_BARS_UNVERSIONED, which are the fixture's minus the version on the Bar itself.
+ */
+async function loadUnversionedBars()
+{
+    const {version, ...selected} = barDocument().rows[0]
+    respondWith({data: {queryBarDocument: {...barDocument(), rows: [selected]}}, errors: []})
+
+    return await Q_BARS_UNVERSIONED.execute({config: CONFIG})
+}
 
 const CONFIG = {offset: 0, pageSize: 10, condition: null, sortFields: []}
 
@@ -103,21 +127,39 @@ describe("registration", () => {
         expect(ws.dirty).toBe(false)
     })
 
-    it("refuses to edit a versioned row whose version was not selected", async () => {
+    it("refuses to write a field of a row whose version was not selected", async () => {
 
-        const {version, bazLinks, ...selected} = barDocument().rows[0]
-        respondWith({data: {queryBarDocument: {...barDocument(), rows: [selected]}}, errors: []})
-
-        const document = await Q_BARS_UNVERSIONED.execute({config: CONFIG})
+        const document = await loadUnversionedBars()
         const ws = new WorkingSet()
 
-        // registering is fine: a query selects rows a view only displays as readily as ones it edits
+        // registering is fine, and so is asking for the draft: a query selects rows a view only displays as
+        // readily as ones it edits, and the write is where a missing base actually costs something
         ws.register(document)
+        const bar = ws.edit(document.rows[0])
 
-        expect(() => ws.edit(document.rows[0]))
+        expect(() => bar.name = "Changed")
             .toThrowError(/Bar bar-1 was registered without its version.*Q_BarsUnversioned/s)
         expect(() => ws.delete(document.rows[0]))
             .toThrowError(/Bar bar-1 was registered without its version.*Q_BarsUnversioned/s)
+    })
+
+    it("edits the associations of a row whose version was not selected", async () => {
+
+        const document = await loadUnversionedBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        ws.edit(document.rows[0]).bazLinks = []
+
+        const fetchMock = respondWith(mergeResponse({status: "CONFLICT", conflicts: []}))
+        await ws.merge()
+
+        const {changes, deletions} = sentVariables(fetchMock)
+
+        // nothing of the Bar goes out, which is why it never needed a version: an association is a row of
+        // the link type and is held to the version of that row
+        expect(changes).toEqual([])
+        expect(deletions).toEqual([{type: "BarLink", id: "link-1", version: "lv1"}])
     })
 
     it("refuses to edit a row of a versioned type that has none", async () => {
@@ -130,7 +172,7 @@ describe("registration", () => {
         const ws = new WorkingSet()
         ws.register(document)
 
-        expect(() => ws.edit(document.rows[0])).toThrowError(/Bar bar-1 has no version/)
+        expect(() => ws.edit(document.rows[0]).name = "Changed").toThrowError(/Bar bar-1 has no version/)
     })
 
     it("refuses to delete a link whose version was not selected", async () => {

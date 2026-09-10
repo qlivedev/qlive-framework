@@ -519,6 +519,52 @@ already in the database into a duplicate insert. The working set refuses
 the write and says so, the way it refuses a versioned row registered
 without its version.
 
+**An association is unique on the pair of rows**, and the database is
+where that is said. Without the constraint two people adding the same
+association concurrently wrote two link rows with different ids and
+identical foreign keys: no version to clash on, nothing to refuse it, no
+conflict of any kind. It self-heals on read, a link array being a set,
+and removing the association deletes both rows -- but it accumulates rows
+nobody asked for and nobody sees. `uc_bar_link_bar_baz` in qlive-test is
+the shape an application copies.
+
+#### A conflict about a link is reported against the array
+
+A link diff makes rows nobody named. The user said "the associations of
+this Bar are {B}"; the merge said "delete `BarLink` 4f2a..., insert
+another". So a conflict about one of those rows cannot be shown where it
+happened -- a `BarLink` id is in no form, and a view editing associations
+through checkboxes has never heard of the link type.
+
+**The conflict is therefore traced back to the array it came out of.**
+`merge()` remembers which link field each synthesised deletion belongs to
+and, when one comes back conflicted, marks that field on the source row
+as moved. The array gets a status, a class and a `resolve()` like any
+scalar, and the same three maps produce all of it -- nothing new in the
+accessor, nothing new in the hooks.
+
+It is marked as **moved and not to what**: `undefined` in `stored`, the
+same as a scalar whose value was withheld. An association somebody else
+took away says nothing about the ones they may have added, so the set
+that is stored is not knowable from here. What the form shows for it is
+what the row was read with, which is the existing rule for that case.
+
+**A deletion whose row is already gone is not sent again.** Nobody asked
+to delete that link row; they asked for a set of associations, and
+somebody else has already made the set true. Re-sending it would fail the
+whole merge over a state the user wanted and has -- and would keep
+failing it, since a row that is gone has no version to move on to. The
+diff skips it, which is the one place this can be decided: the server
+cannot tell a synthesised deletion from a row the user pointed at and
+deleted on purpose, and that second one is worth reporting.
+
+**A merge with nothing left to send still landed.** Where every change
+was satisfied elsewhere, the documents are stale by exactly the writes
+that satisfied them, so they refresh as after any other merge. The old
+shortcut -- nothing to send, so nothing to refresh -- now applies only to
+a working set that was never dirty, which is the case it was written for:
+a form that saves an untouched row.
+
 ### Merging, and resolving in the view
 
 ```ts
@@ -1069,8 +1115,16 @@ is easier to see now than after the second one is written.
   typed, so changing their mind costs one call.
 - **`resolve()` and `resolveWith()` are two calls.** The choices are
   strings and so are plenty of field values.
-- **A versioned row read without its version fails at the edit**, not at
-  the registration. See build order item 9.
+- **A versioned row read without its version fails at the write of one of
+  its own fields**, not at `edit()` and not at the registration. A
+  version is the base for the row's own columns and nothing else. See
+  build order item 9.
+- **A conflict about a link row is reported against the link array.**
+  The row was synthesised by the diff and is in no form; the array is
+  what the user edited. See "Many-to-many".
+- **A resolution holds a link array back the way it holds a scalar
+  back.** The link diff runs over the pending changes, not over every
+  change, so `resolve("stored")` on an array means what it says.
 - **The view flag lives on the working set and every draft read goes
   through it**, so switching it re-renders a form that knows nothing
   about merging against other values.

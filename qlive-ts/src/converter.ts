@@ -334,10 +334,22 @@ function convertInput(value: any, type: string, path: string): any
         return value
     }
 
+    const namedType = findType(type)
+
+    if (Array.isArray(value) && namedType.kind !== "SCALAR" && namedType.kind !== "ENUM")
+    {
+        // A variable is known by its named type alone -- the conversion map drops the
+        // modifiers the same way a selection node does -- so a list is recognised by
+        // the value being an array, which covers nested lists without a declared depth.
+        // A scalar is exempt: its value may be an array in its own right, and it
+        // belongs to its converter whole.
+        return value.map((v, i) => convertInput(v, type, path + "[" + i + "]"))
+    }
+
     const converter = converterRegistry[type]
     const wire = converter?.toServer ? converter.toServer(value, type) : value
 
-    return convertInputFields(wire, findType(type), path)
+    return convertInputFields(wire, namedType, path)
 }
 
 /**

@@ -187,6 +187,24 @@ describe("variable conversion", () => {
         expect(wire.seenAt).toEqual(["2026-01-03T00:00:00Z", null])
     })
 
+    it("converts a list-valued variable, whose modifiers the map does not carry", () => {
+        const wire = convertVariablesToServer(
+            {
+                foos: [
+                    {name: "Foo #1", created: Temporal.Instant.from("2026-01-02T03:04:05Z")},
+                    {name: "Foo #2", created: Temporal.Instant.from("2026-01-03T00:00:00Z")}
+                ]
+            },
+            // what buildConversionMap() produces for "$foos: [FooInput]!"
+            {selections: {}, variables: {foos: "FooInput"}}
+        )
+
+        expect(wire.foos).toEqual([
+            {name: "Foo #1", created: "2026-01-02T03:04:05Z"},
+            {name: "Foo #2", created: "2026-01-03T00:00:00Z"}
+        ])
+    })
+
     it("does not modify the live value it converts", () => {
         const live = {name: "Foo #1", created: Temporal.Instant.from("2026-01-02T03:04:05Z")}
 

@@ -81,6 +81,16 @@ export type LinkRelation = {
      * The field of a link row holding the foreign key to the other side, e.g. "bazId".
      */
     targetField: string
+
+    /**
+     * The field of a link row holding the row on the other side, e.g. "baz". Absent where the relation
+     * generated none.
+     *
+     * What lets a new association be written as the row it is about -- `[...bar.bazLinks, {baz}]` -- rather
+     * than as the foreign key alone. It is also the object a view renders the association through, so the
+     * short form is the one that both diffs and displays.
+     */
+    targetObject?: string
 }
 
 /**
@@ -234,7 +244,8 @@ function asLinkRelation(typeName: string, relation: RelationInfo): LinkRelation 
         linkType: relation.sourceType,
         sourceField: relation.sourceFields[0],
         targetType: other.targetType,
-        targetField: other.sourceFields[0]
+        targetField: other.sourceFields[0],
+        targetObject: other.leftSideObjectName
     }
 }
 

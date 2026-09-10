@@ -96,7 +96,8 @@ describe("link relations", () => {
             linkType: "BarLink",
             sourceField: "barId",
             targetType: "Baz",
-            targetField: "bazId"
+            targetField: "bazId",
+            targetObject: "baz"
         })
     })
 
@@ -108,7 +109,8 @@ describe("link relations", () => {
             linkType: "BarLink",
             sourceField: "bazId",
             targetType: "Bar",
-            targetField: "barId"
+            targetField: "barId",
+            targetObject: "bar"
         })
     })
 
@@ -120,7 +122,8 @@ describe("link relations", () => {
             linkType: "CorgeLink",
             sourceField: "corgeId",
             targetType: "Grault",
-            targetField: "graultId"
+            targetField: "graultId",
+            targetObject: "grault"
         })
     })
 

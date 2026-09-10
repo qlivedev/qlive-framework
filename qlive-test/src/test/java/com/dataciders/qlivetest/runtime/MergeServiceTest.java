@@ -73,6 +73,13 @@ class MergeServiceTest
         dslContext.deleteFrom(BAR_LINK).where(BAR_LINK.ID.in(barLinks)).execute();
         dslContext.deleteFrom(BAR).where(BAR.ID.in(bars)).execute();
         dslContext.deleteFrom(QUX).where(QUX.ID.in(quxs)).execute();
+
+        // the records of the writes above outlive the rows, nothing having a foreign key onto them. The
+        // cleanup would take them in a week; this leaves the database as the backup describes it.
+        dslContext.deleteFrom(APP_VERSION)
+            .where(APP_VERSION.ENTITY_ID.in(bars))
+            .or(APP_VERSION.ENTITY_ID.in(barLinks))
+            .execute();
     }
 
 

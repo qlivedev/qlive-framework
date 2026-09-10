@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -67,6 +68,9 @@ public class DefaultMergeService
     implements MergeService
 {
     private final static Logger log = LoggerFactory.getLogger(DefaultMergeService.class);
+
+    /// SQL state of a row refused for being a duplicate. Standard, so no dialect has to be asked.
+    private final static String UNIQUE_VIOLATION = "23505";
 
     private final DomainQL domainQL;
 
@@ -121,11 +125,32 @@ public class DefaultMergeService
         final List<MergeConflict> conflicts = new ArrayList<>();
         final List<EntityVersion> written = new ArrayList<>();
 
+        boolean aborted = false;
+
         // A -- new rows before the rows whose foreign keys name them
         for (PreparedChange change : order(prepared))
         {
-            // B and C -- write, and ask what stood in the way where nothing was written
-            final MergeConflict conflict = write(change, config, written);
+            final MergeConflict conflict;
+
+            try
+            {
+                // B and C -- write, and ask what stood in the way where nothing was written
+                conflict = write(change, config, written);
+            }
+            catch (RuntimeException e)
+            {
+                if (!uniqueViolation(e))
+                {
+                    throw e;
+                }
+
+                // The database has aborted the transaction, so nothing more can be written and nothing can
+                // be read back. This conflict is the whole answer.
+                conflicts.add(duplicate(change));
+                aborted = true;
+                break;
+            }
+
             if (conflict != null)
             {
                 conflicts.add(conflict);
@@ -134,7 +159,7 @@ public class DefaultMergeService
 
         // deletions after the changes, so that a row whose last reference this merge moves away can go in
         // the same merge that moved it
-        for (EntityDeletion deletion : nullSafe(deletions))
+        for (EntityDeletion deletion : aborted ? List.<EntityDeletion>of() : nullSafe(deletions))
         {
             final MergeConflict conflict = delete(deletion);
             if (conflict != null)
@@ -710,6 +735,45 @@ public class DefaultMergeService
     /// that is gone, and nothing is left to name it. A deletion is also the one write that never merges over
     /// a concurrent change -- removing a row somebody has just edited is exactly the decision a user has to
     /// be asked about -- so it names no fields either way.
+    /// The conflict a row that broke a unique constraint comes back as.
+    ///
+    /// No fields and no stored version: the transaction is aborted, so there is nothing left to read, and
+    /// there would be nothing to choose between anyway. The row in the way is somebody else's and this one
+    /// was never written.
+    ///
+    /// Which row is in the way is not said either, and cannot be from here -- the constraint names columns,
+    /// not a row. What the client does with that is its own: a link insert that broke the constraint on the
+    /// pair means the association it wanted exists, and the array it came out of is where that is shown.
+    private MergeConflict duplicate(PreparedChange change)
+    {
+        final MergeConflict conflict = new MergeConflict();
+        conflict.setType(change.change.getType());
+        conflict.setId(change.change.getId());
+        conflict.setFields(List.of());
+
+        return conflict;
+    }
+
+
+    /// Whether the given exception is a row refused for being a duplicate of one that is already there.
+    ///
+    /// By SQL state and through the whole cause chain rather than by exception type: JOOQ throws its own
+    /// DataAccessException where nothing installed Spring's translator and the application sees a
+    /// DuplicateKeyException where something did, and an application is free to do either.
+    private static boolean uniqueViolation(Throwable e)
+    {
+        for (Throwable cause = e; cause != null; cause = cause == cause.getCause() ? null : cause.getCause())
+        {
+            if (cause instanceof SQLException sql && UNIQUE_VIOLATION.equals(sql.getSQLState()))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
     private MergeConflict delete(EntityDeletion deletion)
     {
         final String typeName = requireType(deletion.getType(), deletion);

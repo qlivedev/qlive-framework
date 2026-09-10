@@ -477,7 +477,7 @@
   },
   {
     "name":"MergeStatus",
-    "description":"How a merge ended.\n\nTwo outcomes and no third one. Everything that is neither -- a type nobody exposes, a field name that\nmatches no column, a constraint the database refuses -- is a programming error rather than a state of the\ndata, and comes back as a GraphQL error instead of as a status a caller has to branch on.",
+    "description":"How a merge ended.\n\nTwo outcomes and no third one. Everything that is neither -- a type nobody exposes, a field name that\nmatches no column, a foreign key pointing at nothing -- is a programming error rather than a state of the\ndata, and comes back as a GraphQL error instead of as a status a caller has to branch on.\n\nA unique constraint is the one refusal that is not in that list. A row refused for being a duplicate of\none already there is somebody else having got in first, which is the same thing every other conflict is,\nand it comes back as one.",
     "fieldDocs":[
       {
         "name":"CONFLICT",

@@ -380,21 +380,46 @@ class MergeServiceTest
         final String linkId = newId(barLinks);
         final String bazId = dslContext.select(BAZ.ID).from(BAZ).limit(1).fetchOne(BAZ.ID);
 
-        final MergeResult result = merge(
-            create(
-                "BarLink",
-                linkId,
-                field("barId", "String", barId),
-                field("bazId", "String", bazId)
-            ),
-            newBar(barId, "Merge #7", 7)
-        );
+        final MergeResult result = merge(link(linkId, barId, bazId), newBar(barId, "Merge #7", 7));
 
         assertThat(result.getStatus(), is(MergeStatus.DONE));
         assertThat(
             dslContext.selectFrom(BAR_LINK).where(BAR_LINK.ID.eq(linkId)).fetchOne().get(BAR_LINK.BAR_ID),
             is(barId)
         );
+    }
+
+
+    /// An association is the pair of rows, and a second link row naming the same pair is somebody else
+    /// having got in first rather than a broken program. There is no version on a row that does not exist
+    /// yet, so the constraint on the pair is the only thing that can see it coming -- and what it comes
+    /// back as is a conflict like any other, with nothing written.
+    @Test
+    void reportsADuplicateAssociationAsAConflict()
+    {
+        final String barId = newId(bars);
+        final String bazId = dslContext.select(BAZ.ID).from(BAZ).limit(1).fetchOne(BAZ.ID);
+
+        merge(newBar(barId, "Merge #14", 14), link(newId(barLinks), barId, bazId));
+
+        final String second = newId(barLinks);
+        final MergeResult result = merge(link(second, barId, bazId));
+
+        assertThat(result.getStatus(), is(MergeStatus.CONFLICT));
+        assertThat(result.getConflicts(), hasSize(1));
+
+        final MergeConflict conflict = result.getConflicts().get(0);
+
+        assertThat(conflict.getType(), is("BarLink"));
+        assertThat(conflict.getId(), is(second));
+
+        // nothing to choose between: the row in the way is somebody else's and this one was never written
+        assertThat(conflict.getFields(), is(empty()));
+        assertThat(conflict.getStoredVersion(), is(nullValue()));
+        assertThat(conflict.isDeleted(), is(false));
+
+        // and the association that was already there is untouched
+        assertThat(dslContext.fetchCount(BAR_LINK, BAR_LINK.BAR_ID.eq(barId)), is(1));
     }
 
 
@@ -514,6 +539,13 @@ class MergeServiceTest
             field("num", "Int", num),
             field("created", "Timestamp", Timestamp.valueOf("2026-09-10 12:00:00"))
         );
+    }
+
+
+    /// A new link row between the given bar and baz.
+    private static EntityChange link(String id, String barId, String bazId)
+    {
+        return create("BarLink", id, field("barId", "String", barId), field("bazId", "String", bazId));
     }
 
 

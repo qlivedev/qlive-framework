@@ -167,6 +167,20 @@ type Entity = {
 
 
 /**
+ * Where one synthesised link deletion came from: the row whose link array was edited, and which array.
+ *
+ * A link diff makes rows nobody named, so a conflict about one of them has to be traced back before it can
+ * be shown -- the user edited "the associations of this Bar", and that is the only thing a form has a place
+ * to mark.
+ */
+type LinkSource = {
+    type: string
+    id: string
+    field: string
+}
+
+
+/**
  * The rows an application is editing, the changes it has made to them, and the one call that writes them.
  *
  * A working set is a store like a query document, read through useWorkingSet(): it is mutated in place and
@@ -568,6 +582,10 @@ export class WorkingSet
         const deletions: EntityDeletion[] = []
         const deleted = new Set<string>()
 
+        // which link array each synthesised link deletion came out of, so that a conflict about a link row
+        // can be reported against the field the user actually edited
+        const sources = new Map<string, LinkSource>()
+
         for (const entity of this.entities.values())
         {
             if (entity.deleted)
@@ -597,7 +615,7 @@ export class WorkingSet
         {
             if (!entity.deleted)
             {
-                this.diffLinks(entity, changes, deletions, deleted)
+                this.diffLinks(entity, changes, deletions, deleted, sources)
             }
         }
 
@@ -639,6 +657,16 @@ export class WorkingSet
                     deleted: conflict.deleted,
                     fields: storedFields(conflict)
                 })
+
+                const source = sources.get(key(conflict.type, conflict.id))
+
+                if (source)
+                {
+                    // The link row is not a field of any form, and the array it came out of is. Marked as
+                    // moved and not to what: an association somebody else took away says nothing about the
+                    // ones they may have added, so the set that is stored is not knowable from here.
+                    this.storedState({type: source.type, id: source.id, fields: {[source.field]: undefined}})
+                }
             }
         }
 
@@ -1068,10 +1096,16 @@ export class WorkingSet
      * the framework means by setting it.
      */
     private diffLinks(
-        entity: Entity, changes: EntityChange[], deletions: EntityDeletion[], deleted: Set<string>
+        entity: Entity,
+        changes: EntityChange[],
+        deletions: EntityDeletion[],
+        deleted: Set<string>,
+        sources: Map<string, LinkSource>
     ): void
     {
-        for (const [name, value] of entity.changes)
+        // pending rather than every change, so that a user who decided to leave the associations to the
+        // other write has that decision honoured the way it is for a scalar
+        for (const name of pending(entity))
         {
             const relation = MergeMeta.linkRelation(entity.type, name)
 
@@ -1079,6 +1113,8 @@ export class WorkingSet
             {
                 continue
             }
+
+            const value = entity.changes.get(name)
 
             const base = linkBase(entity, relation)
             const wanted = targetIds(value as any[], relation)
@@ -1113,6 +1149,7 @@ export class WorkingSet
                 {
                     deleted.add(key(relation.linkType, id))
                     deletions.push({type: relation.linkType, id, version: known?.version ?? null})
+                    sources.set(key(relation.linkType, id), {type: entity.type, id: entity.id, field: name})
                 }
             }
 

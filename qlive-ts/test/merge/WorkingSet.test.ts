@@ -750,6 +750,35 @@ function linkGone(id: string = "link-1")
 
 describe("an association somebody else changed", () => {
 
+    it("marks the link array, not the link row", async () => {
+
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        const bar = ws.edit(document.rows[0])
+        bar.name = "Mine"
+        bar.bazLinks = []
+
+        respondWith(linkGone())
+        await ws.merge()
+
+        const merge = ws.accessor(document.rows[0])
+
+        // the field the user edited is the field that carries it. A BarLink id is in no form
+        expect(merge.field("bazLinks").status).toBe("conflict")
+        expect(merge.field("bazLinks").className).toBe("qlive-conflict")
+        expect(merge.conflictedFields()).toEqual(["bazLinks"])
+
+        // and nothing stood in the way of the scalar, which still reads as the user's own change
+        expect(merge.field("name").status).toBe("changed")
+
+        // what is stored is that the associations moved, not what they moved to: an association taken away
+        // says nothing about ones that were added
+        expect(merge.field("bazLinks").stored).toBe(document.rows[0].bazLinks)
+        expect(merge.of(document.rows[0].bazLinks[0]).gone).toBe(true)
+    })
+
     it("does not send the deletion a second time", async () => {
 
         const document = await loadBars()
@@ -792,6 +821,29 @@ describe("an association somebody else changed", () => {
         expect(result.status).toBe("DONE")
         expect(ws.dirty).toBe(false)
         expect(JSON.parse(second.mock.calls[0][1].body).query).toContain("Q_Bars")
+    })
+
+    it("holds the link change back where the user left it to the other write", async () => {
+
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        const bar = ws.edit(document.rows[0])
+        bar.name = "Mine"
+        bar.bazLinks = []
+
+        respondWith(linkGone())
+        await ws.merge()
+
+        ws.accessor(document.rows[0]).field("bazLinks").resolve("stored")
+
+        expect(ws.accessor(document.rows[0]).field("bazLinks").status).toBe("resolved")
+
+        const second = respondWith(mergeResponse({status: "CONFLICT", conflicts: []}))
+        await ws.merge()
+
+        expect(sentVariables(second).deletions).toEqual([])
     })
 })
 

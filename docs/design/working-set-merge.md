@@ -476,6 +476,26 @@ So editing `bar.bazLinks` produces `BarLink` changes and never touches
 `Baz`, which is what the user of the framework means by it and what the
 GraphQL type of the field already says.
 
+**A link is identified by the row it points at**, not by the link row's
+own id. That is what a link array says -- which rows are associated --
+so an association taken out and put back is no change, a link written
+twice is written once, and a new association can be named as
+`{bazId: baz.id}` or as `{baz}`, the second of which is also the form a
+view can render straight away.
+
+**A link row the application created itself is left alone.** A link type
+carrying a field of its own -- the `linkType` declaration above -- cannot
+be written by a diff that only knows two foreign keys, so the
+application makes the row with `ws.create()` and puts it in the array.
+It is a row of the working set and goes over as one; the diff sees that
+and does not insert it a second time.
+
+**A link array the query did not select cannot be changed.** There is
+nothing to diff against, and an empty base would turn every association
+already in the database into a duplicate insert. The working set refuses
+the write and says so, the way it refuses a versioned row registered
+without its version.
+
 ### Merging, and resolving in the view
 
 ```ts

@@ -145,6 +145,33 @@ class QueryDocumentServiceTest
     }
 
 
+    /// A component names which part of a filter form a condition came from. The database has no use for
+    /// it -- the condition below it filters exactly as it would on its own -- but the config the document
+    /// returns still carries it, because the client spreads that config over its next update() and its
+    /// form finds its own part of the condition by that id.
+    @Test
+    void returnsTheComponentsOfAConditionToTheClient()
+    {
+        final Map<String, Object> condition = component(
+            "nameFilter",
+            eq("name", "String", "Foo #1")
+        );
+
+        final Map<String, Object> document = queryDocument(
+            "queryFooDocument",
+            "id name",
+            Map.of("pageSize", 0, "offset", 0, "condition", condition)
+        );
+
+        assertThat(rows(document).stream().map(row -> row.get("name")).toList(), contains("Foo #1"));
+
+        @SuppressWarnings("unchecked")
+        final Map<String, Object> config = (Map<String, Object>) document.get("config");
+
+        assertThat(config.get("condition"), is(condition));
+    }
+
+
     /// A to-many relation is fetched by a query of its own and stitched back onto the rows it belongs to.
     @Test
     void fetchesToManyRelations()
@@ -267,6 +294,13 @@ class QueryDocumentServiceTest
     private static Map<String, Object> eq(String field, String scalarType, Object value)
     {
         return comparison("eq", field, scalarType, value);
+    }
+
+
+    /// A condition wrapped in the client's marker for the filter form field it came from.
+    private static Map<String, Object> component(String id, Map<String, Object> condition)
+    {
+        return Map.of("type", "Component", "id", id, "condition", condition);
     }
 
 

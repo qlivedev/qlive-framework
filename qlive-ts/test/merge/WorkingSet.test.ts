@@ -373,6 +373,188 @@ describe("what a merge sends", () => {
 })
 
 
+describe("many-to-many", () => {
+
+    it("turns a link taken out of the array into a deletion of the link row", async () => {
+
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        const bar = ws.edit<any>(document.rows[0])
+        bar.bazLinks = bar.bazLinks.filter((link: any) => link.bazId !== "baz-1")
+
+        expect(ws.dirty).toBe(true)
+        expect(bar.bazLinks).toEqual([])
+
+        const fetchMock = respondWith(mergeResponse({status: "CONFLICT", conflicts: []}))
+        await ws.merge()
+
+        const {changes, deletions} = sentVariables(fetchMock)
+
+        // the Bar itself has nothing to write -- what changed was an association, not a field of the row
+        expect(changes).toEqual([])
+        expect(deletions).toEqual([{type: "BarLink", id: "link-1", version: "lv1"}])
+    })
+
+    it("turns a link put into the array into an insert carrying both foreign keys", async () => {
+
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        const bar = ws.edit<any>(document.rows[1])
+        bar.bazLinks = [...bar.bazLinks, {bazId: "baz-1"}]
+
+        const fetchMock = respondWith(mergeResponse({status: "CONFLICT", conflicts: []}))
+        await ws.merge()
+
+        const {changes, deletions} = sentVariables(fetchMock)
+
+        expect(deletions).toEqual([])
+        expect(changes).toHaveLength(1)
+        expect(changes[0].id).toMatch(/^[0-9a-f-]{36}$/)
+        expect(changes[0]).toMatchObject({
+            type: "BarLink",
+            version: null,
+            new: true,
+            changes: [
+                {field: "barId", value: {type: "String", value: "bar-2"}},
+                {field: "bazId", value: {type: "String", value: "baz-1"}}
+            ]
+        })
+    })
+
+    it("recognises an association by the row on the other side", async () => {
+
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        // the short form, and the one a view can render: the association is the Baz, not its id
+        const baz = document.rows[0].bazLinks[0].baz
+        ws.edit<any>(document.rows[1]).bazLinks = [{baz}]
+
+        const fetchMock = respondWith(mergeResponse({status: "CONFLICT", conflicts: []}))
+        await ws.merge()
+
+        expect(sentVariables(fetchMock).changes[0].changes).toEqual([
+            {field: "barId", value: {type: "String", value: "bar-2"}},
+            {field: "bazId", value: {type: "String", value: "baz-1"}}
+        ])
+    })
+
+    it("never writes the type on the other side", async () => {
+
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        const bar = ws.edit<any>(document.rows[0])
+        bar.bazLinks = []
+        ws.edit<any>(document.rows[1]).bazLinks = [{bazId: "baz-1"}]
+
+        const fetchMock = respondWith(mergeResponse({status: "CONFLICT", conflicts: []}))
+        await ws.merge()
+
+        const {changes, deletions} = sentVariables(fetchMock)
+
+        expect(changes.map((c: any) => c.type)).toEqual(["BarLink"])
+        expect(deletions.map((d: any) => d.type)).toEqual(["BarLink"])
+    })
+
+    it("is no change when the same associations come back", async () => {
+
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        const bar = ws.edit<any>(document.rows[0])
+        bar.bazLinks = []
+        expect(ws.dirty).toBe(true)
+
+        // a different link row saying the same thing, which is the same association
+        bar.bazLinks = [{bazId: "baz-1"}]
+
+        expect(ws.dirty).toBe(false)
+    })
+
+    it("leaves a link row the application made itself to itself", async () => {
+
+        // a link type carrying a field of its own cannot be written by a diff, so the application creates
+        // the row. The diff sees it is already one of ours and does not insert it a second time.
+        const ws = new WorkingSet()
+        const corge = ws.create<any>("Corge", {})
+        const link = ws.create<any>("CorgeLink", {corgeId: corge.id, graultId: "grault-1", weight: 3})
+
+        corge.corgeLinks = [link]
+
+        const fetchMock = respondWith(mergeResponse({status: "CONFLICT", conflicts: []}))
+        await ws.merge()
+
+        const {changes} = sentVariables(fetchMock)
+
+        expect(changes.map((c: any) => c.type)).toEqual(["Corge", "CorgeLink"])
+        expect(changes[1].changes).toEqual([
+            {field: "corgeId", value: {type: "String", value: corge.id}},
+            {field: "graultId", value: {type: "String", value: "grault-1"}},
+            {field: "weight", value: {type: "Int", value: 3}}
+        ])
+    })
+
+    it("deletes a link once when it was both removed and deleted", async () => {
+
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        ws.delete(document.rows[0].bazLinks[0])
+        ws.edit<any>(document.rows[0]).bazLinks = []
+
+        const fetchMock = respondWith(mergeResponse({status: "CONFLICT", conflicts: []}))
+        await ws.merge()
+
+        expect(sentVariables(fetchMock).deletions).toEqual([{type: "BarLink", id: "link-1", version: "lv1"}])
+    })
+
+    it("refuses a link array the query did not select", async () => {
+
+        const {bazLinks, ...selected} = barDocument().rows[0]
+        respondWith({data: {queryBarDocument: {...barDocument(), rows: [selected]}}, errors: []})
+
+        const document = await Q_BARS.execute({config: CONFIG})
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        expect(() => { ws.edit<any>(document.rows[0]).bazLinks = [] })
+            .toThrowError(/Cannot change Bar.bazLinks.*did not\s+select it/s)
+    })
+
+    it("refuses a link that says nothing about the other side", async () => {
+
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        expect(() => { ws.edit<any>(document.rows[1]).bazLinks = [{}] })
+            .toThrowError(/A BarLink of Bar.bazLinks says nothing about which Baz it links to/)
+
+        expect(() => { ws.edit<any>(document.rows[1]).bazLinks = "baz-1" as any })
+            .toThrowError(/Cannot set Bar.bazLinks to something that is not an array/)
+    })
+
+    it("leaves an ordinary object field where it was", async () => {
+
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        // BarLink.baz is a row of its own, not an association to be set
+        expect(() => { ws.edit<any>(document.rows[0].bazLinks[0]).baz = {id: "baz-2"} })
+            .toThrowError(/Cannot change BarLink.baz: it is not a scalar field/)
+    })
+})
+
 describe("what comes back", () => {
 
     it("clears the changes and refreshes the documents when it landed", async () => {

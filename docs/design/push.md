@@ -219,9 +219,10 @@ about phase one. That gives immediate, cheap access to `topic`. Then, now
 that the topic is known, resolve it against the pub/sub core's channel
 registry to get the bound `Class<?>`, and convert the untyped value into
 that type -- the simplest correct version of this being
-`JSONParser.parse(Class<T> targetType, String json)` on a
-re-serialization of the untyped structure, a method Svenson already
-exposes publicly. Two phases, no cycle: phase one needs nothing phase two
+org.svenson.util.RecastUtil which can reuse strings etc from the generic map graph
+and fill them into new typed containers (better than a JSONification/Parsing cycle)
+
+Two phases, no cycle: phase one needs nothing phase two
 produces, and phase two has everything it needs by the time it runs.
 Whether Svenson offers a cheaper direct conversion from an
 already-parsed generic structure into a typed instance, avoiding a

@@ -65,9 +65,10 @@ public class VersionCleanup
         final int dropped = versionService.prune(before);
         final int forgotten = versionHolder.dropOlderThan(before);
 
-        // after the records, so that a layout is dropped only once nothing names it. The layouts this
-        // deployment writes are kept regardless -- the next merge is about to name them.
-        final int layouts = fieldLayoutService.pruneUnused();
+        // after the records, so that a layout is dropped only once nothing names it, and held to the same
+        // cutoff -- a layout stored since then may be a node coming up that has not written its first
+        // record yet
+        final int layouts = fieldLayoutService.pruneUnused(before);
 
         if (dropped != 0 || forgotten != 0 || layouts != 0)
         {

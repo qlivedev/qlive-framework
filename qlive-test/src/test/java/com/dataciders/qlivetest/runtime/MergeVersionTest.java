@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static com.dataciders.qlivetest.domain.Tables.APP_FIELD_LAYOUT;
 import static com.dataciders.qlivetest.domain.Tables.APP_VERSION;
 import static com.dataciders.qlivetest.domain.Tables.BAR;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -184,7 +185,63 @@ class MergeVersionTest
     }
 
 
+    /// The sweep leaves alone what a node of a rolling deployment has stored but not yet written a record
+    /// against.
+    ///
+    /// A node coming up stores its layouts at startup, and until its first merge nothing references them.
+    /// To a node still on the old code such a layout is neither current nor referenced, so without the
+    /// cutoff the old node would take it away between the new one storing it and using it -- and the
+    /// records that follow would name a layout that is gone, permanently.
+    @Test
+    void leavesALayoutNothingHasUsedYet()
+    {
+        final String id = "0000000000000000000000000000000000000000000000000000000000000000";
+
+        // what the other node's startup writes: a layout of a type this one does not have and no record
+        // names, stored a moment ago
+        dslContext.insertInto(APP_FIELD_LAYOUT)
+            .columns(
+                APP_FIELD_LAYOUT.ID,
+                APP_FIELD_LAYOUT.ENTITY_TYPE,
+                APP_FIELD_LAYOUT.FIELDS,
+                APP_FIELD_LAYOUT.CREATED
+            )
+            .values(id, "Bar", "bazLinks,created,description,flag,id,name,num,version", now())
+            .execute();
+
+        try
+        {
+            new VersionCleanup(
+                versionService, versionHolder, fieldLayoutService, Duration.ofDays(7)
+            ).expire();
+
+            assertThat(layout(id), is(notNullValue()));
+
+            // once it is older than any surviving record could be, nothing can still be about to name it
+            new VersionCleanup(versionService, versionHolder, fieldLayoutService, Duration.ZERO).expire();
+
+            assertThat(layout(id), is(nullValue()));
+        }
+        finally
+        {
+            dslContext.deleteFrom(APP_FIELD_LAYOUT).where(APP_FIELD_LAYOUT.ID.eq(id)).execute();
+        }
+    }
+
+
     // -----------------------------------------------------------------------------------------------------
+
+    private Record layout(String id)
+    {
+        return dslContext.selectFrom(APP_FIELD_LAYOUT).where(APP_FIELD_LAYOUT.ID.eq(id)).fetchOne();
+    }
+
+
+    private static Timestamp now()
+    {
+        return new Timestamp(System.currentTimeMillis());
+    }
+
 
     private void merge(EntityChange... changes)
     {

@@ -1,6 +1,7 @@
 package com.dataciders.qlive.runtime.merge;
 
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.util.Set;
 
 /// The layouts field masks are written against and read back under.
@@ -28,10 +29,18 @@ public interface FieldLayoutService
     Set<String> fields(String layoutId, String typeName, BigInteger mask);
 
 
-    /// Drops the layouts no version record names any more, and answers how many went.
+    /// Drops the layouts stored before the given point that no version record names any more, and answers
+    /// how many went.
     ///
-    /// The layouts this deployment is using are kept whether a record names them or not: they are about to
-    /// be named by the next merge, and a record naming a layout that is not there reads as "we cannot tell
-    /// which fields changed" -- which would be a conflict on every field of a row nobody else touched.
-    int pruneUnused();
+    /// Two things are kept regardless. The layouts this deployment is using are about to be named by the
+    /// next merge, and a record naming a layout that is not there reads as "we cannot tell which fields
+    /// changed" -- a conflict on every field of a row nobody else touched.
+    ///
+    /// And so is anything stored recently, which is what the cutoff is for. During a rolling deployment the
+    /// node coming up stores its layout before it has written a single record against it; to a node still
+    /// on the old code that layout is neither current nor referenced, and without the cutoff the old node
+    /// would sweep it away between the new one storing it and using it. The cutoff to pass is the one the
+    /// version records are pruned by: a layout older than that whose records have all gone is genuinely
+    /// finished with.
+    int pruneUnused(Timestamp storedBefore);
 }

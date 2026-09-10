@@ -126,18 +126,18 @@ public class DefaultFieldLayoutService
 
 
     @Override
-    public int pruneUnused()
+    public int pruneUnused(Timestamp storedBefore)
     {
         final List<String> keep = current.values().stream().map(FieldLayout::getId).toList();
 
         final int dropped = dslContext.deleteFrom(TABLE)
-            .where(
-                ID.notIn(
-                    dslContext.selectDistinct(DSL.field(DSL.name("field_layout"), String.class))
-                        .from(DSL.table(DSL.name(MergeTables.APP_VERSION)))
-                )
-            )
+            .where(CREATED.lessThan(storedBefore))
             .and(ID.notIn(keep))
+            .andNotExists(
+                dslContext.selectOne()
+                    .from(DSL.table(DSL.name(MergeTables.APP_VERSION)))
+                    .where(DSL.field(DSL.name("field_layout"), String.class).eq(ID))
+            )
             .execute();
 
         log.debug("Pruned {} field layouts", dropped);

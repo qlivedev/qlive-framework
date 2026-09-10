@@ -66,6 +66,62 @@ effectively a type language, and the pairing design's stated virtue is
 one new format in the whole thing. Keeping it inside DomainQL's and
 jOOQ's existing vocabulary is worth real effort.
 
+### Tested against merge
+
+Written as a paper exercise while building the merge schema
+(`working-set-merge.md` step 1), which is the descriptor's intended
+first customer: one owned type (`app_version`) and one required trait
+(the `version` column on the types the application nominates). What the
+exercise says about the format:
+
+- **Columns should be jOOQ `SQLDataType` names, not SQL.** `VARCHAR(36)`
+  and `DECIMAL_INTEGER(39)` are dialect-neutral, they are the vocabulary
+  the generated `Table<?>` already speaks, and `DSL.createTable()`
+  renders the DDL from them for whichever dialect the application runs.
+  That answers the format-invention risk with an existing vocabulary and
+  gets `validate-modules` for free -- comparing a descriptor column
+  against the jOOQ field of the same name is a type equality check.
+- **A third kind of entry is needed: a type the module references but
+  does not change.** `app_version.owner_id` points at `app_user`, which
+  merge neither owns nor adds anything to. That is a required trait with
+  an empty add-list and a non-empty require-list, which means a trait has
+  to mean "a shape a nominated type must have, and may be given" rather
+  than "fields the module adds". Cheap generalisation, but it has to be
+  made deliberately -- and in QLive's case there is a second reading,
+  since `app_user` belongs to the core module and this could be a module
+  dependency instead.
+- **The manifest is load bearing for merge specifically.** Elsewhere
+  recording which types answered a trait is an optimisation for updates.
+  Here it is the only record of intent: "this type has a version column"
+  *is* what participation means, so `validate-modules` cannot re-derive
+  the answer, and a type that lost its column is indistinguishable from
+  one that opted out unless the manifest says otherwise.
+- **Backfill is not expressible, and adding a column usually needs it.**
+  `ALTER TABLE bar ADD COLUMN version varchar(36)` is mechanical;
+  `UPDATE bar SET version = gen_random_uuid()` is not DDL and has no slot
+  in the descriptor. Skipping it leaves every existing row unmergeable,
+  silently. A column `DEFAULT` is the wrong tool -- Postgres would
+  backfill, but the default would also apply to every later insert, and
+  the version is the merge's to assign. So the slot has to be a backfill
+  expression distinct from a default, which reintroduces dialect-specific
+  SQL into a format otherwise free of it.
+- **Emitting sound DDL is not the same as producing a sound schema.**
+  `numeric(39,0)` maps to `java.math.BigInteger`, which QLive did not
+  have a scalar registered for; DomainQL falls back to a type reference
+  by simple name and the introspection then reports the field as an
+  object type nothing answers to. Fixed in the framework, but a module
+  bringing a column type the application's domain cannot name would hit
+  it again, and only `validate-modules` is positioned to notice.
+- **Indexes have no slot.** The merge reads `app_version` by `prev` and
+  expires it by `created`; the design's DDL block names neither. Trivial
+  to add to the format, easy to leave out of it.
+
+The encouraging half is that the two-kind split held. Everything merge
+needs of the application's own types is *additive and checkable*,
+because the design deliberately derives participation from the schema
+instead of declaring it -- the descriptor stays expressible precisely
+because the feature declares as little as it can.
+
 ## Views are file copies
 
 A view template is a `.tsx` file. The installer copies a directory tree

@@ -17,9 +17,6 @@ conflict per row that stood in the way. */
 
 /** The ordered field-name list one field mask was written against, under the hash of that list. A version record names its layout, so a mask written before a deployment that reordered a type's fields is permuted back into today's positions instead of being read as a different set of fields. Written idempotently -- the id being the hash makes it an upsert -- and swept by the same task that prunes version records, minus the layout currently in use and minus anything stored too recently to have been used yet. */
 export type AppFieldLayout = {
-
-    _type: "AppFieldLayout",
-
     /** When this layout was first stored in this database. What keeps the sweep from taking a layout a node of a rolling deployment has stored but not yet written a record against, and the only account of when a layout appeared once the records naming it have been pruned. */
     created: Temporal.Instant
     /** GraphQL name of the type the layout belongs to. In the hashed input as well, so that two types whose field lists happen to be identical do not share a row and "what did this type look like then" stays answerable. */
@@ -32,9 +29,6 @@ export type AppFieldLayout = {
 
 /** Database storage for spring security's remember-me feature */
 export type AppLogin = {
-
-    _type: "AppLogin",
-
     /** Last access of the login */
     lastUsed: Temporal.Instant
     /** Token series */
@@ -47,9 +41,6 @@ export type AppLogin = {
 
 /** Application users. Used to authenticate users by spring security. Can have additional fields/relations (See UserInfoService) */
 export type AppUser = {
-
-    _type: "AppUser",
-
     /** Creation date of the user entry */
     created: Temporal.Instant
     /** true if the user account was disabled */
@@ -70,9 +61,6 @@ export type AppUser = {
 
 /** Container for AppUser queries */
 export type AppUserDocument = {
-
-    _type: "AppUserDocument",
-
     /** query config for this document */
     config: QueryConfig
     rowCount?: number
@@ -84,9 +72,6 @@ export type AppUserDocument = {
 
 /** One recorded change to a row of a versioned type: who made it, when, and which fields it touched. A row's version column names the record describing the state it is in now, and prev chains that record to the one before it, so the fields changed between any two versions are the union of the masks in between. Written only by the merge, pruned after the version record lifetime -- which is why nothing has a foreign key onto it: a row outlives the records describing how it got here. */
 export type AppVersion = {
-
-    _type: "AppVersion",
-
     /** When the change was made. What the cleanup of expired version records goes by. */
     created: Temporal.Instant
     /** Id of the row that changed */
@@ -107,9 +92,6 @@ export type AppVersion = {
 
 /** Generated from public.bar */
 export type Bar = {
-
-    _type: "Bar",
-
     /** Many-to-many objects from bar_link.bar_id */
     bazLinks: BarLink[]
     /** DB column 'created' */
@@ -128,9 +110,6 @@ export type Bar = {
 
 /** Container for Bar queries */
 export type BarDocument = {
-
-    _type: "BarDocument",
-
     /** query config for this document */
     config: QueryConfig
     rowCount?: number
@@ -142,9 +121,6 @@ export type BarDocument = {
 
 /** Generated from public.bar_link */
 export type BarLink = {
-
-    _type: "BarLink",
-
     /** Target of 'bar_id' */
     bar: Bar
     /** DB foreign key column 'bar_id' */
@@ -161,9 +137,6 @@ export type BarLink = {
 
 /** Generated from public.baz */
 export type Baz = {
-
-    _type: "Baz",
-
     /** Many-to-many objects from bar_link.baz_id */
     bazLinks: BarLink[]
     /** DB column 'created' */
@@ -182,9 +155,6 @@ export type Baz = {
 
 /** Container for Baz queries */
 export type BazDocument = {
-
-    _type: "BazDocument",
-
     /** query config for this document */
     config: QueryConfig
     rowCount?: number
@@ -196,9 +166,6 @@ export type BazDocument = {
 
 /** Example domain type */
 export type Foo = {
-
-    _type: "Foo",
-
     /** Foo create timestamp */
     created: Temporal.Instant
     /** Foo description' */
@@ -224,9 +191,6 @@ export type Foo = {
 
 /** Container for Foo queries */
 export type FooDocument = {
-
-    _type: "FooDocument",
-
     /** query config for this document */
     config: QueryConfig
     rowCount?: number
@@ -238,9 +202,6 @@ export type FooDocument = {
 
 /** Generated from public.foo_type */
 export type FooType = {
-
-    _type: "FooType",
-
     /** DB column 'name' */
     name: string
     /** DB column 'ordinal' */
@@ -249,9 +210,6 @@ export type FooType = {
 
 /** Container for FooType queries */
 export type FooTypeDocument = {
-
-    _type: "FooTypeDocument",
-
     /** query config for this document */
     config: QueryConfig
     rowCount?: number
@@ -266,9 +224,6 @@ export type FooTypeDocument = {
 A conflict is data. The framework ships no dialog and nothing here blocks: the merge rolled back, the user
 still has everything they typed, and the form they were editing is where they decide what to do about it. */
 export type MergeConflict = {
-
-    _type: "MergeConflict",
-
     /** true if the row is not there at all -- removed by somebody else, or never created. There is nothing to
 merge into and nothing to choose between, so no fields come with it. */
     deleted: boolean
@@ -298,9 +253,6 @@ value that is in the database. So: mine and stored.
 Not every field in here is a decision. A field the other write touched and this one did not is attached
 as informational, so that a form can show what moved under the user rather than only what clashed. */
 export type MergeConflictField = {
-
-    _type: "MergeConflictField",
-
     /** Name of the field, as the GraphQL type spells it. */
     field: string
     /** true if the field is here to be seen rather than decided about: the other write changed it, this one
@@ -324,9 +276,6 @@ All or nothing: either every change and every deletion landed, or none of them d
 which rows stood in the way. There is no partial success to reconcile, which is what lets a working set
 keep holding exactly what the user has not saved yet. */
 export type MergeResult = {
-
-    _type: "MergeResult",
-
     /** One entry per row that could not be written. Empty when the merge is done. */
     conflicts: MergeConflict[]
     /** Whether the merge landed. */
@@ -335,17 +284,11 @@ export type MergeResult = {
 
 /** Auto-generated from QueryLogic, MergeLogic */
 export type MutationType = {
-
-    _type: "MutationType",
-
     mergeWorkingSet: MergeResult
 }
 
 /** Auto-generated from QueryLogic, MergeLogic */
 export type QueryType = {
-
-    _type: "QueryType",
-
     /** Queries AppUser objects based on the given query config */
     queryAppUserDocument: AppUserDocument
     /** Queries Bar objects based on the given query config */
@@ -362,9 +305,6 @@ export type QueryType = {
 
 /** Every scalar type the framework supports, one column each, and the example of a schema type a hand-written class stands in for -- see com.dataciders.qlivetest.model.types.Qux, which is where the documentation of the fields no column backs would otherwise live. */
 export type Qux = {
-
-    _type: "Qux",
-
     /** DB column 'big_decimal_value' */
     bigDecimalValue?: bigint
     /** DB column 'bool' */
@@ -397,9 +337,6 @@ export type Qux = {
 
 /** Container for Qux queries */
 export type QuxDocument = {
-
-    _type: "QuxDocument",
-
     /** query config for this document */
     config: QueryConfig
     rowCount?: number

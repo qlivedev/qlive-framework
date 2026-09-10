@@ -195,9 +195,6 @@ function generateTypeDefinitions(schemaPath, output)
 
             typeDefinitions += trimIndent(`
                 ${typeDocs(typeDef)}export type ${typeDef.name} = {
-                
-                    _type: "${typeDef.name}",
-
                 ${fields}
                 }
                 

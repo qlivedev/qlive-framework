@@ -400,19 +400,30 @@ against. An object without an `id` is no entity -- there is nothing to
 name it by -- but the rows below it still are.
 
 A row of a versioned type whose `version` was not selected is registered
-like any other and refuses to be edited, in an error naming both the type
-and the query that read it. **The refusal is at the edit and not at the
-registration**, which is the answer to build order item 9: `register()`
-walks everything a query selected and most of what a query selects is
-displayed rather than edited, so insisting there would make a query
-unregisterable because of the lookup table behind a dropdown. `edit()`,
-`delete()` and a link diff that would otherwise send a deletion with no
-base all refuse -- still long before a merge could lose an update, which
-is the whole reason to say anything.
+like any other and refuses the write that would need one, in an error
+naming both the type and the query that read it. **The refusal is at the
+write and not at the registration**, which is the answer to build order
+item 9: `register()` walks everything a query selected and most of what a
+query selects is displayed rather than edited, so insisting there would
+make a query unregisterable because of the lookup table behind a
+dropdown. Writing one of the row's own fields, `delete()`, and a link
+diff that would otherwise send a deletion with no base all refuse --
+still long before a merge could lose an update, which is the whole reason
+to say anything.
 
-The obligation on the framework user is unchanged and is the one new one:
-a query whose rows are to be edited selects `id` and `version`, and `id`
-on every link in a link array it means to edit.
+`edit()` itself does not refuse, and the reason is worth stating: **a
+row's `version` is the base for writing that row's own columns and
+nothing else.** A change to a link array is not a field of the row at
+all. It becomes inserts and deletions of the link type, each held to the
+version of the link row, and the source row is neither updated nor sent
+-- so a view whose whole job is editing associations never needs the
+version of the thing the associations hang off, and is not made to select
+one it will never use.
+
+The obligation on the framework user follows the same line: a query whose
+rows have fields to be edited selects `id` and `version` on them, and a
+query whose link arrays are to be edited selects `id` and `version` on
+every link in them.
 
 ### Headless by construction
 
@@ -1116,8 +1127,10 @@ type analysis.
    refuses neither there nor only warns. A warning in a framework is
    noise nobody reads, and refusing at registration refuses a query
    because of a table nobody is editing. The row is registered, carries
-   the sentence, and throws it at `edit()`, `delete()` or a link diff
-   that would delete it. See "A store, like a query document".
+   the sentence, and throws it at the write of one of its own fields, at
+   `delete()`, or at a link diff that would delete it. Not at `edit()`:
+   the version is the base for the row's own columns, and a link-only
+   edit writes none of them. See "A store, like a query document".
 10. **Cascading deletes** are not the framework's. The user either
     deletes everything right or they put a cascade on the foreign key,
     which the database has and does better.

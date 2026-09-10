@@ -238,6 +238,53 @@ describe("variable conversion", () => {
     })
 })
 
+describe("generic scalars", () => {
+
+    it("converts the value along the type the wrapper names", () => {
+        const live = convertSelectionFromServer(
+            {type: "Timestamp", value: "2026-01-02T03:04:05Z"},
+            {type: "GenericScalar"}
+        )
+
+        expect(live).toEqual({type: "Timestamp", value: Temporal.Instant.from("2026-01-02T03:04:05Z")})
+
+        expect(convertToServer(live, "GenericScalar"))
+            .toEqual({type: "Timestamp", value: "2026-01-02T03:04:05Z"})
+    })
+
+    it("converts a list of them one by one", () => {
+        const live = convertSelectionFromServer(
+            {type: "[Timestamp]", value: ["2026-01-02T03:04:05Z", "2026-01-03T00:00:00Z"]},
+            {type: "GenericScalar"}
+        )
+
+        expect(live).toEqual({
+            type: "[Timestamp]",
+            value: [
+                Temporal.Instant.from("2026-01-02T03:04:05Z"),
+                Temporal.Instant.from("2026-01-03T00:00:00Z")
+            ]
+        })
+
+        expect(convertToServer(live, "GenericScalar"))
+            .toEqual({type: "[Timestamp]", value: ["2026-01-02T03:04:05Z", "2026-01-03T00:00:00Z"]})
+    })
+
+    it("leaves a type nothing is registered for alone", () => {
+        const wrapped = {type: "String", value: "Foo #1"}
+
+        expect(convertSelectionFromServer(wrapped, {type: "GenericScalar"})).toEqual(wrapped)
+        expect(convertToServer(wrapped, "GenericScalar")).toEqual(wrapped)
+    })
+
+    it("carries a null value as one", () => {
+        const wrapped = {type: "Timestamp", value: null}
+
+        expect(convertSelectionFromServer(wrapped, {type: "GenericScalar"})).toEqual(wrapped)
+        expect(convertToServer(wrapped, "GenericScalar")).toEqual(wrapped)
+    })
+})
+
 describe("converter registry", () => {
 
     it("lets applications override the converters", () => {

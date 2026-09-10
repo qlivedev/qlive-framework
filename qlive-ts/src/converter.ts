@@ -3,6 +3,7 @@ import {findType, isQueryDocumentType, LIST, NON_NULL} from "./type-utils";
 import {QueryDocument} from "./QueryDocument";
 import config from "./config";
 import {Temporal} from "temporal-polyfill";
+import {GenericScalar} from "./GraphQL";
 
 /**
  * Converts a value between its wire format and its live JavaScript form. Never
@@ -396,6 +397,62 @@ registerConverter<string, Temporal.Instant>(
         toServer: value => value.toString()
     }
 )
+
+/**
+ * Splits a generic scalar's type name into the named type and whether it was a list of them, which is how
+ * domainql's coercing writes it: "Timestamp" or "[Timestamp]".
+ */
+function genericParts(type: string): { name: string, list: boolean }
+{
+    return type.startsWith("[") && type.endsWith("]")
+        ? {name: type.substring(1, type.length - 1), list: true}
+        : {name: type, list: false}
+}
+
+
+/**
+ * Converts the value inside a generic scalar with the given per-value conversion, one element at a time
+ * where the type name says the value is a list.
+ *
+ * The list is spelled out here rather than left to the array handling the rest of the module has: that
+ * handling exists because a list modifier is not in the map, while here the value names its own type
+ * outright -- and a scalar whose value is an array in its own right must not be taken apart.
+ */
+function convertGeneric(value: any, type: string, convert: (value: any, name: string) => any): any
+{
+    if (value === null || value === undefined)
+    {
+        return value
+    }
+
+    const {name, list} = genericParts(type)
+
+    return list && Array.isArray(value) ? value.map(v => convert(v, name)) : convert(value, name)
+}
+
+
+/**
+ * A generic scalar is a value of a type the schema does not say -- the value names it itself, which is what
+ * lets one field accept every scalar the domain has. So it converts in two steps: this converter unpacks the
+ * wrapper, and the type name it finds inside is what the value below converts along.
+ *
+ * The wrapper looks the same on both sides. What changes is the value in it, which is in the live form of
+ * its type here and in the wire form of it on the way out, like every other value of that type.
+ */
+registerConverter<GenericScalar, GenericScalar>(
+    "GenericScalar",
+    {
+        fromServer: wire => ({
+            type: wire.type,
+            value: convertGeneric(wire.value, wire.type, (v, name) => convertNode(v, {type: name}))
+        }),
+        toServer: live => ({
+            type: live.type,
+            value: convertGeneric(live.value, live.type, (v, name) => convertInput(v, name, ""))
+        })
+    }
+)
+
 
 /**
  * Converter shared by all the GraphQL types derived from QueryDocument<T>, e.g.

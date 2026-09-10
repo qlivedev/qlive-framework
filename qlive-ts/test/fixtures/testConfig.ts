@@ -93,6 +93,7 @@ export const testConfig: QLiveConfig = {
             scalar("Int"),
             scalar("Timestamp"),
             scalar("QueryConfig"),
+            scalar("GenericScalar"),
             object("AppUser", [
                 field("id", NOT_NULL(STRING)),
                 field("lastLogin", TIMESTAMP)

@@ -103,7 +103,7 @@ describe("registration", () => {
         expect(ws.dirty).toBe(false)
     })
 
-    it("refuses a versioned row whose version was not selected", async () => {
+    it("refuses to edit a versioned row whose version was not selected", async () => {
 
         const {version, bazLinks, ...selected} = barDocument().rows[0]
         respondWith({data: {queryBarDocument: {...barDocument(), rows: [selected]}}, errors: []})
@@ -111,19 +111,43 @@ describe("registration", () => {
         const document = await Q_BARS_UNVERSIONED.execute({config: CONFIG})
         const ws = new WorkingSet()
 
-        expect(() => ws.register(document))
+        // registering is fine: a query selects rows a view only displays as readily as ones it edits
+        ws.register(document)
+
+        expect(() => ws.edit(document.rows[0]))
+            .toThrowError(/Bar bar-1 was registered without its version.*Q_BarsUnversioned/s)
+        expect(() => ws.delete(document.rows[0]))
             .toThrowError(/Bar bar-1 was registered without its version.*Q_BarsUnversioned/s)
     })
 
-    it("refuses a row of a versioned type that has none", async () => {
+    it("refuses to edit a row of a versioned type that has none", async () => {
 
         respondWith({
             data: {queryBarDocument: {...barDocument(), rows: [{...barDocument().rows[0], version: null}]}},
             errors: []
         })
         const document = await Q_BARS.execute({config: CONFIG})
+        const ws = new WorkingSet()
+        ws.register(document)
 
-        expect(() => new WorkingSet().register(document)).toThrowError(/Bar bar-1 has no version/)
+        expect(() => ws.edit(document.rows[0])).toThrowError(/Bar bar-1 has no version/)
+    })
+
+    it("refuses to delete a link whose version was not selected", async () => {
+
+        // the links come back without a version, which is the query that reads a link array to show it and
+        // then finds itself editing it
+        const bars: any = barDocument()
+        bars.rows[0].bazLinks = bars.rows[0].bazLinks.map(({version, ...link}: any) => link)
+        respondWith({data: {queryBarDocument: bars}, errors: []})
+
+        const document = await Q_BARS.execute({config: CONFIG})
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        ws.edit(document.rows[0]).bazLinks = []
+
+        await expect(ws.merge()).rejects.toThrowError(/BarLink link-1 was registered without its version/)
     })
 
     it("refuses a row it was never given", async () => {

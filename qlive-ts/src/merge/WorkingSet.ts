@@ -152,6 +152,12 @@ type Entity = {
     /** true where the row is not in the database any more, somebody else having deleted it */
     gone: boolean
 
+    /**
+     * why this row cannot be edited, where it cannot: a row of a versioned type registered without its
+     * version has no base to hold a write to, and null everywhere else
+     */
+    unversioned: string | null
+
     /** the row itself, or the object a created entity stands on */
     target: Record<string, any>
 
@@ -228,9 +234,12 @@ export class WorkingSet
      * an entity, whatever type it is and however deep it sits, so registering the document a view renders
      * registers everything that view can edit.
      *
-     * @param document      query document, or the snapshot a view holds of one
+     * A row of a versioned type that came without its version is registered like any other and refuses to
+     * be edited, naming the query that read it. Registering walks everything a query selected, most of
+     * which a view only displays, so the query that reads a lookup table for a dropdown is not the place to
+     * insist -- and the row somebody does try to edit still fails long before a merge could lose an update.
      *
-     * @throws if a row of a versioned type carries no version, which is a base the merge cannot make up
+     * @param document      query document, or the snapshot a view holds of one
      */
     register(document: RegisteredDocument): void
     {
@@ -262,11 +271,12 @@ export class WorkingSet
      *
      * @param row       row of a registered document, or a draft of one
      *
-     * @throws if the row belongs to no entity of this working set
+     * @throws if the row belongs to no entity of this working set, or if it is a versioned row that was
+     *         read without its version
      */
     edit<T extends object>(row: T): T
     {
-        const entity = this.entityOf(row)
+        const entity = this.editable(row)
 
         if (!entity.draft)
         {
@@ -303,6 +313,7 @@ export class WorkingSet
             stored: new Map(),
             resolutions: new Map(),
             gone: false,
+            unversioned: null,
             target: {id},
             draft: null
         }
@@ -332,7 +343,7 @@ export class WorkingSet
      */
     delete(row: object): void
     {
-        const entity = this.entityOf(row)
+        const entity = this.editable(row)
 
         if (entity.isNew)
         {
@@ -755,7 +766,7 @@ export class WorkingSet
             return
         }
 
-        const version = version_(type, id, base, source)
+        const [version, unversioned] = versionOf(type, id, base, source)
 
         this.rows.set(row, key(type, id))
 
@@ -777,6 +788,7 @@ export class WorkingSet
             stored: new Map(),
             resolutions: new Map(),
             gone: false,
+            unversioned,
             target: row,
             draft: null
         })
@@ -806,6 +818,25 @@ export class WorkingSet
                 : "Not a row of this working set: " + JSON.stringify(row) + ". Rows come from a document " +
                 "register() walked, or from create()."
         )
+    }
+
+
+    /**
+     * The entity the given row or draft belongs to, where it may be written to.
+     *
+     * @throws if it belongs to none of this working set's, or if it is a versioned row that was read
+     *         without its version
+     */
+    private editable(row: object): Entity
+    {
+        const entity = this.entityOf(row)
+
+        if (entity.unversioned)
+        {
+            throw new Error(entity.unversioned)
+        }
+
+        return entity
     }
 
 
@@ -1040,15 +1071,19 @@ export class WorkingSet
                 }
 
                 const id = linkIdOf(link, entity, relation)
+                const known = this.entities.get(key(relation.linkType, id))
+
+                if (known?.unversioned)
+                {
+                    // the link row has no base to hold its deletion to, and the query that read it is
+                    // where that is fixed
+                    throw new Error(known.unversioned)
+                }
 
                 if (!deleted.has(key(relation.linkType, id)))
                 {
                     deleted.add(key(relation.linkType, id))
-                    deletions.push({
-                        type: relation.linkType,
-                        id,
-                        version: this.entities.get(key(relation.linkType, id))?.version ?? null
-                    })
+                    deletions.push({type: relation.linkType, id, version: known?.version ?? null})
                 }
             }
 
@@ -1126,32 +1161,39 @@ function key(type: string, id: string): string
 
 
 /**
- * The version a row of the given type was read at, or null where the type carries none.
+ * The version a row of the given type was read at, and why it cannot be edited where it cannot: null and
+ * null for a type carrying no version at all, a version and null for a row that has one, null and a
+ * sentence for a versioned row that came without one.
  *
- * @throws if a versioned type's row has no version. That is a base the merge cannot make up, and finding
- *         out here is much better than finding out at merge time, where the answer would be a lost update
+ * That last case is not refused here. Registration walks everything a query selected and most of it is only
+ * displayed, so the query that fills a dropdown is the wrong place to insist on a version. What it gets
+ * instead is the sentence edit() throws the moment somebody does try to change the row -- written here,
+ * where the query that read it is still known, and still long before a merge could lose an update.
  */
-function version_(type: string, id: string, base: Map<string, unknown>, source: string): string | null
+function versionOf(
+    type: string, id: string, base: Map<string, unknown>, source: string
+): [string | null, string | null]
 {
     if (!MergeMeta.isVersioned(type))
     {
-        return null
+        return [null, null]
     }
 
     const version = base.get(MergeMeta.VERSION)
 
     if (typeof version === "string" && version.length > 0)
     {
-        return version
+        return [version, null]
     }
 
-    throw new Error(
+    return [
+        null,
         base.has(MergeMeta.VERSION)
             ? `${type} ${id} has no version. Every row of a versioned type gets one when the merge writes ` +
             `it, so a row without one predates the column and has to be given one before it can be edited.`
             : `${type} ${id} was registered without its version. '${type}' is versioned, so the merge writes ` +
             `its rows against the version they were read at -- select "${MergeMeta.VERSION}" in ${source}.`
-    )
+    ]
 }
 
 

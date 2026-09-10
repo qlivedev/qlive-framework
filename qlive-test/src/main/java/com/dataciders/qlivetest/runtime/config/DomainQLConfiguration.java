@@ -48,6 +48,18 @@ public class DomainQLConfiguration
     }
 
     
+    /**
+     * The application's own metadata provider. Declared rather than found by a component scan; what picks it
+     * up is {@link #domainQL()} asking the context for every {@link MetadataProvider}, which is the same
+     * route a module's provider takes.
+     */
+    @Bean
+    public MetadataProvider exampleMetadataProvider()
+    {
+        return new ExampleMetadataProvider();
+    }
+
+
     @Bean
     public DomainQL domainQL() throws IOException
     {

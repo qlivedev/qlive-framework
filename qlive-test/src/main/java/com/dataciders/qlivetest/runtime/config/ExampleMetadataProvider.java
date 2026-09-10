@@ -5,7 +5,6 @@ import de.quinscape.domainql.meta.DomainQLMeta;
 import de.quinscape.domainql.meta.MetadataProvider;
 import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLObjectType;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +19,6 @@ import java.util.List;
  * <p>
  * The client-side counterpart is frontend/src/qlive-meta.d.ts, which declares the same two names to TypeScript.
  */
-@Component
 public class ExampleMetadataProvider
     implements MetadataProvider
 {

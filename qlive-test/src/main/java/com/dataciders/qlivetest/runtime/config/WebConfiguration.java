@@ -3,6 +3,7 @@ package com.dataciders.qlivetest.runtime.config;
 import com.dataciders.qlive.runtime.service.BootstrapService;
 import com.dataciders.qlive.runtime.controller.ViteIndexController;
 import com.dataciders.qlive.runtime.view.VitePageRenderer;
+import com.dataciders.qlivetest.runtime.controller.LoginController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.CacheControl;
@@ -40,6 +41,17 @@ public class WebConfiguration
     public ViteIndexController viteIndexController(VitePageRenderer vitePageRenderer)
     {
         return new ViteIndexController(bootstrapService, vitePageRenderer);
+    }
+
+
+    /**
+     * Serves the login page. Declared here rather than found by a component scan, and next to the
+     * {@link VitePageRenderer} it renders with.
+     */
+    @Bean
+    public LoginController loginController(VitePageRenderer vitePageRenderer)
+    {
+        return new LoginController(vitePageRenderer);
     }
 
 

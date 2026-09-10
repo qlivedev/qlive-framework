@@ -1,8 +1,15 @@
 package com.dataciders.qlive.runtime.config;
 
+import com.dataciders.qlive.runtime.merge.DefaultFieldLayoutService;
 import com.dataciders.qlive.runtime.merge.DefaultMergeService;
+import com.dataciders.qlive.runtime.merge.DefaultVersionHolder;
+import com.dataciders.qlive.runtime.merge.DefaultVersionService;
+import com.dataciders.qlive.runtime.merge.FieldLayoutService;
 import com.dataciders.qlive.runtime.merge.MergeLogic;
 import com.dataciders.qlive.runtime.merge.MergeService;
+import com.dataciders.qlive.runtime.merge.VersionCleanup;
+import com.dataciders.qlive.runtime.merge.VersionHolder;
+import com.dataciders.qlive.runtime.merge.VersionService;
 import com.dataciders.qlive.runtime.service.BootstrapService;
 import com.dataciders.qlive.runtime.service.DefaultBootstrapService;
 import com.dataciders.qlive.runtime.service.InjectionArgumentProcessor;
@@ -15,17 +22,30 @@ import jakarta.servlet.ServletContext;
 import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.core.annotation.Order;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 
+/// Every bean the framework contributes, declared.
+///
+/// Nothing here is found by a component scan, and nothing can be: an application's scan covers the
+/// application's packages, so a `@Component` of the framework's is a `@Component` nobody looks at.
+///
+/// `@EnableScheduling` is here for the one task the framework runs, {@link VersionCleanup}. An application
+/// that schedules nothing of its own needs no annotation of its own, and one that does is unaffected --
+/// the annotation is idempotent.
 @Configuration
+@EnableScheduling
 public class QLiveConfiguration
 {
     private final static Logger log = LoggerFactory.getLogger(QLiveConfiguration.class);
@@ -92,9 +112,60 @@ public class QLiveConfiguration
     /// An application that needs something else registers a {@link MergeService} bean of its own; nothing
     /// below reaches past the interface.
     @Bean
-    public MergeService mergeService(DomainQL domainQL, DSLContext dslContext)
+    public MergeService mergeService(
+        DomainQL domainQL,
+        DSLContext dslContext,
+        FieldLayoutService fieldLayoutService,
+        VersionService versionService
+    )
     {
-        return new DefaultMergeService(domainQL, dslContext);
+        return new DefaultMergeService(domainQL, dslContext, fieldLayoutService, versionService);
+    }
+
+
+    /// The field layouts masks are written against, and the startup check that no versioned type has more
+    /// fields than a mask has bits.
+    @Bean
+    public FieldLayoutService fieldLayoutService(DomainQL domainQL, DSLContext dslContext)
+    {
+        return new DefaultFieldLayoutService(domainQL, dslContext);
+    }
+
+
+    /// The version records: written by the merge, read back by the chain walk.
+    @Bean
+    public VersionService versionService(
+        DSLContext dslContext,
+        VersionHolder versionHolder,
+        ApplicationEventPublisher eventPublisher
+    )
+    {
+        return new DefaultVersionService(dslContext, versionHolder, eventPublisher);
+    }
+
+
+    /// The in-memory half of the chain walk, and the first listener for the merge's event. A push module
+    /// would be the second, listening for the same event and reading the same records.
+    @Bean
+    public VersionHolder versionHolder()
+    {
+        return new DefaultVersionHolder();
+    }
+
+
+    /// Drops what has expired. Without it `app_version` grows for as long as the application runs.
+    ///
+    /// The lifetime spans a weekend on purpose: Friday evening to Monday morning is 72 hours, and parking a
+    /// change set across exactly that gap is a feature rather than an edge case.
+    @Bean
+    public VersionCleanup versionCleanup(
+        VersionService versionService,
+        VersionHolder versionHolder,
+        FieldLayoutService fieldLayoutService,
+        @Value("${qlive.merge.versionLifetime:P7D}") Duration versionLifetime
+    )
+    {
+        return new VersionCleanup(versionService, versionHolder, fieldLayoutService, versionLifetime);
     }
 
 

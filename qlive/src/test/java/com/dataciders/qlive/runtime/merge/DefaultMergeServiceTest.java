@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /// to say so is before the first statement.
 ///
 /// The service is built on a domain with no database behind it, which is all it takes -- everything below
-/// is answered out of the schema, and none of it reaches a statement.
+/// is answered out of the schema, and none of it reaches a statement, a field layout or a version record.
 class DefaultMergeServiceTest
 {
     private static MergeService mergeService;
@@ -35,7 +35,7 @@ class DefaultMergeServiceTest
     {
         final DomainQL domainQL = TestDomainConfig.domainQL(new TestLogic());
 
-        mergeService = new DefaultMergeService(domainQL, null);
+        mergeService = new DefaultMergeService(domainQL, null, null, null);
     }
 
 

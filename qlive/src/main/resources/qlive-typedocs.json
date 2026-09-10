@@ -416,11 +416,18 @@
   },
   {
     "name":"MergeConflictField",
-    "description":"One field of a row that could not be written as asked.\n\nThe vocabulary is deliberately not \"ours\" and \"theirs\". Whoever wrote first is gone; the only person still\nhere is the one whose save just bounced, and what they are choosing between is the value they typed and the\nvalue that is in the database. So: mine and stored.",
+    "description":"One field of a row that could not be written as asked.\n\nThe vocabulary is deliberately not \"ours\" and \"theirs\". Whoever wrote first is gone; the only person still\nhere is the one whose save just bounced, and what they are choosing between is the value they typed and the\nvalue that is in the database. So: mine and stored.\n\nNot every field in here is a decision. A field the other write touched and this one did not is attached\nas informational, so that a form can show what moved under the user rather than only what clashed.",
     "fieldDocs":[
       {
         "name":"field",
         "description":"Name of the field, as the GraphQL type spells it.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"informational",
+        "description":"true if the field is here to be seen rather than decided about: the other write changed it, this one\ndid not, and the merge takes their value silently. Catching up on a field nobody here has an opinion\nabout is not a decision anybody needs to make.\n\nAn informational field carries no mine, there being no value of ours to carry.",
         "paramDocs":[
           
         ]

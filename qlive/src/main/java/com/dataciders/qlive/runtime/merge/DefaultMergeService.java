@@ -9,6 +9,7 @@ import com.dataciders.qlive.model.merge.MergeConflictField;
 import com.dataciders.qlive.model.merge.MergeResult;
 import com.dataciders.qlive.model.merge.MergeStatus;
 import com.dataciders.qlive.runtime.QLiveException;
+import com.dataciders.qlive.runtime.auth.AppAuthentication;
 import com.dataciders.qlive.runtime.meta.MergeMeta;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.TableLookup;
@@ -34,7 +35,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -54,6 +57,12 @@ import java.util.UUID;
 /// sees the same database. Two saves that genuinely overlap in time -- the other one committing while this
 /// one runs -- come back as a serialization failure rather than as a conflict; the ordinary case this exists
 /// for, where the other person saved and went home, is the one that reads as a conflict.
+///
+/// A write that matched nothing is not yet a conflict. Every write records which fields it touched, so the
+/// chain of records between the version we read and the version that is there now says which fields the
+/// other writes touched -- and where that set does not meet ours, both edits belong in the row and the write
+/// is simply made again against what they left behind. That is the common case and the reason for all of it;
+/// a real conflict is the one where the two sets meet.
 public class DefaultMergeService
     implements MergeService
 {
@@ -63,15 +72,32 @@ public class DefaultMergeService
 
     private final DSLContext dslContext;
 
+    private final FieldLayoutService fieldLayouts;
+
+    private final VersionService versions;
+
     /// GraphQL type name per JOOQ table, so that a foreign key can be resolved to the type its target rows
     /// are. Built once: the domain does not change after startup.
     private final Map<Name, String> typeNamesByTable;
 
 
-    public DefaultMergeService(DomainQL domainQL, DSLContext dslContext)
+    /// A chain longer than this is not a chain anybody can usefully diff, and walking it would be the merge
+    /// paying for somebody else's write storm. Reading past it is refused the same way an unknown layout is:
+    /// assume every field changed.
+    private final static int MAX_CHAIN_LENGTH = 1000;
+
+
+    public DefaultMergeService(
+        DomainQL domainQL,
+        DSLContext dslContext,
+        FieldLayoutService fieldLayouts,
+        VersionService versions
+    )
     {
         this.domainQL = domainQL;
         this.dslContext = dslContext;
+        this.fieldLayouts = fieldLayouts;
+        this.versions = versions;
 
         final Map<Name, String> byTable = new HashMap<>();
         for (Map.Entry<String, TableLookup> entry : domainQL.getJooqTables().entrySet())
@@ -93,12 +119,13 @@ public class DefaultMergeService
         }
 
         final List<MergeConflict> conflicts = new ArrayList<>();
+        final List<EntityVersion> written = new ArrayList<>();
 
         // A -- new rows before the rows whose foreign keys name them
         for (PreparedChange change : order(prepared))
         {
             // B and C -- write, and ask what stood in the way where nothing was written
-            final MergeConflict conflict = write(change, config);
+            final MergeConflict conflict = write(change, config, written);
             if (conflict != null)
             {
                 conflicts.add(conflict);
@@ -120,6 +147,10 @@ public class DefaultMergeService
         final MergeResult result = new MergeResult();
         if (conflicts.isEmpty())
         {
+            // the records go in with the rows they describe, so that a row and the account of how it got
+            // there commit together or not at all
+            versions.write(written);
+
             result.setStatus(MergeStatus.DONE);
             result.setConflicts(List.of());
         }
@@ -383,16 +414,23 @@ public class DefaultMergeService
 
 
     /// B -- one INSERT or one UPDATE, and C -- what stood in the way where it wrote nothing.
-    private MergeConflict write(PreparedChange change, MergeConfig config)
+    private MergeConflict write(PreparedChange change, MergeConfig config, List<EntityVersion> written)
     {
-        final Map<Field<?>, Object> values = new LinkedHashMap<>(change.values);
-
-        if (change.versionField != null)
+        if (!change.change.isNew() && change.values.isEmpty())
         {
-            values.put(change.versionField, UUID.randomUUID().toString());
+            // a change that changed nothing. Bumping the version for it would invalidate everybody else's
+            // base for no write at all
+            return null;
         }
 
-        final int count;
+        final String newVersion = change.versionField == null ? null : UUID.randomUUID().toString();
+
+        final Map<Field<?>, Object> values = new LinkedHashMap<>(change.values);
+
+        if (newVersion != null)
+        {
+            values.put(change.versionField, newVersion);
+        }
 
         if (change.change.isNew())
         {
@@ -401,61 +439,196 @@ public class DefaultMergeService
             // ON CONFLICT on the primary key alone, so that a row that is already there reads as a conflict
             // rather than as an aborted transaction -- and so that every other constraint the row breaks
             // still fails loudly, which is what it is for
-            count = dslContext.insertInto(change.table)
+            final int count = dslContext.insertInto(change.table)
                 .set(values)
                 .onConflict(change.idField)
                 .doNothing()
                 .execute();
+
+            if (count != 0)
+            {
+                record(change, newVersion, null, written);
+                return null;
+            }
         }
-        else if (values.isEmpty())
+        else if (update(change, values, change.change.getVersion()) != 0)
         {
-            // a change that changed nothing. Bumping the version for it would invalidate everybody else's
-            // base for no write at all
+            record(change, newVersion, change.change.getVersion(), written);
             return null;
         }
-        else
-        {
-            UpdateConditionStep<?> update = dslContext.update(change.table)
-                .set(values)
-                .where(any(change.idField).eq(change.change.getId()));
 
-            if (change.versionField != null)
-            {
-                update = update.and(any(change.versionField).eq(change.change.getVersion()));
-            }
-
-            count = update.execute();
-        }
-
-        return count == 0 ? conflict(change, config) : null;
+        return resolve(change, config, values, newVersion, written);
     }
 
 
-    /// C -- the row as it stands now, and the fields of this change that clash with it.
-    ///
-    /// Every field the change touched is named, because without a record of what the other write touched
-    /// there is no way to tell which of them it was. That is the conservative answer and the only one
-    /// available here: a field named that did not really move costs the user a glance, a field not named
-    /// that did would cost them the other person's work.
-    private MergeConflict conflict(PreparedChange change, MergeConfig config)
+    /// One UPDATE of the change's row, held to the given version where the type carries one.
+    private int update(PreparedChange change, Map<Field<?>, Object> values, String base)
     {
-        final MergeConflict conflict = new MergeConflict();
-        conflict.setType(change.typeName);
-        conflict.setId(change.change.getId());
-        conflict.setFields(List.of());
+        UpdateConditionStep<?> update = dslContext.update(change.table)
+            .set(values)
+            .where(any(change.idField).eq(change.change.getId()));
 
+        if (change.versionField != null)
+        {
+            update = update.and(any(change.versionField).eq(base));
+        }
+
+        return update.execute();
+    }
+
+
+    /// C -- nothing was written, so somebody else was here. What they touched decides whether that is a
+    /// conflict at all.
+    ///
+    /// Where their fields and ours do not meet, both edits belong in the row and the only thing wrong with
+    /// the write was the base it named. It is made again against the version they left behind, and the
+    /// record of it names that version as its predecessor, so the chain stays a chain.
+    private MergeConflict resolve(
+        PreparedChange change,
+        MergeConfig config,
+        Map<Field<?>, Object> values,
+        String newVersion,
+        List<EntityVersion> written
+    )
+    {
         final Record stored = read(change.table, change.idField, change.change.getId());
 
         if (stored == null)
         {
+            // nothing to merge into and nothing to choose between
+            final MergeConflict conflict = new MergeConflict();
+            conflict.setType(change.typeName);
+            conflict.setId(change.change.getId());
             conflict.setDeleted(true);
+            conflict.setFields(List.of());
+
             return conflict;
         }
 
-        if (change.versionField != null)
+        final String storedVersion =
+            change.versionField == null ? null : (String) stored.get(change.versionField);
+
+        final Set<String> theirs = theirFields(change, storedVersion);
+
+        final boolean disjoint = theirs != null && Collections.disjoint(theirs, change.conflictFields.keySet());
+
+        if (disjoint && !change.change.isNew() && MergeMeta.isAutoMerge(domainQL, change.typeName) &&
+            update(change, values, storedVersion) != 0)
         {
-            conflict.setVersion((String) stored.get(change.versionField));
+            log.debug(
+                "Merged {} {} over a change to {}", change.typeName, change.change.getId(), theirs
+            );
+
+            record(change, newVersion, storedVersion, written);
+            return null;
         }
+
+        return conflict(change, config, stored, storedVersion, theirs);
+    }
+
+
+    /// The fields the writes between our base version and the version that is there now touched, or null
+    /// where that cannot be told and every field has to be assumed.
+    ///
+    /// The walk goes backwards, each record naming the version it was made against, until it meets the
+    /// version we read. It gives up rather than guesses in every case where it cannot get there: a record
+    /// that was pruned, a chain that runs out before our base -- which is what a version written by
+    /// something other than this merge looks like -- a field layout that is no longer stored, and a chain
+    /// too long to be worth walking.
+    private Set<String> theirFields(PreparedChange change, String storedVersion)
+    {
+        final String base = change.change.getVersion();
+
+        if (change.versionField == null || base == null)
+        {
+            return null;
+        }
+
+        final Set<String> names = new LinkedHashSet<>();
+
+        String at = storedVersion;
+
+        for (int hops = 0; at != null && !at.equals(base); hops++)
+        {
+            if (hops == MAX_CHAIN_LENGTH)
+            {
+                log.warn(
+                    "More than {} versions of {} {} since {}",
+                    MAX_CHAIN_LENGTH, change.typeName, change.change.getId(), base
+                );
+                return null;
+            }
+
+            final EntityVersion record = versions.get(at);
+
+            if (record == null)
+            {
+                return null;
+            }
+
+            final Set<String> fields = fieldLayouts.fields(
+                record.getFieldLayout(), change.typeName, record.getFieldMask()
+            );
+
+            if (fields == null)
+            {
+                return null;
+            }
+
+            names.addAll(fields);
+            at = record.getPrev();
+        }
+
+        return at == null ? null : names;
+    }
+
+
+    /// The record of one write, held back until the whole merge succeeds.
+    ///
+    /// An unversioned type records nothing. It has no column to hold a version, so nothing would ever name
+    /// the record and nothing could read it back.
+    private void record(PreparedChange change, String newVersion, String prev, List<EntityVersion> written)
+    {
+        if (newVersion == null)
+        {
+            return;
+        }
+
+        final FieldLayout layout = fieldLayouts.current(change.typeName);
+
+        written.add(
+            new EntityVersion(
+                newVersion,
+                change.typeName,
+                change.change.getId(),
+                prev,
+                layout.mask(change.conflictFields.keySet()),
+                layout.getId(),
+                AppAuthentication.current().getId(),
+                new Timestamp(System.currentTimeMillis())
+            )
+        );
+    }
+
+
+    /// The row as it stands now and the fields to say something about: the ones both writes touched, which
+    /// are the decision, and the ones only theirs touched, which are attached to be seen.
+    ///
+    /// Where there is no telling what the other write touched, every field this change touched is named.
+    /// That is the conservative answer and the only one available: a field named that did not really move
+    /// costs the user a glance, a field not named that did would cost them the other person's work.
+    private MergeConflict conflict(
+        PreparedChange change,
+        MergeConfig config,
+        Record stored,
+        String storedVersion,
+        Set<String> theirs
+    )
+    {
+        final MergeConflict conflict = new MergeConflict();
+        conflict.setType(change.typeName);
+        conflict.setId(change.change.getId());
+        conflict.setVersion(storedVersion);
 
         final boolean withValues =
             config != null && config.isResolveConflicts() &&
@@ -465,6 +638,11 @@ public class DefaultMergeService
 
         for (Map.Entry<String, GenericScalar> entry : change.conflictFields.entrySet())
         {
+            if (theirs != null && !theirs.contains(entry.getKey()))
+            {
+                continue;
+            }
+
             final MergeConflictField field = new MergeConflictField();
             field.setField(entry.getKey());
 
@@ -472,11 +650,38 @@ public class DefaultMergeService
             {
                 field.setMine(entry.getValue());
                 field.setStored(
-                    storedValue(change.typeName, entry.getKey(), change.conflictColumns.get(entry.getKey()), stored)
+                    storedValue(
+                        change.typeName, entry.getKey(), change.conflictColumns.get(entry.getKey()), stored
+                    )
                 );
             }
 
             fields.add(field);
+        }
+
+        if (theirs != null)
+        {
+            for (String name : theirs)
+            {
+                final Field<?> column =
+                    change.conflictFields.containsKey(name) ? null : domainQL.lookupField(change.typeName, name);
+
+                if (column == null)
+                {
+                    continue;
+                }
+
+                final MergeConflictField field = new MergeConflictField();
+                field.setField(name);
+                field.setInformational(true);
+
+                if (withValues)
+                {
+                    field.setStored(storedValue(change.typeName, name, column, stored));
+                }
+
+                fields.add(field);
+            }
         }
 
         conflict.setFields(fields);
@@ -500,6 +705,11 @@ public class DefaultMergeService
 
 
     /// One DELETE under the same optimistic lock, and the same reading back where it removed nothing.
+    ///
+    /// No version record, and there could be none that anything would read: the record would describe a row
+    /// that is gone, and nothing is left to name it. A deletion is also the one write that never merges over
+    /// a concurrent change -- removing a row somebody has just edited is exactly the decision a user has to
+    /// be asked about -- so it names no fields either way.
     private MergeConflict delete(EntityDeletion deletion)
     {
         final String typeName = requireType(deletion.getType(), deletion);

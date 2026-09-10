@@ -15,6 +15,19 @@ conflict per row that stood in the way. */
     /** Everything in the working set landed. Nothing else is written, and the transaction committed. */
     "DONE"
 
+/** The ordered field-name list one field mask was written against, under the hash of that list. A version record names its layout, so a mask written before a deployment that reordered a type's fields is permuted back into today's positions instead of being read as a different set of fields. Written idempotently -- the id being the hash makes it an upsert -- and swept by the same task that prunes version records, minus the layout currently in use. */
+export type AppFieldLayout = {
+
+    _type: "AppFieldLayout",
+
+    /** GraphQL name of the type the layout belongs to. In the hashed input as well, so that two types whose field lists happen to be identical do not share a row and "what did this type look like then" stays answerable. */
+    entityType: string
+    /** The field names in the order that assigns the mask bit indices, joined by a character no GraphQL name can contain. Kept rather than only hashed: a hash detects that the bits moved, the list is what moves them back. */
+    fields: string
+    /** SHA-256 of the type name and the ordered field names, which is what makes writing a layout an upsert rather than a decision */
+    id: string
+}
+
 /** Database storage for spring security's remember-me feature */
 export type AppLogin = {
 
@@ -380,6 +393,6 @@ export type QuxDocument = {
     type: string
 }
 
-export type DomainObject = AppLogin | AppUser | AppUserDocument | AppVersion | Bar | BarDocument | BarLink | Baz |
-    BazDocument | Foo | FooDocument | FooType | FooTypeDocument | MergeConflict | MergeConflictField | MergeResult |
-    MutationType | QueryType | Qux | QuxDocument
+export type DomainObject = AppFieldLayout | AppLogin | AppUser | AppUserDocument | AppVersion | Bar | BarDocument | BarLink |
+    Baz | BazDocument | Foo | FooDocument | FooType | FooTypeDocument | MergeConflict | MergeConflictField |
+    MergeResult | MutationType | QueryType | Qux | QuxDocument

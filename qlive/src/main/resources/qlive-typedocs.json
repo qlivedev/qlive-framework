@@ -7,6 +7,33 @@
     ]
   },
   {
+    "name":"AppFieldLayout",
+    "description":"The ordered field-name list one field mask was written against, under the hash of that list. A version record names its layout, so a mask written before a deployment that reordered a type's fields is permuted back into today's positions instead of being read as a different set of fields. Written idempotently -- the id being the hash makes it an upsert -- and swept by the same task that prunes version records, minus the layout currently in use.",
+    "fieldDocs":[
+      {
+        "name":"entityType",
+        "description":"GraphQL name of the type the layout belongs to. In the hashed input as well, so that two types whose field lists happen to be identical do not share a row and \"what did this type look like then\" stays answerable.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"fields",
+        "description":"The field names in the order that assigns the mask bit indices, joined by a character no GraphQL name can contain. Kept rather than only hashed: a hash detects that the bits moved, the list is what moves them back.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"id",
+        "description":"SHA-256 of the type name and the ordered field names, which is what makes writing a layout an upsert rather than a decision",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
     "name":"AppLogin",
     "description":"Database storage for spring security's remember-me feature",
     "fieldDocs":[

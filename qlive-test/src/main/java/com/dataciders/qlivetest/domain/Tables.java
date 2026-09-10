@@ -4,6 +4,7 @@
 package com.dataciders.qlivetest.domain;
 
 
+import com.dataciders.qlivetest.domain.tables.AppFieldLayout;
 import com.dataciders.qlivetest.domain.tables.AppLogin;
 import com.dataciders.qlivetest.domain.tables.AppUser;
 import com.dataciders.qlivetest.domain.tables.AppVersion;
@@ -29,6 +30,11 @@ import javax.annotation.processing.Generated;
 )
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Tables {
+
+    /**
+     * The table <code>public.app_field_layout</code>.
+     */
+    public static final AppFieldLayout APP_FIELD_LAYOUT = AppFieldLayout.APP_FIELD_LAYOUT;
 
     /**
      * The table <code>public.app_login</code>.

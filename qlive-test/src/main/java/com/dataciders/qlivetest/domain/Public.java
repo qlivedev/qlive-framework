@@ -4,6 +4,7 @@
 package com.dataciders.qlivetest.domain;
 
 
+import com.dataciders.qlivetest.domain.tables.AppFieldLayout;
 import com.dataciders.qlivetest.domain.tables.AppLogin;
 import com.dataciders.qlivetest.domain.tables.AppUser;
 import com.dataciders.qlivetest.domain.tables.AppVersion;
@@ -43,6 +44,11 @@ public class Public extends SchemaImpl {
      * The reference instance of <code>public</code>
      */
     public static final Public PUBLIC = new Public();
+
+    /**
+     * The table <code>public.app_field_layout</code>.
+     */
+    public final AppFieldLayout APP_FIELD_LAYOUT = AppFieldLayout.APP_FIELD_LAYOUT;
 
     /**
      * The table <code>public.app_login</code>.
@@ -106,6 +112,7 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
+            AppFieldLayout.APP_FIELD_LAYOUT,
             AppLogin.APP_LOGIN,
             AppUser.APP_USER,
             AppVersion.APP_VERSION,

@@ -4,6 +4,7 @@
 package com.dataciders.qlivetest.domain;
 
 
+import com.dataciders.qlivetest.domain.tables.AppFieldLayout;
 import com.dataciders.qlivetest.domain.tables.AppLogin;
 import com.dataciders.qlivetest.domain.tables.AppUser;
 import com.dataciders.qlivetest.domain.tables.AppVersion;
@@ -13,6 +14,7 @@ import com.dataciders.qlivetest.domain.tables.Baz;
 import com.dataciders.qlivetest.domain.tables.Foo;
 import com.dataciders.qlivetest.domain.tables.FooType;
 import com.dataciders.qlivetest.domain.tables.Qux;
+import com.dataciders.qlivetest.domain.tables.records.AppFieldLayoutRecord;
 import com.dataciders.qlivetest.domain.tables.records.AppLoginRecord;
 import com.dataciders.qlivetest.domain.tables.records.AppUserRecord;
 import com.dataciders.qlivetest.domain.tables.records.AppVersionRecord;
@@ -50,6 +52,7 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final UniqueKey<AppFieldLayoutRecord> PK_APP_FIELD_LAYOUT = Internal.createUniqueKey(AppFieldLayout.APP_FIELD_LAYOUT, DSL.name("pk_app_field_layout"), new TableField[] { AppFieldLayout.APP_FIELD_LAYOUT.ID }, true);
     public static final UniqueKey<AppLoginRecord> PK_APP_LOGIN = Internal.createUniqueKey(AppLogin.APP_LOGIN, DSL.name("pk_app_login"), new TableField[] { AppLogin.APP_LOGIN.SERIES }, true);
     public static final UniqueKey<AppUserRecord> PK_APP_USER = Internal.createUniqueKey(AppUser.APP_USER, DSL.name("pk_app_user"), new TableField[] { AppUser.APP_USER.ID }, true);
     public static final UniqueKey<AppUserRecord> UC_APP_USER_LOGIN = Internal.createUniqueKey(AppUser.APP_USER, DSL.name("uc_app_user_login"), new TableField[] { AppUser.APP_USER.LOGIN }, true);

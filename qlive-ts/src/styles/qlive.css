@@ -34,6 +34,15 @@
         --qlive-color-border: #d4d4d4;
         --qlive-color-accent: #2563eb;
 
+        /*
+         * What a merge marks a field with. Four states, four colours, and the
+         * classes that carry them are public API - see MergeField#className.
+         */
+        --qlive-color-changed: #2563eb;
+        --qlive-color-conflict: #d97706;
+        --qlive-color-resolved: #16a34a;
+        --qlive-color-moved: #7c3aed;
+
         --qlive-space-1: 0.25rem;
         --qlive-space-2: 0.5rem;
         --qlive-space-3: 1rem;
@@ -59,6 +68,11 @@
             --qlive-color-muted: #9a9a9a;
             --qlive-color-border: #3a3a3a;
             --qlive-color-accent: #60a5fa;
+
+            --qlive-color-changed: #60a5fa;
+            --qlive-color-conflict: #fbbf24;
+            --qlive-color-resolved: #4ade80;
+            --qlive-color-moved: #c084fc;
         }
     }
 
@@ -203,6 +217,48 @@
         stroke-width: 2px;
         stroke: var(--qlive-color-muted);
         fill: transparent;
+    }
+
+    /*
+     * What a merge marks a field with, put on whatever the application renders
+     * the field as: MergeField#className is one of these or the empty string.
+     *
+     * A border colour and an inset bar rather than a border of our own, so that
+     * marking a field moves nothing on the page - an input that gains a border
+     * on the day two people edit the same row is an input that jumps.
+     */
+    .qlive-changed,
+    .qlive-conflict,
+    .qlive-conflict-resolved,
+    .qlive-moved
+    {
+        border-color: var(--qlive-mark-color);
+        box-shadow: inset var(--qlive-space-1) 0 0 0 var(--qlive-mark-color);
+    }
+
+    /* the user changed this field */
+    .qlive-changed
+    {
+        --qlive-mark-color: var(--qlive-color-changed);
+    }
+
+    /* both changed it, and the user's value is the one standing */
+    .qlive-conflict
+    {
+        --qlive-mark-color: var(--qlive-color-conflict);
+    }
+
+    /* they looked at it and chose */
+    .qlive-conflict-resolved
+    {
+        --qlive-mark-color: var(--qlive-color-resolved);
+    }
+
+    /* it changed under them and they had no edit of their own, so the stored
+       value was taken */
+    .qlive-moved
+    {
+        --qlive-mark-color: var(--qlive-color-moved);
     }
 
     /*

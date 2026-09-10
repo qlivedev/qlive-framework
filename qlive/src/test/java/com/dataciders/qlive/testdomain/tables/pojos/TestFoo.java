@@ -47,6 +47,7 @@ public class TestFoo extends GeneratedDomainObject implements Serializable {
     private String description;
     private String ownerId;
     private Boolean flag;
+    private String version;
 
     public TestFoo() {}
 
@@ -59,6 +60,7 @@ public class TestFoo extends GeneratedDomainObject implements Serializable {
         this.description = value.description;
         this.ownerId = value.ownerId;
         this.flag = value.flag;
+        this.version = value.version;
     }
 
     public TestFoo(
@@ -69,7 +71,8 @@ public class TestFoo extends GeneratedDomainObject implements Serializable {
         Timestamp created,
         String description,
         String ownerId,
-        Boolean flag
+        Boolean flag,
+        String version
     ) {
         this.id = id;
         this.name = name;
@@ -79,6 +82,7 @@ public class TestFoo extends GeneratedDomainObject implements Serializable {
         this.description = description;
         this.ownerId = ownerId;
         this.flag = flag;
+        this.version = version;
     }
 
     /**
@@ -213,6 +217,22 @@ public class TestFoo extends GeneratedDomainObject implements Serializable {
         this.flag = flag;
     }
 
+    /**
+     * Getter for <code>public.test_foo.version</code>.
+     */
+    @Column(name = "version", length = 36)
+    @Size(max = 36)
+    public String getVersion() {
+        return this.version;
+    }
+
+    /**
+     * Setter for <code>public.test_foo.version</code>.
+     */
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -270,6 +290,12 @@ public class TestFoo extends GeneratedDomainObject implements Serializable {
         }
         else if (!this.flag.equals(other.flag))
             return false;
+        if (this.version == null) {
+            if (other.version != null)
+                return false;
+        }
+        else if (!this.version.equals(other.version))
+            return false;
         return true;
     }
 
@@ -285,6 +311,7 @@ public class TestFoo extends GeneratedDomainObject implements Serializable {
         result = prime * result + ((this.description == null) ? 0 : this.description.hashCode());
         result = prime * result + ((this.ownerId == null) ? 0 : this.ownerId.hashCode());
         result = prime * result + ((this.flag == null) ? 0 : this.flag.hashCode());
+        result = prime * result + ((this.version == null) ? 0 : this.version.hashCode());
         return result;
     }
 
@@ -300,6 +327,7 @@ public class TestFoo extends GeneratedDomainObject implements Serializable {
         sb.append(", ").append(description);
         sb.append(", ").append(ownerId);
         sb.append(", ").append(flag);
+        sb.append(", ").append(version);
 
         sb.append(")");
         return sb.toString();

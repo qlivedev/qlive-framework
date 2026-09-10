@@ -173,6 +173,22 @@ public class TestFooRecord extends UpdatableRecordImpl<TestFooRecord> {
         return (Boolean) get(7);
     }
 
+    /**
+     * Setter for <code>public.test_foo.version</code>.
+     */
+    public void setVersion(String value) {
+        set(8, value);
+    }
+
+    /**
+     * Getter for <code>public.test_foo.version</code>.
+     */
+    @Column(name = "version", length = 36)
+    @Size(max = 36)
+    public String getVersion() {
+        return (String) get(8);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -196,7 +212,7 @@ public class TestFooRecord extends UpdatableRecordImpl<TestFooRecord> {
     /**
      * Create a detached, initialised TestFooRecord
      */
-    public TestFooRecord(String id, String name, Integer num, String type, Timestamp created, String description, String ownerId, Boolean flag) {
+    public TestFooRecord(String id, String name, Integer num, String type, Timestamp created, String description, String ownerId, Boolean flag, String version) {
         super(com.dataciders.qlive.testdomain.tables.TestFoo.TEST_FOO);
 
         setId(id);
@@ -207,6 +223,7 @@ public class TestFooRecord extends UpdatableRecordImpl<TestFooRecord> {
         setDescription(description);
         setOwnerId(ownerId);
         setFlag(flag);
+        setVersion(version);
         resetChangedOnNotNull();
     }
 
@@ -225,6 +242,7 @@ public class TestFooRecord extends UpdatableRecordImpl<TestFooRecord> {
             setDescription(value.getDescription());
             setOwnerId(value.getOwnerId());
             setFlag(value.getFlag());
+            setVersion(value.getVersion());
             resetChangedOnNotNull();
         }
     }

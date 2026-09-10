@@ -107,6 +107,11 @@ public class TestFoo extends TableImpl<TestFooRecord> {
      */
     public final TableField<TestFooRecord, Boolean> FLAG = createField(DSL.name("flag"), SQLDataType.BOOLEAN.nullable(false), this, "");
 
+    /**
+     * The column <code>public.test_foo.version</code>.
+     */
+    public final TableField<TestFooRecord, String> VERSION = createField(DSL.name("version"), SQLDataType.VARCHAR(36), this, "");
+
     private TestFoo(Name alias, Table<TestFooRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

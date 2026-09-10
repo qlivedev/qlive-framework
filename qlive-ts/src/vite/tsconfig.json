@@ -1,0 +1,7 @@
+{
+  // Stub so IntelliJ's "nearest tsconfig.json" lookup finds the Node half of
+  // the split (see ../../tsconfig.vite.json) instead of ../../tsconfig.json --
+  // it does not support two sibling configs partitioning one directory via
+  // include/exclude. Not used by tsc/build, which pass -p explicitly.
+  "extends": "../../tsconfig.vite.json"
+}

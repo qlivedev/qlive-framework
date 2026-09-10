@@ -317,6 +317,24 @@ An unversioned type is written the same way without the version
 condition and without a version record. Last write wins there, as it
 does today -- taking part is what having a `version` column means.
 
+**A row refused for being a duplicate is a conflict, not an error.** A
+row that does not exist yet has no version, so a unique constraint is the
+only thing that can see a second writer coming, and what it sees is the
+same thing every other conflict is: somebody got in first. Everything
+else the database refuses -- a foreign key pointing at nothing, a column
+that may not be null -- stays a programming error and stays a GraphQL
+error.
+
+It is caught by SQL state (`23505`) through the whole cause chain rather
+than by exception type, because whether the application installed
+Spring's exception translator is the application's business. Postgres
+aborts the transaction on a constraint violation, so nothing more can be
+written and the row in the way cannot even be read back: the conflict
+carries the type and id of the row that was refused, no fields and no
+stored version, and it is the whole answer. Which row was in the way is
+not said and cannot be from here -- a constraint names columns, not a
+row.
+
 ### C -- detect the conflict
 
 `rowcount == 0` means somebody else wrote the row since we read it. Read
@@ -548,6 +566,15 @@ same as a scalar whose value was withheld. An association somebody else
 took away says nothing about the ones they may have added, so the set
 that is stored is not knowable from here. What the form shows for it is
 what the row was read with, which is the existing rule for that case.
+
+**An insert the database already holds is not sent again either.** The
+mirror image, and it arrives the other way round: nothing local can see
+it coming, so the first merge asks, the constraint on the pair refuses,
+and the conflict that comes back says the association exists. The working
+set records it as made -- the only way a new link row is refused is that
+constraint -- and the next merge does not ask for it. `StoredState` grew
+a `links` map for it, which is the same seam a push message will use to
+say an association appeared.
 
 **A deletion whose row is already gone is not sent again.** Nobody asked
 to delete that link row; they asked for a set of associations, and
@@ -1125,6 +1152,9 @@ is easier to see now than after the second one is written.
 - **A resolution holds a link array back the way it holds a scalar
   back.** The link diff runs over the pending changes, not over every
   change, so `resolve("stored")` on an array means what it says.
+- **A unique constraint refusal is a conflict; every other constraint
+  refusal is an error.** A row that does not exist yet has no version, so
+  the constraint is the only lock it has. See "B -- write".
 - **The view flag lives on the working set and every draft read goes
   through it**, so switching it re-renders a form that knows nothing
   about merging against other values.

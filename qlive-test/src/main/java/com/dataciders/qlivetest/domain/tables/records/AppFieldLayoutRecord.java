@@ -13,6 +13,8 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.sql.Timestamp;
+
 import javax.annotation.processing.Generated;
 
 import org.jooq.Record1;
@@ -90,6 +92,22 @@ public class AppFieldLayoutRecord extends UpdatableRecordImpl<AppFieldLayoutReco
         return (String) get(2);
     }
 
+    /**
+     * Setter for <code>public.app_field_layout.created</code>.
+     */
+    public void setCreated(Timestamp value) {
+        set(3, value);
+    }
+
+    /**
+     * Getter for <code>public.app_field_layout.created</code>.
+     */
+    @Column(name = "created", nullable = false, precision = 6)
+    @NotNull
+    public Timestamp getCreated() {
+        return (Timestamp) get(3);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -113,12 +131,13 @@ public class AppFieldLayoutRecord extends UpdatableRecordImpl<AppFieldLayoutReco
     /**
      * Create a detached, initialised AppFieldLayoutRecord
      */
-    public AppFieldLayoutRecord(String id, String entityType, String fields) {
+    public AppFieldLayoutRecord(String id, String entityType, String fields, Timestamp created) {
         super(AppFieldLayout.APP_FIELD_LAYOUT);
 
         setId(id);
         setEntityType(entityType);
         setFields(fields);
+        setCreated(created);
         resetChangedOnNotNull();
     }
 
@@ -132,6 +151,7 @@ public class AppFieldLayoutRecord extends UpdatableRecordImpl<AppFieldLayoutReco
             setId(value.getId());
             setEntityType(value.getEntityType());
             setFields(value.getFields());
+            setCreated(value.getCreated());
             resetChangedOnNotNull();
         }
     }

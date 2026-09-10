@@ -8,8 +8,15 @@
   },
   {
     "name":"AppFieldLayout",
-    "description":"The ordered field-name list one field mask was written against, under the hash of that list. A version record names its layout, so a mask written before a deployment that reordered a type's fields is permuted back into today's positions instead of being read as a different set of fields. Written idempotently -- the id being the hash makes it an upsert -- and swept by the same task that prunes version records, minus the layout currently in use.",
+    "description":"The ordered field-name list one field mask was written against, under the hash of that list. A version record names its layout, so a mask written before a deployment that reordered a type's fields is permuted back into today's positions instead of being read as a different set of fields. Written idempotently -- the id being the hash makes it an upsert -- and swept by the same task that prunes version records, minus the layout currently in use and minus anything stored too recently to have been used yet.",
     "fieldDocs":[
+      {
+        "name":"created",
+        "description":"When this layout was first stored in this database. What keeps the sweep from taking a layout a node of a rolling deployment has stored but not yet written a record against, and the only account of when a layout appeared once the records naming it have been pruned.",
+        "paramDocs":[
+          
+        ]
+      },
       {
         "name":"entityType",
         "description":"GraphQL name of the type the layout belongs to. In the hashed input as well, so that two types whose field lists happen to be identical do not share a row and \"what did this type look like then\" stays answerable.",

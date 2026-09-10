@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +41,8 @@ public class DefaultFieldLayoutService
     private final static Field<String> ENTITY_TYPE = DSL.field(DSL.name("entity_type"), String.class);
 
     private final static Field<String> FIELDS = DSL.field(DSL.name("fields"), String.class);
+
+    private final static Field<Timestamp> CREATED = DSL.field(DSL.name("created"), Timestamp.class);
 
     private final DSLContext dslContext;
 
@@ -192,8 +195,13 @@ public class DefaultFieldLayoutService
         {
             // DO NOTHING rather than a plain insert, so that two nodes starting at once are not a failure
             dslContext.insertInto(TABLE)
-                .columns(ID, ENTITY_TYPE, FIELDS)
-                .values(layout.getId(), layout.getTypeName(), layout.getJoinedFields())
+                .columns(ID, ENTITY_TYPE, FIELDS, CREATED)
+                .values(
+                    layout.getId(),
+                    layout.getTypeName(),
+                    layout.getJoinedFields(),
+                    new Timestamp(System.currentTimeMillis())
+                )
                 .onConflict(ID)
                 .doNothing()
                 .execute();

@@ -8,6 +8,7 @@ import com.dataciders.qlivetest.domain.Keys;
 import com.dataciders.qlivetest.domain.Public;
 import com.dataciders.qlivetest.domain.tables.records.AppFieldLayoutRecord;
 
+import java.sql.Timestamp;
 import java.util.Collection;
 
 import javax.annotation.processing.Generated;
@@ -72,6 +73,11 @@ public class AppFieldLayout extends TableImpl<AppFieldLayoutRecord> {
      * The column <code>public.app_field_layout.fields</code>.
      */
     public final TableField<AppFieldLayoutRecord, String> FIELDS = createField(DSL.name("fields"), SQLDataType.CLOB.nullable(false), this, "");
+
+    /**
+     * The column <code>public.app_field_layout.created</code>.
+     */
+    public final TableField<AppFieldLayoutRecord, Timestamp> CREATED = createField(DSL.name("created"), SQLDataType.TIMESTAMP(6).nullable(false), this, "");
 
     private AppFieldLayout(Name alias, Table<AppFieldLayoutRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);

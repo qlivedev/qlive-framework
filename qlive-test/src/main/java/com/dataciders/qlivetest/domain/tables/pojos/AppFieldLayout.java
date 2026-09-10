@@ -14,6 +14,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 
 import javax.annotation.processing.Generated;
 
@@ -41,6 +42,7 @@ public class AppFieldLayout extends GeneratedDomainObject implements Serializabl
     private String id;
     private String entityType;
     private String fields;
+    private Timestamp created;
 
     public AppFieldLayout() {}
 
@@ -48,16 +50,19 @@ public class AppFieldLayout extends GeneratedDomainObject implements Serializabl
         this.id = value.id;
         this.entityType = value.entityType;
         this.fields = value.fields;
+        this.created = value.created;
     }
 
     public AppFieldLayout(
         String id,
         String entityType,
-        String fields
+        String fields,
+        Timestamp created
     ) {
         this.id = id;
         this.entityType = entityType;
         this.fields = fields;
+        this.created = created;
     }
 
     /**
@@ -111,6 +116,22 @@ public class AppFieldLayout extends GeneratedDomainObject implements Serializabl
         this.fields = fields;
     }
 
+    /**
+     * Getter for <code>public.app_field_layout.created</code>.
+     */
+    @Column(name = "created", nullable = false, precision = 6)
+    @NotNull
+    public Timestamp getCreated() {
+        return this.created;
+    }
+
+    /**
+     * Setter for <code>public.app_field_layout.created</code>.
+     */
+    public void setCreated(Timestamp created) {
+        this.created = created;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -138,6 +159,12 @@ public class AppFieldLayout extends GeneratedDomainObject implements Serializabl
         }
         else if (!this.fields.equals(other.fields))
             return false;
+        if (this.created == null) {
+            if (other.created != null)
+                return false;
+        }
+        else if (!this.created.equals(other.created))
+            return false;
         return true;
     }
 
@@ -148,6 +175,7 @@ public class AppFieldLayout extends GeneratedDomainObject implements Serializabl
         result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
         result = prime * result + ((this.entityType == null) ? 0 : this.entityType.hashCode());
         result = prime * result + ((this.fields == null) ? 0 : this.fields.hashCode());
+        result = prime * result + ((this.created == null) ? 0 : this.created.hashCode());
         return result;
     }
 
@@ -158,6 +186,7 @@ public class AppFieldLayout extends GeneratedDomainObject implements Serializabl
         sb.append(id);
         sb.append(", ").append(entityType);
         sb.append(", ").append(fields);
+        sb.append(", ").append(created);
 
         sb.append(")");
         return sb.toString();

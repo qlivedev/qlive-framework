@@ -2,6 +2,7 @@ import {
     GraphQLField,
     GraphQLInputObjectType,
     GraphQLInputValue,
+    GraphQLNamedTypes,
     GraphQLObjectType,
     GraphQLScalarType,
     GraphQLTypeRef
@@ -67,7 +68,7 @@ export function inputObject(name: string, inputFields: GraphQLInputValue[]): Gra
     }
 }
 
-export const NAMED = (name: string, kind: "SCALAR" | "OBJECT" = "SCALAR"): GraphQLTypeRef => ({kind, name})
+export const NAMED = (name: string, kind: GraphQLNamedTypes = "SCALAR"): GraphQLTypeRef => ({kind, name})
 export const NOT_NULL = (ofType: GraphQLTypeRef): GraphQLTypeRef => ({kind: "NON_NULL", name: null, ofType})
 export const LIST_OF = (ofType: GraphQLTypeRef): GraphQLTypeRef => ({kind: "LIST", name: null, ofType})
 

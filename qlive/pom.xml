@@ -31,6 +31,16 @@
       <version>7.0.5</version>
     </dependency>
 
+    <!--
+      The merge writes in one transaction and says so with @Transactional. Declared rather than left to
+      arrive transitively, where it comes in a major version behind the rest of Spring.
+    -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-tx</artifactId>
+      <version>7.0.5</version>
+    </dependency>
+
     <dependency>
       <groupId>com.graphql-java</groupId>
       <artifactId>graphql-java</artifactId>

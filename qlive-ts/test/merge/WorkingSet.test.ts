@@ -823,6 +823,46 @@ describe("an association somebody else changed", () => {
         expect(JSON.parse(second.mock.calls[0][1].body).query).toContain("Q_Bars")
     })
 
+    it("does not ask a second time for an association somebody else made", async () => {
+
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        const bar = ws.edit(document.rows[0])
+        bar.bazLinks = [...bar.bazLinks, {baz: {id: "baz-2"}}]
+
+        // the id of a new link row is made at merge time, so the conflict is built from what went out
+        const fetchMock = respondWith(null)
+        fetchMock.mockImplementation((_url: string, init: any) => {
+
+            const inserted = sentVariables(fetchMock, fetchMock.mock.calls.length - 1)
+                .changes.find((change: any) => change.type === "BarLink")
+
+            return Promise.resolve({
+                json: () => Promise.resolve(mergeResponse({
+                    status: "CONFLICT",
+                    conflicts: [
+                        {type: "BarLink", id: inserted.id, storedVersion: null, deleted: false, fields: []}
+                    ] as any
+                }))
+            })
+        })
+
+        await ws.merge()
+
+        // the only way a new link row is refused is the constraint on the pair, so the association is there
+        expect(ws.accessor(document.rows[0]).field("bazLinks").status).toBe("conflict")
+
+        const second = respondWith(documentResponse())
+        const result = await ws.merge()
+
+        expect(result.status).toBe("DONE")
+        expect(ws.dirty).toBe(false)
+        expect(JSON.parse(second.mock.calls[0][1].body).query).toContain("Q_Bars")
+    })
+
+
     it("holds the link change back where the user left it to the other write", async () => {
 
         const document = await loadBars()

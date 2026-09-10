@@ -101,6 +101,13 @@ export type StoredState = {
      * not named here is what the row was read with.
      */
     fields?: Record<string, unknown>
+
+    /**
+     * Associations known to be in the database, by link field: the ids of the rows on the other side. Only
+     * the ones that are known -- an association somebody else made says nothing about the rest of the set,
+     * and nothing here claims to be all of it.
+     */
+    links?: Record<string, string[]>
 }
 
 /**
@@ -149,6 +156,12 @@ type Entity = {
     /** what the user decided about a field both writes changed */
     resolutions: Map<string, Resolution>
 
+    /**
+     * per link field, the rows this one is known to be associated with already, whoever made the
+     * association. What keeps an insert somebody else got in front of from being sent a second time
+     */
+    linked: Map<string, Set<string>>
+
     /** true where the row is not in the database any more, somebody else having deleted it */
     gone: boolean
 
@@ -177,6 +190,9 @@ type LinkSource = {
     type: string
     id: string
     field: string
+
+    /** the row on the other side, for a link the diff wanted to insert. Absent for one it wanted to delete */
+    target?: string
 }
 
 
@@ -327,6 +343,7 @@ export class WorkingSet
             changes: new Map(),
             stored: new Map(),
             resolutions: new Map(),
+            linked: new Map(),
             gone: false,
             unversioned: null,
             target: {id},
@@ -493,6 +510,14 @@ export class WorkingSet
         for (const [name, value] of Object.entries(state.fields ?? {}))
         {
             entity.stored.set(name, value)
+        }
+
+        for (const [name, targets] of Object.entries(state.links ?? {}))
+        {
+            const known = entity.linked.get(name) ?? new Set<string>()
+
+            targets.forEach(id => known.add(id))
+            entity.linked.set(name, known)
         }
 
         this.notify()
@@ -665,7 +690,16 @@ export class WorkingSet
                     // The link row is not a field of any form, and the array it came out of is. Marked as
                     // moved and not to what: an association somebody else took away says nothing about the
                     // ones they may have added, so the set that is stored is not knowable from here.
-                    this.storedState({type: source.type, id: source.id, fields: {[source.field]: undefined}})
+                    //
+                    // An insert that came back conflicted is one the database already holds -- the only way
+                    // a new link row is refused is the constraint on the pair -- so the association it
+                    // wanted is recorded as made, and the next merge does not ask for it again.
+                    this.storedState({
+                        type: source.type,
+                        id: source.id,
+                        fields: {[source.field]: undefined},
+                        links: source.target ? {[source.field]: [source.target]} : undefined
+                    })
                 }
             }
         }
@@ -828,6 +862,7 @@ export class WorkingSet
             changes: new Map(),
             stored: new Map(),
             resolutions: new Map(),
+            linked: new Map(),
             gone: false,
             unversioned,
             target: row,
@@ -1164,6 +1199,13 @@ export class WorkingSet
 
                 held.add(targetId)
 
+                if (entity.linked.get(name)?.has(targetId))
+                {
+                    // somebody else made this association already, which is the outcome this insert was
+                    // for. Asking for it again is the constraint on the pair refusing it again
+                    continue
+                }
+
                 if (this.known(link)?.isNew)
                 {
                     // a link row the application made itself, e.g. because the link type carries a field of
@@ -1171,9 +1213,17 @@ export class WorkingSet
                     continue
                 }
 
+                const id = uuid()
+                sources.set(key(relation.linkType, id), {
+                    type: entity.type,
+                    id: entity.id,
+                    field: name,
+                    target: targetId
+                })
+
                 changes.push({
                     type: relation.linkType,
-                    id: uuid(),
+                    id,
                     version: null,
                     new: true,
                     changes: [

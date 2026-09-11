@@ -137,6 +137,35 @@ class PushWebSocketTest
     }
 
 
+    /// What the dev-mode Vite proxy has to be configured around.
+    ///
+    /// Spring registers an `OriginHandshakeInterceptor` with an empty allow-list, which means same-origin
+    /// only: the browser's `Origin` has to match the host the handshake arrived at. A dev server proxying
+    /// the upgrade must therefore leave the `Host` header alone -- Vite's `changeOrigin`, which the
+    /// `/api` and `/graphql` entries beside it do set, is what would make the two differ and get every
+    /// handshake refused.
+    ///
+    /// Pinned here rather than taken from the framework's documentation, because it is the default that is
+    /// doing the work and a default is exactly the kind of thing that changes under a project.
+    @Test
+    void refusesAHandshakeFromAnotherOrigin() throws Exception
+    {
+        final String cookie = login();
+
+        assertThrows(
+            Exception.class,
+            () -> new Client().connect(cookie, "http://localhost:5173")
+        );
+
+        // The same login, from the origin the endpoint is served on, connects -- so what the case above
+        // asserts is the origin check and not a second way of being unauthenticated.
+        try (Client client = new Client())
+        {
+            client.connect(cookie, "http://localhost:" + port);
+        }
+    }
+
+
     @Test
     void deliversWhatIsPublishedToASubscriber() throws Exception
     {
@@ -363,11 +392,24 @@ class PushWebSocketTest
 
         void connect(String cookie) throws Exception
         {
+            connect(cookie, null);
+        }
+
+
+        /// @param origin `Origin` header to send, or null to send none. A browser always sends one; a
+        ///               client like this one only does when it is asked to.
+        void connect(String cookie, String origin) throws Exception
+        {
             final WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
 
             if (cookie != null)
             {
                 headers.add("Cookie", cookie);
+            }
+
+            if (origin != null)
+            {
+                headers.add("Origin", origin);
             }
 
             session = new StandardWebSocketClient()

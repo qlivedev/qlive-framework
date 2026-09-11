@@ -48,6 +48,7 @@ export {
     isListType,
     isNonNull,
     findType,
+    objectFields,
     isQueryDocumentType,
     LIST,
     NON_NULL
@@ -69,6 +70,11 @@ export { decompileFilter } from "./util/decompileFilter";
 export * as MergeMeta from "./merge/meta";
 
 export { subscribeToTopic, PubSubConnection } from "./pubsub";
+
+// Push's first consumer: what other people's writes mean for the rows this
+// page is showing or editing.
+export { useLiveRows, useLiveWorkingSet } from "./push/useLive";
+export { watchDocument, watchWorkingSet, ENTITY_VERSION } from "./push/entityVersion";
 
 export { WorkingSet } from "./merge/WorkingSet";
 export { useWorkingSet } from "./merge/useWorkingSet";
@@ -104,6 +110,7 @@ export type { StartupOptions } from "./startup";
 export type {
     QLiveBoostrap,
     QLiveConfig,
+    Authentication,
     CSRFToken,
     Injection,
     InjectionSource,
@@ -131,6 +138,13 @@ export type { DomainTablesProps } from "./component/DomainTables";
 
 export type { PubSubStatus, PubSubConnectionSnapshot, TopicHandler } from "./pubsub";
 
+export type {
+    EntityVersionMessage,
+    MovedRow,
+    DocumentWatch,
+    DocumentWatchSnapshot
+} from "./push/entityVersion";
+
 export type { MergeTypeMeta, LinkRelation } from "./merge/meta";
 
 export type {
@@ -139,6 +153,8 @@ export type {
     WorkingSetOptions,
     StoredState
 } from "./merge/WorkingSet";
+
+export type { HeldRows } from "./util/rows";
 
 export type {
     MergeAccessor,
@@ -258,6 +274,18 @@ export type {
  *                                       working set that made it. An
  *                                       application holds the working set it
  *                                       made and needs no way back to it
+ *   util/rows.walkRows/RowVisit/RowRelation
+ *                                       the schema-driven walk a store does
+ *                                       over its own rows. What comes out of
+ *                                       one is HeldRows, which is exported;
+ *                                       the visit itself is how a store builds
+ *                                       that and not a thing to drive
+ *   merge/fieldMask.maskOf/maskedFields/fieldOrder
+ *                                       bit positions of a type's fields,
+ *                                       which have to agree with FieldLayout on
+ *                                       the Java side exactly. A caller that
+ *                                       needs a mask is building a subscription
+ *                                       by hand, and the watchers do that
  *   util/delay                          a setTimeout promise, not framework API
  *   util/viteEnv.isViteDev/viteBaseUrl  reads Vite's import.meta.env, which an
  *                                       application has direct access to

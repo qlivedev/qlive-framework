@@ -3,7 +3,7 @@ import {GraphQLQuery} from "../GraphQLQuery";
 import {GraphQLField} from "../GraphQLSchema";
 import {QueryConfigDelta} from "../QueryDocument";
 import {findType, LIST, objectFields, unwrapAll, unwrapNonNull} from "../type-utils";
-import {RowVisit, walkRows} from "../util/rows";
+import {HeldRows, RowVisit, walkRows} from "../util/rows";
 import {
     createAccessor,
     MergeAccessor,
@@ -470,6 +470,38 @@ export class WorkingSet
             this.viewFlag = view
             this.notify()
         }
+    }
+
+
+    /**
+     * What this working set is holding: its rows by type, and the fields it registered of them.
+     *
+     * The fields are what the queries selected, which is the closest thing to "what the form binds" that
+     * a working set can know -- it hands out drafts and is never told which of their fields an input was
+     * put on. What it holds moves as rows are registered, created and dropped, so a caller that turned
+     * this into a standing subscription re-reads it whenever the working set changes.
+     *
+     * @returns one entry per type held, in no particular order
+     */
+    held(): HeldRows[]
+    {
+        const held = new Map<string, HeldRows>()
+
+        for (const entity of this.entities.values())
+        {
+            let entry = held.get(entity.type)
+
+            if (!entry)
+            {
+                entry = {type: entity.type, ids: new Set(), fields: new Set()}
+                held.set(entity.type, entry)
+            }
+
+            entry.ids.add(entity.id)
+            entity.base.forEach((_, name) => entry!.fields.add(name))
+        }
+
+        return [...held.values()]
     }
 
 

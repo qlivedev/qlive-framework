@@ -12,6 +12,7 @@ import com.dataciders.qlive.runtime.merge.VersionHolder;
 import com.dataciders.qlive.runtime.merge.VersionService;
 import com.dataciders.qlive.runtime.QLivePaths;
 import com.dataciders.qlive.runtime.pubsub.DefaultPubSubService;
+import com.dataciders.qlive.runtime.pubsub.EntityVersionPublisher;
 import com.dataciders.qlive.runtime.pubsub.PubSubService;
 import com.dataciders.qlive.runtime.pubsub.PushHandshakeInterceptor;
 import com.dataciders.qlive.runtime.pubsub.PushWebSocketHandler;
@@ -212,6 +213,17 @@ public class QLiveConfiguration
     public PushWebSocketHandler pushWebSocketHandler(PubSubService pubSubService)
     {
         return new PushWebSocketHandler(pubSubService);
+    }
+
+
+    /// Pub/sub's first consumer: a merge's version records, on the "EntityVersion" channel.
+    ///
+    /// Declared beside the service rather than inside it, because it is one channel among however many an
+    /// application registers and gets nothing the others do not.
+    @Bean
+    public EntityVersionPublisher entityVersionPublisher(PubSubService pubSubService)
+    {
+        return new EntityVersionPublisher(pubSubService);
     }
 
 

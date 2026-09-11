@@ -59,11 +59,28 @@ pnpm build     # ./mvnw install — builds qlive, then qlive-ts (tsdown), then t
                # (via frontend-maven-plugin + pnpm workspace), then qlive-test, copying
                # the built frontend into qlive-test/target/classes/static
 pnpm test      # ./mvnw test (Java) + pnpm -r test (TS: qlive-ts, qlive-codegen, the frontend app)
-pnpm dev       # backend (spring-boot:run on :8080) + frontend (vite on :5173, proxying /api
-               # to :8080) together, both with hot reload
-pnpm dev-ts    # expects java backend to be started, frontend (vite on :5173, proxying /api
-               # to :8080) together, both with hot reload 
+pnpm dev       # the built backend jar on :8080 + frontend (vite on :5173, proxying /api,
+               # /graphql and /push to :8080)
+pnpm dev-ts    # the frontend half alone, for when the backend already runs somewhere else
 ```
+
+### Who owns :8080
+
+One process at a time, and usually that is the IDE's run configuration --
+it is the one with a debugger attached, which is the reason to prefer it.
+`pnpm dev-ts` is the other half for exactly that case: it waits a minute
+for something to answer on :8080 and then says what is missing rather
+than hanging.
+
+`pnpm dev` is for when no IDE run is up. Its backend is the already built
+jar rather than Maven, which keeps the frontend loop quick but means a
+Java change only takes effect after `pnpm build`. It refuses to start a
+jar older than the Java sources instead of running code that is not what
+the tree says, and refuses to start at all when something already holds
+the port -- the IDE's backend outranks it.
+
+Either way the frontend reloads itself; a Java change needs whichever
+backend is running to be restarted.
 
 While `pnpm dev` is running, editing `qlive-ts/src` reflects immediately
 in the browser — no rebuild step. `qlive-ts`'s `package.json` points at

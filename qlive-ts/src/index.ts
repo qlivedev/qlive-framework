@@ -274,6 +274,12 @@ export type {
  *                                       working set that made it. An
  *                                       application holds the working set it
  *                                       made and needs no way back to it
+ *   QueryDocument.documentOf               how a working set gets from the
+ *                                       snapshot a view registered to the
+ *                                       document behind it. An application
+ *                                       holds both already -- it has the
+ *                                       document it injected and the snapshot
+ *                                       it rendered -- and needs no lookup
  *   util/rows.walkRows/RowVisit/RowRelation
  *                                       the schema-driven walk a store does
  *                                       over its own rows. What comes out of

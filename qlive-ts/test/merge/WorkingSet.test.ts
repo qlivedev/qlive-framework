@@ -204,6 +204,79 @@ describe("registration", () => {
 
         expect(() => ws.edit({id: "bar-1"})).toThrowError(/Not a row of this working set/)
     })
+
+
+    it("follows a document whose query ran again", async () => {
+
+        // A page turn, a sort, a filter: update() replaces the row objects, and a row is recognised by
+        // identity. Without this the whole form breaks on the next render, every row of it at once.
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        ws.edit(document.rows[0]).name = "Mine"
+
+        respondWith(documentResponse("Bar #1 again"))
+        await document.update({offset: 10})
+
+        expect(() => ws.edit(document.rows[0])).not.toThrow()
+
+        // the same entity, so what the user typed is still theirs -- the row came back, it did not become
+        // a different row
+        expect(ws.edit(document.rows[0]).name).toBe("Mine")
+        expect(ws.dirty).toBe(true)
+    })
+
+
+    it("follows a snapshot's document, not the snapshot", async () => {
+
+        // What a view registers is what useInjection() handed it, which is a still of the document. Its
+        // rows are the array the document held then, so a working set holding one would be looking at the
+        // rows of a page that has since been turned.
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document.getSnapshot())
+
+        respondWith(documentResponse("Bar #1 again"))
+        await document.update({offset: 10})
+
+        expect(() => ws.edit(document.rows[0])).not.toThrow()
+    })
+
+
+    it("holds its rows through the refresh a merge that landed does", async () => {
+
+        // refresh() empties the working set and then awaits the refetch, and update() tells the views
+        // inside that await -- so a view re-rendering there renders rows against a working set that has
+        // been emptied and not yet walked again.
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        ws.edit(document.rows[0]).name = "Mine"
+
+        const rendered: string[] = []
+
+        document.subscribe(() => {
+            try
+            {
+                ws.edit(document.rows[0])
+                rendered.push("ok")
+            }
+            catch (e)
+            {
+                rendered.push((e as Error).message)
+            }
+        })
+
+        respondWith(mergeResponse({status: "DONE", conflicts: []}))
+        const merging = ws.merge()
+
+        respondWith(documentResponse("Bar #1 again", "v9"))
+        await merging
+
+        expect(rendered).toEqual(["ok"])
+    })
 })
 
 

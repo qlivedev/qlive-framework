@@ -59,6 +59,12 @@ export interface QueryDocumentSnapshot<T> extends QueryDocumentMethods<QueryDocu
     rowCount: number
 }
 
+/**
+ * Carries the document a snapshot was taken of. A symbol rather than a property: it must not collide with
+ * a field of the result and must not survive a spread into a plain object.
+ */
+const DOCUMENT = Symbol("QLive QueryDocument")
+
 export class QueryDocument<T> implements QueryDocumentMethods<QueryDocumentSnapshot<T>>
 {
     type: string;
@@ -135,6 +141,10 @@ export class QueryDocument<T> implements QueryDocumentMethods<QueryDocumentSnaps
                 rowCount: this.rowCount,
                 update: this.update,
             }
+
+            // A snapshot is a still of the document as it was, and anything holding one past an update()
+            // holds rows the document no longer has. documentOf() is how a holder gets back to the live one.
+            Object.defineProperty(this.snapshot, DOCUMENT, {value: this, enumerable: false})
         }
 
         return this.snapshot
@@ -157,4 +167,28 @@ export class QueryDocument<T> implements QueryDocumentMethods<QueryDocumentSnaps
 
         return this.getSnapshot()
     }
+}
+
+
+/**
+ * The document the given value is, or is a snapshot of.
+ *
+ * A snapshot is what a view holds and what it hands on, and it stops being current the moment the document
+ * it came from is updated -- its rows are the array the document held then. Anything that has to stay with
+ * the document rather than with one still of it resolves through here.
+ *
+ * @param value     a query document, a snapshot of one, or anything else
+ *
+ * @returns the document, or null where the value is neither
+ */
+export function documentOf(value: unknown): QueryDocument<any> | null
+{
+    if (value instanceof QueryDocument)
+    {
+        return value
+    }
+
+    const document = value && typeof value === "object" ? (value as any)[DOCUMENT] : null
+
+    return document instanceof QueryDocument ? document : null
 }

@@ -1,7 +1,7 @@
 import {v4 as uuid} from "uuid";
 import {GraphQLQuery} from "../GraphQLQuery";
 import {GraphQLField} from "../GraphQLSchema";
-import {QueryConfigDelta} from "../QueryDocument";
+import {documentOf, QueryConfigDelta} from "../QueryDocument";
 import {findType, LIST, objectFields, unwrapAll, unwrapNonNull} from "../type-utils";
 import {HeldRows, RowVisit, walkRows} from "../util/rows";
 import {
@@ -276,12 +276,17 @@ export class WorkingSet
      */
     register(document: RegisteredDocument): void
     {
-        if (!this.documents.includes(document))
+        // The live document where the caller handed a snapshot of one. A view holds snapshots and a
+        // snapshot is a still: its rows are the array the document held when it was taken, so a working
+        // set that kept one would be looking at the rows of a page that has since been turned.
+        const live = documentOf(document) ?? document
+
+        if (!this.documents.includes(live))
         {
-            this.documents.push(document)
+            this.documents.push(live)
         }
 
-        this.walk(document)
+        this.walk(live)
     }
 
 
@@ -801,8 +806,34 @@ export class WorkingSet
         this.rows = new WeakMap()
         this.conflicts = []
 
-        this.documents = await Promise.all(this.documents.map(document => document.update({})))
+        // A QueryDocument updates in place and answers with a snapshot, so what comes back is kept only
+        // where it is not one -- a caller may have registered something that is neither.
+        const refreshed = await Promise.all(this.documents.map(document => document.update({})))
+
+        this.documents = this.documents.map(
+            (document, i) => documentOf(document) ? document : refreshed[i]
+        )
         this.documents.forEach(document => this.walk(document))
+    }
+
+
+    /**
+     * Walks the registered documents again, for a row that belongs to none of them yet.
+     *
+     * A row is recognised by identity, and a document replaces its row objects whenever its query runs
+     * again -- a page turned, a sort changed, the refresh a merge that landed does. The entities survive
+     * that, being keyed by type and id, so what the new objects need is to be bound to the ones already
+     * here rather than to be registered afresh: registering keeps the first entity for a type and id, so a
+     * row that comes back carries the changes the user made to the one it replaces.
+     *
+     * Only on a miss. The cost is a walk of what is on screen, once, at the moment a form would otherwise
+     * have failed.
+     */
+    private rebind(row: object): Entity | null
+    {
+        this.documents.forEach(document => this.walk(document))
+
+        return this.known(row)
     }
 
 
@@ -884,7 +915,7 @@ export class WorkingSet
      */
     private entityOf(row: object): Entity
     {
-        const entity = this.known(row)
+        const entity = this.known(row) ?? this.rebind(row)
 
         if (entity)
         {

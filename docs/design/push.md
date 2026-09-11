@@ -54,9 +54,9 @@ filling the in-memory version cache the merge conflict path reads from.
 websocket push module. That listener is what the build order below adds;
 nothing about the event itself needs to change.
 
-**DomainQL's relation-fetching model is the one thing this design leans
-on hardest, and it is worth restating precisely, because it rules out
-the obvious wrong design.** A jOOQ-generated POJO has no Java getter for
+**DomainQL's relation-fetching model explains why a database-backed
+payload takes real work to build, even though none of that machinery
+ever reaches the wire.** A jOOQ-generated POJO has no Java getter for
 a GraphQL-only relation field -- `Bar` has no `getBazLinks()`. The GraphQL
 field is served by `ReferenceFetcher` / `BackReferenceFetcher`
 (`domainql/.../fetcher/`), and both start the same way:
@@ -92,9 +92,12 @@ the invariant this leans on:
 Lazy per-field fetching is the least useful of the alternatives DomainQL
 offers, by design, for a framework that already covers named views with
 implicit relations through the eager path -- it is not a shortcut worth
-leaning on. A pub/sub publisher of a database-backed payload is just
-another caller of that same batched-materialize mechanism, not a special
-case that has to invent its own defence against accidental N+1 queries.
+leaning on. A pub/sub publisher gathering a database-backed payload can
+reuse that same batched-materialize mechanism rather than invent its own
+defence against accidental N+1 queries. Whether the `DomainObject` that
+step produces still carries its `FetcherContext` when it reaches
+`publish()` turns out not to matter either way -- "Field resolution"
+below covers why.
 
 **Nothing WebSocket- or pubsub-related exists yet**, client or server.
 **`QueryDocument` has no push seam yet** -- `notify()` is private, `rows`
@@ -102,20 +105,28 @@ is a public mutable array nothing outside the document can safely
 mutate and have React hear about it. This is an explicit open item in
 the merge design, not an oversight here.
 
-**Field access is plain property access, never GraphQL field
-resolution.** No `DataFetcher` is ever invoked while evaluating a filter
-or delivering a message, and no query runs either. A published payload is
-a dead, fully-materialized data structure from the instant it leaves the
-publisher -- there is no lazy path to fall back to, by design, not as an
-optimisation. The one special case is a `DomainObject` instance, where a
-path segment naming a relation with no getter is read from its attached
-`FetcherContext` as a plain map lookup, never as a trigger for fetcher
-logic. Property access itself goes through Svenson directly -- the same
-library DomainQL's own type analysis already runs on -- not a hand-rolled
-reflection layer, and specifically not Svenson's own `JSONPathUtil`, the
-generic multi-segment dotted-path walker Automaton's filter evaluator
-uses: it has no notion of `FetcherContext` at all, and would either fail
-or silently do the wrong thing on a relation-only field.
+**Field access is plain property access, never GraphQL field resolution,
+and never a special case.** No `DataFetcher` is ever invoked while
+evaluating a filter or delivering a message, and no query runs either. A
+published payload is a dead, fully-materialized data structure from the
+instant it leaves the publisher -- there is no lazy path to fall back to,
+by design, not as an optimisation. An earlier draft of this design gave
+`DomainObject` instances a special case here, reading a relation with no
+getter from an attached `FetcherContext` as a plain map lookup. That's
+gone -- not because payloads stop being `DomainObject`s (they don't; see
+"Field resolution" below), but because there was never anything for a
+special case to switch on: `DomainObject.lookupFetcherContext()` isn't a
+JavaBean getter, so Svenson's own introspection never lists a
+`fetcherContext` property to begin with, special-cased or otherwise.
+Property access is Svenson property access, full stop, the same library
+DomainQL's own type analysis already runs on -- not a hand-rolled
+reflection layer. Not Svenson's own `JSONPathUtil` either, the generic
+multi-segment dotted-path walker Automaton's filter evaluator uses -- not
+because of any `FetcherContext` gap, since there isn't one for Svenson to
+fall into, but because it throws on a missing intermediate value instead
+of letting that condition branch simply not match, and carries
+write/grow semantics -- auto-creating missing maps and lists -- this
+evaluator has no use for.
 
 ## The general message model
 
@@ -211,80 +222,180 @@ it, and the topic-to-class mapping is a live registry, not a map anyone
 can hand the parser at construction time before the application has
 registered a single channel.
 
+**This problem is real for `Publish.message` and only hypothetical for
+`Topic.payload`.** In the common flow -- Java code calls
+`PubSubService.publish(topic, payload)` with an already-live typed
+object, an `EntityVersion` or a merged domain row -- the server never
+parses `payload` at all. The filter evaluator reads it as the live bean
+it already is (see the FilterDSL evaluator section below), and
+`Topic.payload` only becomes JSON once, on the way out, when a matched
+subscriber's `Topic` message gets serialized for the websocket. Nothing
+server-side ever turns that JSON back into a Java value; the client is
+the only consumer of it, and whatever type it gives that value is a
+TypeScript concern this design doesn't reach. The dynamic-type problem
+below is specifically about `Publish.message`: the one payload field a
+*client*, not Java code, populates, and that the server therefore does
+receive as raw JSON it has to make some sense of before filtering can
+run. `Topic` still gets the same base-type declaration and the same
+selective-recast helper as `Publish` below -- symmetry costs nothing, and
+a future in-process `TopicListener` receiving its own published message
+back might still want it -- but proving `Topic.payload` round-trips is a
+test of the machinery's generality, not a path this design's production
+code ever exercises.
+
+`CompositeTypeMapper` (`org.svenson.CompositeTypeMapper`) looks like an
+escape hatch: it composes a list of `TypeMapper`s and returns the first
+non-null hint, so feeding it one `ClassNameBasedTypeMapper`/
+`SubtypeMatcher` pair for the envelope and a second for a payload base
+type, each firing at its own field, looks like it ought to resolve both
+in one pass. Checked against the source and confirmed with a throwaway
+test, it doesn't -- and not for the registry reason above, for a
+narrower one. `AbstractPropertyValueBasedTypeMapper.getTypeHint` (the
+class both `ClassNameBasedTypeMapper`s extend) returns the *incoming*
+type hint unchanged when its own `SubtypeMatcher` doesn't match, not
+`null`. `CompositeTypeMapper` treats the first non-null result as final,
+so the first mapper in the list, asked about a field its own base type
+doesn't cover, hands back that field's declared type as if it were the
+answer -- an abstract payload base class -- and the second mapper never
+runs, in either list order. This would be a dead end even setting the
+registry problem aside.
+
 **The fix is to stop asking one pass to do this at all.** Parse the
 envelope with `payload` (and `Publish.message`) declared as plain
 `Object`, which is Svenson's ordinary untyped result for a nested JSON
-object -- no custom type mapper involved for this field, nothing dynamic
-about phase one. That gives immediate, cheap access to `topic`. Then, now
-that the topic is known, resolve it against the pub/sub core's channel
-registry to get the bound `Class<?>`, and convert the untyped value into
-that type -- the simplest correct version of this being
-org.svenson.util.RecastUtil which can reuse strings etc from the generic map graph
-and fill them into new typed containers (better than a JSONification/Parsing cycle)
+object -- a `Map` -- no custom type mapper involved for this field,
+nothing dynamic about phase one. That gives immediate, cheap access to
+`topic`.
 
-Two phases, no cycle: phase one needs nothing phase two
-produces, and phase two has everything it needs by the time it runs.
-Whether Svenson offers a cheaper direct conversion from an
-already-parsed generic structure into a typed instance, avoiding a
-second tokenize pass, is worth checking during implementation -- the
-round-trip through a string is guaranteed to work and is where to start.
+And phase one is where most consumers stop, not just where they start.
+`org.svenson.util.JSONBeanUtil.getProperty(bean, name)` -- the accessor
+Svenson's own utilities build on, and the one the FilterDSL evaluator
+below is built on too -- reads a `Map` entry and a bean property through
+the same call, by the same JSON property name; a condition compiled
+against `payload.bazLinks.0.baz.name` neither knows nor cares whether
+`payload` is the parsed `Map` or a recast instance of whatever class
+`"Bar"` is bound to. So the untyped result phase one already produces is
+sufficient for filtering, on its own -- there is no general obligation to
+ever produce a typed instance at all.
 
-**This makes pub/sub messages the one kind, in a general facility, that
-needs an extra step.** Every other message kind is fully described by its
-own class -- the discriminator alone tells the parser everything it
-needs. `Topic` and `Publish` are the only kinds whose full type isn't
-knowable from the message kind alone, precisely because their payload's
-shape is delegated to whichever channel they're on. That's a property of
+A typed instance is still worth having when a specific piece of Java code
+handling an inbound `Publish` wants compile-time field access rather than
+string-keyed lookups on its `message` -- there is no such consumer
+designed yet (client-publish authorisation is an open item below), but
+whatever eventually reads a client's own payload server-side is exactly
+the shape of thing that would want one. For that, *selective* recasting:
+now that `topic` is known, resolve it against the pub/sub core's channel
+registry to get the bound `Class<?>`, and hand the already-parsed `Map`
+and that class to `org.svenson.util.RecastUtil.recast()`, which walks
+the map graph directly through `JSONBeanUtil.getProperty`/`setProperty`
+and fills a new typed instance from it -- confirmed from source, no
+re-serialize-and-reparse round trip involved, exactly the "cheaper
+direct conversion" this design used to only hope Svenson had. The point
+of doing this selectively rather than as a fixed second phase of the
+pipeline: it is a step a handler takes because it wants typed access,
+not a step the message model performs on a handler's behalf whether
+it's wanted or not.
+
+**This makes pub/sub messages the one kind, in a general facility, whose
+full type isn't knowable from the discriminator alone.** Every other
+message kind is fully described by its own class -- the discriminator
+alone tells the parser everything it needs. `Topic` and `Publish` are the
+only kinds whose payload's shape is delegated to whichever channel
+they're on, and where a caller wanting more than string-keyed property
+access has to ask for it, explicitly, by class. That's a property of
 pub/sub specifically, not a limitation of the general message model --
 exactly the "pub/sub is one of the message types, with a dynamic
 payload" framing this design starts from.
 
-## Field resolution: Svenson and FetcherContext, not GraphQL
+## Field resolution: pure JSON semantics, no GraphQL profile
 
-A channel's payload is not always a `GeneratedDomainObject`. Plenty of
-channels will carry an ordinary, handwritten POJO hierarchy with no
-DomainQL registration at all -- real nested objects and collections,
-fully populated, nothing lazy anywhere. For those, resolving a path
-segment is nothing more than an ordinary Svenson property read;
-`FetcherContext` never enters into it. The `FetcherContext` fallback is
-specifically for the case where the current instance is a `DomainObject`
--- `GeneratedDomainObject` or `GenericDomainObject` -- and the segment
-names a GraphQL-only relation with no getter on the POJO at all. So the
-rule per segment is: if the instance is a `DomainObject` and Svenson
-finds no property for the segment, read
-`lookupFetcherContext().getProperty(name)` instead, a plain map lookup
-and nothing more; otherwise, read it normally through Svenson. Both
-shapes are first-class. Most channels, being handwritten POJOs, will
-only ever exercise the plain-property path -- database-backed payloads
-are the legitimate but less common case, not the default assumption.
+GraphQL's relation-fetching complexity -- `ReferenceFetcher` /
+`BackReferenceFetcher`, `FetcherContext`, the live-query fallback -- earns
+its keep for GraphQL because GraphQL's whole premise is that the caller
+hand-selects a slice of the object graph and the server fulfils exactly
+that slice, no more. Pub/sub channels have no selection. A payload's
+Java class declares whatever fields and relations the publisher decided
+that channel carries, and every instance of it carries all of them, every
+time -- there is no per-subscriber shrinking or growing of the shape. A
+mechanism built to serve a variable selection has nothing to do once the
+selection is fixed at the class, so this design doesn't reach for it,
+ever, for any payload -- field resolution has exactly one path, always:
+an ordinary Svenson property read, real getter or nothing.
+
+That includes payloads that *are* a `GeneratedDomainObject`/
+`GenericDomainObject`, like `Bar` itself, published directly rather than
+wrapped in something else -- a perfectly ordinary case, not one this
+design routes around. What it publishes, though, is flat: exactly `Bar`'s
+own real properties, the same scalar set a generated TypeScript type for
+`Bar` already expects on the client side, nothing gained or lost by going
+through pub/sub instead of a GraphQL query. If that `Bar` instance
+happens to be carrying an attached `FetcherContext` -- because it came out
+of a `QueryExecution` materialize step run for some other reason, say --
+that is simply inert here, not because anything detects and strips it,
+but because there was never anything to detect: `lookupFetcherContext()`
+isn't a JavaBean getter, so it was never a Svenson property for a
+`FetcherContext` to be attached *to*, from field resolution's point of
+view. It genuinely does not exist in the JSON world; ignoring it costs
+nothing because there is nothing being ignored, mechanically speaking.
+
+A publisher that wants relations in a payload's actual shape -- `Bar`
+with its `bazLinks` -- gets them the same way any Java code builds an
+object graph: a class with a real `getBazLinks()`, populated with
+whatever `Baz` instances the publisher gathered (`QueryExecution`'s
+materialize step is a reasonable way to fetch them, a live query works
+just as well) and handed to `publish()`. That class can be `Bar` itself,
+given an extra field, or a small container wrapping a `Bar` and a
+`List<Baz>` -- ordinary composition, not a rule this design imposes.
+Whatever a publisher chooses, each `DomainObject` anywhere in the graph
+is still read exactly as flat as it would be alone; nesting doesn't
+change the rule, because there was never a special rule to begin with,
+only the one path field resolution ever has.
+
+This is also where "the JSON cycle" section's selective `RecastUtil`
+step lands, for the one direction it could actually have gone wrong:
+`RecastUtil.recast()` drives off the *target* class's own declared
+properties, calling `JSONBeanUtil.setProperty` for each one it finds --
+there is no `bazLinks` property on `Bar` for it to set, so a client
+sending relation-shaped content on a channel bound to plain `Bar` simply
+has nowhere for that content to land. A design trying to preserve
+relation fidelity through the wire would have needed exactly the
+opposite: analyze the inbound JSON to find which keys name GraphQL-only
+relations, cut them out before recasting the rest, and reassemble a
+`FetcherContext` from the cut-out pieces afterward, by hand, since
+`RecastUtil` has no notion of one. Not supporting GraphQL semantics is
+what makes that surgery unnecessary -- relation-shaped input for a flat
+channel is simply data nothing declares a place for, an ordinary shape
+mismatch, not a case this design has to detect and route around.
 
 The evaluator never falls through to a live query, or to any GraphQL
-resolution, when a relation is missing from the context. A relation
-absent from a payload's `FetcherContext` makes that condition branch not
-match, full stop -- the same no-fallback invariant `QueryExecution`
-already commits to for query documents. This puts a real, explicit
-obligation on the publisher: code calling `PubSubService.publish(topic,
-payload)` for a database-backed type is responsible for materializing a
-`FetcherContext` covering every relation any subscriber's condition
-might reference, before it publishes -- reusing `QueryExecution`'s own
-materialize step where that turns out to be practical, rather than a
-second implementation of the same idea.
+resolution. Whether a path segment resolves to `null` because a
+publisher legitimately has nothing there yet, or because a relation
+simply isn't populated on the particular `DomainObject` handed to
+`publish()`, that condition branch does not match, full stop -- the same
+no-fallback invariant `QueryExecution` already commits to for query
+documents. (A path segment naming no real property on the payload class
+*at all* is a different case, caught earlier, at subscribe time -- see
+path validation below.) The obligation this puts on the publisher is
+correspondingly plain: populate every relation any subscriber's
+condition might reference, on whatever instance it hands to `publish()`,
+before calling it.
 
 **Path validation** -- is this field name real for this channel's type,
 is it to-one or to-many, what type does it lead to -- is a separate,
 schema-level question, answered at subscribe time rather than by walking
-a live instance, and it reuses knowledge the SQL-side condition compiler
-already has: `DomainQL.getRelationModels()` for `RelationModel`s
-(`sourceType`/`targetType`, `leftSideObjectName`/`rightSideObjectName`,
-`targetField` of `ONE` or `MANY`), and `DomainQL.lookupField(domainType,
-property)` for scalar fields. `FieldResolver`
-(`qlive/.../runtime/query/condition/FieldResolver.java`) and
-`QueryPlanBuilder.PathResolver` already implement dotted-path walking
-against exactly these two lookups for the jOOQ backend -- the shape to
-imitate for the in-memory transform step, resolving each hop to "getter"
-or "`FetcherContext` property" instead of a jOOQ join or field. Where a
-channel's type isn't registered with DomainQL at all, there is simply no
-relation metadata to validate against, and this step is skipped.
+a live instance. With no `DomainObject`/`FetcherContext` case to account
+for, it needs no DomainQL lookup either: the payload class's own declared
+JSON properties, read through the same Svenson class introspection
+`JSONBeanUtil`/`TypeAnalyzer` already do (`JSONClassInfo`,
+`JSONPropertyInfo`), are the entire schema there is to validate against.
+A hop resolves to "getter", full stop -- a `Collection`-typed property is
+to-many, addressed by numeric index below; anything else is to-one. This
+works identically whether the payload class happens to be DomainQL-
+registered or hand-written, so unlike the SQL-side condition compiler
+`FieldResolver`/`QueryPlanBuilder.PathResolver` implement dotted-path
+walking for, there is no "channel not registered, skip this step" case
+left to carve out -- validation was never really a DomainQL question here,
+only ever a question about one payload class's own shape.
 
 **A to-many hop is addressed by numeric index, not existential
 quantification -- a deliberate departure from the SQL backend's
@@ -303,8 +414,13 @@ path semantics this design ships with.
 
 New package `com.dataciders.qlive.runtime.filter`, a peer to
 `runtime.query.condition`, not a replacement for it or a dependent of it.
-Plain property access throughout, through Svenson, with the
-`DomainObject`/`FetcherContext` special case from above. Compiled once
+Plain property access throughout, through Svenson, exactly as "Field
+resolution" above describes -- no relation special case anywhere. This is
+exactly why the message model above never has to recast `Publish.message`
+into
+its bound class before evaluating a condition against it: `JSONBeanUtil`
+reads a `Map` and a bean the same way, so the phase-one parse result is
+already everything the evaluator needs. Compiled once
 per subscribe -- one operator-to-implementation table, mirroring
 `FilterOperators`' whitelist shape but producing composed `Predicate`s
 instead of jOOQ `Condition`s. Constant coercion happens once, at
@@ -346,9 +462,9 @@ compiles a condition to a tree of `Filter` objects exactly once, at
 subscribe time, and evaluates that tree fresh per message without ever
 re-parsing it -- one class per operator, a name-to-implementation table.
 QLive's evaluator has the same shape. Where it diverges is field-path
-resolution, already covered above: Svenson property access with the
-`DomainObject`/`FetcherContext` special case, never Automaton's generic
-reflective walk.
+resolution, already covered above: Svenson property access against each
+object's own declared JSON properties, never Automaton's generic
+reflective walk over arbitrary fields.
 
 **A per-connection subscription registry with batched fan-out.**
 Automaton's `Topic` / `TopicRegistration` / `Recipient`: one connection
@@ -466,11 +582,12 @@ New package `com.dataciders.qlive.runtime.pubsub`, mirroring Automaton's
 own package name for the same thing. `PubSubService` /
 `DefaultPubSubService`, `Topic`, `TopicRegistration`, `Recipient`.
 Registering, or first publishing or subscribing to, a topic associates it
-with a Java `Class` -- and, through `Class.getSimpleName()` and
-`RelationModel`, its GraphQL domain type and relation list, when it has
-one. A handwritten POJO with no DomainQL registration is equally legal
-as a channel's type; it simply has no relations to traverse. This
-registry is also what the message model's dynamic-payload conversion
+with a Java `Class` -- nothing more. Path validation (above) walks that
+class's own declared JSON properties directly, so there is no separate
+DomainQL lookup here and no distinction between a domain type and a
+handwritten POJO at this layer: whatever class a channel is bound to, the
+registry just remembers it. This registry is also what the message
+model's dynamic-payload conversion
 consults, so it exists before the transport does, not alongside it.
 In-memory, single-instance state, the same as `DefaultVersionHolder`'s
 cache -- accepted given the framework's stated scale of tens to hundreds
@@ -498,22 +615,25 @@ populating a read cache costs nothing if the surrounding transaction
 later rolls back, and pushing a message to a client is a visible,
 external, un-undoable side effect. It publishes each `EntityVersion` in
 a merge's batch to a fixed `"EntityVersion"` topic. `EntityVersion` is
-flat -- no relations -- so the `FetcherContext` machinery is simply inert
-for this particular channel; the plain-property path handles it
-entirely. `fieldMask` travels as a decimal string, since it is a 128-bit
-value, past what a JavaScript `Number` can hold exactly, and the client
-side needs `BigInt` for it.
+flat -- no relations -- a plain bean with plain properties, exactly like
+every other channel; nothing about it is a special case. `fieldMask`
+travels as a decimal string, since it is a 128-bit value, past what a
+JavaScript `Number` can hold exactly, and the client side needs `BigInt`
+for it.
 
 A second, illustrative consumer worth spelling out here even though it
 is not necessarily an early build step: publishing an actual
-database-backed domain object, changed fields and all. This is where the
-`FetcherContext` machinery is genuinely exercised rather than sitting
-idle -- a publisher of, say, a changed `Bar` row with its `bazLinks`
-attached materializes a `FetcherContext` covering exactly the relations
-it wants filterable, the same way `QueryExecution` already does for a
-query document. Whether that becomes a shared, reusable helper or ends
-up as a second implementation of the same idea is a decision for
-whenever it's actually built, not one to force now.
+database-backed domain object, changed fields and all. This is where
+"Field resolution"'s point about relations is genuinely exercised rather
+than sitting idle -- a publisher of, say, a changed `Bar` row wanting its
+`bazLinks` filterable populates a real `getBazLinks()` on whatever it
+hands to `publish()` (`Bar` itself, given that field, or a small wrapper
+around it), gathered however turns out to be practical -- `QueryExecution`'s
+own materialize step is one legitimate way to fetch the data efficiently.
+Whether that gathering-and-populating step becomes a shared, reusable
+helper or ends up as a second implementation of the same idea is a
+decision for whenever it's
+actually built, not one to force now.
 
 ## Client
 
@@ -554,25 +674,27 @@ context, nothing to stand up -- deliberately, so the trickiest and most
 novel pieces are solid and tested before anything is built on top of
 them.
 
-1. **The general message model, and the dynamic-payload conversion.**
+1. **The general message model, and the selective payload recast.**
    The abstract base classes and concrete message POJOs (`Subscribe`,
    `Unsubscribe`, `Publish`, `Topic`, `Subscribed`, `Error`), the
-   `ClassNameBasedTypeMapper` wiring for message-kind dispatch, and the
-   two-phase parse for `Topic.payload`/`Publish.message` (parse untyped,
-   then convert once the topic resolves to a class via a channel
-   registry). Tested standalone, no transport: round-trip every fixed
-   message kind through serialize/parse; round-trip a `Topic` message
-   against a stubbed topic-to-class registry entry and assert the
-   payload comes back as the bound concrete type, not a raw map; assert
-   an unregistered topic fails clearly rather than silently handing back
-   an untyped structure.
+   `ClassNameBasedTypeMapper` wiring for message-kind dispatch, and a
+   `RecastUtil`-based helper that turns a parsed `Publish.message`/
+   `Topic.payload` `Map` plus a topic-resolved `Class<?>` into a typed
+   instance on request -- exercised for `Publish.message`, the field the
+   server actually receives as JSON; `Topic.payload` gets the same
+   treatment for symmetry, not because production code parses it. Tested
+   standalone, no transport: round-trip every fixed message kind through
+   serialize/parse; assert `Publish.message` parses as a plain `Map` with
+   no registry involved at all; recast that `Map` against a stubbed
+   topic-to-class registry entry and assert the
+   result is the bound concrete type with its fields filled in; assert
+   recasting against an unregistered topic fails clearly.
 2. **The precompiled FilterDSL evaluator**, standalone, unit-tested with
    no WebSocket involved: flat payload fixtures first, mirroring
    `EntityVersion`'s own shape and exercising the operator table, then a
-   relation-bearing fixture exercising the `FetcherContext` path -- a
-   hand-built domain POJO with a manually attached context, asserting
-   that a relation missing from it does not match rather than throwing
-   or querying -- then an indexed-list-path fixture
+   relation-bearing fixture -- a hand-built payload POJO with a real
+   `bazLinks` getter, asserting that a `null` relation does not match
+   rather than throwing or querying -- then an indexed-list-path fixture
    (`bazLinks.0.baz.name`-shaped) asserting index semantics rather than
    any-element matching.
 3. **Pub/sub core plus transport skeleton, no filtering yet.**
@@ -628,16 +750,11 @@ them.
   `ownerId ne me`, which is handled client-side.
 - Whether `ConditionParser` is wired into any live parse path today or is
   presently dormant code the message-model design revives.
-- Whether Svenson exposes a way to convert an already-parsed generic
-  structure (a `Map`) directly into a typed instance, so the
-  dynamic-payload conversion in the message model doesn't need a second
-  tokenize pass through a re-serialized string -- the round-trip is the
-  correct fallback either way.
 - Which channels a client may `publish` to, and how that gets authorised
   against a channel's declared type.
-- Whether `FetcherContext` materialization for a pub/sub payload becomes
-  a helper shared with `QueryExecution`'s own materialize step, or ends
-  up duplicated.
+- Whether restructuring a fetched result into a payload POJO (the
+  database-backed consumer in "Entity-version push" above) becomes a
+  helper shared across channels, or stays one-off per publisher.
 - WebSocket Origin/CORS handling, and how the dev-mode Vite proxy handles
   a `ws://` upgrade -- unverified.
 - Whether the Spring Security filter chain covers the WebSocket handshake

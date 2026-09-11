@@ -8,8 +8,8 @@
   },
   "packageManager": "pnpm@11.24.0",
   "scripts": {
-    "dev-ts": "wait-on tcp:8080 && pnpm --filter @quinscape/qlive-ts run build && pnpm --filter @quinscape/qlive-test-frontend dev",
-    "dev": "concurrently -k -n backend,frontend -c blue,green \"node ./tooling/dev-backend.mjs\" \"wait-on tcp:8080 && pnpm --filter @quinscape/qlive-ts run build && pnpm --filter @quinscape/qlive-test-frontend dev\"",
+    "dev-ts": "wait-on -t 60000 tcp:8080 || (echo \"Nothing is serving :8080 - start the backend in the IDE, or run pnpm dev to have one started\" >&2; exit 1) && pnpm --filter @quinscape/qlive-ts run build && pnpm --filter @quinscape/qlive-test-frontend dev",
+    "dev": "concurrently -k -n backend,frontend -c blue,green \"node ./tooling/dev-backend.mjs\" \"wait-on -t 60000 tcp:8080 && pnpm --filter @quinscape/qlive-ts run build && pnpm --filter @quinscape/qlive-test-frontend dev\"",
     "build": "./mvnw install",
     "clean": "./mvnw clean",
     "test": "./mvnw test && pnpm -r test",

@@ -77,6 +77,19 @@ export default defineConfig(({command}) => ({
                 target: backendOrigin,
                 changeOrigin: true,
             },
+            // The push websocket. `ws: true` is what makes the dev server proxy the upgrade instead of
+            // answering the GET itself -- without it the handshake gets a 404 from Vite and the client
+            // reconnects into it forever.
+            //
+            // No changeOrigin, and that one is load-bearing rather than incidental: Spring registers an
+            // OriginHandshakeInterceptor that accepts same-origin handshakes only, comparing the browser's
+            // Origin header against the host the request arrived at. The browser sends the dev server's
+            // origin, so rewriting Host to the backend's is exactly what would make the two differ, and
+            // every handshake would be answered with a 403.
+            "/push": {
+                target: backendOrigin,
+                ws: true,
+            },
             // Only the form POST belongs to the backend. The page itself is served by the dev server
             // like every other page, so that it gets the same module graph and HMR -- bypass hands the
             // GET to the login entry point instead of proxying it. The path has to carry `base`: a bare

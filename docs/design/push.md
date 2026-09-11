@@ -458,6 +458,28 @@ matches anywhere in the value rather than describing the whole of it,
 which is what JOOQ's own `likeRegex` means once it reaches Postgres as
 `~`.
 
+An optimisation is known and deliberately not taken. Operands reach an
+operator as a `List<Object>` that `FilterTransformer.evaluate` builds
+per payload, so every condition node costs two allocations for the list
+and its array, an `add` per operand, and an iterator in
+`PayloadOperators.defined`'s null guard -- with the `get(0)`/`get(1)`
+that read them being much the cheapest part of that. Escape analysis
+does not remove any of it: `op.impl().matches(...)` is the one site
+every `ConditionImpl` in the process passes through, so it is
+megamorphic, does not inline, and the list genuinely escapes. Closing an
+arity-specific lambda over its operand expressions at transform time
+would end each node in a static, inlinable call instead, and could
+short-circuit the null guard on the first missing operand rather than
+evaluating every operand first -- identical in result, `PropertyPath`
+being free of side effects. Swapping the `List<Object>` for an
+`Object[]` would get most of the allocation win on its own, and leave
+the operator table a line per operator. Neither is worth taking now.
+This is tens of nanoseconds against a fan-out measured in thousands of
+evaluations a second at this project's scale, and the full version costs
+the table its uniformity: `ConditionImpl` splits by arity and the null
+guard gets written out once per arity. Worth revisiting only if a filter
+ever shows up in a profile.
+
 This, together with the message model above, is deliberately built
 before any transport code exists. Both are pure: given a `CNode` and a
 type, or a JSON string and a class, produce a value -- no socket, no

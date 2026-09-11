@@ -1,0 +1,71 @@
+import { PubSubConnection, useInjection, useLiveRows } from "@quinscape/qlive-ts";
+import { useSyncExternalStore } from "react";
+import { Q_BarNames, Q_BarNamesResult } from "./Q_BarNames";
+
+/**
+ * Rows nobody here is editing, kept honest by push.
+ *
+ * The other half of the story /bar/edit tells. Nothing on this page is a draft and nothing can be merged,
+ * so a change notification is not a conflict -- it is the news that what is on screen is no longer what the
+ * database holds. No values travel with one, so this view cannot show the new name; what it can do is say
+ * so and offer to read them again, which is `update({})` and nothing more.
+ *
+ * Worth trying in two windows: open /bar/edit in one and this in the other, change a Bar's name and save.
+ * Then do it again with the description, which this query does not select -- nothing happens, because the
+ * subscription asked about the fields this view shows and the server never sent the message.
+ */
+export default function Live()
+{
+    const bars: Q_BarNamesResult = useInjection(Q_BarNames, { config: { pageSize: 20 } });
+
+    // Same query, same injection: this finds the document useInjection() is rendering rather than a second
+    // one. What it returns is what has moved under it since it was last read.
+    const live = useLiveRows(Q_BarNames);
+
+    const connection = useSyncExternalStore(PubSubConnection.subscribe, PubSubConnection.getSnapshot);
+
+    const moved = new Set(live.moved.map(row => row.id));
+
+    return (
+        <div className="bar-live">
+            <h1>Bars, live</h1>
+
+            <p className={ "connection " + connection.status }>
+                push: { connection.status }
+            </p>
+
+            {
+                live.stale && (
+                    <p className="warning">
+                        { moved.size === 1 ? "A row" : moved.size + " rows" } changed while you were
+                        looking at { moved.size === 1 ? "it" : "them" }.
+                        <button className="btn" type="button" onClick={ () => bars.update({}) }>
+                            Reload
+                        </button>
+                    </p>
+                )
+            }
+
+            <table className="rows">
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {
+                        bars.rows.map(row => (
+                            // The mark is per row and not per field: this view has no second value to
+                            // show, so "this line is out of date" is the whole of what it knows.
+                            <tr key={ row.id } className={ moved.has(row.id) ? "qlive-moved" : "" }>
+                                <td>{ row.id }</td>
+                                <td>{ row.name }</td>
+                            </tr>
+                        ))
+                    }
+                </tbody>
+            </table>
+        </div>
+    );
+}

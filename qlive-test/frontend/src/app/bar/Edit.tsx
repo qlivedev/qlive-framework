@@ -3,6 +3,7 @@ import {
     MergeAccessor,
     MergeView,
     useInjection,
+    useLiveWorkingSet,
     useMerge,
     useWorkingSet,
     WorkingSet
@@ -17,6 +18,10 @@ import { Q_BazList, Q_BazListResult } from "./Q_BazList";
  * Nothing below is a framework component. QLive hands out the state -- what changed, what clashed, which
  * class a field carries -- and the application renders the inputs, which is the whole of the split. The
  * conflict path is worth trying twice in two browser windows: save in one, then save in the other.
+ *
+ * With push wired in, the second window does not have to save to find out. A field somebody else moved is
+ * marked while the user is still typing, which is the same marking the merge does, arriving early rather
+ * than late -- so what the two windows show is a notice before the save rather than a conflict after it.
  */
 
 /**
@@ -77,6 +82,10 @@ export default function Edit()
     })
 
     const { dirty, conflicts, view, merge, undo, setView } = useWorkingSet(ws)
+
+    // One line, and other people's writes land in the working set as they happen. Nothing is returned:
+    // what changes is the working set, and the useWorkingSet() above is what re-renders for it.
+    useLiveWorkingSet(ws)
 
     return (
         <div className="bar-edit">
@@ -161,7 +170,7 @@ function BarForm({ ws, row, bazes }: {
                             {
                                 // Nothing is undecided and nothing blocks: the user's value already stands,
                                 // and these two buttons are how they say otherwise.
-                                field.status === "conflict" && (
+                                field.status === "conflict" && field.storedKnown && (
                                     <span className="resolve">
                                         <button
                                             className="btn"
@@ -178,6 +187,15 @@ function BarForm({ ws, row, bazes }: {
                                             saved: { String(field.stored) }
                                         </button>
                                     </span>
+                                )
+                            }
+
+                            {
+                                // A push message says which fields moved and carries no values, so there
+                                // is no second value to offer yet. Saving asks the server, which answers
+                                // with both -- and the two buttons above appear then.
+                                field.status === "conflict" && !field.storedKnown && (
+                                    <span className="resolve">somebody else changed this too</span>
                                 )
                             }
                         </div>

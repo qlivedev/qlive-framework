@@ -30,18 +30,10 @@ import java.util.function.Predicate;
 /// honour, an operator given the wrong number of operands. None of those may become a filter that
 /// silently never matches.
 ///
-/// What reaches a payload is plain property access, always -- see {@link PropertyPath}. There is no GraphQL
-/// field resolution anywhere in here and no query, for any payload, including one that happens to be a
-/// `DomainObject`: nothing here selects fields per caller, so the machinery that serves a selection has
-/// nothing to do. The obligation that puts on whoever produces the object is plain in return -- whatever
-/// relation a condition might reach through has to be populated on the instance handed over. For pub/sub
-/// that means the instance passed to `publish()`.
-///
-/// Values are already the Java objects they claim to be, the same contract the SQL transformer works
-/// under: reading a condition's JSON is
-/// {@link com.dataciders.qlive.runtime.scalar.ConditionCoercing}'s business, and it converts every value
-/// in the hierarchy with the coercing of the scalar type that value names. A condition that arrives
-/// straight off the wire has to go through that before it gets here, or its timestamps are still strings.
+/// A field path is plain property access and nothing else -- see {@link PropertyPath}. One difference
+/// from the SQL backend is worth knowing before writing a condition against this one: a to-many hop is
+/// positional, so `bazLinks.0.baz.name` names one element, where the same path against the database asks
+/// whether some element satisfies the rest of it.
 public class FilterTransformer
 {
     private final Class<?> declaredType;

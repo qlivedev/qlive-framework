@@ -28,6 +28,14 @@ public final class QLivePaths
     /// be called: below this, and nowhere else.
     public final static String VIEW_ROOT = "./app/";
 
+    /// Where the push websocket is served, and what the client module opens its connection to.
+    ///
+    /// Here with the other two for the same reason they are: both sides have to agree on it and only one
+    /// of them is Java. It is an ordinary authenticated URI -- the handshake is a same-origin GET carrying
+    /// the session cookie like any other request -- so an application's catch-all security rule covers it
+    /// without saying anything about it.
+    public final static String PUSH_URI = "/push";
+
     /// Ant pattern covering every endpoint QLive maps for development only, e.g.
     /// {@link com.dataciders.qlive.runtime.controller.GraphQLController#GRAPHQL_DEV_URI} and
     /// {@link com.dataciders.qlive.runtime.controller.TrackUsageDevController#TRACK_USAGE_DEV_URI}.

@@ -10,6 +10,11 @@ import com.dataciders.qlive.runtime.merge.MergeService;
 import com.dataciders.qlive.runtime.merge.VersionCleanup;
 import com.dataciders.qlive.runtime.merge.VersionHolder;
 import com.dataciders.qlive.runtime.merge.VersionService;
+import com.dataciders.qlive.runtime.QLivePaths;
+import com.dataciders.qlive.runtime.pubsub.DefaultPubSubService;
+import com.dataciders.qlive.runtime.pubsub.PubSubService;
+import com.dataciders.qlive.runtime.pubsub.PushHandshakeInterceptor;
+import com.dataciders.qlive.runtime.pubsub.PushWebSocketHandler;
 import com.dataciders.qlive.runtime.service.BootstrapService;
 import com.dataciders.qlive.runtime.service.DefaultBootstrapService;
 import com.dataciders.qlive.runtime.service.InjectionArgumentProcessor;
@@ -30,6 +35,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.core.annotation.Order;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
@@ -43,9 +50,12 @@ import java.util.List;
 ///
 /// `@EnableScheduling` is here for the one task the framework runs, {@link VersionCleanup}. An application
 /// that schedules nothing of its own needs no annotation of its own, and one that does is unaffected --
-/// the annotation is idempotent.
+/// the annotation is idempotent. `@EnableWebSocket` is here for the same reason and on the same terms: the
+/// push transport is the framework's, and an application that registers handlers of its own contributes
+/// another {@link WebSocketConfigurer} beside this one.
 @Configuration
 @EnableScheduling
+@EnableWebSocket
 public class QLiveConfiguration
 {
     private final static Logger log = LoggerFactory.getLogger(QLiveConfiguration.class);
@@ -183,6 +193,39 @@ public class QLiveConfiguration
     public MergeLogic mergeLogic(@Lazy MergeService mergeService)
     {
         return new MergeLogic(mergeService);
+    }
+
+
+    /// Pub/sub itself: the channel registry, and the fan-out every publisher goes through.
+    ///
+    /// General infrastructure rather than an entity-version mechanism, which is why it is declared here on
+    /// its own and not inside whatever first uses it. An application registers its own channels against
+    /// this bean and publishes on them with nothing further to configure.
+    @Bean
+    public PubSubService pubSubService()
+    {
+        return new DefaultPubSubService();
+    }
+
+
+    @Bean
+    public PushWebSocketHandler pushWebSocketHandler(PubSubService pubSubService)
+    {
+        return new PushWebSocketHandler(pubSubService);
+    }
+
+
+    /// Maps the push endpoint and puts the connecting user's identity on the session.
+    ///
+    /// The handshake is left to the application's security rules like any other URI. It is a same-origin
+    /// GET carrying the session cookie, the filter chain runs against it, and a catch-all rule of the kind
+    /// every application has covers it without naming it.
+    @Bean
+    public WebSocketConfigurer pushWebSocketConfigurer(PushWebSocketHandler pushWebSocketHandler)
+    {
+        return registry ->
+            registry.addHandler(pushWebSocketHandler, QLivePaths.PUSH_URI)
+                .addInterceptors(new PushHandshakeInterceptor());
     }
 
 }

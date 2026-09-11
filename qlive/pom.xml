@@ -41,6 +41,16 @@
       <version>7.0.5</version>
     </dependency>
 
+    <!--
+      The push transport is a raw WebSocketHandler. Deliberately not spring-boot-starter-websocket, which
+      brings STOMP's spring-messaging along for a sub-protocol nothing here speaks.
+    -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-websocket</artifactId>
+      <version>7.0.5</version>
+    </dependency>
+
     <dependency>
       <groupId>com.graphql-java</groupId>
       <artifactId>graphql-java</artifactId>

@@ -1,5 +1,8 @@
 package com.dataciders.qlive.runtime.merge;
 
+import de.quinscape.domainql.scalar.TimestampScalar;
+import org.svenson.JSONProperty;
+
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -14,6 +17,11 @@ import java.util.Objects;
 /// {@link #getPrev()} is what makes the records of one row a chain, and the chain is best-effort: the record
 /// it names may have been pruned, which reads as "we cannot tell which fields changed" rather than as an
 /// error.
+///
+/// Two of its properties are spelled differently in JSON than in Java, because their Java form does not
+/// survive the trip. Neither is a push concern in particular -- a 128-bit number and a `java.sql.Timestamp`
+/// are worth no more to any other JSON reader -- and both are spelled the way the client already reads that
+/// kind of value, so a pushed record and a queried row are parsed the same way.
 public final class EntityVersion
 {
     private final String id;
@@ -86,9 +94,25 @@ public final class EntityVersion
 
     /// Bit per field of the type, set for the fields this change touched, in the positions
     /// {@link #getFieldLayout()} assigns.
+    ///
+    /// Out of the JSON, which carries {@link #getFieldMaskValue()} instead.
+    @JSONProperty(ignore = true)
     public BigInteger getFieldMask()
     {
         return fieldMask;
+    }
+
+
+    /// The mask as JSON carries it: a decimal string, because 128 bits is well past what a JavaScript
+    /// number holds exactly and the client reads this with `BigInt`.
+    ///
+    /// It is also what a subscriber's condition compares against, which is the same thing on purpose: a
+    /// field path reaches a payload through the JSON property, so what a client sees is what a client
+    /// filters on. A bit operation takes a decimal string on either side for exactly this reason.
+    @JSONProperty(value = "fieldMask", readOnly = true)
+    public String getFieldMaskValue()
+    {
+        return fieldMask == null ? null : fieldMask.toString();
     }
 
 
@@ -107,9 +131,23 @@ public final class EntityVersion
 
 
     /// When the change was made, and what the cleanup goes by.
+    ///
+    /// Out of the JSON, which carries {@link #getCreatedValue()} instead: Svenson has no notion of a date,
+    /// so a `Timestamp` would go out as a dump of `java.util.Date`'s own getters.
+    @JSONProperty(ignore = true)
     public Timestamp getCreated()
     {
         return created;
+    }
+
+
+    /// The timestamp as JSON carries it, in the ISO-8601 UTC form the GraphQL schema's own `Timestamp`
+    /// scalar uses -- the same string, from the same formatter, so that a client parses a pushed record's
+    /// time the way it parses a queried row's.
+    @JSONProperty(value = "created", readOnly = true)
+    public String getCreatedValue()
+    {
+        return created == null ? null : TimestampScalar.toISO8601(created);
     }
 
 

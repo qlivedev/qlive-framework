@@ -1,9 +1,12 @@
 package com.dataciders.qlive.model.condition;
 
+import de.quinscape.spring.jsview.util.JSONUtil;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static com.dataciders.qlive.runtime.scalar.FilterDSL.field;
+import static com.dataciders.qlive.runtime.scalar.FilterDSL.value;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.instanceOf;
@@ -115,4 +118,28 @@ class ConditionParserTest
             () -> parser.parseCondition("{ \"type\": \"Field\", \"name\": \"name\" }")
         );
     }
+
+    /// The other direction, which is how a condition reaches a client: the same "type" discriminator the
+    /// parse reads is generated from the class, and nothing else of the node's is.
+    ///
+    /// The FilterDSL's builder methods are not state and must not be read as properties. Svenson takes any
+    /// no-argument "isXxx()" method for a getter, so isNull() and its three siblings would otherwise be
+    /// properties holding a condition that wraps the node being written -- an endless structure.
+    @Test
+    void writesTheHierarchyBackOut()
+    {
+        final CNode node = field("num").plus(value(1)).between(value(10), value(12));
+
+        final String json = JSONUtil.DEFAULT_GENERATOR.forValue(node);
+
+        final Condition read = (Condition) parser.parse(json);
+        assertThat(read.getName(), is("between"));
+
+        final Operation operation = (Operation) read.getOperands().get(0);
+        assertThat(operation.getName(), is("plus"));
+        assertThat(((Field) operation.getOperands().get(0)).getName(), is("num"));
+        assertThat(((Value) read.getOperands().get(1)).getValue(), is(10L));
+        assertThat(((Value) read.getOperands().get(2)).getValue(), is(12L));
+    }
 }
+

@@ -1,5 +1,7 @@
 package com.dataciders.qlive.model.condition;
 
+import org.svenson.JSONProperty;
+
 /// Abstract base class for "Value nodes" within a FilterDSL condition hierarchy
 public abstract class ValueNode
     extends CNode
@@ -40,6 +42,11 @@ public abstract class ValueNode
     public Operation desc() { return Operation.create("desc", this); }
 
     // CONDITIONS /////////////////////
+    //
+    // The four no-argument ones below are marked as non-properties. Svenson reads any no-argument
+    // "isXxx()" method as a getter, whatever it returns, so isNull() would be a property named "null"
+    // whose value is a Condition wrapping the very node being serialized -- a structure that recurses
+    // forever. They are DSL builders, not state, and nothing about a node should be read through them.
     public Condition greaterOrEqual(CNode a) { return Condition.create("greaterOrEqual", this, a); }
     public Condition lessOrEqual(CNode a) { return Condition.create("lessOrEqual", this, a); }
     public Condition lt(CNode a) { return Condition.create("lt", this, a); }
@@ -52,22 +59,22 @@ public abstract class ValueNode
     public Condition between(CNode a, CNode b) { return Condition.create("between", this, a, b); }
     public Condition ge(CNode a) { return Condition.create("ge", this, a); }
     public Condition greaterThan(CNode a) { return Condition.create("greaterThan", this, a); }
-    public Condition isNotNull() { return Condition.create("isNotNull", this); }
+    @JSONProperty(ignore = true) public Condition isNotNull() { return Condition.create("isNotNull", this); }
     public Condition notLikeRegex(CNode a) { return Condition.create("notLikeRegex", this, a); }
     public Condition notBetween(CNode a, CNode b) { return Condition.create("notLikeRegex", this, a, b); }
     public Condition notEqual(CNode a) { return Condition.create("notEqual", this, a); }
-    public Condition isFalse() { return Condition.create("isFalse", this); }
+    @JSONProperty(ignore = true) public Condition isFalse() { return Condition.create("isFalse", this); }
     public Condition containsIgnoreCase(CNode a) { return Condition.create("containsIgnoreCase", this, a); }
     public Condition eq(CNode a) { return Condition.create("eq", this, a); }
     public Condition gt(CNode a) { return Condition.create("gt", this, a); }
     public Condition equal(CNode a) { return Condition.create("equal", this, a); }
     public Condition likeRegex(CNode a) { return Condition.create("likeRegex", this, a); }
-    public Condition isTrue() { return Condition.create("isTrue", this); }
+    @JSONProperty(ignore = true) public Condition isTrue() { return Condition.create("isTrue", this); }
     public Condition contains(CNode a) { return Condition.create("contains", this, a); }
     public Condition notContainsIgnoreCase(CNode a) { return Condition.create("notContainsIgnoreCase", this, a); }
     public Condition notContains(CNode a) { return Condition.create("notContains", this, a); }
     public Condition ne(CNode a) { return Condition.create("ne", this, a); }
-    public Condition isNull() { return Condition.create("isNull", this); }
+    @JSONProperty(ignore = true) public Condition isNull() { return Condition.create("isNull", this); }
     public Condition endsWith(CNode a) { return Condition.create("endsWith", this, a); }
     public Condition le(CNode a) { return Condition.create("le", this, a); }
     public Condition isNotDistinctFrom(CNode a) { return Condition.create("isNotDistinctFrom", this, a); }

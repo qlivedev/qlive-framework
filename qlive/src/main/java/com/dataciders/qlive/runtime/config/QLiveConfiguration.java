@@ -210,9 +210,9 @@ public class QLiveConfiguration
 
 
     @Bean
-    public PushWebSocketHandler pushWebSocketHandler(PubSubService pubSubService)
+    public PushWebSocketHandler pushWebSocketHandler(PubSubService pubSubService, DomainQL domainQL)
     {
-        return new PushWebSocketHandler(pubSubService);
+        return new PushWebSocketHandler(pubSubService, domainQL);
     }
 
 

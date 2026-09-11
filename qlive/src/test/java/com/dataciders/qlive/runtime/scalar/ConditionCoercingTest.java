@@ -4,6 +4,7 @@ import com.dataciders.qlive.model.QueryConfig;
 import com.dataciders.qlive.model.condition.CNode;
 import com.dataciders.qlive.model.condition.Component;
 import com.dataciders.qlive.model.condition.Condition;
+import com.dataciders.qlive.model.condition.Operation;
 import com.dataciders.qlive.model.condition.Value;
 import com.dataciders.qlive.model.condition.Values;
 import com.dataciders.qlive.runtime.domain.TestDomainConfig;
@@ -198,6 +199,78 @@ class ConditionCoercingTest
         // the node types survive, so the config can be sent straight back in
         assertThat(serialized.get("type"), is("Condition"));
         assertThat(((List<Map<String, Object>>) serialized.get("operands")).get(0).get("type"), is("Field"));
+    }
+
+
+    /// The other way in. A `Subscribe` frame is parsed by Svenson, which builds the node classes and
+    /// leaves what is inside them as whatever JSON had -- so a condition that never went through GraphQL
+    /// arrives with a timestamp that is still a string, and comparing that to an instant compares a string
+    /// to an instant.
+    @Test
+    void readsTheValuesOfAConditionThatDidNotComeThroughGraphQL()
+    {
+        final Value asParsed = new Value();
+        asParsed.setScalarType("Timestamp");
+        asParsed.setValue("2018-11-01T19:58:59.000Z");
+
+        final Condition off = new Condition();
+        off.setName("lt");
+        off.setOperands(List.of(FilterDSL.field("created"), asParsed));
+
+        final Condition coerced = (Condition) coercing.coerceValues(off, CONTEXT, Locale.ROOT);
+
+        final Value value = (Value) coerced.getOperands().get(1);
+
+        assertThat(value.getValue(), is(Timestamp.from(Instant.parse("2018-11-01T19:58:59.000Z"))));
+        assertThat(value.getScalarType(), is("Timestamp"));
+
+        // a new tree: the message the node arrived in is the caller's, and finds it as it came
+        assertThat(asParsed.getValue(), is(instanceOf(String.class)));
+    }
+
+
+    /// Wherever they sit, which is the same walk the map-side parse does: below an operation, inside a
+    /// list, under a component.
+    @Test
+    void readsThemWhereverTheyAre()
+    {
+        final Values list = new Values();
+        list.setScalarType("Int");
+        list.setValues(List.of(1, 2, 3));
+
+        final Value operand = new Value();
+        operand.setScalarType("Timestamp");
+        operand.setValue("2019-06-21T14:00:00.000Z");
+
+        final Operation operation = new Operation();
+        operation.setName("plus");
+        operation.setOperands(List.of(FilterDSL.field("created"), operand));
+
+        final Condition in = new Condition();
+        in.setName("in");
+        in.setOperands(List.of(operation, list));
+
+        final Component coerced =
+            (Component) coercing.coerceValues(FilterDSL.component("part", in), CONTEXT, Locale.ROOT);
+
+        final Condition condition = (Condition) coerced.getCondition();
+        final Operation coercedOperation = (Operation) condition.getOperands().get(0);
+
+        assertThat(coerced.getId(), is("part"));
+        assertThat(
+            ((Value) coercedOperation.getOperands().get(1)).getValue(),
+            is(Timestamp.from(Instant.parse("2019-06-21T14:00:00.000Z")))
+        );
+        assertThat(((Values) condition.getOperands().get(1)).getValues(), contains(1, 2, 3));
+    }
+
+
+    /// A subscription with no condition is a subscription to everything the channel carries, and that has
+    /// to survive the pass rather than become an empty condition that matches nothing.
+    @Test
+    void leavesNothingAsNothing()
+    {
+        assertThat(coercing.coerceValues(null, CONTEXT, Locale.ROOT), is((CNode) null));
     }
 
 

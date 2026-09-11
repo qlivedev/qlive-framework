@@ -303,6 +303,102 @@ public final class ConditionCoercing
     }
 
 
+    /// Re-reads every value of an already-built condition through the scalar that owns it.
+    ///
+    /// {@link #parseValue} does this on the way in, because a condition reaching GraphQL is a nested map
+    /// and building the nodes is the same pass as reading the values. A condition that did not come through
+    /// GraphQL has no such pass: a `Subscribe` frame is parsed by Svenson, which builds the node classes
+    /// faithfully and leaves what is inside them as whatever JSON had -- a timestamp is a `String` and a
+    /// `BigDecimal` may be one too. Compiling that against a Java payload then compares a string to an
+    /// instant.
+    ///
+    /// A new tree rather than the one it was given: a node off the wire belongs to the message it arrived
+    /// in, and a caller holding that message afterwards should find it as it came.
+    ///
+    /// @param node             condition to coerce, or null
+    /// @param graphQLContext   context the scalars' coercings are given
+    /// @param locale           locale the scalars' coercings are given
+    ///
+    /// @return the condition with every value read as the type its node names, or null for null
+    public CNode coerceValues(CNode node, @NonNull GraphQLContext graphQLContext, @NonNull Locale locale)
+    {
+        if (node == null)
+        {
+            return null;
+        }
+
+        return switch (node)
+        {
+            case Field field -> FilterDSL.field(field.getName());
+
+            case Value v -> FilterDSL.value(
+                parseScalar(v.getScalarType(), v.getValue(), graphQLContext, locale),
+                v.getScalarType()
+            );
+
+            case Values v ->
+            {
+                final Collection<?> values = v.getValues();
+
+                if (values == null)
+                {
+                    yield FilterDSL.values(null, v.getScalarType());
+                }
+
+                final List<Object> parsed = new ArrayList<>(values.size());
+
+                for (Object value : values)
+                {
+                    parsed.add(parseScalar(v.getScalarType(), value, graphQLContext, locale));
+                }
+
+                yield FilterDSL.values(parsed, v.getScalarType());
+            }
+
+            case Component component -> FilterDSL.component(
+                component.getId(),
+                coerceValues(component.getCondition(), graphQLContext, locale)
+            );
+
+            case Condition condition ->
+            {
+                final Condition coerced = new Condition();
+                coerced.setName(condition.getName());
+                coerced.setOperands(coerceOperands(condition.getOperands(), graphQLContext, locale));
+                yield coerced;
+            }
+
+            case Operation operation ->
+            {
+                final Operation coerced = new Operation();
+                coerced.setName(operation.getName());
+                coerced.setOperands(coerceOperands(operation.getOperands(), graphQLContext, locale));
+                yield coerced;
+            }
+
+            default -> throw new QLiveException("Invalid node type: " + node.getType());
+        };
+    }
+
+
+    private List<CNode> coerceOperands(List<CNode> operands, GraphQLContext graphQLContext, Locale locale)
+    {
+        if (operands == null)
+        {
+            return null;
+        }
+
+        final List<CNode> coerced = new ArrayList<>(operands.size());
+
+        for (CNode operand : operands)
+        {
+            coerced.add(coerceValues(operand, graphQLContext, locale));
+        }
+
+        return coerced;
+    }
+
+
     private List<CNode> parseOperands(List<Map<String,Object>> list, GraphQLContext graphQLContext, Locale locale)
     {
         List<CNode> output;

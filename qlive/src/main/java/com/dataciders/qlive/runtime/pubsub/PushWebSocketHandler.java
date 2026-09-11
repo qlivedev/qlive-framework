@@ -7,13 +7,19 @@ import com.dataciders.qlive.model.push.PushMessageParser;
 import com.dataciders.qlive.model.push.Subscribe;
 import com.dataciders.qlive.model.push.Subscribed;
 import com.dataciders.qlive.model.push.Unsubscribe;
+import com.dataciders.qlive.model.condition.CNode;
 import com.dataciders.qlive.runtime.QLiveException;
+import com.dataciders.qlive.runtime.scalar.ConditionCoercing;
+import de.quinscape.domainql.DomainQL;
+import graphql.GraphQLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+
+import java.util.Locale;
 
 /// Serves {@link com.dataciders.qlive.runtime.QLivePaths#PUSH_URI}: reads a frame, does what it says, and
 /// answers when there is something to answer.
@@ -40,10 +46,18 @@ public class PushWebSocketHandler
 
     private final PushMessageParser parser = new PushMessageParser();
 
+    /// Reads the values of a condition that arrived over this socket as the types their nodes name.
+    ///
+    /// Held here and not in the service, because this is where "off the wire" is: a condition Svenson built
+    /// out of a frame carries whatever JSON had, while one an application hands to `subscribe()` in process
+    /// is already made of Java objects and has nothing to re-read.
+    private final ConditionCoercing coercing = new ConditionCoercing();
 
-    public PushWebSocketHandler(PubSubService pubSub)
+
+    public PushWebSocketHandler(PubSubService pubSub, DomainQL domainQL)
     {
         this.pubSub = pubSub;
+        this.coercing.setDomainQL(domainQL);
     }
 
 
@@ -99,7 +113,13 @@ public class PushWebSocketHandler
         {
             case Subscribe subscribe ->
             {
-                pubSub.subscribe(recipient, subscribe.getTopic(), subscribe.getCondition(), subscribe.getId());
+                final CNode condition = coercing.coerceValues(
+                    subscribe.getCondition(),
+                    GraphQLContext.getDefault(),
+                    Locale.ROOT
+                );
+
+                pubSub.subscribe(recipient, subscribe.getTopic(), condition, subscribe.getId());
                 recipient.send(subscribed(subscribe));
             }
 

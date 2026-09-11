@@ -1,10 +1,12 @@
 # Push (design)
 
-Status: the build order below is built, steps 1 to 4 -- the message
-model, the FilterDSL evaluator, the pub/sub core and transport, and the
-entity-version adapter. The whole server side is there and tested; steps
-5 to 9, everything client-side plus the coercion seam step 7 closes, are
-designed and not built. Written 2026-09-10, reordered 2026-09-11.
+Status: the build order below is built, steps 1 to 5 -- the message
+model, the FilterDSL evaluator, the pub/sub core and transport, the
+entity-version adapter, and the client connection module. The whole
+server side is there and tested, and a client can subscribe and receive;
+steps 6 to 9, the client's own consumers plus the coercion seam step 7
+closes, are designed and not built. Written 2026-09-10, reordered
+2026-09-11.
 
 A general-purpose pub/sub mechanism for QLive, with a precompiled
 FilterDSL evaluator doing the per-subscription filtering. Entity-version
@@ -705,11 +707,21 @@ already use. The connection URL is built the way `util/graphql.ts`
 already builds its request URL -- origin and `config().contextPath`, so
 an application pays nothing extra in configuration to get push once it's
 on QLive. A generic `subscribeToTopic(topic, handler, condition)`
-mirrors automaton-js's `Hub.js` / `subscribeToTopic.js`. The connection
-auto-starts from `startup()`; reconnect uses backoff with jitter and
-re-issues every currently-registered subscription from inside this
-module, invisible to application code -- unlike Automaton, where app code
-owns resubscription itself.
+mirrors automaton-js's `Hub.js` / `subscribeToTopic.js`. The socket opens
+on the first subscription, not from `startup()`: `startup()` runs on
+every entry point, a login page included, and there the handshake is
+refused for not being authenticated yet -- an unconditional connect would
+buy a doomed socket and a backoff loop behind it on the one page
+guaranteed to have nothing to subscribe to. What `startup()` calls is
+`initPubSub()`, which drops whatever a previous startup left behind; on
+an application view the first subscription happens during the first
+render, so nothing is warmer for having connected earlier. Reconnect uses
+backoff with jitter and re-issues every currently-registered subscription
+from inside this module, invisible to application code -- unlike
+Automaton, where app code owns resubscription itself. A subscription's
+condition is serialized once, when it is registered, so a reconnect
+re-issues exactly what the first `Subscribe` carried and the DSL
+instances the caller built are not held past the call.
 
 On top of that generic layer, an entity-version-specific adapter
 subscribes to `"EntityVersion"` and routes matches into
@@ -822,6 +834,21 @@ them.
    is a facility pub/sub is only the first user of. Until that is built
    `subscribeToTopic` is generic in its payload with the caller
    supplying the parameter.
+
+   Built as `qlive-ts/src/pubsub.ts`, exporting `subscribeToTopic` and
+   the `PubSubConnection` store. Two things came out differently than
+   the step describes, both noted where they belong above. The socket
+   opens on the first subscription rather than from `startup()`. And
+   the dev-mode Vite proxy open item is closed, in the direction that
+   has a constraint in it: Spring registers an
+   `OriginHandshakeInterceptor` with an empty allow-list, which means
+   same-origin only, so the `/push` proxy entry must *not* set
+   `changeOrigin` the way the `/api` and `/graphql` entries beside it
+   do -- rewriting `Host` to the backend's is exactly what makes it
+   differ from the `Origin` the browser sends. Pinned by
+   `PushWebSocketTest.refusesAHandshakeFromAnotherOrigin`, because what
+   is doing the work there is a framework default, and a default is
+   what changes under a project.
 6. **Client entity-version routing -- the smallest end-to-end slice's
    finish line.** An `(entityType, entityId)` index from mounted stores
    to the connection, `WorkingSet.storedState()` calls, and
@@ -871,8 +898,6 @@ them.
 - Whether restructuring a fetched result into a payload POJO (the
   database-backed consumer in "Entity-version push" above) becomes a
   helper shared across channels, or stays one-off per publisher.
-- WebSocket Origin/CORS handling, and how the dev-mode Vite proxy handles
-  a `ws://` upgrade -- unverified.
 - Presence -- "somebody else has this row open" -- stays deferred to its
   own design, with Automaton's `DomainMonitorService` / `useEntity.js` /
   `Monitor` as prior art worth rereading when that gets written.

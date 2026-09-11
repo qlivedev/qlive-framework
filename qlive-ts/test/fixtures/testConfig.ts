@@ -85,6 +85,19 @@ export function testCsrfToken()
     };
 }
 
+/**
+ * Who a test is logged in as. A fixed id rather than a fresh one: a condition built against it is
+ * compared literally in more than one test.
+ */
+export function testAuthentication()
+{
+    return {
+        login: "tester",
+        roles: ["ROLE_USER"],
+        id: "00000000-0000-0000-0000-00000000test"
+    };
+}
+
 export const testConfig: QLiveConfig = {
     contextPath: "/",
     csrfToken: testCsrfToken(),

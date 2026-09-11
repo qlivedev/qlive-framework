@@ -10,6 +10,7 @@ import {MergeAccessor} from "../../src/merge/MergeAccessor";
 import {useMerge} from "../../src/merge/useMerge";
 import {barDocument, mergeConfig} from "../fixtures/mergeConfig";
 import {respondWith} from "../fixtures/graphqlMock";
+import {testAuthentication} from "../fixtures/testConfig";
 
 /**
  * The three lines over the accessor, and the form they are written for: one hook per row, a field list the
@@ -87,7 +88,12 @@ function input(name: string): HTMLInputElement
 }
 
 beforeAll(async () => {
-    await init({config: mergeConfig, csrfToken: mergeConfig.csrfToken!, data: {}})
+    await init({
+        config: mergeConfig,
+        csrfToken: mergeConfig.csrfToken!,
+        authentication: testAuthentication(),
+        data: {}
+    })
 })
 
 beforeEach(() => {

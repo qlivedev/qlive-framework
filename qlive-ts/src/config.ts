@@ -135,9 +135,22 @@ export type CSRFToken = {
     value: string
 }
 
+/**
+ * Who the page is being served to, as AppAuthentication describes them on the Java side.
+ *
+ * Anonymous is an answer and not an absence: a page served to nobody in particular carries the anonymous
+ * login, its role and its fixed id, so a reader never has to handle "not logged in" as a missing value.
+ */
+export type Authentication = {
+    login: string
+    roles: string[]
+    id: string
+}
+
 export type QLiveBoostrap = {
     config: QLiveConfig | null;
     csrfToken: CSRFToken
+    authentication: Authentication
     data: {
         [key: string]: InjectionSource;
     }
@@ -152,6 +165,14 @@ export type QLiveConfig = {
 
     // client-side only
     csrfToken?: CSRFToken
+
+    /**
+     * Who is looking at this page. Not part of the config the server renders -- that one is per module and
+     * shared by everyone it is served to -- but put here on arrival, the way the CSRF token is, because
+     * this is where an application looks things up.
+     */
+    authentication?: Authentication
+
     queryDocumentTypes?: Set<string>
     typesByName?: Map<string, GraphQLType>
 
@@ -324,12 +345,13 @@ function initializeDerivedConfig(theConfig: QLiveConfig)
 
 export function init(bs : QLiveBoostrap): Promise<QLiveConfig>
 {
-    const { config, data, csrfToken } = bs
+    const { config, data, csrfToken, authentication } = bs
 
     theConfig = config
     if (theConfig)
     {
         theConfig.csrfToken = csrfToken
+        theConfig.authentication = authentication
         // Before the init hook the application may replace it in, so that assigning is all it takes and
         // every reader can count on finding one.
         theConfig.errorView = DefaultErrorView

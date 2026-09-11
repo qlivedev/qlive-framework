@@ -7,6 +7,7 @@ import {WorkingSet} from "../../src/merge/WorkingSet";
 import {MergeResult} from "../../src/merge/types";
 import {barDocument, mergeConfig} from "../fixtures/mergeConfig";
 import {respondWith, sentVariables} from "../fixtures/graphqlMock";
+import {testAuthentication} from "../fixtures/testConfig";
 
 /**
  * The client half of the merge: what a working set remembers about the rows it was given, what it records
@@ -102,7 +103,12 @@ async function loadBars()
 }
 
 beforeAll(async () => {
-    await init({config: mergeConfig, csrfToken: mergeConfig.csrfToken!, data: {}})
+    await init({
+        config: mergeConfig,
+        csrfToken: mergeConfig.csrfToken!,
+        authentication: testAuthentication(),
+        data: {}
+    })
 })
 
 afterEach(() => {

@@ -9,6 +9,7 @@ import {WorkingSet, WorkingSetSnapshot} from "../../src/merge/WorkingSet";
 import {useWorkingSet} from "../../src/merge/useWorkingSet";
 import {barDocument, mergeConfig} from "../fixtures/mergeConfig";
 import {respondWith} from "../fixtures/graphqlMock";
+import {testAuthentication} from "../fixtures/testConfig";
 
 /**
  * The three lines over the store. A working set is read exactly the way a query document is, so what is
@@ -54,7 +55,12 @@ function render(element: React.ReactNode)
 }
 
 beforeAll(async () => {
-    await init({config: mergeConfig, csrfToken: mergeConfig.csrfToken!, data: {}})
+    await init({
+        config: mergeConfig,
+        csrfToken: mergeConfig.csrfToken!,
+        authentication: testAuthentication(),
+        data: {}
+    })
 })
 
 beforeEach(() => {

@@ -2,6 +2,7 @@ import {beforeAll, describe, expect, it} from "vitest";
 import {init} from "../../src/config";
 import * as MergeMeta from "../../src/merge/meta";
 import {mergeConfig} from "../fixtures/mergeConfig";
+import {testAuthentication} from "../fixtures/testConfig";
 
 /**
  * The client's half of what a type says about merging it. Everything here is derived from the schema and the
@@ -10,7 +11,12 @@ import {mergeConfig} from "../fixtures/mergeConfig";
  */
 
 beforeAll(async () => {
-    await init({config: mergeConfig, csrfToken: mergeConfig.csrfToken!, data: {}})
+    await init({
+        config: mergeConfig,
+        csrfToken: mergeConfig.csrfToken!,
+        authentication: testAuthentication(),
+        data: {}
+    })
 })
 
 describe("versioned types", () => {

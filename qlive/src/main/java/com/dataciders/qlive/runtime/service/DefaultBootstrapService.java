@@ -3,6 +3,7 @@ package com.dataciders.qlive.runtime.service;
 import com.dataciders.qlive.model.bootstrap.ClientCsrfToken;
 import com.dataciders.qlive.model.bootstrap.Injection;
 import com.dataciders.qlive.model.bootstrap.QLiveBoostrap;
+import com.dataciders.qlive.runtime.auth.AppAuthentication;
 import com.dataciders.qlive.model.bootstrap.QLiveConfig;
 import com.dataciders.qlive.model.ts.ModuleFunctionReferences;
 import com.dataciders.qlive.model.ts.TrackUsageData;
@@ -178,6 +179,7 @@ public class DefaultBootstrapService
         qLiveBoostrap.setConfig(needsSchema(staticAnalysis, module) ? qlConfigJSON : reducedConfigJSON);
         qLiveBoostrap.setData(injectionService.provideInjections(staticAnalysis, module));
         qLiveBoostrap.setCsrfToken(new ClientCsrfToken(csrfToken));
+        qLiveBoostrap.setAuthentication(AppAuthentication.current());
 
         return qLiveBoostrap;
     }

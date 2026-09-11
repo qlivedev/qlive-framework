@@ -6,6 +6,7 @@ import {WorkingSet} from "../../src/merge/WorkingSet";
 import {MergeConflictField, MergeResult} from "../../src/merge/types";
 import {barDocument, mergeConfig} from "../fixtures/mergeConfig";
 import {respondWith, sentVariables} from "../fixtures/graphqlMock";
+import {testAuthentication} from "../fixtures/testConfig";
 
 /**
  * Layer 2: what a form reads a working set through, and what a decision about a clashing field does. No
@@ -83,7 +84,12 @@ async function edited(result?: MergeResult)
 
 
 beforeAll(async () => {
-    await init({config: mergeConfig, csrfToken: mergeConfig.csrfToken!, data: {}})
+    await init({
+        config: mergeConfig,
+        csrfToken: mergeConfig.csrfToken!,
+        authentication: testAuthentication(),
+        data: {}
+    })
 })
 
 

@@ -3,7 +3,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {init} from "../src/config";
 import {and, field, value} from "../src/FilterDSL";
 import {initPubSub, PubSubConnection, subscribeToTopic} from "../src/pubsub";
-import {testConfig, testCsrfToken} from "./fixtures/testConfig";
+import {testAuthentication, testConfig, testCsrfToken} from "./fixtures/testConfig";
 
 const CONTEXT_PATH = "/qlive"
 
@@ -118,6 +118,7 @@ beforeEach(async () => {
     await init({
         config: {...testConfig, contextPath: CONTEXT_PATH},
         csrfToken: testCsrfToken(),
+        authentication: testAuthentication(),
         data: {}
     })
 

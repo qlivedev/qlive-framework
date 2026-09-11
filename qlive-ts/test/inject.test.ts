@@ -4,7 +4,7 @@ import {init} from "../src/config";
 import {GraphQLQuery} from "../src/GraphQLQuery";
 import inject from "../src/inject";
 import {QueryDocument} from "../src/QueryDocument";
-import {queryResult, testConfig, testCsrfToken} from "./fixtures/testConfig";
+import {queryResult, testConfig, testCsrfToken, testAuthentication} from "./fixtures/testConfig";
 
 /** T of a query is what one execution of it yields: the value of its one selection */
 const Q_Foo = new GraphQLQuery<QueryDocument<any>>(
@@ -32,6 +32,7 @@ beforeAll(async () => {
     await init({
         config: testConfig,
         csrfToken: testCsrfToken(),
+        authentication: testAuthentication(),
         data: {
             Q_Foo: {data: queryResult(), type: "FooDocument", meta: null},
             Second: {data: queryResult(), type: "FooDocument", meta: null}
@@ -88,6 +89,7 @@ describe("inject", () => {
         await init({
             config: testConfig,
             csrfToken: testCsrfToken(),
+            authentication: testAuthentication(),
             data: {
                 Q_Foo: {data: next, type: "FooDocument", meta: null}
             }

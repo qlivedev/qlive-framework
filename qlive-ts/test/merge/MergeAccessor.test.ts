@@ -385,4 +385,35 @@ describe("stored state as an input", () => {
 
         expect(() => ws.storedState({type: "Bar", id: "somebody-elses", fields: {name: "x"}})).not.toThrow()
     })
+
+
+    it("marks a field that moved without saying what to", async () => {
+
+        // What a push message leaves behind: a mask names the fields and no values travel with it.
+        const {ws, bar} = await edited()
+
+        ws.storedState({type: "Bar", id: "bar-1", fields: {name: undefined, description: undefined}})
+
+        const name = ws.accessor(bar).field("name")
+
+        expect(name.status).toBe("conflict")
+        expect(ws.accessor(bar).field("description").status).toBe("moved")
+
+        // A form offering the two values to choose between has only one of them, and saying so is what
+        // keeps it from labeling the value the row was read with as the one that is saved.
+        expect(name.storedKnown).toBe(false)
+        expect(name.stored).toBe("Bar #1")
+        expect(name.mine).toBe("Mine")
+    })
+
+
+    it("says the stored value is known once one arrived", async () => {
+
+        const {ws, bar} = await edited()
+
+        ws.storedState({type: "Bar", id: "bar-1", fields: {name: "Theirs"}})
+
+        expect(ws.accessor(bar).field("name").storedKnown).toBe(true)
+        expect(ws.accessor(bar).field("name").stored).toBe("Theirs")
+    })
 })

@@ -121,6 +121,16 @@ export type MergeField = {
     conflict: boolean
 
     /**
+     * Whether `stored` is the other write's value or merely the value the row was read with.
+     *
+     * false where the field is known to have moved and not known to what -- a push message carries a mask
+     * and no values, and a type that did not opt in to resolution carries none either. A form showing the
+     * two values to choose between asks this first: labeling the read value "saved" names it as something
+     * it is not.
+     */
+    storedKnown: boolean
+
+    /**
      * What the user chose, or null where they have not been asked or have not answered.
      */
     resolution: Resolution | null
@@ -266,6 +276,7 @@ export function createAccessor(host: MergeHost, entity: MergeEntity): MergeAcces
                 mine: valueOf(entity, name, "mine"),
                 stored: valueOf(entity, name, "stored"),
                 conflict: status === "conflict",
+                storedKnown: entity.stored.get(name) !== undefined,
                 resolution: entity.resolutions.get(name) ?? null,
                 resolve: choice => host.resolve(entity, name, choice),
                 resolveWith: value => host.resolveWith(entity, name, value)

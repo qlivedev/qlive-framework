@@ -1,6 +1,9 @@
 # Push (design)
 
-Status: designed, not built. Written 2026-09-10, reordered 2026-09-11.
+Status: the build order below is built, steps 1 and 2 -- the message
+model and the FilterDSL evaluator, the two pieces with no socket in them.
+Steps 3 to 9, everything with a transport or a registry in it, are
+designed and not built. Written 2026-09-10, reordered 2026-09-11.
 
 A general-purpose pub/sub mechanism for QLive, with a precompiled
 FilterDSL evaluator doing the per-subscription filtering. Entity-version
@@ -152,10 +155,12 @@ typeMapper.setDiscriminatorField("type");
 typeMapper.setPathMatcher(new SubtypeMatcher(CNode.class));
 ```
 
-(`ConditionParser` exists today but is not currently wired into a live
-parse path anywhere in the codebase -- worth confirming during
-implementation whether it is dormant code to revive and relocate, or a
-deliberate standalone utility that push now becomes the second user of.)
+(`ConditionParser` is a bean nobody injects. The live GraphQL path never
+reaches it: a condition arrives as a `Map` graphql-java has already
+parsed, and `ConditionCoercing` reads it from there without a
+`JSONParser` being involved at all. Push is its first real consumer, and
+the setup itself now lives in `runtime.util.TypeMappers.byClassName`,
+which both parsers call, so the two cannot drift apart.)
 
 This closed-set discriminator approach works cleanly for choosing *which
 kind of message* a frame is. Inbound:
@@ -423,11 +428,27 @@ reads a `Map` and a bean the same way, so the phase-one parse result is
 already everything the evaluator needs. Compiled once
 per subscribe -- one operator-to-implementation table, mirroring
 `FilterOperators`' whitelist shape but producing composed `Predicate`s
-instead of jOOQ `Condition`s. Constant coercion happens once, at
-transform time, through the existing `ConditionCoercing`. An operator
-this backend cannot honour throws at transform time, naming itself, with
-whoever is registering the subscription still looking at the result --
-not a filter that silently matches nothing forever.
+instead of jOOQ `Condition`s. Values are already the Java objects they
+claim to be by the time they reach the transformer -- the same contract
+the SQL transformer works under, where `ConditionCoercing` has converted
+every value in the hierarchy with the coercing of the scalar type that
+value names. That leaves one seam for step 3 to close, because the two
+paths reach a condition differently: `ConditionCoercing.parseValue`
+reads a `Map` graph, while a `Subscribe` arrives as a `CNode` whose
+values are still whatever JSON made of them, so something has to run the
+scalars over an already-parsed hierarchy. An operator this backend
+cannot honour throws at transform time, naming itself, with whoever is
+registering the subscription still looking at the result -- not a filter
+that silently matches nothing forever.
+
+Two places the evaluated semantics part company with the database's, and
+both are worth knowing before a client builds a condition against them.
+The logic is two-valued: a comparison against a missing value does not
+match, and `not` around it therefore holds, where SQL's comparison
+against NULL is itself NULL and stays NULL negated. And `likeRegex`
+matches anywhere in the value rather than describing the whole of it,
+which is what JOOQ's own `likeRegex` means once it reaches Postgres as
+`~`.
 
 This, together with the message model above, is deliberately built
 before any transport code exists. Both are pure: given a `CNode` and a
@@ -689,6 +710,10 @@ them.
    topic-to-class registry entry and assert the
    result is the bound concrete type with its fields filled in; assert
    recasting against an unregistered topic fails clearly.
+
+   Built as `com.dataciders.qlive.model.push`: the message classes,
+   `PushMessageParser`, and `PayloadRecast` against a `TopicTypes`
+   lookup the channel registry implements in step 3.
 2. **The precompiled FilterDSL evaluator**, standalone, unit-tested with
    no WebSocket involved: flat payload fixtures first, mirroring
    `EntityVersion`'s own shape and exercising the operator table, then a
@@ -697,6 +722,11 @@ them.
    rather than throwing or querying -- then an indexed-list-path fixture
    (`bazLinks.0.baz.name`-shaped) asserting index semantics rather than
    any-element matching.
+
+   Built as `com.dataciders.qlive.runtime.filter`: `FilterTransformer`,
+   the `PayloadOperators` table, and `PropertyPath`, which is where a
+   path is checked against the channel's class and where a to-many hop
+   without an index is refused.
 3. **Pub/sub core plus transport skeleton, no filtering yet.**
    `PubSubService`/`DefaultPubSubService`/`Topic`/`TopicRegistration`/
    `Recipient`, `PushWebSocketHandler`, `PushHandshakeInterceptor`,
@@ -748,8 +778,6 @@ them.
   grow, a context-node concept -- relevant only if a genuine
   per-subscriber personalisation need ever shows up; not needed for
   `ownerId ne me`, which is handled client-side.
-- Whether `ConditionParser` is wired into any live parse path today or is
-  presently dormant code the message-model design revives.
 - Which channels a client may `publish` to, and how that gets authorised
   against a channel's declared type.
 - Whether restructuring a fetched result into a payload POJO (the

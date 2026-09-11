@@ -792,6 +792,14 @@ them.
    with backoff, the `PubSubConnection` store, the generic
    `subscribeToTopic`, wired into `startup()`. No entity-version-specific
    routing yet -- this proves messages arrive and survive a reload.
+
+   What a payload is typed as on arrival, and what a condition's field
+   paths are checked against, are not settled here.
+   `docs/design/client-types.md` has them: a channel's payload class is
+   a Svenson-described Java class, and generating TypeScript for those
+   is a facility pub/sub is only the first user of. Until that is built
+   `subscribeToTopic` is generic in its payload with the caller
+   supplying the parameter.
 6. **Client entity-version routing -- the smallest end-to-end slice's
    finish line.** An `(entityType, entityId)` index from mounted stores
    to the connection, `WorkingSet.storedState()` calls, and
@@ -833,6 +841,11 @@ them.
   `ownerId ne me`, which is handled client-side.
 - Which channels a client may `publish` to, and how that gets authorised
   against a channel's declared type.
+- That the FilterDSL a subscription writes reads a to-many positionally
+  while the same DSL against the database reads it as "some element
+  satisfies" -- deliberate, and recorded in `PropertyPath`'s javadoc,
+  but two dialects of one DSL is a thing a framework user has to be
+  told rather than discover. Carried in `docs/design/client-types.md`.
 - Whether restructuring a fetched result into a payload POJO (the
   database-backed consumer in "Entity-version push" above) becomes a
   helper shared across channels, or stays one-off per publisher.

@@ -125,8 +125,8 @@ The emitter should reach Svenson's limit, not GraphQL's.
 - **Renamed and pruned properties** -- `@JSONProperty(value=, ignore=,
   readOnly=)` -- fall out for free, the `fieldMask` case being the
   motivating one.
-- **Nested generics** -- a map of lists of a union -- nest the way they
-  read.
+- **Nested generics** -- a map of lists of a declared type -- nest the
+  way they read.
 - **`Object`** -> `unknown`, matching `PropertyPath.known()`, which
   treats `Object` as a class that says nothing rather than one that says
   everything.
@@ -158,14 +158,32 @@ channels, not one channel with two kinds of message on it.
 
 ## Nullability
 
-Svenson declares nothing about it; GraphQL declares `NON_NULL`. Emitting
-every property optional would make `?` mean "the schema says nullable"
-in `types.d.ts` and "nobody said" in the file beside it -- the same
-syntax carrying two meanings in a world the user is trying to hold
-whole. Java primitives are free information and should be emitted
-non-optional. Past that, a marker annotation is new API surface for the
-framework user, and the decision should wait until a real payload makes
-the ambiguity bite rather than be taken on speculation.
+Svenson itself declares nothing about it -- `ignoreIfNull` is a choice
+about what to serialize, not a statement about what a property can hold.
+But the declaration already exists a layer down and is already
+load-bearing. jOOQ puts `jakarta.validation.constraints.NotNull` on the
+generated POJO getters, and DomainQL reads it into GraphQL `NON_NULL`
+through `JSONUtil.findAnnotation(info, NotNull.class)` -- the same call,
+on the same `JSONPropertyInfo` the emitter has in hand anyway.
+
+So the emitter reads it too, and there is no new API surface to
+introduce: a property is optional unless it is annotated, and Java
+primitives are non-optional regardless of annotation. What this buys is
+the thing the two-vocabulary problem most needed. A domain type reached
+through a channel and the same type in `types.d.ts` agree on which
+fields are optional, not by the two generators being kept in step, but
+because both answers come off one annotation on one accessor. `?` means
+one thing in both files.
+
+A hand-written payload class opts in with an annotation its author has
+already read in every generated POJO, which is a smaller thing to learn
+than a QLive-specific marker would have been. Two limits worth knowing:
+`findAnnotation` insists on a `JavaObjectPropertyInfo`, so a property
+that is not a real accessor pair has no annotation to find; and DomainQL
+lets `@GraphQLField(notNull = ...)` set the same bit and errors on
+disagreement with `@NotNull`. There is no second source here, and there
+should not be one -- `@NotNull` alone keeps a single answer to a single
+question.
 
 ## Build order
 

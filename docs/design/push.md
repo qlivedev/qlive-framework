@@ -1,8 +1,9 @@
 # Push (design)
 
-Status: the build order below is built, steps 1 and 2 -- the message
-model and the FilterDSL evaluator, the two pieces with no socket in them.
-Steps 3 to 9, everything with a transport or a registry in it, are
+Status: the build order below is built, steps 1 to 4 -- the message
+model, the FilterDSL evaluator, the pub/sub core and transport, and the
+entity-version adapter. The whole server side is there and tested; steps
+5 to 9, everything client-side plus the coercion seam step 7 closes, are
 designed and not built. Written 2026-09-10, reordered 2026-09-11.
 
 A general-purpose pub/sub mechanism for QLive, with a precompiled
@@ -432,11 +433,18 @@ instead of jOOQ `Condition`s. Values are already the Java objects they
 claim to be by the time they reach the transformer -- the same contract
 the SQL transformer works under, where `ConditionCoercing` has converted
 every value in the hierarchy with the coercing of the scalar type that
-value names. That leaves one seam for step 3 to close, because the two
-paths reach a condition differently: `ConditionCoercing.parseValue`
+value names. That leaves one seam still open, and it is step 7's, because the
+two paths reach a condition differently: `ConditionCoercing.parseValue`
 reads a `Map` graph, while a `Subscribe` arrives as a `CNode` whose
 values are still whatever JSON made of them, so something has to run the
-scalars over an already-parsed hierarchy. An operator this backend
+scalars over an already-parsed hierarchy -- once, at subscribe time,
+between the parser and `FilterTransformer`, and on the inbound frame
+rather than in `PubSubService`, so that an in-process subscriber
+building its condition with `FilterDSL` is not re-parsing values it
+already has right. Until then a constant is whatever JSON made of it,
+which covers strings, numbers and booleans -- the whole of the
+entity-version subscription -- and leaves a timestamp constant still a
+string. An operator this backend
 cannot honour throws at transform time, naming itself, with whoever is
 registering the subscription still looking at the result -- not a filter
 that silently matches nothing forever.
@@ -532,15 +540,19 @@ already matches `EntityVersion.ownerId` to an `app_user.id`. A
 including every reconnect, and stashes it on the WS session. There is no
 token to mint, expire, or run out.
 
-That said: **whether Spring Security's filter chain actually runs against
-a WebSocket upgrade request in this setup is not confirmed, and is
-flagged directly as historically not the case in an earlier setup.** This
-has to be checked against a real authenticated session before anything
-else in the identity design leans on it -- it is the first thing the build
-order verifies once transport work starts. If the filter chain does not
-reach the handshake, the interceptor needs its own explicit
-session-based authentication step rather than trusting
-`SecurityContextHolder` to already be populated.
+**The filter chain does run against the WebSocket upgrade here**, which
+was the open question this whole section was gated on, and it was asked
+out loud against a real server rather than assumed --
+`PushWebSocketTest.refusesAHandshakeFromSomebodyNotLoggedIn`. The
+upgrade is an ordinary GET, `FilterChainProxy` secures it, and
+`qlive-test`'s catch-all `hasRole("USER")` refuses it with a 401 to
+somebody not logged in without naming the URI at all. So the interceptor
+needs no session-based authentication step of its own, and
+`AppAuthentication.current()` there is the same identity the rest of the
+request path sees. One incidental: the entry point that answers the
+refused handshake is the GraphQL one, being the fallback for anything
+not asking for HTML, so the 401 carries a GraphQL-shaped body. Harmless
+-- a client sees a failed upgrade either way.
 
 **No generic "current subscriber" context primitive.** Automaton has
 `context()` / `FilterContextRegistry`, letting a condition reference a
@@ -575,7 +587,10 @@ subscribed yet.
 **A client may publish, mirroring Automaton, for symmetry.** Which
 channels a client is authorised to publish to, and how that gets
 enforced against a channel's declared type, is an open item below, not
-settled here.
+settled here -- so the handler parses, routes and *refuses* a client
+`Publish` for now. Shipping it unauthorised would let any logged-in user
+forge a message on `"EntityVersion"` that every other client would read
+as the framework's own.
 
 **Presence stays out of scope**, the same way the merge design left it
 out. `DomainMonitorService` / `useEntity.js` / `Monitor`
@@ -602,8 +617,12 @@ territory for QLive, not a port of anything Automaton has.
 New package `com.dataciders.qlive.runtime.pubsub`, mirroring Automaton's
 own package name for the same thing. `PubSubService` /
 `DefaultPubSubService`, `Topic`, `TopicRegistration`, `Recipient`.
-Registering, or first publishing or subscribing to, a topic associates it
-with a Java `Class` -- nothing more. Path validation (above) walks that
+Registering, or first publishing to, a topic associates it with a Java
+`Class` -- nothing more. Subscribing does not: a subscriber brings no
+class with it, so a channel created there could validate nothing, and
+the name a client got wrong would look like a channel that is simply
+quiet. An application registers its channels at startup, which is also
+what lets a client subscribe before the first message. Path validation (above) walks that
 class's own declared JSON properties directly, so there is no separate
 DomainQL lookup here and no distinction between a domain type and a
 handwritten POJO at this layer: whatever class a channel is bound to, the
@@ -742,9 +761,33 @@ them.
    `@SpringBootTest`: subscribe a test WS client, publish, assert
    delivery; publish to a never-subscribed topic is a no-op, not an
    error.
+
+   Built as `com.dataciders.qlive.runtime.pubsub`: `PubSubService`/
+   `DefaultPubSubService`, the package-private `Topic`/
+   `TopicRegistration`, `Recipient`, `PushWebSocketHandler`,
+   `WebSocketRecipient`, `PushHandshakeInterceptor`, and `PUSH_URI` in
+   `QLivePaths` beside the two prefixes the frontend already has to
+   agree on. Three things came out differently than the step describes,
+   each noted where it belongs above: filtering is wired in already,
+   because leaving it out meant a subscription that silently matched
+   everything; subscribing to an unregistered channel is refused rather
+   than creating one; and a client `Publish` is refused until the
+   authorisation question below is settled. `Topic` is package-private
+   because the message class of the same name is the one a framework
+   user imports, and nothing outside the core needs the other.
 4. **The entity-version adapter, server side.** The `EntityVersionsEvent`
    listener publishing to `"EntityVersion"`. Tested by performing a
    merge and asserting the message arrives.
+
+   Built as `EntityVersionPublisher`. Two things the record needed
+   before it could travel, neither of them push-specific: the mask goes
+   out as a decimal string, and the timestamp in the ISO-8601 form the
+   GraphQL `Timestamp` scalar already produces -- left alone, Svenson
+   makes a `java.sql.Timestamp` into a dump of `java.util.Date`'s
+   getters. A bit operation therefore takes a decimal string on either
+   side, which it had to anyway: a 128-bit constant has no exact JSON
+   number to arrive as, so a client could not have written the
+   motivating subscription at all.
 5. **The client connection module.** `pubsub.ts`: connect, reconnect
    with backoff, the `PubSubConnection` store, the generic
    `subscribeToTopic`, wired into `startup()`. No entity-version-specific
@@ -759,7 +802,17 @@ them.
    compiled once (by the evaluator from step 2) and evaluated per
    publish. Entity-version subscriptions are built client-side with
    `entityType`, `entityId`, `fieldMask bitAnd`, and `ownerId ne <literal
-   my own id>` clauses. `Subscribed` and `Error` replies land here.
+   my own id>` clauses.
+
+   The server half of this landed with step 3 -- compiling the
+   condition, and the `Subscribed`/`Error` replies, which a refused
+   subscribe needs whatever else is or is not wired. What is left here
+   is the client half, and the one genuinely unbuilt server piece: the
+   `CNode` -> `CNode` coercion pass beside `ConditionCoercing.parseCNode`
+   that re-reads each `Value`/`Values` through `parseScalar`. Until that
+   exists a timestamp constant off the wire is still a string, which the
+   entity-version subscription does not care about and something with a
+   date range in it would.
 8. **Client subscription wiring, the full loop.** Documents and working
    sets derive their condition from what's actually on screen, send it
    on registration, unsubscribe on disposal, and resubscribe on
@@ -785,9 +838,6 @@ them.
   helper shared across channels, or stays one-off per publisher.
 - WebSocket Origin/CORS handling, and how the dev-mode Vite proxy handles
   a `ws://` upgrade -- unverified.
-- Whether the Spring Security filter chain covers the WebSocket handshake
-  at all in this setup -- flagged as historically not the case elsewhere,
-  and gating step 3 of the build order above.
 - Presence -- "somebody else has this row open" -- stays deferred to its
   own design, with Automaton's `DomainMonitorService` / `useEntity.js` /
   `Monitor` as prior art worth rereading when that gets written.

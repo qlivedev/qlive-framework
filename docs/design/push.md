@@ -1,12 +1,8 @@
 # Push (design)
 
-Status: the build order below is built, steps 1 to 5 -- the message
-model, the FilterDSL evaluator, the pub/sub core and transport, the
-entity-version adapter, and the client connection module. The whole
-server side is there and tested, and a client can subscribe and receive;
-steps 6 to 9, the client's own consumers plus the coercion seam step 7
-closes, are designed and not built. Written 2026-09-10, reordered
-2026-09-11.
+Status: built, steps 1 to 9. What is left is the manual two-tab check
+step 9 describes, which needs a login. Written 2026-09-10, reordered and
+finished 2026-09-11.
 
 A general-purpose pub/sub mechanism for QLive, with a precompiled
 FilterDSL evaluator doing the per-subscription filtering. Entity-version
@@ -632,9 +628,10 @@ observable identity -- `QueryDocument`'s rows are a plain snapshot array,
 and a working set's draft is a proxy over a separate change map, not a
 mutation of a shared object graph. A push message updating a row
 therefore has no free channel to any document currently displaying that
-same entity. The `QueryDocument.applyPush()` seam below does, explicitly,
-what MobX identity gives Automaton for nothing. This is genuinely new
-territory for QLive, not a port of anything Automaton has.
+same entity. What MobX identity gives Automaton for nothing, QLive has to
+do explicitly -- which is the whole reason the document side is an
+observer an application reads rather than a relay it never sees. This is
+genuinely new territory for QLive, not a port of anything Automaton has.
 
 ## Server: the pub/sub core
 
@@ -725,19 +722,102 @@ instances the caller built are not held past the call.
 
 On top of that generic layer, an entity-version-specific adapter
 subscribes to `"EntityVersion"` and routes matches into
-`WorkingSet.storedState()` and a new `QueryDocument.applyPush(entityType,
-entityId, fields?)` seam. The payload stays mask-only -- no field values
-travel over the wire -- consistent with the merge design's own reasoning:
-"a client can mark those fields precisely without re-querying the row to
-find out." A value-carrying alternative is a real fork in the design,
-worth naming as a considered rejection if it's revisited later, not
-something to slide into by accident. Whether a push message should ever
-add or remove a row from an already-live `QueryDocument` -- as opposed to
-patching a field on a row already visible -- is explicitly deferred: it
-needs a JS condition evaluator that does not exist yet (separately
-flagged, for `DomainTables`' planned client-side search feature), and it
-interacts with pagination and sort order in ways a field patch to an
-already-visible row simply does not.
+`WorkingSet.storedState()`. The payload stays mask-only -- no field
+values travel over the wire -- consistent with the merge design's own
+reasoning: "a client can mark those fields precisely without re-querying
+the row to find out." A value-carrying alternative is a real fork in the
+design, worth naming as a considered rejection if it's revisited later,
+not something to slide into by accident. Whether a push message should
+ever add or remove a row from an already-live `QueryDocument` -- as
+opposed to patching a field on a row already visible -- is explicitly
+deferred: it needs a JS condition evaluator that does not exist yet
+(separately flagged, for `DomainTables`' planned client-side search
+feature), and it interacts with pagination and sort order in ways a field
+patch to an already-visible row simply does not.
+
+### The two stores are not the same case, and only one of them is a seam
+
+A working set holds rows somebody here is editing. There is a draft, a
+base, and a user with an opinion, so a stored value arriving means
+something on its own: `storedState()` folds it in or marks a conflict,
+and the status computation the merge already has does not change. That
+is the whole of what the adapter does on that side.
+
+A query document holds rows nobody here is touching -- a list, a detail
+view, the lookup rows behind a dropdown. There is no draft for a field
+mark to mean anything against, and no value arrived, so there is nothing
+to display. What the mask decides there is not what to mark but whether
+to care at all: a document whose query does not select the fields that
+moved does nothing, which is the same `bitAnd` clause its subscription
+already carries.
+
+What an application wants from that ranges from nothing at all to a live
+patch, and the range is not a framework decision:
+
+1. Nothing. The rows are being read, not watched.
+2. A "this is no longer fresh, reload" marker, which the user acts on.
+3. The new values, by running the query again.
+4. The new values, channeled into the rows in place.
+
+Only the fourth needs anything from `QueryDocument`, and it needs two
+things it does not have: values on the wire, which is the fork named
+above, and a way to write into `rows` and have React hear about it, since
+`notify()` is private. The first three need nothing. `document.type`,
+`document.rows` and `document.update({})` are public, and
+`GraphQLQuery.access(document)` -- already public, already what
+`WorkingSet.walk()` reads -- carries the selections the mask is computed
+from. So the adapter's document half is an observer that reports what
+happened and decides nothing:
+
+```ts
+const live = watchDocument(document)
+// subscribe/getSnapshot, over { stale: boolean, moved: {type, id, fields}[] }
+```
+
+Case 1 is not calling it. Case 2 renders `live` and puts `update({})`
+behind a button. Case 3 is an effect that calls `update({})` when `stale`
+goes true. The policy is a line in the application, not a mode flag in
+the framework, and nothing about push reaches `QueryDocument` at all.
+
+This is why there is no `applyPush()`. An earlier draft gave the document
+an `applyPush(entityType, entityId, fields?)` seam; it bakes push
+vocabulary and entity-version semantics into the store to serve one of
+the four cases, and three of them are better off without it. When case 4
+is actually built, the seam it wants is generic -- rows were changed from
+outside, announce it -- and the finding and patching stay in the push
+module. `working-set-merge.md`'s open item, that `QueryDocument` needs
+the entry point `WorkingSet` got, is otherwise already answered by
+`update({})`, which is what `WorkingSet.refresh()` calls after a merge
+lands.
+
+It also settles how a store comes to be subscribed: the application calls
+the watcher. Nothing subscribes that was not asked to, no opt-out has to
+be invented for the view that does not want it, and a subscription's
+lifetime is the watcher's.
+
+One consequence for the condition. A document's rows carry nested
+entities of several types, each with its own selected-field mask, so what
+it subscribes with is a disjunction rather than the merge design's single
+clause:
+
+```
+( entityType eq "Bar" and entityId in [...] and fieldMask bitAnd <mask of Bar's shown fields> ne 0
+  or entityType eq "Baz" and entityId in [...] and fieldMask bitAnd <mask of Baz's shown fields> ne 0 )
+and ownerId ne <me>
+```
+
+Collecting that is the walk `WorkingSet.walkRow()` already does
+privately, which makes it a shared entity walker rather than a second
+implementation of the same recursion.
+
+A row a working set holds is not the document's case even when the
+document is the one it was registered from. It routes to `storedState()`
+and the document does nothing: `update({})` replaces the row objects, and
+the working set keys its drafts off those objects by identity -- a
+`WeakMap` from row to entity, and a draft proxying the row itself -- so
+refetching behind its back strands every draft the user is typing into.
+`WorkingSet.refresh()` gets away with it precisely because it re-walks
+afterwards.
 
 ## Build order
 
@@ -850,16 +930,19 @@ them.
    is doing the work there is a framework default, and a default is
    what changes under a project.
 6. **Client entity-version routing -- the smallest end-to-end slice's
-   finish line.** An `(entityType, entityId)` index from mounted stores
-   to the connection, `WorkingSet.storedState()` calls, and
-   `QueryDocument.applyPush()` designed and wired, subscribed with
+   finish line.** The shared entity walk, an `(entityType, entityId)`
+   index from watched stores to the connection, `WorkingSet.storedState()`
+   calls, and `watchDocument()`'s observer store, subscribed with
    `condition: null`. Unfiltered, end-to-end, and the point at which push
-   is genuinely visible to a user for the first time.
+   is genuinely visible to a user for the first time. A row the working
+   set holds routes to `storedState()` and stops there, the document not
+   being its case.
 7. **Real filtering wired in.** Subscriptions carry an actual condition,
    compiled once (by the evaluator from step 2) and evaluated per
    publish. Entity-version subscriptions are built client-side with
    `entityType`, `entityId`, `fieldMask bitAnd`, and `ownerId ne <literal
-   my own id>` clauses.
+   my own id>` clauses. Where those clauses get their values is step 8,
+   which is why the two are built as one.
 
    The server half of this landed with step 3 -- compiling the
    condition, and the `Subscribed`/`Error` replies, which a refused
@@ -874,6 +957,30 @@ them.
    sets derive their condition from what's actually on screen, send it
    on registration, unsubscribe on disposal, and resubscribe on
    reconnect.
+
+   "What's actually on screen" is the clauses the merge design
+   sketched, each read off live store state rather than configured: per
+   entity type the walk found, the ids of the rows *currently held* --
+   the page, not the query's whole result set -- and the mask of the
+   fields the query selects or the form binds, all of it under the
+   session's own id as the `ownerId ne` literal. Several types means a
+   disjunction, as "The two stores are not the same case" sets out. The third clause is the one that is easy to skip and
+   earns the most: a merge that moved a column nobody here displays
+   should not cost a message. The fourth is what keeps a writer's own
+   tab from being echoed its own write.
+
+   That set changes while a store is alive -- paginate, re-sort, filter,
+   register another row -- and the message model has no `Update`, only
+   `Subscribe` and `Unsubscribe`. A changed id set therefore means
+   subscribing anew and dropping the old registration afterwards, in
+   that order, so no publish falls into the gap between the two. Not
+   debounced: an id set turns over on a page change, which is a user
+   action, not on every keystroke.
+
+   Steps 7 and 8 are one piece of work split by which half of the wire
+   it sits on, and are built together. The coercion pass step 7 names is
+   the exception -- it is server-side, has nothing to do with either
+   store, and is its own commit.
 9. **An example view in qlive-test** exercising live push across two
    sessions or tabs -- the template an application copies, per this
    project's role as the framework's structural template, and the first
@@ -881,6 +988,31 @@ them.
    one tab edits a row, the other observes the push arrive and the
    relevant field marked stale or updated; the writer's own tab is not
    echoed its own write back.
+
+   Built as both halves rather than one view. `/bar/edit` gains the one
+   line that subscribes its working set, and `/bar/live` is the other
+   case: rows nobody is editing, on a query that selects `id` and `name`
+   only. That narrowness is the demonstration -- changing a Bar's name in
+   the other tab offers a reload, changing its description does nothing
+   at all, because the subscription named the fields the view shows and
+   the server never sent the message.
+
+   Two things building it turned up, neither of them push-specific.
+   Nothing told the client who it was serving, which the `ownerId ne me`
+   clause needs and which `AppAuthentication` has always described itself
+   as being for; it travels beside the CSRF token, the config being
+   rendered once per module and shared. And a form showing "yours" and
+   "saved" side by side had no way to know whether there is a saved value
+   to show -- a push message names fields and carries none -- so
+   `MergeField` grew `storedKnown`. That gap predates push: a type that
+   did not opt in to resolution has carried valueless conflicts all
+   along.
+
+   The manual check itself needs a real login. Anonymous reaches the
+   pages but not the socket: `hasRole("USER")` covers the push URI, so an
+   anonymous handshake is refused and the client sits in its backoff --
+   which is the rule working, and worth knowing before it is read as a
+   fault.
 
 ## Open items
 
@@ -898,6 +1030,13 @@ them.
 - Whether restructuring a fetched result into a payload POJO (the
   database-backed consumer in "Entity-version push" above) becomes a
   helper shared across channels, or stays one-off per publisher.
+- Whether a value-carrying channel is worth building, which is the
+  fourth thing an application might want from a changed row it is only
+  displaying: the values, patched in place. It needs both halves of the
+  fork named in "The two stores are not the same case" -- values on the
+  wire, and a generic "rows changed from outside, announce it" seam on
+  `QueryDocument`. Nothing about the three cases that are built forecloses
+  it.
 - Presence -- "somebody else has this row open" -- stays deferred to its
   own design, with Automaton's `DomainMonitorService` / `useEntity.js` /
   `Monitor` as prior art worth rereading when that gets written.

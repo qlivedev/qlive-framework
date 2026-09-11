@@ -22,12 +22,11 @@ JSON. That pub/sub is what sends them today is a fact about today.
 
 **Inside pub/sub, a payload is a Svenson-described class, and Svenson
 expresses things DomainQL's GraphQL projection cannot.** A map with
-`@JSONTypeHint`, a discriminated union, a class carrying declared
-properties plus dynamic ones. None of that is exotic -- it is the
-ordinary shape of a message that is not a database row. And every one of
-them is expressible in TypeScript. GraphQL is the wrong ceiling to hold
-a payload to: Svenson is the limit, and TypeScript sits comfortably
-above it.
+`@JSONTypeHint`, a class carrying declared properties plus dynamic ones,
+generics that nest. None of that is exotic -- it is the ordinary shape
+of a message that is not a database row. And all of it is expressible in
+TypeScript. GraphQL is the wrong ceiling to hold a payload to: Svenson
+is the limit, and TypeScript sits comfortably above it.
 
 So: everything the server can send has a name in the client's type
 world, the user reads all of it in the editor, and nothing gets
@@ -118,14 +117,11 @@ The emitter should reach Svenson's limit, not GraphQL's.
   X>`. `PropertyPath.elementType` already reads `getTypeHint()` with a
   generic-signature fallback, so validation and emission read the same
   two sources in the same order.
-- **Discriminated unions** -- `ClassNameBasedTypeMapper`'s discriminator
-  becomes a literal-typed property and TypeScript narrows on it
-  natively, with no interface declaration and no fragments. This is a
-  case where TypeScript is better than GraphQL rather than merely
-  different.
 - **`DynamicProperties`** -> declared properties plus an index
   signature. GraphQL cannot say "these fields, and also whatever else
-  arrived" at all.
+  arrived" at all. On what a client receives this is exact; a payload
+  read back the other way keeps only what its class declares a place
+  for, `RecastUtil` being property-driven.
 - **Renamed and pruned properties** -- `@JSONProperty(value=, ignore=,
   readOnly=)` -- fall out for free, the `fieldMask` case being the
   motivating one.
@@ -134,6 +130,31 @@ The emitter should reach Svenson's limit, not GraphQL's.
 - **`Object`** -> `unknown`, matching `PropertyPath.known()`, which
   treats `Object` as a class that says nothing rather than one that says
   everything.
+
+## What a payload cannot be, and why that is already decided
+
+Not a discriminated union. The transport spends its type mappers at the
+frame level: `PushMessageParser` registers `byClassName(PushMessage)`
+and `byClassName(CNode)`, composed through `TypeMappers.firstAnswer`
+because Svenson's own composite cannot consult two. A payload class
+discriminating its own subtypes would want a third, scoped to its base
+type -- and the parser's javadoc already gives the reason it cannot have
+one: which class a payload belongs to is decided by its channel, which
+is runtime state no parser can be handed at construction time. That is
+why `Publish.message` is declared `Object`, lands as a `Map`, and gets
+typed on request through `PayloadRecast`.
+
+`RecastUtil.recast` closes the other door. It walks the parsed map graph
+into an instance of the class the caller names, driven by that class's
+declared properties, with no discriminator dispatch anywhere in it. A
+polymorphic field inside a payload would recast into its declared type
+and lose the subtype in silence.
+
+So the emitter describes declared property types and does not attempt to
+enumerate subtypes -- which is also all it could do, there being no
+registered mapper to enumerate them from. Alternatives between payload
+shapes belong to the addressing layer that already exists for them: two
+channels, not one channel with two kinds of message on it.
 
 ## Nullability
 
@@ -180,6 +201,12 @@ the ambiguity bite rather than be taken on speculation.
   after generation has run. That argues for documenting `register` as
   the way to get a typed channel, with publish-created ones staying the
   untyped convenience they already are.
+- Whether a facility ever turns up that genuinely needs alternatives
+  under one name, and what it costs then. The channel-per-shape answer
+  above is cheap for pub/sub because channels are free; an addressing
+  model with no such axis would have to pay for the third mapper some
+  other way, most likely by binding it per connection rather than at
+  parser construction.
 - Whether the framework's own Svenson types -- the push frames,
   `EntityVersion`, and the merge model -- should go through the same
   emitter into qlive-ts at framework build time instead of being written

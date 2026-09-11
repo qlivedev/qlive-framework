@@ -1,9 +1,8 @@
 package com.dataciders.qlive.model.condition;
 
+import com.dataciders.qlive.runtime.util.TypeMappers;
 import de.quinscape.spring.jsview.util.JSONUtil;
-import org.svenson.ClassNameBasedTypeMapper;
 import org.svenson.JSONParser;
-import org.svenson.matcher.SubtypeMatcher;
 
 /**
  * Specialized JSONParser setup to parse a FilterDSL node hierarchy into
@@ -18,13 +17,7 @@ public final class ConditionParser
         this.parser = new JSONParser();
         this.parser.setObjectSupport(JSONUtil.OBJECT_SUPPORT);
 
-        ClassNameBasedTypeMapper typeMapper = new ClassNameBasedTypeMapper();
-        typeMapper.setBasePackage(CNode.class.getPackage().getName());
-        typeMapper.setEnforcedBaseType(CNode.class);
-        typeMapper.setDiscriminatorField("type");
-        typeMapper.setPathMatcher(new SubtypeMatcher(CNode.class));
-        parser.setTypeMapper(typeMapper);
-
+        this.parser.setTypeMapper(TypeMappers.byClassName(CNode.class));
     }
 
     public CNode parse(String json)

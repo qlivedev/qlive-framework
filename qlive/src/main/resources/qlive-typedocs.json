@@ -232,6 +232,13 @@
     ]
   },
   {
+    "name":"ClientMessage",
+    "description":"Abstract base class for the messages a client sends to the server.",
+    "fieldDocs":[
+      
+    ]
+  },
+  {
     "name":"ConditionParser",
     "description":"Specialized JSONParser setup to parse a FilterDSL node hierarchy into\nthe correct types.",
     "fieldDocs":[
@@ -243,6 +250,19 @@
     "description":"Visitor for FilterDSL condition hierarchies.",
     "fieldDocs":[
       
+    ]
+  },
+  {
+    "name":"DynamicPayload",
+    "description":"Implemented by the two message kinds whose payload's type is not fixed by the kind but by the channel\nthe message is on.\n\nEvery other message kind is fully described by its own class, so the discriminator alone tells a parser\neverything. These two are not, which is why their payload is read as a plain `Object` -- a `Map`, for\nanything that arrives as JSON -- and why a caller wanting compile-time field access has to ask for it\nby class through PayloadRecast. That is a property of pub/sub, not a gap in the message model:\nmost consumers never need more, because\norg.svenson.util.JSONBeanUtil#getProperty(Object, String) reads a map entry and a bean property\nthrough the same call.",
+    "fieldDocs":[
+      {
+        "name":"topic",
+        "description":"Name of the channel the message belongs to, and what decides the payload's type.",
+        "paramDocs":[
+          
+        ]
+      }
     ]
   },
   {
@@ -307,6 +327,33 @@
       {
         "name":"version",
         "description":"The version the row was read at. Null for a type that carries no version field, where the delete runs\nunconditionally.",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"Error",
+    "description":"Reports that something a client asked for did not happen, to the client that asked.\n\nNamed for what it is on the wire. Within this package it shadows `java.lang.Error`, which is the price\nof the discriminator being the class's own simple name; code here that means the JVM's writes\n`java.lang.Error`.",
+    "fieldDocs":[
+      {
+        "name":"id",
+        "description":"Subscription id the failed request carried, if it carried one.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"message",
+        "description":"What went wrong, in terms the sender can act on.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"topic",
+        "description":"Channel the failed request named, if it named one.",
         "paramDocs":[
           
         ]
@@ -516,6 +563,46 @@
     ]
   },
   {
+    "name":"PayloadRecast",
+    "description":"Turns the untyped payload of a DynamicPayload message into the class its channel is bound to.\n\nA step a handler takes because it wants compile-time field access, not one the message model performs\non its behalf. Filtering needs none of this -- a condition compiled against `payload.name` neither\nknows nor cares whether it is reading the parsed `Map` or a recast instance -- so this exists for the\nJava code that would rather not spell its own payload's fields as strings.\n\nRecasting walks the parsed map graph straight into a new instance through Svenson's own property\naccessors. It is driven by the *target* class's declared properties, so content the bound class\ndeclares no place for simply has nowhere to land.",
+    "fieldDocs":[
+      
+    ]
+  },
+  {
+    "name":"Publish",
+    "description":"Sends a payload to a channel, from a client.\n\nThe mirror image of the `publish()` call any framework or application bean can make server-side, and\nthe one payload the server receives as raw JSON rather than as a live object. Which channels a client\nmay publish to is an authorisation question the transport answers, not this class.",
+    "fieldDocs":[
+      {
+        "name":"message",
+        "description":"The payload, as parsed: a `Map`, since what class it belongs to is the channel's business and not\nthis message kind's. PayloadRecast is how a handler that wants it typed asks for that.",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"PushMessage",
+    "description":"Abstract base class for every message QLive sends over its websocket connection, in either direction.\n\nThe set of message kinds is fixed at compile time and each kind is one subclass, dispatched by the same\nclass-name discriminator com.dataciders.qlive.model.condition.CNode uses. Pub/sub is one of\nthose kinds, not the protocol itself: whatever QLive needs to say over the socket next gets a class\nbeside these rather than a second protocol.\n\nA message travels in one direction only, which is what ClientMessage and ServerMessage\nsay. PushMessageParser rejects a message read against the wrong one.",
+    "fieldDocs":[
+      {
+        "name":"type",
+        "description":"The discriminator the JSON carries, derived from the class name. Read-only in both directions of\nthe word: there is no field behind it, and a parser must not try to set it -- it is what told the\nparser which class to build in the first place.",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"PushMessageParser",
+    "description":"Reads a websocket frame as the message class its \"type\" names.\n\nTwo hierarchies are dispatched in one pass: the message kind, and the FilterDSL condition a\nSubscribe carries. Each gets its own class-name mapper, scoped to its own base type, and\nTypeMappers#firstAnswer is what lets both be consulted -- Svenson's own composite cannot, see\nthere.\n\nThe one field neither mapper touches is a pub/sub payload. `Publish.message` is declared as `Object`,\nso no matcher fires on it and it lands as a plain `Map`: which class it belongs to is decided by the\nchannel, and that is runtime state no parser can be given at construction time.\nPayloadRecast is how a caller asks for the typed instance, if it wants one.",
+    "fieldDocs":[
+      
+    ]
+  },
+  {
     "name":"QLiveBoostrap",
     "description":"Encapsulates the data for a /api/bootstrap call or to be embedded in the HTML document.\n\n * QLive config - QLiveConfig wrapped in a JSONHolder\n * injected data - Prepared data for the starting view based on static analysis of TypeScript sources.",
     "fieldDocs":[
@@ -604,10 +691,97 @@
     ]
   },
   {
+    "name":"ServerMessage",
+    "description":"Abstract base class for the messages the server sends to a client.",
+    "fieldDocs":[
+      
+    ]
+  },
+  {
+    "name":"Subscribe",
+    "description":"Registers one subscription on one channel for the connection that sent it.\n\nA connection can hold several subscriptions on the same channel with different conditions, which is\nwhat #getId() tells apart: the client picks it, and it comes back on every\nTopic message the subscription matched, on the Subscribed acknowledging it, and on any\nError rejecting it.",
+    "fieldDocs":[
+      {
+        "name":"condition",
+        "description":"Condition every message on the channel is evaluated against before it is delivered to this\nsubscription, or `null` to receive everything the channel carries.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"id",
+        "description":"The client's own id for this subscription, unique within its connection.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"topic",
+        "description":"Name of the channel to subscribe to.",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"Subscribed",
+    "description":"Acknowledges a Subscribe: the condition compiled, the subscription is registered, and messages\non the channel will start arriving.\n\nThe point of acknowledging at all is that the other outcome is visible too. A condition using an\noperator this backend cannot honour is rejected with an Error naming it, rather than becoming a\nsubscription that silently never matches anything.",
+    "fieldDocs":[
+      {
+        "name":"id",
+        "description":"The id the Subscribe carried.",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"Topic",
+    "description":"One channel message, delivered to one connection.\n\n#getIds() is a list because a connection can hold several subscriptions on the same channel\nwith different conditions. A publish matching more than one of them is batched into a single outgoing\nmessage rather than sent once per match, so the receiving client sees the payload once and knows every\none of its own subscriptions it belongs to.",
+    "fieldDocs":[
+      {
+        "name":"ids",
+        "description":"The ids of this connection's subscriptions that the payload matched.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"payload",
+        "description":"What was published, serialized on the way out and never read back server-side. The client is its\nonly consumer, and what type it gives the value there is a TypeScript question.",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"TopicTypes",
+    "description":"The one thing reading a dynamic payload needs from the pub/sub channel registry: the Java class a topic\nis bound to.\n\nNarrow on purpose. The registry is runtime state that grows as an application registers channels, so\nit cannot be wired into a parser once at construction time the way a fixed subclass list can -- but\nnothing about turning a payload into its bound type needs more of it than this.",
+    "fieldDocs":[
+      
+    ]
+  },
+  {
     "name":"TrackUsageData",
     "description":"Encapsulates the information contained within a <code>track-usage.json<\/code> file on the java side.\n\nIt contains the results of JavaScript code analysis that detects statically analyzable calls within the application\nreact components and other modules.",
     "fieldDocs":[
       
+    ]
+  },
+  {
+    "name":"Unsubscribe",
+    "description":"Drops one of the sending connection's subscriptions.\n\nOnly ever needed while a connection lives: closing one sweeps every subscription it holds, across every\nchannel.",
+    "fieldDocs":[
+      {
+        "name":"id",
+        "description":"The id the matching Subscribe carried.",
+        "paramDocs":[
+          
+        ]
+      }
     ]
   },
   {

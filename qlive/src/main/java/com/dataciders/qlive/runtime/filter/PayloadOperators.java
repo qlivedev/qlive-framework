@@ -26,7 +26,9 @@ import java.util.regex.Pattern;
 /// - Numbers are compared and combined by value, never by class. A condition's constants are whatever JSON
 ///   and the scalar coercing made of them and a payload's fields are whatever the publisher declared;
 ///   making a filter depend on a `Long` meeting a `Long` would make it depend on both.
-/// - Bit operations go through `BigInteger`, because the one they exist for here is a 128-bit field mask.
+/// - Bit operations go through `BigInteger`, because the one they exist for here is a 128-bit field
+///   mask -- and they take a decimal string as readily as a number, because a value that wide has no
+///   exact JSON number to arrive as.
 ///
 /// The logic is two-valued, unlike the SQL backend's. `not` around a comparison that did not match holds,
 /// where in SQL a comparison against NULL is itself NULL and stays NULL when negated.
@@ -347,6 +349,12 @@ final class PayloadOperators
     }
 
 
+    /// A whole number for a bit operation, decimal string included.
+    ///
+    /// The string is not a convenience. The value these operators exist for is a 128-bit field mask, which
+    /// is past what a JSON number holds exactly, so a mask is a decimal string on the wire in both
+    /// directions -- as the payload property a condition reads, and as the constant the condition compares
+    /// it against. Refusing one here would leave a client unable to write a mask at all.
     private static BigInteger integer(Object value)
     {
         return switch (value)
@@ -356,8 +364,22 @@ final class PayloadOperators
             case Double ignored -> throw new QLiveException("Bit operations need a whole number: " + value);
             case Float ignored -> throw new QLiveException("Bit operations need a whole number: " + value);
             case Number number -> BigInteger.valueOf(number.longValue());
+            case String string -> parseInteger(string);
             default -> throw new QLiveException("Not a number: " + value);
         };
+    }
+
+
+    private static BigInteger parseInteger(String value)
+    {
+        try
+        {
+            return new BigInteger(value.trim());
+        }
+        catch (NumberFormatException e)
+        {
+            throw new QLiveException("Bit operations need a whole number: '" + value + "'");
+        }
     }
 
 

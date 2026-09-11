@@ -118,6 +118,46 @@ class FilterTransformerTest
     }
 
 
+    /// The same mask, spelled the way it arrives over the wire on both sides: a 128-bit value has no
+    /// exact JSON number to be, so a client sends its constant as a decimal string and a payload that has
+    /// been through JSON carries one too.
+    @Test
+    void masksSpelledAsDecimalStrings()
+    {
+        final Predicate<Object> filter =
+            compile(field("fieldMask").bitAnd(value(HIGH_BIT.toString())).ne(value(0)));
+
+        assertThat(filter.test(version("Bar", "somebody", HIGH_BIT)), is(true));
+        assertThat(filter.test(version("Bar", "somebody", BigInteger.valueOf(4))), is(false));
+
+        // and against a payload whose own mask is the string, which is what EntityVersion sends
+        final Map<String, Object> asJson = Map.of("fieldMask", HIGH_BIT.toString());
+
+        assertThat(
+            new FilterTransformer(null)
+                .transform(field("fieldMask").bitAnd(value(HIGH_BIT.toString())).ne(value(0)))
+                .test(asJson),
+            is(true)
+        );
+    }
+
+
+    /// Something that is not a number at all still fails, and says which operand it was unhappy with.
+    @Test
+    void refusesABitOperationOnSomethingThatIsNoNumber()
+    {
+        final Predicate<Object> filter =
+            compile(field("entityType").bitAnd(value(1)).ne(value(0)));
+
+        final QLiveException e = assertThrows(
+            QLiveException.class,
+            () -> filter.test(version("Bar", "somebody", BigInteger.ONE))
+        );
+
+        assertThat(e.getMessage(), containsString("'Bar'"));
+    }
+
+
     /// A payload legitimately having nothing at a path is ordinary, and a comparison against it simply
     /// does not match -- including the negative ones, which is where this differs from asking a database.
     @Test

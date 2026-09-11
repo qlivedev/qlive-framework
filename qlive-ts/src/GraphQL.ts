@@ -4,7 +4,7 @@ import {Temporal} from "temporal-polyfill";
 type Scalar = boolean | number | string | bigint;
 
 /**
- * A value of any scalar type the domain has, travelling as the name of that type plus a value of it.
+ * A value of any scalar type the domain has, traveling as the name of that type plus a value of it.
  *
  * That is what lets one GraphQL field accept every scalar the application has: the server coerces the value
  * along the named type, so a mutation taking a GenericScalar needs no input type per domain type. QLive's

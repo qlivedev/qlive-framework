@@ -150,7 +150,7 @@ public final class MergeMeta
 
 
     /// Whether the type was declared a link table. Only ever true for the link tables that carry fields
-    /// beyond the two foreign keys, since a link table of the plain shape is recognised by that shape.
+    /// beyond the two foreign keys, since a link table of the plain shape is recognized by that shape.
     ///
     /// @param typeName  name of a GraphQL type, known or not
     public static boolean isLinkType(DomainQL domainQL, String typeName)

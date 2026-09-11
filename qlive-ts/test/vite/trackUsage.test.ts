@@ -130,7 +130,7 @@ describe("trackUsage", () => {
 
 
     /**
-     * Gets the backend to the state a dev session starts in: both modules analysed and pushed. That first
+     * Gets the backend to the state a dev session starts in: both modules analyzed and pushed. That first
      * push is the whole analysis, which is what a backend with nothing in it needs.
      */
     async function startWithBothModulesPushed(): Promise<TestPlugin>

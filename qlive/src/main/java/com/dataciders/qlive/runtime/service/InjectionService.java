@@ -668,7 +668,7 @@ public class InjectionService
 
     /// The GraphQL resultType of what the injection carries, i.e. of the operation's single top-level selection.
     ///
-    /// Informational -- the client logs it next to the value and does not derive behaviour from it -- so an
+    /// Informational -- the client logs it next to the value and does not derive behavior from it -- so an
     /// operation whose field is not in the schema yields `null` here rather than an error. Executing it will
     /// report that properly.
     private String typeOf(OperationDefinition operation)

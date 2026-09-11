@@ -261,7 +261,7 @@ function relationsFrom(typeName: string): RelationInfo[]
  * Whether the type holds nothing but its id, its version and the two foreign keys of its relations -- the
  * shape of a row that exists only to say two entities are associated.
  *
- * A field beyond those is something two users could disagree about, so a type carrying one is not recognised
+ * A field beyond those is something two users could disagree about, so a type carrying one is not recognized
  * here and has to be declared instead.
  */
 function hasOnlyLinkFields(typeName: string): boolean

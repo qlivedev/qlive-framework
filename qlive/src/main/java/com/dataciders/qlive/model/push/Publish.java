@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 ///
 /// The mirror image of the `publish()` call any framework or application bean can make server-side, and
 /// the one payload the server receives as raw JSON rather than as a live object. Which channels a client
-/// may publish to is an authorisation question the transport answers, not this class.
+/// may publish to is an authorization question the transport answers, not this class.
 public class Publish
     extends ClientMessage
     implements DynamicPayload

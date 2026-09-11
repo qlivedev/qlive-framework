@@ -120,7 +120,7 @@ class ConditionCoercingTest
     }
 
 
-    /// Timestamps included, which only holds because the scalar writes the UTC it reads: labelling a local
+    /// Timestamps included, which only holds because the scalar writes the UTC it reads: labeling a local
     /// time "Z" would send a filter back an offset away from the one that arrived.
     @Test
     void keepsTimestampsThroughTheRoundTrip()

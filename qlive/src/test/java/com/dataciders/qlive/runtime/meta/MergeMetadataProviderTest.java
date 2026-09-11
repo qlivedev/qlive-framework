@@ -123,7 +123,7 @@ class MergeMetadataProviderTest
 
 
     /// Reported rather than written: a type without a version column takes no part, so everything but the
-    /// link declaration would be meta data describing behaviour the type can never reach -- which looks
+    /// link declaration would be meta data describing behavior the type can never reach -- which looks
     /// exactly like a column somebody forgot to add.
     @Test
     void reportsMergeBehaviourDeclaredForAnUnversionedType()

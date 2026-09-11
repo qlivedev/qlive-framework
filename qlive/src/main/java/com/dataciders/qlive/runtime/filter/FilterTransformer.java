@@ -27,7 +27,7 @@ import java.util.function.Predicate;
 /// subscription is registered and evaluated per published message. Everything that can be decided from
 /// the condition alone is decided at compile time, while whoever asked for the predicate is still there
 /// to be told: a field path that names no property of the declared class, an operator this backend cannot
-/// honour, an operator given the wrong number of operands. None of those may become a filter that
+/// honor, an operator given the wrong number of operands. None of those may become a filter that
 /// silently never matches.
 ///
 /// A field path is plain property access and nothing else -- see {@link PropertyPath}. One difference

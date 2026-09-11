@@ -7,7 +7,7 @@
  * directives are skipped over in a balanced way so that documents using them still
  * parse instead of failing the framework user.
  *
- * Fragments are not modelled. A document using them still parses - the spread simply
+ * Fragments are not modeled. A document using them still parses - the spread simply
  * contributes no selections - but the fact is recorded in usesFragments, because a
  * conversion map built from such a document would silently lack those fields.
  */

@@ -571,7 +571,7 @@
   },
   {
     "name":"Publish",
-    "description":"Sends a payload to a channel, from a client.\n\nThe mirror image of the `publish()` call any framework or application bean can make server-side, and\nthe one payload the server receives as raw JSON rather than as a live object. Which channels a client\nmay publish to is an authorisation question the transport answers, not this class.",
+    "description":"Sends a payload to a channel, from a client.\n\nThe mirror image of the `publish()` call any framework or application bean can make server-side, and\nthe one payload the server receives as raw JSON rather than as a live object. Which channels a client\nmay publish to is an authorization question the transport answers, not this class.",
     "fieldDocs":[
       {
         "name":"message",
@@ -726,7 +726,7 @@
   },
   {
     "name":"Subscribed",
-    "description":"Acknowledges a Subscribe: the condition compiled, the subscription is registered, and messages\non the channel will start arriving.\n\nThe point of acknowledging at all is that the other outcome is visible too. A condition using an\noperator this backend cannot honour is rejected with an Error naming it, rather than becoming a\nsubscription that silently never matches anything.",
+    "description":"Acknowledges a Subscribe: the condition compiled, the subscription is registered, and messages\non the channel will start arriving.\n\nThe point of acknowledging at all is that the other outcome is visible too. A condition using an\noperator this backend cannot honor is rejected with an Error naming it, rather than becoming a\nsubscription that silently never matches anything.",
     "fieldDocs":[
       {
         "name":"id",

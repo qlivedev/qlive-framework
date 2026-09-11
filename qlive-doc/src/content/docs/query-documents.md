@@ -147,7 +147,7 @@ The one option worth understanding.
 - **`false` (the default) is the strict mode.** A filter or sort path may
   only name a field the query actually selects. That makes the query
   document itself the security boundary: the selection is static source
-  text your build already analysed, and a config posted by a browser varies
+  text your build already analyzed, and a config posted by a browser varies
   the `WHERE`, the `ORDER BY` and the page, and can reach nothing the
   document does not name.
 - **`true` lets a path extend the plan**: relations it crosses get joined,

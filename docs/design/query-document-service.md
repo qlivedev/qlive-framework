@@ -96,7 +96,7 @@ Nodes carry: aliased table, relation to the parent, selected columns,
 children.
 
 **Aliases** are built from the names the application already uses, so
-that a framework user reading the SQL log recognises their own query.
+that a framework user reading the SQL log recognizes their own query.
 They follow database naming conventions: snake_case, single underscores
 only.
 
@@ -169,7 +169,7 @@ against the selection tree, not against the schema at large:
 In the default mode the plan tree therefore comes entirely from the
 GraphQL selection, and the config can only vary `WHERE`, `ORDER BY` and
 `LIMIT` -- never the FROM/JOIN shape. That makes the query document,
-which is static source text analysed at build time, the security
+which is static source text analyzed at build time, the security
 boundary: a client cannot filter its way to a table the declared query
 never mentioned. It is a stronger property than operator whitelisting,
 and the two modes should differ only in whether a resolver miss throws
@@ -325,7 +325,7 @@ name is an error.
   metadata are the intended direction, and that is a separate design.
   Nothing in this service should pre-empt it.
 - **DomainQL may be changed**, but only backwards compatibly, or where
-  the current behaviour is clearly an error.
+  the current behavior is clearly an error.
 - **A config that reaches the service is complete.** The GraphQL and
   TypeScript types both say so, and the service reads `pageSize` and
   `offset` without asking whether they are there. `QueryConfigDelta` is

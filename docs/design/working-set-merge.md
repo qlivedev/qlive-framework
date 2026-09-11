@@ -5,7 +5,7 @@ and not built is everything the build order never listed: the unload
 guard and the navigation guard it registers, parking a change set, and
 push. Written 2026-09-09.
 
-Write support for QLive, modelled on the MVCC merge built in Automaton.
+Write support for QLive, modeled on the MVCC merge built in Automaton.
 This is a re-design, not a port: the mechanisms that earned their keep
 are carried over, the parts that kept it from being used are not.
 
@@ -41,7 +41,7 @@ differently from a version control merge:
   value with nobody behind it. The API says `mine` and `stored`, and a
   form labels them "your value" and "saved value", because that is what
   the person looking at the screen is choosing between.
-- **The default has to favour the person who is here.** They typed
+- **The default has to favor the person who is here.** They typed
   those values on purpose, minutes ago. A field they changed keeps their
   value unless they say otherwise; a field they did not change takes the
   stored one, because they have no opinion about it and taking it is
@@ -251,7 +251,7 @@ client from the GraphQL type it already has in `config().typesByName`.
 Both ends reach the same answer from the schema, so there is no way for
 them to disagree.
 
-Everything else about a type's merge behaviour is opt-in type meta data,
+Everything else about a type's merge behavior is opt-in type meta data,
 written by a `MergeMetadataProvider` alongside the existing
 `QueryConfigMetadataProvider`, and read through a `MergeMeta` companion
 holding the property names:
@@ -713,7 +713,7 @@ comparison is against. Otherwise a user who deliberately typed the old
 value back would have their change dropped and the other write left
 standing.
 
-**The second save is the acknowledgement, and it is the user's.** The
+**The second save is the acknowledgment, and it is the user's.** The
 working set never re-sends by itself. Defaulting to `mine` *and*
 retrying automatically would be a silent clobber with extra steps: the
 marks would flash past and the other write would be gone. The user gets
@@ -813,7 +813,7 @@ await ws.park()      // stash() + clear(): the work is safe, the guard goes quie
 The stash holds what the working set is, not what the form looked like:
 per entity its type, id, **base version**, base snapshot and change map,
 plus the deletions and any resolution decisions already made. Values are
-serialised through `convertToServer()`, which is what the merge would
+serialized through `convertToServer()`, which is what the merge would
 have done with them anyway -- a `Temporal.Instant` does not survive
 `JSON.stringify` and the conversion for that already exists.
 
@@ -835,7 +835,7 @@ answers for a browser tab that sat open over the weekend.
 **A stash is not named, it is described.** Asking the application to
 invent a key would be asking it to solve identity and findability at
 once, and it needs neither: a stash gets a generated id, and everything a
-user needs in order to recognise it is already in the thing being stashed.
+user needs in order to recognize it is already in the thing being stashed.
 
 ```
 Bar "Bar #2" and 2 more        parked Fri 19:47
@@ -1071,7 +1071,7 @@ a composed predicate tree is the right stopping point: generating
 bytecode would be a lot of machinery for a gain nobody has measured, and
 pubsub message volume is not where that would first show up. What matters
 is that both sit behind one interface, so the fixture suite tests
-behaviour rather than strategy and either can be taken further later
+behavior rather than strategy and either can be taken further later
 without a caller noticing.
 
 **An operator a backend cannot do throws at transform time**, which is
@@ -1179,7 +1179,7 @@ type analysis.
    unversioned path has a subject.
 2. **Meta.** `MergeMeta` / `MergeMetadataProvider`, the client-side
    derivation of versioned types and link relations, the
-   `DomainQLTypeMetaProps` addendum. No behaviour yet.
+   `DomainQLTypeMetaProps` addendum. No behavior yet.
 3. **Server merge, scalars only.** Model types, `MergeService` and
    `DefaultMergeService`, `MergeLogic` as the framework's `@GraphQLLogic`
    bean, optimistic locking, deletions, conflicts as data. No masks yet:

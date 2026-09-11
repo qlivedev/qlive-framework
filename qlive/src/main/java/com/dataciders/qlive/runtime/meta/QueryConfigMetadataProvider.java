@@ -16,7 +16,7 @@ import java.util.Map;
 ///
 /// Opt-in and empty by default: an application that wants any of this registers this as a MetadataProvider
 /// bean and says which types it declares what for, and one that does not registers nothing and gets the
-/// behaviour it had before there was any of this.
+/// behavior it had before there was any of this.
 ///
 ///     @Bean
 ///     public MetadataProvider queryConfigMetadata()

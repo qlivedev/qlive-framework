@@ -119,7 +119,7 @@ a symbolic name it has compiled in -- so the plugin brings them along and an
 application configures none of it. `backendOrigin` is all it needs: the dev
 endpoint the analysis is POSTed to belongs to the framework as well.
 
-An application that wants its *own* calls analysed adds them under
+An application that wants its *own* calls analyzed adds them under
 `trackedFunctions`, which is merged with QLive's:
 
 ```ts

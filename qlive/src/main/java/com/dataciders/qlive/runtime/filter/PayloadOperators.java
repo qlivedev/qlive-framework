@@ -160,7 +160,7 @@ final class PayloadOperators
 
     /// Looks up the condition operator of that name and operand count.
     ///
-    /// @throws QLiveException   if the name is not an operator this backend honours, or is one that does
+    /// @throws QLiveException   if the name is not an operator this backend honors, or is one that does
     ///                          not take that many operands
     static ConditionOp condition(String name, int arity)
     {
@@ -178,7 +178,7 @@ final class PayloadOperators
 
     /// Looks up the value operation of that name and operand count.
     ///
-    /// @throws QLiveException   if the name is not an operation this backend honours, or is one that does
+    /// @throws QLiveException   if the name is not an operation this backend honors, or is one that does
     ///                          not take that many operands
     static ValueOp operation(String name, int arity)
     {

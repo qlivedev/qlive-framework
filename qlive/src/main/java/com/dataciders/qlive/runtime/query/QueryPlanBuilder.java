@@ -38,7 +38,7 @@ import java.util.Set;
 ///
 /// The plan comes from the GraphQL selection: what the query selects is what gets queried, and in the
 /// strict mode that is also the whole of what it can be filtered and sorted by. Since the selection is
-/// static source text that the frontend build has already analysed, that makes the query document itself
+/// static source text that the frontend build has already analyzed, that makes the query document itself
 /// the boundary -- a config posted by a browser varies the `WHERE`, the `ORDER BY` and the page, and can
 /// reach nothing the document does not name.
 public class QueryPlanBuilder

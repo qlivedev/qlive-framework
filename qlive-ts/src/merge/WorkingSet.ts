@@ -217,7 +217,7 @@ export class WorkingSet
     /** every entity, by type and id */
     private entities: Map<string, Entity>;
 
-    /** which entity a registered row belongs to, which is how edit() recognises a row it was handed */
+    /** which entity a registered row belongs to, which is how edit() recognizes a row it was handed */
     private rows: WeakMap<object, string>;
 
     private conflicts: MergeConflict[];
@@ -1139,7 +1139,7 @@ export class WorkingSet
     ): void
     {
         // pending rather than every change, so that a user who decided to leave the associations to the
-        // other write has that decision honoured the way it is for a scalar
+        // other write has that decision honored the way it is for a scalar
         for (const name of pending(entity))
         {
             const relation = MergeMeta.linkRelation(entity.type, name)

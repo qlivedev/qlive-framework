@@ -74,7 +74,7 @@ class MergeMetadataTest
 
 
     /// bar_link is a link of the plain shape -- an id, a version and its two foreign keys -- so the client
-    /// recognises it without help and nothing here declares it one.
+    /// recognizes it without help and nothing here declares it one.
     @Test
     void declaresNoLinkType()
     {

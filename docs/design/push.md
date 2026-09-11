@@ -98,7 +98,7 @@ offers, by design, for a framework that already covers named views with
 implicit relations through the eager path -- it is not a shortcut worth
 leaning on. A pub/sub publisher gathering a database-backed payload can
 reuse that same batched-materialize mechanism rather than invent its own
-defence against accidental N+1 queries. Whether the `DomainObject` that
+defense against accidental N+1 queries. Whether the `DomainObject` that
 step produces still carries its `FetcherContext` when it reaches
 `publish()` turns out not to matter either way -- "Field resolution"
 below covers why.
@@ -287,7 +287,7 @@ ever produce a typed instance at all.
 A typed instance is still worth having when a specific piece of Java code
 handling an inbound `Publish` wants compile-time field access rather than
 string-keyed lookups on its `message` -- there is no such consumer
-designed yet (client-publish authorisation is an open item below), but
+designed yet (client-publish authorization is an open item below), but
 whatever eventually reads a client's own payload server-side is exactly
 the shape of thing that would want one. For that, *selective* recasting:
 now that `topic` is known, resolve it against the pub/sub core's channel
@@ -445,7 +445,7 @@ already has right. Until then a constant is whatever JSON made of it,
 which covers strings, numbers and booleans -- the whole of the
 entity-version subscription -- and leaves a timestamp constant still a
 string. An operator this backend
-cannot honour throws at transform time, naming itself, with whoever is
+cannot honor throws at transform time, naming itself, with whoever is
 registering the subscription still looking at the result -- not a filter
 that silently matches nothing forever.
 
@@ -550,7 +550,7 @@ server and spent by the client.** Automaton's `AutomatonClientConnection`
 identity is captured once at page-render time, embedded in the page as a
 `connectionId`, and consumed exactly once when the socket first opens --
 `preparedConnections.remove(cid)`. After that the cid is permanently
-spent. The cost is real and documented in Automaton's own behaviour: the
+spent. The cost is real and documented in Automaton's own behavior: the
 client's reconnect loop keeps retrying with that now-dead cid, the server
 closes the connection with code `4100`, and the client shows a hard
 *"Server Restarted. Please Reload"* prompt for any drop that isn't
@@ -593,7 +593,7 @@ constant before it ever sends `subscribe`. If a genuine per-subscriber
 context need turns up later, the fix is evaluation-time, per-subscriber
 resolution -- not Automaton's per-publish one.
 
-**Subscribe gets an acknowledgement.** Automaton's `PubSubMessageHandler`
+**Subscribe gets an acknowledgment.** Automaton's `PubSubMessageHandler`
 never acks SUBSCRIBE or UNSUBSCRIBE; a bad filter -- an unsupported
 operator, for instance -- only ever produces a server-side log line the
 subscriber never sees. QLive replies with a `Subscribed` or `Error`
@@ -607,7 +607,7 @@ instance -- which has no reason to know or care whether anyone has
 subscribed yet.
 
 **A client may publish, mirroring Automaton, for symmetry.** Which
-channels a client is authorised to publish to, and how that gets
+channels a client is authorized to publish to, and how that gets
 enforced against a channel's declared type, is an open item below, not
 settled here -- so the handler parses, routes and *refuses* a client
 `Publish` for now. Shipping it unauthorised would let any logged-in user
@@ -794,7 +794,7 @@ them.
    because leaving it out meant a subscription that silently matched
    everything; subscribing to an unregistered channel is refused rather
    than creating one; and a client `Publish` is refused until the
-   authorisation question below is settled. `Topic` is package-private
+   authorization question below is settled. `Topic` is package-private
    because the message class of the same name is the one a framework
    user imports, and nothing outside the core needs the other.
 4. **The entity-version adapter, server side.** The `EntityVersionsEvent`
@@ -861,7 +861,7 @@ them.
   grow, a context-node concept -- relevant only if a genuine
   per-subscriber personalisation need ever shows up; not needed for
   `ownerId ne me`, which is handled client-side.
-- Which channels a client may `publish` to, and how that gets authorised
+- Which channels a client may `publish` to, and how that gets authorized
   against a channel's declared type.
 - That the FilterDSL a subscription writes reads a to-many positionally
   while the same DSL against the database reads it as "some element

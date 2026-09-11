@@ -5,7 +5,7 @@ Status: sketched, not started. Written 2026-09-10.
 How a module brings its own domain types and its own views. The
 distribution and pairing of modules is `module-distribution.md`; this is
 the mechanism the domain/UI species of module described there needs, and
-nothing in it applies to a behaviour module.
+nothing in it applies to a behavior module.
 
 ## Problem
 
@@ -134,7 +134,7 @@ here: track-usage runs babel over `.ts`/`.tsx` and never visits a JSON
 file, so a view expressed as JSON could declare neither a `useInjection`
 nor a `GraphQLQuery` -- which is the only reason the vendored file has to
 be application-local in the first place. It would defeat its own purpose,
-and cost a component registry, a renderer, prop serialisation, a second
+and cost a component registry, a renderer, prop serialization, a second
 analyser and TypeScript's knowledge of any of it. Automaton paid that for
 a graphical editor. Absent that ambition it buys nothing.
 

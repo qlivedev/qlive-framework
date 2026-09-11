@@ -122,7 +122,7 @@ tracked `GraphQLQuery` declarations are the seed set.
 
 ### Tier 2 -- full
 
-Today's behaviour, kept as an explicit opt-out, because some consumers
+Today's behavior, kept as an explicit opt-out, because some consumers
 legitimately want the whole domain. `DomainTables` is the canonical one:
 it is a domain browser, so its working set *is* the schema. It also
 scans linearly (`schema.types.find(...)` per lookup), which is another
@@ -154,7 +154,7 @@ Closure over the seed set:
 - relations from `meta.relations` where *both* `sourceType` and
   `targetType` are included
 
-The relation rule is the one genuine judgement call. Including relations
+The relation rule is the one genuine judgment call. Including relations
 that dangle out of the slice would drag their target types back in and
 defeat the exercise; excluding them means a partial slice cannot answer
 "what relations does this type have" completely. Restricting to
@@ -236,7 +236,7 @@ problem from the error message alone.
 ## Open items (not decided)
 
 - **Whether tier 1 or tier 2 is the default.** Tier 2 is safe and is
-  today's behaviour; tier 1 is the whole point but can only be the
+  today's behavior; tier 1 is the whole point but can only be the
   default if the closure rules are trusted to be complete. Suggested
   path: build tier 1 as opt-in, run it against qlive-test and one large
   synthetic domain, and only flip the default once the fixed floor is
@@ -253,7 +253,7 @@ problem from the error message alone.
   of the win; `meta.relations` is the part with the awkward closure rule
   above.
 - **Fixing `StartupOptions.reduced`.** It is currently declared,
-  undocumented in behaviour, unread, and passed an inverted value. It
+  undocumented in behavior, unread, and passed an inverted value. It
   should either become the client-side expression of these tiers or be
   removed; leaving a dead flag that looks like this feature is worse
   than either.

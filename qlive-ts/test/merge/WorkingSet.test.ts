@@ -491,7 +491,7 @@ describe("many-to-many", () => {
         })
     })
 
-    it("recognises an association by the row on the other side", async () => {
+    it("recognizes an association by the row on the other side", async () => {
 
         const document = await loadBars()
         const ws = new WorkingSet()

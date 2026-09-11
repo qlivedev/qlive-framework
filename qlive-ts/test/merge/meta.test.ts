@@ -63,7 +63,7 @@ describe("declared meta data", () => {
 
 describe("link types", () => {
 
-    it("recognises one by its shape", () => {
+    it("recognizes one by its shape", () => {
 
         // an id, a version and the two foreign keys with their object fields, and nothing else
         expect(MergeMeta.isLinkType("BarLink")).toBe(true)

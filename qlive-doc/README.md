@@ -54,12 +54,12 @@ when someone actually builds the docs. It is not a Maven module either.
 The cost is one extra `pnpm -C qlive-doc install` before the first
 `pnpm docs:dev`.
 
-## Colours
+## Colors
 
-`src/styles/qlive.css` is generated -- do not edit it. The six brand colours
+`src/styles/qlive.css` is generated -- do not edit it. The six brand colors
 live in `tooling/palette.mjs`, which derives every shade, tint and neutral
 from them and picks how far to mix by measuring WCAG contrast rather than by
-eye. Change a colour there and run `pnpm -C qlive-doc palette`.
+eye. Change a color there and run `pnpm -C qlive-doc palette`.
 
 ## Writing a page
 
@@ -146,12 +146,12 @@ Three things about that snippet:
 - Both files are fetched whichever theme is active; the hidden one is
   `display: none`, not unloaded. Keep them small.
 
-Since each file owns its background, the full-strength brand colours are
+Since each file owns its background, the full-strength brand colors are
 available inside it -- the page behind it never shows through. Load
 `qlive.gpl` into Inkscape (copy to `~/.config/inkscape/palettes/`, then pick
-"QLive" under the colour swatches) so the drawing uses the exact palette.
+"QLive" under the color swatches) so the drawing uses the exact palette.
 
-`qlive.gpl` also carries three colours that clear 3:1 on *both* pages -- a
+`qlive.gpl` also carries three colors that clear 3:1 on *both* pages -- a
 bronze, a teal and a sage. Those are for the other case: a single diagram
 serving both themes, with no background of its own. Not needed for the
 two-file approach.

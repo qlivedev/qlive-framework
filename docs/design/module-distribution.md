@@ -10,11 +10,11 @@ building a bespoke package manager from scratch.
 
 ## Two kinds of module
 
-A module brings *behaviour*, or it brings a *domain and the UI over it*.
+A module brings *behavior*, or it brings a *domain and the UI over it*.
 The two need almost disjoint support, and conflating them is what makes
 this look harder than it is.
 
-- **Behaviour modules** are generic over the application's domain: the
+- **Behavior modules** are generic over the application's domain: the
   working set and merge, websocket push, an audit trail, an import
   service. They bring no tables and no views. What they need is API
   surface -- exported seams in `qlive-ts`, event publication in `qlive`,

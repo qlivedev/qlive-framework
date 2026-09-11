@@ -35,7 +35,7 @@
         --qlive-color-accent: #2563eb;
 
         /*
-         * What a merge marks a field with. Four states, four colours, and the
+         * What a merge marks a field with. Four states, four colors, and the
          * classes that carry them are public API - see MergeField#className.
          */
         --qlive-color-changed: #2563eb;
@@ -223,7 +223,7 @@
      * What a merge marks a field with, put on whatever the application renders
      * the field as: MergeField#className is one of these or the empty string.
      *
-     * A border colour and an inset bar rather than a border of our own, so that
+     * A border color and an inset bar rather than a border of our own, so that
      * marking a field moves nothing on the page - an input that gains a border
      * on the day two people edit the same row is an input that jumps.
      */

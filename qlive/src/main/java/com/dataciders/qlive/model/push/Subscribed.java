@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 /// on the channel will start arriving.
 ///
 /// The point of acknowledging at all is that the other outcome is visible too. A condition using an
-/// operator this backend cannot honour is rejected with an {@link Error} naming it, rather than becoming a
+/// operator this backend cannot honor is rejected with an {@link Error} naming it, rather than becoming a
 /// subscription that silently never matches anything.
 public class Subscribed
     extends ServerMessage

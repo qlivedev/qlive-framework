@@ -14,7 +14,7 @@ One stylesheet, `qlive-ts/src/styles/qlive.css`, built into
 
 - the `@layer qlive` declaration
 - the `--qlive-*` custom properties on `:root`
-- a `prefers-color-scheme: dark` block redefining the colour tokens
+- a `prefers-color-scheme: dark` block redefining the color tokens
 - rules for the classes QLive currently paints
 
 Everything in the file is inside `@layer qlive`.
@@ -93,7 +93,7 @@ inoffensive, not a designed one.
 These names are public API. Renaming one is a breaking change for every
 application that overrides it, and so are the class names QLive paints.
 
-Dark mode is a `prefers-color-scheme: dark` block redefining the colour
+Dark mode is a `prefers-color-scheme: dark` block redefining the color
 tokens, rather than `light-dark()`. The media query is far older, and
 redefining tokens under a selector is also what lets an application
 force a theme instead of following the OS.

@@ -153,7 +153,7 @@ public class MergeMetadataProvider
     }
 
 
-    /// Declares the auto-merge behaviour of the type of the given GraphQL name, for the types an application
+    /// Declares the auto-merge behavior of the type of the given GraphQL name, for the types an application
     /// has no class at hand for.
     public MergeMetadataProvider autoMerge(String typeName, boolean autoMerge)
     {
@@ -170,7 +170,7 @@ public class MergeMetadataProvider
     /// two entities are associated.
     ///
     /// Only needed for the link tables carrying fields beyond the two foreign keys: one of the plain shape is
-    /// recognised by that shape, on the client, out of the relation meta data it already has. The one
+    /// recognized by that shape, on the client, out of the relation meta data it already has. The one
     /// statement here that says nothing about versioning, and the only one a type without a `version` field
     /// may make.
     public MergeMetadataProvider linkType(Class<?> javaType)

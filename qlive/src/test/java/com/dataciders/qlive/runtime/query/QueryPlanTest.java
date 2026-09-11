@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /// query config is and is not allowed to add to that.
 ///
 /// The plans are made from selection sets a real GraphQL execution produced, because the selection is the
-/// input that decides everything else. The config is built in Java instead of travelling as a variable:
+/// input that decides everything else. The config is built in Java instead of traveling as a variable:
 /// what the coercing does with a condition is its own business and its own test.
 class QueryPlanTest
 {

@@ -56,18 +56,35 @@ class FilterTransformerTest
         final VersionPayload baz = version("Baz", "u2", BigInteger.ONE);
 
         assertThat(
-            compile(and(field("entityType").eq(value("Bar")), field("ownerId").eq(value("u1")))).test(bar),
+            compile(
+                and(
+                    field("entityType").eq(value("Bar")),
+                    field("ownerId").eq(value("u1")))
+            ).test(bar),
             is(true)
         );
         assertThat(
-            compile(and(field("entityType").eq(value("Bar")), field("ownerId").eq(value("u2")))).test(bar),
+            compile(
+                and(
+                    field("entityType").eq(value("Bar")),
+                    field("ownerId").eq(value("u2")))
+            ).test(bar),
             is(false)
         );
         assertThat(
-            compile(or(field("entityType").eq(value("Bar")), field("entityType").eq(value("Baz")))).test(baz),
+            compile(
+                or(
+                    field("entityType").eq(value("Bar")),
+                    field("entityType").eq(value("Baz")))
+            ).test(baz),
             is(true)
         );
-        assertThat(compile(not(field("entityType").eq(value("Bar")))).test(baz), is(true));
+        assertThat(compile(
+            not(
+                field("entityType").eq(value("Bar")))
+            ).test(baz),
+            is(true)
+        );
         assertThat(
             compile(field("entityType").eq(value("Bar")).andNot(field("ownerId").eq(value("u2")))).test(bar),
             is(true)

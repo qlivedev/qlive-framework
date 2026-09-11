@@ -2,7 +2,8 @@ import {v4 as uuid} from "uuid";
 import {GraphQLQuery} from "../GraphQLQuery";
 import {GraphQLField} from "../GraphQLSchema";
 import {QueryConfigDelta} from "../QueryDocument";
-import {findType, LIST, unwrapAll, unwrapNonNull} from "../type-utils";
+import {findType, LIST, objectFields, unwrapAll, unwrapNonNull} from "../type-utils";
+import {RowVisit, walkRows} from "../util/rows";
 import {
     createAccessor,
     MergeAccessor,
@@ -781,57 +782,30 @@ export class WorkingSet
         const query = GraphQLQuery.access(document as any)
         const source = query ? `query "${query.queryName}"` : "the query the rows came from"
 
-        for (const row of document.rows)
-        {
-            this.walkRow(row, document.type, source)
-        }
+        walkRows(document.rows, document.type, visited => this.registerRow(visited, source))
     }
 
 
     /**
-     * Registers one row and everything below it.
+     * Registers one row the walk visited.
      *
-     * The type says which fields are rows of their own and which are values, so no marker has to travel
-     * with the data. A row without an id is no entity -- there is nothing to name it by and nothing to
-     * hang a change on -- but the rows below it still are, since a query is free to select an object
-     * without selecting its id.
+     * A row without an id is no entity -- there is nothing to name it by and nothing to hang a change on --
+     * which the walk leaves to this to decide, having visited the rows below it either way.
      */
-    private walkRow(row: any, type: string, source: string): void
+    private registerRow(visited: RowVisit, source: string): void
     {
-        if (!row || typeof row !== "object")
+        const {row, type, values, relations} = visited
+
+        const base = new Map<string, unknown>(values)
+
+        for (const relation of relations)
         {
-            return
-        }
-
-        const base = new Map<string, unknown>()
-
-        for (const field of objectFields(type))
-        {
-            const value = row[field.name]
-            if (value === undefined)
+            if (relation.list && MergeMeta.linkRelation(type, relation.field))
             {
-                // a field the query did not select
-                continue
-            }
-
-            const named = unwrapAll(field.type)
-
-            if (named.kind === "OBJECT")
-            {
-                const rows = Array.isArray(value) ? value : [value]
-                rows.forEach(nested => this.walkRow(nested, named.name!, source))
-
-                if (Array.isArray(value) && MergeMeta.linkRelation(type, field.name))
-                {
-                    // the associations as they stand, which is what a write to the field is diffed against.
-                    // A copy of the array and not the array: the one the row holds is the view's to render
-                    // and is free to be replaced.
-                    base.set(field.name, [...value])
-                }
-            }
-            else
-            {
-                base.set(field.name, value)
+                // the associations as they stand, which is what a write to the field is diffed against.
+                // A copy of the array and not the array: the one the row holds is the view's to render
+                // and is free to be replaced.
+                base.set(relation.field, [...relation.rows])
             }
         }
 
@@ -1365,22 +1339,6 @@ function storedFields(conflict: MergeConflict): Record<string, unknown>
     }
 
     return fields
-}
-
-
-/**
- * The fields of the given object type.
- */
-function objectFields(type: string): GraphQLField[]
-{
-    const found = findType(type)
-
-    if (found.kind !== "OBJECT" || !found.fields)
-    {
-        throw new Error(`"${type}" is a ${found.kind}, and a working set holds rows of object types.`)
-    }
-
-    return found.fields
 }
 
 

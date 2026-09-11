@@ -1,4 +1,4 @@
-import {GraphQLNamedTypeRef, GraphQLType, GraphQLTypeRef} from "./GraphQLSchema";
+import {GraphQLField, GraphQLNamedTypeRef, GraphQLType, GraphQLTypeRef} from "./GraphQLSchema";
 import config from "./config";
 
 export const LIST = "LIST"
@@ -82,6 +82,26 @@ export function findType(name: string) : GraphQLType
         throw new Error(`Unable to find type "${name}"`);
     }
     return type;
+}
+
+/**
+ * The fields of the given object type.
+ *
+ * @param type      GraphQL type name
+ *
+ * @returns the fields, in schema order
+ * @throws if the schema has no type of that name, or it is not an object type
+ */
+export function objectFields(type: string): GraphQLField[]
+{
+    const found = findType(type)
+
+    if (found.kind !== "OBJECT" || !found.fields)
+    {
+        throw new Error(`"${type}" is a ${found.kind}, and rows are of object types.`)
+    }
+
+    return found.fields
 }
 
 /**

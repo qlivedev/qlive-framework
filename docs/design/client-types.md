@@ -177,13 +177,21 @@ one thing in both files.
 
 A hand-written payload class opts in with an annotation its author has
 already read in every generated POJO, which is a smaller thing to learn
-than a QLive-specific marker would have been. Two limits worth knowing:
-`findAnnotation` insists on a `JavaObjectPropertyInfo`, so a property
-that is not a real accessor pair has no annotation to find; and DomainQL
-lets `@GraphQLField(notNull = ...)` set the same bit and errors on
-disagreement with `@NotNull`. There is no second source here, and there
-should not be one -- `@NotNull` alone keeps a single answer to a single
-question.
+than a QLive-specific marker would have been. The one asymmetry worth
+knowing is on DomainQL's side: it lets `@GraphQLField(notNull = ...)`
+set the same bit and errors on disagreement with `@NotNull`. There is no
+second source here, and there should not be one -- `@NotNull` alone
+keeps a single answer to a single question.
+
+`findAnnotation` requiring a `JavaObjectPropertyInfo` is not a limit in
+practice. `ObjectSupport` was meant as a seam for other conventions and
+never grew a second useful implementation; `TypeAnalyzer` caches class
+info by class alone, so the first support to analyze a type wins for the
+whole JVM and mixing two would be decided by load order rather than by
+anyone's intent. This project uses `JSONUtil.OBJECT_SUPPORT` and only
+that -- `ConditionParser` and `PushMessageParser` both set it explicitly
+-- which keeps one analysis per class and makes every property info in
+reach a `JavaObjectPropertyInfo`.
 
 ## Build order
 

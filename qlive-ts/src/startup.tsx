@@ -8,6 +8,7 @@ import {registerViews, ViewModules} from "./views";
 import findRoot from "./util/findRoot";
 import ErrorBoundary from "./component/ErrorBoundary";
 import {loadViewForPath} from "./router";
+import {initPubSub} from "./pubsub";
 import {FunctionComponent} from "react";
 
 export interface StartupOptions
@@ -137,6 +138,11 @@ export async function startup(options: StartupOptions): Promise<Root>
     }
 
     const config = await init(bsData);
+
+    // Arms push: clears whatever a previous startup left behind. The socket opens on the first
+    // subscribeToTopic(), so an entry point that subscribes to nothing -- the login page -- opens nothing.
+    initPubSub();
+
     if (options.init)
     {
         await options.init(config)

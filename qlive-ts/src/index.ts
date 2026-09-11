@@ -68,6 +68,8 @@ export { decompileFilter } from "./util/decompileFilter";
 // they mean next to a merge prefix and not much without one.
 export * as MergeMeta from "./merge/meta";
 
+export { subscribeToTopic, PubSubConnection } from "./pubsub";
+
 export { WorkingSet } from "./merge/WorkingSet";
 export { useWorkingSet } from "./merge/useWorkingSet";
 export { useMerge } from "./merge/useMerge";
@@ -126,6 +128,8 @@ export type { ErrorViewProps } from "./component/ErrorView";
 export type { ErrorBoundaryProps } from "./component/ErrorBoundary";
 
 export type { DomainTablesProps } from "./component/DomainTables";
+
+export type { PubSubStatus, PubSubConnectionSnapshot, TopicHandler } from "./pubsub";
 
 export type { MergeTypeMeta, LinkRelation } from "./merge/meta";
 
@@ -215,6 +219,8 @@ export type {
  *   converter.initConverters()          built-in converters, needs the config
  *   data.initData()                     injections received with the page
  *   views.registerViews()               view modules from import.meta.glob()
+ *   pubsub.initPubSub()                 drops the push connection a previous
+ *                                       startup left and clears its subscriptions
  *
  * Internal plumbing -- an implementation detail of a public entry point, and
  * the public one is the supported way in:

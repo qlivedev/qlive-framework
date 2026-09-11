@@ -16,24 +16,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
-/// Compiles a FilterDSL condition into a predicate over one channel's payloads.
+/// Compiles a FilterDSL condition into a predicate over one plain Java object.
 ///
 /// A peer of {@link com.dataciders.qlive.runtime.query.condition.ConditionTransformer}, not a variant of
 /// it: the same condition model, a different backend. That one builds JOOQ conditions a database evaluates
 /// over rows; this one builds a tree of composed {@link Predicate}s the server evaluates over one live
 /// Java object, which is what a pub/sub message is.
 ///
-/// Compiled once, when a subscription is registered, and evaluated once per published message from then
-/// on. Everything that can be decided from the condition alone is decided here, while whoever registered
-/// the subscription is still listening: a field path that names no property of the payload class, an
-/// operator this backend cannot honour, an operator given the wrong number of operands. None of those may
-/// become a subscription that silently never matches.
+/// Compiled once and evaluated many times from then on -- in pub/sub, its first caller, compiled when a
+/// subscription is registered and evaluated per published message. Everything that can be decided from
+/// the condition alone is decided at compile time, while whoever asked for the predicate is still there
+/// to be told: a field path that names no property of the declared class, an operator this backend cannot
+/// honour, an operator given the wrong number of operands. None of those may become a filter that
+/// silently never matches.
 ///
 /// What reaches a payload is plain property access, always -- see {@link PropertyPath}. There is no GraphQL
 /// field resolution anywhere in here and no query, for any payload, including one that happens to be a
-/// `DomainObject`: a channel has no per-subscriber selection, so the machinery that serves one has nothing
-/// to do. The obligation that puts on a publisher is plain in return -- whatever relation a subscriber's
-/// condition might reach through has to be populated on the instance handed to `publish()`.
+/// `DomainObject`: nothing here selects fields per caller, so the machinery that serves a selection has
+/// nothing to do. The obligation that puts on whoever produces the object is plain in return -- whatever
+/// relation a condition might reach through has to be populated on the instance handed over. For pub/sub
+/// that means the instance passed to `publish()`.
 ///
 /// Values are already the Java objects they claim to be, the same contract the SQL transformer works
 /// under: reading a condition's JSON is
@@ -42,15 +44,17 @@ import java.util.function.Predicate;
 /// straight off the wire has to go through that before it gets here, or its timestamps are still strings.
 public class FilterTransformer
 {
-    private final Class<?> payloadType;
+    private final Class<?> declaredType;
 
 
-    /// @param payloadType   class the channel's payloads have, which is what field paths are checked
-    ///                      against. `null` where a channel's payloads have no declared shape, in which
-    ///                      case paths are taken as written and resolved against whatever arrives.
-    public FilterTransformer(Class<?> payloadType)
+    /// @param declaredType   class the objects this predicate will read are declared to have, which is
+    ///                       what field paths are checked against. Nothing enforces it at evaluation
+    ///                       time -- a path resolves against whatever object actually arrives -- so this
+    ///                       constrains the condition rather than the subject. `null` where no shape is
+    ///                       declared, in which case paths are taken as written and nothing is checked.
+    public FilterTransformer(Class<?> declaredType)
     {
-        this.payloadType = payloadType;
+        this.declaredType = declaredType;
     }
 
 
@@ -59,7 +63,7 @@ public class FilterTransformer
     /// @param node      root of the condition, may be `null`
     ///
     /// @return predicate over a payload, or `null` for a condition that turns out to constrain nothing,
-    ///         which a subscription reads as "everything on this channel"
+    ///         which a caller reads as "everything" -- a subscription, as "every message on this channel"
     public Predicate<Object> transform(CNode node)
     {
         return condition(node);
@@ -221,7 +225,7 @@ public class FilterTransformer
 
             case Field field ->
             {
-                final PropertyPath path = PropertyPath.compile(field.getName(), payloadType);
+                final PropertyPath path = PropertyPath.compile(field.getName(), declaredType);
                 yield path::read;
             }
 

@@ -14,13 +14,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-/// One FilterDSL field path, checked against a channel's payload class once and read from a payload many
-/// times.
+/// One FilterDSL field path, checked against a declared class once and read from an object many times.
 ///
 /// Reading is Svenson property access and nothing else: a real getter, a map entry or a dynamic property,
 /// the same three things {@link org.svenson.util.JSONBeanUtil} looks at. There is no GraphQL field
-/// resolution here and no live query to fall back to -- a published payload is a dead data structure from
-/// the moment it leaves the publisher, and a path that finds nothing simply finds nothing. Nor is this
+/// resolution here and no live query to fall back to -- what a condition reads is a dead data structure
+/// by the time it gets here, and a path that finds nothing simply finds nothing. Nor is this
 /// Svenson's own `JSONPathUtil`, whose generic walk throws on a missing intermediate value and grows
 /// missing maps and lists as it goes, both of which are the opposite of what a filter wants.
 ///
@@ -28,10 +27,11 @@ import java.util.Map;
 /// data tree's natural path semantics are positional, the way any data pointer works -- deliberately not
 /// the SQL backend's, where a to-many hop becomes "does some element satisfy the rest of the path".
 ///
-/// Validation walks the payload class's own declared JSON properties, which is the entire schema there is
-/// to check against; a hop resolves to a getter or it does not exist. Where a hop leads somewhere whose
-/// type is not declared -- a collection with no element type, a map's values -- validation stops there and
-/// the remaining segments are whatever the payload turns out to hold.
+/// Validation walks the declared class's own JSON properties, which is the entire schema there is to
+/// check against; a hop resolves to a getter or it does not exist. Where a hop leads somewhere whose type
+/// is not declared -- a collection with no element type, a map's values -- validation stops there and the
+/// remaining segments are whatever the object turns out to hold. Nothing is enforced at read time: the
+/// declared class decides which paths compile, never which objects may be read.
 final class PropertyPath
 {
     private final String path;
@@ -46,15 +46,15 @@ final class PropertyPath
     }
 
 
-    /// Compiles one dotted path against the class a channel's payloads have.
+    /// Compiles one dotted path against the class the objects read through it are declared to have.
     ///
-    /// @param path          dotted path as the FilterDSL writes it, e.g. `entityType` or `bazLinks.0.baz.name`
-    /// @param payloadType   class the channel is bound to, or `null` where the payload's shape is not
-    ///                      declared anywhere and there is nothing to check against
+    /// @param path           dotted path as the FilterDSL writes it, e.g. `entityType` or `bazLinks.0.baz.name`
+    /// @param declaredType   class the path is checked against, or `null` where no shape is declared
+    ///                       anywhere and there is nothing to check against
     ///
     /// @throws QLiveException   if a segment names no property of the type it is read from, or crosses a
     ///                          to-many relation without saying which element
-    static PropertyPath compile(String path, Class<?> payloadType)
+    static PropertyPath compile(String path, Class<?> declaredType)
     {
         if (path == null || path.isEmpty())
         {
@@ -65,7 +65,7 @@ final class PropertyPath
 
         // the declared class at the position the walk has reached, or null where nothing declares it, and
         // the property that reached it, which is where a collection's element type is recorded
-        Class<?> at = known(payloadType) ? payloadType : null;
+        Class<?> at = known(declaredType) ? declaredType : null;
         JSONPropertyInfo reachedBy = null;
 
         for (String segment : path.split("\\.", -1))
@@ -149,7 +149,7 @@ final class PropertyPath
 
 
     /// The element type of a to-many property: what `@JSONTypeHint` says, and failing that what the
-    /// getter's own generic signature says. Neither is required -- a payload class that declares neither
+    /// getter's own generic signature says. Neither is required -- a class that declares neither
     /// simply stops being checkable past this point.
     private static Class<?> elementType(JSONPropertyInfo info)
     {

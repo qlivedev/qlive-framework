@@ -39,7 +39,17 @@ const ViteDevHome = ({}) => {
                 }
             </p>
             <p>
-                <a href="/login">Login</a>
+                <ul className="nav-list">
+                    <li>
+                        <a href="/login">Login</a>
+                    </li>
+                    <li>
+                        <a href="/app/bar/live">Bar Live</a>
+                    </li>
+                    <li>
+                        <a href="/app/bar/edit">Bar Edit</a>
+                    </li>
+                </ul>
             </p>
             <h2>Quick Search</h2>
             <ul>

@@ -9,6 +9,7 @@ import com.dataciders.qlive.runtime.merge.FieldLayout;
 import com.dataciders.qlive.runtime.merge.FieldLayoutService;
 import com.dataciders.qlive.runtime.merge.MergeService;
 import com.dataciders.qlive.runtime.merge.VersionHolder;
+import com.dataciders.qlive.runtime.auth.AppAuthentication;
 import com.dataciders.qlive.runtime.pubsub.EntityVersionPublisher;
 import com.dataciders.qlive.runtime.pubsub.PubSubService;
 import com.dataciders.qlive.runtime.pubsub.Recipient;
@@ -185,6 +186,35 @@ class EntityVersionPushTest
                 .map(m -> record(m).get("id"))
                 .toList(),
             contains(version)
+        );
+    }
+
+
+    /// The clause the client adds to all of that, and the case it does not cover: "not made by me" is
+    /// per user, and two tabs of one login are one user. So a second tab of the same person is told
+    /// nothing -- which is exactly how the two-tab check is run, and exactly what it must not do. What
+    /// the feature wants is "not made by this tab", and nothing in the record says which tab.
+    @Test
+    void doesNotReachAnotherTabOfTheSameUser()
+    {
+        final String watched = newId();
+
+        pubSub.subscribe(
+            subscriber,
+            EntityVersionPublisher.TOPIC,
+            and(
+                field("entityType").eq(value("Bar")),
+                field("entityId").eq(value(watched)),
+                field("ownerId").ne(value(AppAuthentication.current().getId()))
+            ),
+            "otherTab"
+        );
+
+        merge(newBar(watched, "Watched", 1));
+
+        assertThat(
+            subscriber.received.stream().filter(m -> m.getIds().contains("otherTab")).toList(),
+            is(empty())
         );
     }
 

@@ -7,7 +7,8 @@ import {
     useWorkingSet,
     WorkingSet
 } from "@quinscape/qlive-ts";
-import { Q_BarEdit, Q_BarEditLink, Q_BarEditResult, Q_BarEditRow, Q_BazList, Q_BazListResult } from "./Q_Bar";
+import { Q_Bar, Q_BarResult } from "./Q_Bar";
+import { Q_BazList, Q_BazListResult } from "./Q_BazList";
 
 /**
  * Editing rows through a working set: scalar fields, a many-to-many, and the resolution of a clash in the
@@ -19,10 +20,24 @@ import { Q_BarEdit, Q_BarEditLink, Q_BarEditResult, Q_BarEditRow, Q_BazList, Q_B
  */
 
 /**
+ * One row as the query yields it, and one association as the form writes one back.
+ *
+ * Both are read off the query's own result type rather than written out again beside it: that type is
+ * generated from the selection, so a hand-written copy of it is a copy that goes stale. The link is the
+ * one place the two differ -- a new association is written as the row it is about, `{ baz }` and nothing
+ * else, and the merge turns that into a BarLink insert with both foreign keys.
+ */
+type QueriedLink = Q_BarResult["rows"][number]["bazLinks"][number]
+
+type EditLink = Partial<QueriedLink> & Pick<QueriedLink, "baz">
+
+type EditRow = Omit<Q_BarResult["rows"][number], "bazLinks"> & { bazLinks: EditLink[] }
+
+/**
  * The fields the form renders, which could as well come from the schema or from a config. Nothing below is
  * written per field, and that is what an accessor buys over a hook per field.
  */
-const FIELDS: Array<keyof Q_BarEditRow> = ["name", "num", "description"]
+const FIELDS: Array<keyof EditRow> = ["name", "num", "description"]
 
 const VIEWS: MergeView[] = ["merged", "mine", "stored"]
 
@@ -31,7 +46,7 @@ const VIEWS: MergeView[] = ["merged", "mine", "stored"]
  * What goes into the draft for one field. An input hands over a string whatever the field is, and a working
  * set records the value it is given -- Bar.num is an Int, and "3" is not one.
  */
-function typed(name: keyof Q_BarEditRow, value: string): string | number
+function typed(name: keyof EditRow, value: string): string | number
 {
     return name === "num" ? Number(value) : value
 }
@@ -41,7 +56,7 @@ function typed(name: keyof Q_BarEditRow, value: string): string | number
  * The id of the Baz one link is about, from the foreign key or from the row itself. An association just
  * added by the form has only the row, which is the short form the merge takes as well.
  */
-function bazIdOf(link: Q_BarEditLink): string
+function bazIdOf(link: EditLink): string
 {
     return link.bazId ?? link.baz.id
 }
@@ -49,7 +64,7 @@ function bazIdOf(link: Q_BarEditLink): string
 
 export default function Edit()
 {
-    const bars: Q_BarEditResult = useInjection(Q_BarEdit, { config: { pageSize: 5 } });
+    const bars: Q_BarResult = useInjection(Q_Bar, { config: { pageSize: 5 } });
     const bazes: Q_BazListResult = useInjection(Q_BazList, { config: { pageSize: 50 } });
 
     // Made once and registered at once: the working set lives as long as the editing does, and a view that
@@ -116,7 +131,7 @@ export default function Edit()
  */
 function BarForm({ ws, row, bazes }: {
     ws: WorkingSet,
-    row: Q_BarEditRow,
+    row: EditRow,
     bazes: Q_BazListResult["rows"]
 })
 {
@@ -186,7 +201,7 @@ function BarForm({ ws, row, bazes }: {
  * that BarLink exists beyond naming the rows it points at.
  */
 function Associations({ bar, bazes, merge }: {
-    bar: Q_BarEditRow,
+    bar: EditRow,
     bazes: Q_BazListResult["rows"],
     merge: MergeAccessor
 })

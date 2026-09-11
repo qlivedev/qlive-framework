@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /// Dispatches FilterDSL operator names onto implementations that work on plain Java values.
 ///
@@ -103,8 +104,8 @@ final class PayloadOperators
         Map.entry("notContainsIgnoreCase", defined(2, o -> !lower(o.get(0)).contains(lower(o.get(1))))),
         Map.entry("startsWith", defined(2, o -> text(o.get(0)).startsWith(text(o.get(1))))),
         Map.entry("endsWith", defined(2, o -> text(o.get(0)).endsWith(text(o.get(1))))),
-        Map.entry("likeRegex", defined(2, o -> text(o.get(0)).matches(text(o.get(1))))),
-        Map.entry("notLikeRegex", defined(2, o -> !text(o.get(0)).matches(text(o.get(1))))),
+        Map.entry("likeRegex", defined(2, o -> matches(o.get(0), o.get(1)))),
+        Map.entry("notLikeRegex", defined(2, o -> !matches(o.get(0), o.get(1)))),
 
         Map.entry("isNull", new ConditionOp(1, o -> o.get(0) == null)),
         Map.entry("isNotNull", new ConditionOp(1, o -> o.get(0) != null)),
@@ -357,6 +358,15 @@ final class PayloadOperators
             case Number number -> BigInteger.valueOf(number.longValue());
             default -> throw new QLiveException("Not a number: " + value);
         };
+    }
+
+
+    /// Whether the pattern occurs in the value, not whether it describes the whole of it: JOOQ's
+    /// `likeRegex` reaches Postgres as `~`, which matches anywhere, and the two backends have to agree on
+    /// what a subscriber's regex means.
+    private static boolean matches(Object value, Object pattern)
+    {
+        return Pattern.compile(text(pattern)).matcher(text(value)).find();
     }
 
 

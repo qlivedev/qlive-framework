@@ -145,7 +145,9 @@ class FilterTransformerTest
         assertThat(compile(field("entityType").contains(value("a"))).test(payload), is(true));
         assertThat(compile(field("entityType").containsIgnoreCase(value("BAR"))).test(payload), is(true));
         assertThat(compile(field("entityType").equalIgnoreCase(value("bar"))).test(payload), is(true));
-        assertThat(compile(field("entityType").likeRegex(value("B.r"))).test(payload), is(true));
+        assertThat(compile(field("entityType").likeRegex(value("^B.r$"))).test(payload), is(true));
+        assertThat(compile(field("entityType").likeRegex(value("a"))).test(payload), is(true));
+        assertThat(compile(field("entityType").notLikeRegex(value("z"))).test(payload), is(true));
         assertThat(compile(field("entityType").lower().eq(value("bar"))).test(payload), is(true));
         assertThat(compile(field("entityType").upper().eq(value("BAR"))).test(payload), is(true));
         assertThat(compile(field("draft").isTrue()).test(payload), is(true));

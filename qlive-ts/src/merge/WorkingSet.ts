@@ -4,6 +4,7 @@ import {GraphQLField} from "../GraphQLSchema";
 import {documentOf, QueryConfigDelta} from "../QueryDocument";
 import {findType, LIST, objectFields, unwrapAll, unwrapNonNull} from "../type-utils";
 import {HeldRows, RowVisit, walkRows} from "../util/rows";
+import {scalarEqual} from "../util/scalar";
 import {
     createAccessor,
     MergeAccessor,
@@ -1070,7 +1071,7 @@ export class WorkingSet
         // against their value rather than against the one this row was read with
         const known = entity.stored.has(name) ? entity.stored : entity.base
 
-        if (known.has(name) && sameValue(known.get(name), next))
+        if (known.has(name) && scalarEqual(known.get(name), next))
         {
             entity.changes.delete(name)
         }
@@ -1509,27 +1510,4 @@ function linkIdOf(link: any, entity: Entity, relation: MergeMeta.LinkRelation): 
 function linkField(linkType: string, name: string, value: string): FieldChange
 {
     return {field: name, value: {type: scalarTypeName(linkType, name), value}}
-}
-
-
-/**
- * Whether a field written to a draft is the value the row was registered with.
- *
- * A converted value is an object rather than a primitive -- a Timestamp is a Temporal.Instant -- and two of
- * them holding the same instant are not the same object. What knows they are equal is the value itself, so
- * an equals() is asked wherever there is one.
- */
-function sameValue(a: unknown, b: unknown): boolean
-{
-    if (Object.is(a, b))
-    {
-        return true
-    }
-
-    if (a === null || b === null || typeof a !== "object" || typeof b !== "object")
-    {
-        return false
-    }
-
-    return typeof (a as any).equals === "function" && (a as any).equals(b)
 }

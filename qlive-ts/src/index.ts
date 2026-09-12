@@ -100,6 +100,7 @@ export function noSchema()
 }
 
 export { default as findRoot } from "./util/findRoot";
+export { scalarEqual, genericScalarEqual } from "./util/scalar";
 
 // ---------------------------------------------------------------------------
 // TYPESCRIPT TYPES

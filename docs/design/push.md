@@ -748,7 +748,7 @@ view, the lookup rows behind a dropdown. There is no draft for a field
 mark to mean anything against, and no value arrived, so there is nothing
 to display. What the mask decides there is not what to mark but whether
 to care at all: a document whose query does not select the fields that
-moved does nothing, which is the same `bitAnd` clause its subscription
+changed does nothing, which is the same `bitAnd` clause its subscription
 already carries.
 
 What an application wants from that ranges from nothing at all to a live
@@ -965,7 +965,7 @@ them.
    fields the query selects or the form binds, all of it under the
    session's own id as the `ownerId ne` literal. Several types means a
    disjunction, as "The two stores are not the same case" sets out. The third clause is the one that is easy to skip and
-   earns the most: a merge that moved a column nobody here displays
+   earns the most: a merge that changed a column nobody here displays
    should not cost a message. The fourth is what keeps a writer's own
    tab from being echoed its own write.
 

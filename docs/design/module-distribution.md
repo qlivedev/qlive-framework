@@ -283,7 +283,7 @@ small, and most land inside work already planned.
    design already names step E as the place a broker would be handed the
    version records -- publishing instead of calling makes that additive
    rather than a patch.
-3. **A "stored state moved" entry point on both stores.** The merge
+3. **A "stored state changed" entry point on both stores.** The merge
    design already commits to this for `WorkingSet`, with a push message
    named as the second caller. `QueryDocument` needs the same and does
    not have it: `rows`, `config` and `rowCount` are public and mutable

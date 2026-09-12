@@ -357,7 +357,7 @@ OR-ing the `field_mask`s. That union is *their* changed fields.
   other write that we did not touch are attached too, marked
   informational: the merge takes those silently -- catching up on a field
   we have no opinion about is not a decision anybody needs to make -- and
-  they are attached so the form can *show* what moved under the user
+  they are attached so the form can *show* what changed under the user
   rather than only what clashed.
 
 Deletions run the same way: `DELETE ... WHERE id = ? AND version = ?`,
@@ -557,11 +557,11 @@ through checkboxes has never heard of the link type.
 **The conflict is therefore traced back to the array it came out of.**
 `merge()` remembers which link field each synthesised deletion belongs to
 and, when one comes back conflicted, marks that field on the source row
-as moved. The array gets a status, a class and a `resolve()` like any
-scalar, and the same three maps produce all of it -- nothing new in the
-accessor, nothing new in the hooks.
+as remotely changed. The array gets a status, a class and a `resolve()`
+like any scalar, and the same three maps produce all of it -- nothing
+new in the accessor, nothing new in the hooks.
 
-It is marked as **moved and not to what**: `undefined` in `stored`, the
+It is marked as **changed and not to what**: `undefined` in `stored`, the
 same as a scalar whose value was withheld. An association somebody else
 took away says nothing about the ones they may have added, so the set
 that is stored is not knowable from here. What the form shows for it is
@@ -824,8 +824,8 @@ queried rows -- the form has to render current data -- but if it adopted
 those rows' current version, the merge would succeed silently and the
 other person's Friday afternoon would vanish without anyone seeing a
 conflict. Keeping Friday's base version means Monday's merge detects
-exactly what moved in between, which is the conversation the user parked
-the work in order to have.
+exactly what changed in between, which is the conversation the user
+parked the work in order to have.
 
 **Restoring needs no new server machinery.** A base version three days
 old, a row that changed twice since, a row that was deleted -- the merge
@@ -892,9 +892,10 @@ while the reasons are fresh.
 ends by inserting a batch of `EntityVersion` rows, each carrying the
 entity type, the entity id, the new version and the `field_mask` of what
 that write touched. That is exactly the payload a subscriber needs, and
-it needs nothing else: the mask says which fields moved, so a client can
-mark those fields precisely without re-querying the row to find out. The
-event is not something the push design would have to invent -- it is the
+it needs nothing else: the mask says which fields changed, so a client
+can mark those fields precisely without re-querying the row to find out.
+The event is not something the push design would have to invent -- it is
+the
 row the merge already writes, and step E of the pipeline is where it
 would be handed to a broker instead of only to the version holders.
 
@@ -904,9 +905,10 @@ with, the change the user made, and the stored value. Today the stored
 value only ever becomes known as part of a failed merge, which makes it
 tempting to model the whole conflict state as "what came back from
 `merge()`". That would be the mistake. The store takes "the stored state
-of this entity moved, here are the fields and their values" as an input,
-and the merge response is merely today's only caller. A push message is
-then the second caller and the status computation does not change.
+of this entity changed, here are the fields and their values" as an
+input, and the merge response is merely today's only caller. A push
+message is then the second caller and the status computation does not
+change.
 
 With those two in place, the vocabulary this design already has starts
 answering questions it was not built for:
@@ -1133,9 +1135,9 @@ is easier to see now than after the second one is written.
   found again by route or from a list.
 - **`park()` fails loudly or not at all.** A stash that did not get
   written leaves the working set dirty and the guard armed.
-- **"The stored state moved" is an input to the store**, not a shape the
-  merge response happens to have. `ws.storedState()`, called by `merge()`
-  today and by a push message next. See "When push arrives".
+- **"The stored state changed" is an input to the store**, not a shape
+  the merge response happens to have. `ws.storedState()`, called by
+  `merge()` today and by a push message next. See "When push arrives".
 - **A field's status is derived from the three maps**, not recorded when
   a merge comes back. That is what makes the push case the same case.
 - **A decision holds the other value back rather than dropping it.**
@@ -1247,10 +1249,10 @@ type analysis.
   does yet.
 - **Push, and it is the important one.** Everything in this document is
   damage control after the fact; telling a user that the row under their
-  form just moved, while they can still do something cheap about it, is
-  worth more than any amount of conflict UI. Its own design, and the one
-  to write next -- see "When push arrives" for the two seams this one
-  leaves it.
+  form just changed, while they can still do something cheap about it,
+  is worth more than any amount of conflict UI. Its own design, and the
+  one to write next -- see "When push arrives" for the two seams this
+  one leaves it.
 - **Whether the accessor travels by prop or by context.** Above it is a
   value the form passes down. A deep generic field tree would rather find
   it in a React context, which is what Automaton had in domainql-form's

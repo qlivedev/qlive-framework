@@ -121,6 +121,10 @@ public class FilterDSLDecompiler
         {
             return indent(level) + markerL + "component(" + JSONUtil.DEFAULT_GENERATOR.forValue(component.getId()) + ", " + decompile(component.getCondition(), match, true, nextLevel) + ")" + markerR;
         }
+        else if (node instanceof Field field)
+        {
+            return indent(level) + markerL + "field(" + JSONUtil.DEFAULT_GENERATOR.forValue(field.getName()) + ")" + markerR;
+        }
         else
         {
             throw new UnsupportedOperationException("Unhandled node type: " + node);

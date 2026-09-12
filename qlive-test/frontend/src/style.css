@@ -198,3 +198,23 @@ body
     gap: 0.25rem;
     font-size: 0.85rem;
 }
+
+/*
+ * The live view. It has no field-control wrapper to mark, only table rows, so
+ * it needs its own visible rendering of the mark instead of the library's
+ * base box-shadow (which an inset shadow on a <tr> paints behind its <td>
+ * children and never shows).
+ */
+.bar-live .warning
+{
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    border: 1px solid var(--qlive-color-remote-changed);
+    color: var(--qlive-color-fg);
+}
+
+.bar-live .rows tr.qlive-remote-changed td
+{
+    background: color-mix(in srgb, var(--qlive-mark-color) 15%, transparent);
+    box-shadow: inset var(--qlive-space-1) 0 0 0 var(--qlive-mark-color);
+}

@@ -146,6 +146,28 @@
         font-family: var(--qlive-font-sans);
     }
 
+    /*
+     * A <button> made to read as a link, for the state-changing actions -- logout chief among them -- that
+     * have to stay a form submit but have no business looking like one next to the <a> elements around them.
+     */
+    .qlive-link-button
+    {
+        display: inline;
+        border: none;
+        background: none;
+        padding: 0;
+        margin: 0;
+        color: var(--qlive-color-accent);
+        font: inherit;
+        font-family: var(--qlive-font-sans);
+        cursor: pointer;
+    }
+
+    .qlive-link-button:hover,.qlive-link-button:focus
+    {
+        text-decoration: underline;
+    }
+
 
     summary{
         font-size: var(--qlive-font-size);

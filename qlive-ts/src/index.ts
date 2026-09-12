@@ -61,6 +61,8 @@ export * as FilterDSL from "./FilterDSL";
 
 export { default as DomainTables } from "./component/DomainTables";
 export { default as ErrorBoundary } from "./component/ErrorBoundary";
+export { default as Logout } from "./component/Logout";
+export { default as QuickLogin } from "./component/QuickLogin";
 
 export { decompileFilter } from "./util/decompileFilter";
 
@@ -136,6 +138,8 @@ export type { ErrorViewProps } from "./component/ErrorView";
 export type { ErrorBoundaryProps } from "./component/ErrorBoundary";
 
 export type { DomainTablesProps } from "./component/DomainTables";
+export type { LogoutProps } from "./component/Logout";
+export type { QuickLoginProps, QuickLoginUser } from "./component/QuickLogin";
 
 export type { PubSubStatus, PubSubConnectionSnapshot, TopicHandler } from "./pubsub";
 

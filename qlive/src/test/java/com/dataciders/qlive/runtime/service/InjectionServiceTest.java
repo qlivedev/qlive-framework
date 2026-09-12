@@ -5,7 +5,7 @@ import com.dataciders.qlive.model.ts.TrackUsageData;
 import com.dataciders.qlive.runtime.QLiveException;
 import com.dataciders.qlive.runtime.domain.TestDomainConfig;
 import com.dataciders.qlive.runtime.domain.TestLogic;
-import com.dataciders.qlive.runtime.meta.QueryConfigDelta;
+import com.dataciders.qlive.runtime.meta.QueryConfigTypeConfigurer;
 import com.dataciders.qlive.runtime.meta.QueryConfigMetadataProvider;
 import com.dataciders.qlive.testdomain.tables.pojos.TestFoo;
 import de.quinscape.domainql.DomainQL;
@@ -600,12 +600,10 @@ class InjectionServiceTest
         final DomainQL domainQL = TestDomainConfig.domainQL(
             List.of(
                 QueryConfigMetadataProvider.newProvider()
-                    .forType(
-                        TestFoo.class,
-                        QueryConfigDelta.newDelta()
+                    .forType(TestFoo.class)
                             .pageSize(20)
                             .sortFields("name")
-                    )
+                            .build()
             ),
             new TestLogic()
         );

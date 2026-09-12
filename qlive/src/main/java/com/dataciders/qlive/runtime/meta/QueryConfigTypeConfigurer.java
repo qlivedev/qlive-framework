@@ -3,12 +3,14 @@ package com.dataciders.qlive.runtime.meta;
 import com.dataciders.qlive.model.condition.CNode;
 import com.dataciders.qlive.runtime.scalar.ConditionCoercing;
 import de.quinscape.domainql.DomainQL;
+import de.quinscape.domainql.meta.MetadataProvider;
 import graphql.GraphQLContext;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /// What a type's default query config says, as the partial config it is: the fields named here are the ones
 /// the type has an opinion about, and everything else stays at the defaults
@@ -23,7 +25,7 @@ import java.util.Map;
 ///     QueryConfigDelta.newDelta()
 ///         .pageSize(20)
 ///         .sortFields("name")
-public final class QueryConfigDelta
+public final class QueryConfigTypeConfigurer
 {
     private Integer offset;
 
@@ -33,21 +35,21 @@ public final class QueryConfigDelta
 
     private CNode condition;
 
+    private final QueryConfigMetadataProvider queryConfigMetadataProvider;
 
-    private QueryConfigDelta()
+    private final Consumer<Integer> maxPageSizeConsumer;
+
+    QueryConfigTypeConfigurer(QueryConfigMetadataProvider queryConfigMetadataProvider, Consumer<Integer> maxPageSizeConsumer)
     {
+        this.queryConfigMetadataProvider = queryConfigMetadataProvider;
+        this.maxPageSizeConsumer = maxPageSizeConsumer;
     }
 
-
-    public static QueryConfigDelta newDelta()
-    {
-        return new QueryConfigDelta();
-    }
 
 
     /// The row the first page starts at. Rarely what a *type* has an opinion about -- here because a delta
     /// that could not say it would be a different thing from the one the client has.
-    public QueryConfigDelta offset(int offset)
+    public QueryConfigTypeConfigurer offset(int offset)
     {
         this.offset = offset;
         return this;
@@ -55,7 +57,7 @@ public final class QueryConfigDelta
 
 
     /// How many rows a page holds. 0 means "all of them", which is what a config says when nothing sets it.
-    public QueryConfigDelta pageSize(int pageSize)
+    public QueryConfigTypeConfigurer pageSize(int pageSize)
     {
         this.pageSize = pageSize;
         return this;
@@ -65,7 +67,7 @@ public final class QueryConfigDelta
     /// The order rows come in, most significant first, as field names -- "name" ascending, "!name"
     /// descending. That is what the FieldExpression scalar reads and writes, so it is also how a sort field
     /// is written on the client.
-    public QueryConfigDelta sortFields(String... sortFields)
+    public QueryConfigTypeConfigurer sortFields(String... sortFields)
     {
         this.sortFields = List.of(sortFields);
         return this;
@@ -74,7 +76,7 @@ public final class QueryConfigDelta
 
     /// A condition every query of the type carries, written in the server-side FilterDSL. Serialized into
     /// the JSON the client's FilterDSL is, which is what the query config scalar reads back.
-    public QueryConfigDelta condition(CNode condition)
+    public QueryConfigTypeConfigurer condition(CNode condition)
     {
         this.condition = condition;
         return this;
@@ -126,6 +128,26 @@ public final class QueryConfigDelta
         return coercing.serialize(condition, GraphQLContext.getDefault(), Locale.ROOT);
     }
 
+    public QueryConfigTypeConfigurer maxPageSize(int maxPageSize)
+    {
+        this.maxPageSizeConsumer.accept(maxPageSize);
+        return this;
+    }
+
+    public QueryConfigTypeConfigurer andForType(Class<?> javaType)
+    {
+        return this.queryConfigMetadataProvider.forType(javaType);
+    }
+
+    public QueryConfigTypeConfigurer andForTypes(Class<?>... javaTypes)
+    {
+        return this.queryConfigMetadataProvider.forTypes(javaTypes);
+    }
+
+    public QueryConfigTypeConfigurer andForAllTypes()
+    {
+        return this.queryConfigMetadataProvider.forAllTypes();
+    }
 
     @Override
     public String toString()
@@ -136,5 +158,11 @@ public final class QueryConfigDelta
             + ", sortFields = " + sortFields
             + ", condition = " + condition
             ;
+    }
+
+
+    public QueryConfigMetadataProvider build()
+    {
+        return this.queryConfigMetadataProvider;
     }
 }

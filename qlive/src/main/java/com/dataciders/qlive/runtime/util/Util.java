@@ -1,5 +1,6 @@
 package com.dataciders.qlive.runtime.util;
 
+import com.dataciders.qlive.runtime.QLiveException;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.GenericTypeReference;
 import de.quinscape.domainql.meta.DomainQLTypeMeta;
@@ -9,6 +10,8 @@ import org.jooq.tools.StringUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Util
 {
@@ -53,6 +56,19 @@ public class Util
     public static boolean isQueryDocumentType(DomainQL domainQL, String name)
     {
         return findQueryDocumentType(domainQL, name).isPresent();
+    }
+
+
+    public static Set<Class<?>> getQueryDocumentRowTypes(DomainQL domainQL)
+    {
+        return domainQL.getMetaData().getGenericTypes()
+            .stream()
+            .filter(
+                gt -> gt.getGenericType().equals(QueryDocument.class.getName())
+            ).map(
+                gt -> domainQL.getTypeRegistry().lookup(gt.getTypeParameters().getFirst()).getJavaType()
+            )
+            .collect(Collectors.toUnmodifiableSet());
     }
 
 

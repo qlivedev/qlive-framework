@@ -1,5 +1,6 @@
 package com.dataciders.qlivetest.runtime.config;
 
+import com.dataciders.qlive.runtime.meta.QueryConfigMetadataProvider;
 import com.dataciders.qlivetest.domain.Public;
 import com.dataciders.qlivetest.domain.tables.pojos.Bar;
 import com.dataciders.qlivetest.domain.tables.pojos.Baz;
@@ -79,6 +80,14 @@ public class DomainQLConfiguration
         return newMergeMetadata();
     }
 
+    @Bean
+    public QueryConfigMetadataProvider queryConfigMetadataProvider()
+    {
+        return QueryConfigMetadataProvider.newProvider().
+            forAllTypes()
+                .pageSize(5)
+                .build();
+    }
 
     /**
      * The declarations themselves, kept apart from the bean wiring for the same reason {@link #newDomainQL}

@@ -4,6 +4,7 @@ import com.dataciders.qlive.model.QueryConfig;
 import com.dataciders.qlive.model.QueryDocument;
 import com.dataciders.qlive.runtime.domain.TestDomainConfig;
 import com.dataciders.qlive.runtime.meta.QueryConfigMetadataProvider;
+import com.dataciders.qlive.testmodel.types.TestFoo;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.meta.MetadataProvider;
 import graphql.ExecutionInput;
@@ -118,7 +119,7 @@ class DefaultQueryDocumentServiceTest
 
     private static Run run(QueryConfig config)
     {
-        return run(config, QueryConfigMetadataProvider.newProvider().maxPageSize("TestFoo", 100));
+        return run(config, QueryConfigMetadataProvider.newProvider().forType(TestFoo.class).maxPageSize(100).build());
     }
 
 

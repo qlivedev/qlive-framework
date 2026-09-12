@@ -58,7 +58,7 @@ public final class QueryConfigMeta
         );
 
         return documentType
-            .map(reference -> deltaForType(domainQL, reference.getTypeParameters().getFirst()))
+            .map(reference -> deltaForType(domainQL, domainQL.getTypeRegistry().lookup(reference.getTypeParameters().getFirst()).getJavaType()))
             .orElse(null);
     }
 
@@ -68,25 +68,11 @@ public final class QueryConfigMeta
     /// @param typeName  name of a GraphQL type, known or not
     ///
     /// @return the delta, or `null` where the type is unknown or declares none
-    public static Map<String, Object> deltaForType(DomainQL domainQL, String typeName)
+    public static Map<String, Object> deltaForType(DomainQL domainQL, Class<?> typeName)
     {
-        final DomainQLTypeMeta typeMeta = Util.typeMeta(domainQL, typeName);
+        final DomainQLTypeMeta typeMeta = Util.typeMeta(domainQL, typeName.getSimpleName());
 
         return typeMeta == null ? null : typeMeta.getMeta(QUERY_CONFIG);
-    }
-
-
-    /// The maximum page size declared for the given Java type, which is how a query has it in hand: what it
-    /// returns is rows of a POJO, and which GraphQL type that is is the domain's to say.
-    ///
-    /// @param javaType  a Java type, exposed by the domain or not
-    ///
-    /// @return the maximum, or 0 where the type is not exposed or declares none
-    public static int maxPageSizeForType(DomainQL domainQL, Class<?> javaType)
-    {
-        final OutputType outputType = domainQL.getTypeRegistry().lookup(javaType);
-
-        return outputType == null ? 0 : maxPageSizeForType(domainQL, outputType.getName());
     }
 
 
@@ -96,12 +82,21 @@ public final class QueryConfigMeta
     ///
     /// @return the maximum, or 0 where the type is unknown or declares none. 0 is also what a query config
     ///         says when it wants every row, so "no maximum" and "no limit" are the same number throughout.
-    public static int maxPageSizeForType(DomainQL domainQL, String typeName)
+    public static int maxPageSizeForType(DomainQL domainQL, Class<?> javaType)
     {
-        final DomainQLTypeMeta typeMeta = Util.typeMeta(domainQL, typeName);
+        final OutputType outputType = domainQL.getTypeRegistry().lookup(javaType);
+        if (outputType == null)
+        {
+            return 0;
+        }
+        else
+        {
+            final String typeName = outputType.getName();
+            final DomainQLTypeMeta typeMeta = Util.typeMeta(domainQL, typeName);
 
-        final Object maxPageSize = typeMeta == null ? null : typeMeta.getMeta(MAX_PAGE_SIZE);
+            final Object maxPageSize = typeMeta == null ? null : typeMeta.getMeta(MAX_PAGE_SIZE);
 
-        return maxPageSize instanceof Number number ? number.intValue() : 0;
+            return maxPageSize instanceof Number number ? number.intValue() : 0;
+        }
     }
 }

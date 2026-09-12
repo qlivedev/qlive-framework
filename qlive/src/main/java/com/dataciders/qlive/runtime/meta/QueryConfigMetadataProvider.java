@@ -1,6 +1,7 @@
 package com.dataciders.qlive.runtime.meta;
 
 import com.dataciders.qlive.runtime.QLiveException;
+import com.dataciders.qlive.runtime.util.Util;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.OutputType;
 import de.quinscape.domainql.meta.DomainQLMeta;
@@ -8,8 +9,11 @@ import de.quinscape.domainql.meta.MetadataProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /// Writes what an application declares per type about querying it -- the query config delta and the maximum
 /// page size -- i.e. the declaring end of {@link QueryConfigMeta}.
@@ -38,23 +42,20 @@ public class QueryConfigMetadataProvider
 {
     private final static Logger log = LoggerFactory.getLogger(QueryConfigMetadataProvider.class);
 
-    /// Deltas declared by GraphQL type name, in declaration order.
-    private final Map<String, QueryConfigDelta> byTypeName = new LinkedHashMap<>();
-
     /// Deltas declared by Java type, whose GraphQL name only the built domain knows.
-    private final Map<Class<?>, QueryConfigDelta> byJavaType = new LinkedHashMap<>();
+    private QueryConfigTypeConfigurer allTypesConfigurer;
 
-    /// Maximum page sizes declared by GraphQL type name, in declaration order.
-    private final Map<String, Integer> maxByTypeName = new LinkedHashMap<>();
+    private int allTypesMaxPageSize = -1;
+
+    private final Map<Class<?>, QueryConfigTypeConfigurer> byJavaType = new LinkedHashMap<>();
 
     /// Maximum page sizes declared by Java type, whose GraphQL name only the built domain knows.
     private final Map<Class<?>, Integer> maxByJavaType = new LinkedHashMap<>();
 
-
     private QueryConfigMetadataProvider()
     {
+        
     }
-
 
     public static QueryConfigMetadataProvider newProvider()
     {
@@ -67,56 +68,61 @@ public class QueryConfigMetadataProvider
     /// The way to say it where the application has the class: the GraphQL name of a domain type is DomainQL's
     /// to decide, and a class that turns out not to be in the schema is reported rather than written under a
     /// name nothing reads.
-    public QueryConfigMetadataProvider forType(Class<?> javaType, QueryConfigDelta delta)
+    public QueryConfigTypeConfigurer forType(Class<?> javaType)
     {
-        if (byJavaType.put(javaType, delta) != null)
-        {
-            throw new QLiveException("Query config delta declared twice for " + javaType);
-        }
-        return this;
+        return forTypes(javaType);
     }
 
 
-    /// Declares the delta of the type of the given GraphQL name, for the types an application has no class
-    /// at hand for.
-    public QueryConfigMetadataProvider forType(String typeName, QueryConfigDelta delta)
-    {
-        if (byTypeName.put(typeName, delta) != null)
-        {
-            throw new QLiveException("Query config delta declared twice for type '" + typeName + "'");
-        }
-        return this;
-    }
-
-
-    /// Declares the maximum page size of the type DomainQL exposes the given Java type as, i.e. the largest
-    /// page any query of those rows comes back with, whoever asks. A config asking for more -- or for all of
-    /// them, which is what a page size of 0 asks for -- is held to this and says so in the config it returns.
+    /// Defines the following QueryConfigTypeConfigurer for all query document types that are not
+    /// defined explicitly.
     ///
-    /// @param maxPageSize  largest allowed page, greater than 0
-    public QueryConfigMetadataProvider maxPageSize(Class<?> javaType, int maxPageSize)
+    /// @return a new query type configurer
+    public QueryConfigTypeConfigurer forAllTypes()
     {
-        if (maxByJavaType.put(javaType, validMax(maxPageSize, javaType)) != null)
+        if (allTypesConfigurer == null)
         {
-            throw new QLiveException("Maximum page size declared twice for " + javaType);
+            this.allTypesConfigurer = new QueryConfigTypeConfigurer(
+                this,
+                max -> {
+                    this.allTypesMaxPageSize = max;
+                }
+            );
         }
-        return this;
+
+        return allTypesConfigurer;
     }
 
 
-    /// Declares the maximum page size of the type of the given GraphQL name, for the types an application
-    /// has no class at hand for.
+    /// Configures a number of types with the same QueryConfigTypeConfigurer.
     ///
-    /// @param maxPageSize  largest allowed page, greater than 0
-    public QueryConfigMetadataProvider maxPageSize(String typeName, int maxPageSize)
+    /// @param javaTypes types
+    ///
+    /// @return a new query type configurer
+    public QueryConfigTypeConfigurer forTypes(Class<?>... javaTypes)
     {
-        if (maxByTypeName.put(typeName, validMax(maxPageSize, typeName)) != null)
+        if (javaTypes == null || javaTypes.length == 0)
         {
-            throw new QLiveException("Maximum page size declared twice for type '" + typeName + "'");
+            throw new QLiveException("No types given");
         }
-        return this;
-    }
 
+        final QueryConfigTypeConfigurer delta = new QueryConfigTypeConfigurer(
+            this,
+            maxPageSize -> {
+                for (Class<?> cls : javaTypes)
+                {
+                    maxByJavaType.put(cls, validMax(maxPageSize, cls));
+                }
+            }
+        );
+
+        for (Class<?> cls : javaTypes)
+        {
+            byJavaType.put(cls, delta);
+        }
+
+        return delta;
+    }
 
     /// The given maximum, if it is one. A maximum of 0 is the one number that cannot be meant: it is how a
     /// query config asks for every row, so declaring it would read as "at most all of them", which is what
@@ -138,24 +144,47 @@ public class QueryConfigMetadataProvider
     @Override
     public void provideMetaData(DomainQL domainQL, DomainQLMeta meta)
     {
-        for (Map.Entry<Class<?>, QueryConfigDelta> declared : byJavaType.entrySet())
+        final Set<Class<?>> queryDocumentRowTypes = Util.getQueryDocumentRowTypes(domainQL);
+        if (allTypesConfigurer != null)
         {
-            write(domainQL, meta, typeNameOf(domainQL, declared.getKey()), declared.getValue());
+            queryDocumentRowTypes.forEach(cls -> {
+                byJavaType.putIfAbsent(cls, allTypesConfigurer);
+                if (allTypesMaxPageSize != -1)
+                {
+                    maxByJavaType.putIfAbsent(cls, allTypesMaxPageSize);
+                }
+            });
         }
 
-        for (Map.Entry<String, QueryConfigDelta> declared : byTypeName.entrySet())
+        for (Map.Entry<Class<?>, QueryConfigTypeConfigurer> e : byJavaType.entrySet())
         {
-            write(domainQL, meta, declared.getKey(), declared.getValue());
+            final Class<?> cls = e.getKey();
+            final QueryConfigTypeConfigurer configurer = e.getValue();
+
+            if (!queryDocumentRowTypes.contains(cls))
+            {
+                throw new QLiveException("Cannot configure: No query document type was declared for " + cls.getSimpleName());
+            }
+
+            write(
+                domainQL,
+                meta,
+                typeNameOf(domainQL, cls),
+                configurer
+            );
         }
 
-        for (Map.Entry<Class<?>, Integer> declared : maxByJavaType.entrySet())
+        for (Map.Entry<Class<?>, Integer> e : maxByJavaType.entrySet())
         {
-            writeMax(domainQL, meta, typeNameOf(domainQL, declared.getKey()), declared.getValue());
-        }
-
-        for (Map.Entry<String, Integer> declared : maxByTypeName.entrySet())
-        {
-            writeMax(domainQL, meta, declared.getKey(), declared.getValue());
+            final Class<?> cls = e.getKey();
+            final Integer maxPageSize = e.getValue();
+            
+            writeMax(
+                domainQL,
+                meta,
+                typeNameOf(domainQL, cls),
+                maxPageSize
+            );
         }
     }
 
@@ -167,8 +196,8 @@ public class QueryConfigMetadataProvider
         if (outputType == null)
         {
             throw new QLiveException(
-                "Query config meta data declared for " + javaType + ", which the domain does not " +
-                    "expose as a type. Only a type that is in the schema can carry meta data."
+                "Query config metadata declared for " + javaType + ", which the domain does not " +
+                    "expose as a type. Only a type that is in the schema can carry metadata."
             );
         }
 
@@ -176,13 +205,13 @@ public class QueryConfigMetadataProvider
     }
 
 
-    private static void write(DomainQL domainQL, DomainQLMeta meta, String typeName, QueryConfigDelta delta)
+    private static void write(DomainQL domainQL, DomainQLMeta meta, String typeName, QueryConfigTypeConfigurer delta)
     {
         requireType(domainQL, typeName);
 
         final Map<String, Object> written = delta.toMeta(domainQL);
 
-        log.debug("Query config meta data of type {}: {}", typeName, written);
+        log.debug("Query config metadata of type {}: {}", typeName, written);
 
         meta.getTypeMeta(typeName).setMeta(QueryConfigMeta.QUERY_CONFIG, written);
     }
@@ -202,11 +231,11 @@ public class QueryConfigMetadataProvider
     {
         if (domainQL.getTypeRegistry().lookup(typeName) == null)
         {
-            // The type meta data only exists for the types DomainQL knows a Java type for, so this would
-            // otherwise be meta data written nowhere -- or, for a name that is no type at all, a failure
+            // The type metadata only exists for the types DomainQL knows a Java type for, so this would
+            // otherwise be metadata written nowhere -- or, for a name that is no type at all, a failure
             // phrased as DomainQL's rather than as the application's.
             throw new QLiveException(
-                "Query config meta data declared for type '" + typeName + "', which is no type of the domain."
+                "Query config metadata declared for type '" + typeName + "', which is no type of the domain."
             );
         }
     }

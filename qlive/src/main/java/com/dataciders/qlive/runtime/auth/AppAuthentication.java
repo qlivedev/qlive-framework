@@ -24,7 +24,7 @@ public final class AppAuthentication
     public static final String ROLE_ANONYMOUS = "ROLE_ANONYMOUS";
 
     /** Make sure the anonymous DB-User has this magic id */
-    public static final String ANONYMOUS_ID = "af432487-a1b1-4f99-96d4-3b8e9796c95a";
+    public static final String ANONYMOUS_ID = "3f7c1a10-0000-4000-8000-000000000000";
 
     /**
      * The one anonymous AppAuthentication instance

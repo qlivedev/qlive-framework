@@ -20,3 +20,6 @@ qlive-doc/.astro/
 
 # OS
 .DS_Store
+
+# Local, machine-specific Claude Code settings
+.claude/settings.local.json

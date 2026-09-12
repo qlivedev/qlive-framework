@@ -18,3 +18,24 @@ is serving.
 The IDE MCP server starts runs but cannot stop them. Stop one with SIGTERM to its
 PID, which every log line carries after the level; the shutdown hook closes
 Tomcat and the Hikari pool gracefully.
+
+## Sibling projects
+
+Some projects next to this one are readable (the paths are granted in
+`.claude/settings.local.json`, which is personal and gitignored). What they are
+for differs, and the difference matters:
+
+- `domainql` -- a live dependency. QLive compiles against it, so what is there
+  is current and binding. `GenericScalar`, the schema introspection, the
+  filter model.
+- `babel-plugin-track-usage` -- upstream of the track-usage Vite plugin, and
+  like DomainQL a likely fork target.
+- `automaton`, `automaton-js`, `automaton-test` -- reference only. Read them to
+  see how a problem was solved before -- `equalsScalar`, `evaluateMemoryQuery`,
+  `createMockedQuery`, `filterTransformer` are the interesting ones -- and cite
+  them as prior art, never as current or binding. Do not import from them and
+  do not assume any of it is reachable; a fork would sever Automaton entirely.
+
+Nothing else under `~/ideaprojects` is in scope. Do not read the parent folder
+or search across it: it holds unrelated projects and the off-limits
+`automaton-*-lisa-web.json` customer artifacts.

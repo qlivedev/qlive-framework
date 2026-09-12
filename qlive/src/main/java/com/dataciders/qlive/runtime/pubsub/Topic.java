@@ -53,8 +53,8 @@ final class Topic
     /// Registers a subscription, replacing the one that connection already held under that id.
     ///
     /// Replacing rather than refusing, because a client re-subscribing under an id it is already using
-    /// means the condition changed -- what is on screen moved -- and the alternative would have it
-    /// unsubscribe first and receive nothing in between.
+    /// means the condition changed -- the rows on screen are no longer the ones it was registered for --
+    /// and the alternative would have it unsubscribe first and receive nothing in between.
     synchronized void subscribe(TopicRegistration registration)
     {
         final List<TopicRegistration> next = new ArrayList<>(registrations.size() + 1);

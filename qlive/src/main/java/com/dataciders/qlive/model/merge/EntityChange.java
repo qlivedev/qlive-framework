@@ -7,9 +7,9 @@ import java.util.List;
 /**
  * Everything one row of one type changed by, as a working set hands it over.
  *
- * A change names the row, the base it was read at and the fields that moved -- never the whole row. What the
- * user did not touch is not in here, which is what makes a concurrent change to a different field mergeable
- * rather than a clash.
+ * A change names the row, the base it was read at and the fields that changed -- never the whole row. What
+ * the user did not touch is not in here, which is what makes a concurrent change to a different field
+ * mergeable rather than a clash.
  */
 public class EntityChange
 {
@@ -92,7 +92,7 @@ public class EntityChange
 
 
     /**
-     * The fields that moved, one entry each.
+     * The fields that changed, one entry each.
      */
     @NotNull
     public List<FieldChange> getChanges()

@@ -5,9 +5,9 @@ import jakarta.validation.constraints.NotNull;
 /**
  * One row to remove.
  *
- * The same optimistic lock as a change and for the same reason: a row that moved since it was read may not be
- * the row the user meant to delete, and a delete that quietly removed it anyway would be the worst-behaved
- * lost update of the lot.
+ * The same optimistic lock as a change and for the same reason: a row that changed since it was read may
+ * not be the row the user meant to delete, and a delete that quietly removed it anyway would be the
+ * worst-behaved lost update of the lot.
  */
 public class EntityDeletion
 {

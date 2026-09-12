@@ -255,7 +255,7 @@ here is the one whose save just bounced, and what they are choosing between is t
 value that is in the database. So: mine and stored.
 
 Not every field in here is a decision. A field the other write touched and this one did not is attached
-as informational, so that a form can show what moved under the user rather than only what clashed. */
+as informational, so that a form can show what changed under the user rather than only what clashed. */
 export type MergeConflictField = {
     /** Name of the field, as the GraphQL type spells it. */
     field: string

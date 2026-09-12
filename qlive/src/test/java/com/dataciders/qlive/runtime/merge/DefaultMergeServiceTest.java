@@ -100,7 +100,7 @@ class DefaultMergeServiceTest
     }
 
 
-    /// A deletion is held to the same version as a change, and for a stronger reason: a row that moved may
+    /// A deletion is held to the same version as a change, and for a stronger reason: a row that changed may
     /// not be the row the user meant to remove.
     @Test
     void refusesADeletionWithNoVersion()

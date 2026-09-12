@@ -98,8 +98,8 @@ export type StoredState = {
     deleted?: boolean
 
     /**
-     * The stored values by field name, in the live form of their type. Only the fields that moved: what is
-     * not named here is what the row was read with.
+     * The stored values by field name, in the live form of their type. Only the fields that changed: what
+     * is not named here is what the row was read with.
      */
     fields?: Record<string, unknown>
 

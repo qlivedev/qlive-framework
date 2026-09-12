@@ -10,7 +10,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 /// Pub/sub's first consumer: what a merge wrote, on a channel.
 ///
 /// The merge already publishes the record a subscriber needs -- which type, which row, the new version and
-/// the mask of what moved -- so this listens for the event the version cache already listens for and needs
+/// the mask of what changed -- so this listens for the event the version cache already listens for and needs
 /// nothing new from the merge at all.
 ///
 /// It listens after commit, deliberately, where {@link com.dataciders.qlive.runtime.merge.VersionHolder}'s

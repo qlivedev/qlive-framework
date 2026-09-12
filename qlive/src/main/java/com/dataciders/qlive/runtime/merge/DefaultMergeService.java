@@ -157,8 +157,8 @@ public class DefaultMergeService
             }
         }
 
-        // deletions after the changes, so that a row whose last reference this merge moves away can go in
-        // the same merge that moved it
+        // deletions after the changes, so that a row whose last reference this merge clears can go in
+        // the same merge that cleared it
         for (EntityDeletion deletion : aborted ? List.<EntityDeletion>of() : nullSafe(deletions))
         {
             final MergeConflict conflict = delete(deletion);

@@ -11,7 +11,7 @@ import java.util.Objects;
 /// made against.
 ///
 /// This is a row of `app_version` and it is also the whole of what a subscriber to a change needs -- the
-/// type, the id, the new version and the mask of what moved. A push module would hand this to a broker; the
+/// type, the id, the new version and the mask of what changed. A push module would hand this to a broker; the
 /// merge hands it to whoever listens for {@link EntityVersionsEvent}. The two are the same record on purpose.
 ///
 /// {@link #getPrev()} is what makes the records of one row a chain, and the chain is best-effort: the record

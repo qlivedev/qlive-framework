@@ -11,7 +11,7 @@ import jakarta.validation.constraints.NotNull;
  * value that is in the database. So: mine and stored.
  *
  * Not every field in here is a decision. A field the other write touched and this one did not is attached
- * as informational, so that a form can show what moved under the user rather than only what clashed.
+ * as informational, so that a form can show what changed under the user rather than only what clashed.
  */
 public class MergeConflictField
 {

@@ -24,8 +24,8 @@ export type FieldChange = {
 }
 
 /**
- * Everything one row changed by: the row, the base it was read at, and the fields that moved. What the user
- * did not touch is not in here, which is what makes a concurrent change to another field mergeable.
+ * Everything one row changed by: the row, the base it was read at, and the fields that changed. What the
+ * user did not touch is not in here, which is what makes a concurrent change to another field mergeable.
  */
 export type EntityChange = {
     type: string

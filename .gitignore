@@ -23,3 +23,4 @@ qlive-doc/.astro/
 
 # Local, machine-specific Claude Code settings
 .claude/settings.local.json
+.firefox-mcp-profile

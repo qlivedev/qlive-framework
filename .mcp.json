@@ -3,6 +3,15 @@
     "idea": {
       "url": "http://127.0.0.1:64342/stream",
       "type": "http"
+    },
+    "firefox-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@mozilla/firefox-devtools-mcp@latest",
+        "--profile-path",
+        "${CLAUDE_PROJECT_DIR}/.firefox-mcp-profile"
+      ]
     }
   }
 }

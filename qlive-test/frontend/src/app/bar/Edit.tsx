@@ -160,12 +160,13 @@ function BarForm({ ws, row, bazes }: {
                         <div className="field" key={ name }>
                             <label htmlFor={ row.id + "-" + name }>{ name }</label>
 
-                            <input
-                                id={ row.id + "-" + name }
-                                className={ field.className }
-                                value={ (bar[name] as string | number | null) ?? "" }
-                                onChange={ e => { (bar as any)[name] = typed(name, e.target.value) } }
-                            />
+                            <div className={ "field-control " + field.className }>
+                                <input
+                                    id={ row.id + "-" + name }
+                                    value={ (bar[name] as string | number | null) ?? "" }
+                                    onChange={ e => { (bar as any)[name] = typed(name, e.target.value) } }
+                                />
+                            </div>
 
                             {
                                 // Nothing is undecided and nothing blocks: the user's value already stands,

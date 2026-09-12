@@ -102,15 +102,75 @@ body
     color: var(--qlive-color-muted);
 }
 
-.bar-edit .field input[type="text"],
-.bar-edit .field input:not([type])
+/*
+ * The input group: a bordered wrapper carries the merge mark, an icon addon
+ * that only shows up once a status sets --qlive-mark-icon, and the input
+ * itself sits borderless inside it. Marking the wrapper rather than the
+ * input is what keeps this out of the border-color fight the input used to
+ * lose to the app's own base border rule.
+ */
+.bar-edit .field .field-control
 {
+    display: flex;
+    align-items: center;
     flex: 1;
-    padding: 0.25rem 0.5rem;
     border: 1px solid var(--qlive-color-border);
     border-radius: 0.25rem;
     background: var(--qlive-color-bg);
+    overflow: hidden;
+}
+
+.bar-edit .field .field-control:focus-within
+{
+    outline: 2px solid var(--qlive-color-accent);
+    outline-offset: 1px;
+}
+
+.bar-edit .field .field-control.qlive-changed,
+.bar-edit .field .field-control.qlive-conflict,
+.bar-edit .field .field-control.qlive-conflict-resolved,
+.bar-edit .field .field-control.qlive-remote-changed
+{
+    border-color: var(--qlive-mark-color);
+}
+
+.bar-edit .field .field-control.qlive-changed::before,
+.bar-edit .field .field-control.qlive-conflict::before,
+.bar-edit .field .field-control.qlive-conflict-resolved::before,
+.bar-edit .field .field-control.qlive-remote-changed::before
+{
+    content: "";
+    flex: none;
+    width: 1em;
+    height: 1em;
+    margin: 0 0.4rem 0 0.5rem;
+    background-color: var(--qlive-mark-color);
+
+    /*
+     * Longhands rather than the `mask` shorthand: Safari and older Firefox
+     * have shipped shorthand parsing quirks that the longhands avoid, and
+     * both prefixed and unprefixed forms are needed until -webkit-mask-*
+     * can be dropped (still required by Safari as of this writing).
+     */
+    -webkit-mask-image: var(--qlive-mark-icon);
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    -webkit-mask-size: contain;
+    mask-image: var(--qlive-mark-icon);
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+}
+
+.bar-edit .field .field-control input
+{
+    flex: 1;
+    min-width: 0;
+    padding: 0.25rem 0.5rem;
+    border: none;
+    background: transparent;
     color: var(--qlive-color-fg);
+    outline: none;
 }
 
 .bar-edit .resolve

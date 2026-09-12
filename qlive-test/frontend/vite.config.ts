@@ -102,6 +102,12 @@ export default defineConfig(({command}) => ({
                 target: backendOrigin,
                 bypass: (req) => req.method === "GET" ? "/app/login.html" : undefined,
             },
+            // Logout has no page of its own, only the POST Spring Security answers with a redirect back
+            // to /login. Same reasoning as above rules out changeOrigin: an unchanged Host is what keeps
+            // that redirect's Location pointed at the dev server instead of :8080.
+            "/logout": {
+                target: backendOrigin,
+            },
         },
     },
     test: {

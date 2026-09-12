@@ -1,11 +1,12 @@
 import React, {useLayoutEffect, useState} from "react"
-import { i18n, config, isListType, isNonNull, unwrapAll, DomainTables } from "@quinscape/qlive-ts"
+import { i18n, config, isListType, isNonNull, unwrapAll, DomainTables, Logout, QuickLogin } from "@quinscape/qlive-ts"
 import type {
     DomainQLMeta,
     GraphQLField, GraphQLInterfaceType, GraphQLObjectType,
     GraphQLSchema,
     GraphQLType,
-    GraphQLTypeRef
+    GraphQLTypeRef,
+    QuickLoginUser
 } from "@quinscape/qlive-ts"
 import {posix} from "node:path";
 
@@ -26,32 +27,42 @@ function quickSearchField(typeName: string) : string | undefined
 }
 
 
-const ViteDevHome = ({}) => {
+export type ViteDevHomeProps = {
+    quickLoginUsers: QuickLoginUser[]
+}
+
+const ViteDevHome = ({ quickLoginUsers }: ViteDevHomeProps) => {
 
     const [filter,setFilter] = useState("")
 
     return (
         <>
             <h1>Vite Dev Root</h1>
-            <p>
-                {
-                    i18n("ViteDevHome Message")
-                }
-            </p>
-            <p>
-                <ul className="nav-list">
-                    <li>
-                        <a href="/login">Login</a>
-                    </li>
-                    <li>
-                        <a href="/app/bar/live">Bar Live</a>
-                    </li>
-                    <li>
-                        <a href="/app/bar/edit">Bar Edit</a>
-                    </li>
-                </ul>
-            </p>
-            <h2>Quick Search</h2>
+            <QuickLogin users={ quickLoginUsers }/>
+            <ul className="nav-list">
+                <li>
+                    <a href="/login">Login</a>
+                </li>
+                <li>
+                    <Logout variant="link"/>
+                </li>
+                <li>
+                    <a href="/app/bar/live">Bar Live</a>
+                </li>
+                <li>
+                    <a href="/app/bar/edit">Bar Edit</a>
+                </li>
+            </ul>
+            <h2>Domain</h2>
+            <details>
+                <summary> Details ...</summary>
+                <DomainTables
+                    filter={ filter }
+                    setFilter={ setFilter }
+                />
+            </details>
+            <hr/>
+            <h2>Quick Search (metadata example)</h2>
             <ul>
                 {
                     config().meta.quickSearchTypes.map(
@@ -63,14 +74,6 @@ const ViteDevHome = ({}) => {
                     )
                 }
             </ul>
-            <h2>Domain</h2>
-            <details>
-                <summary> Details ...</summary>
-                <DomainTables
-                    filter={ filter }
-                    setFilter={ setFilter }
-                />
-            </details>
         </>
     )
 }

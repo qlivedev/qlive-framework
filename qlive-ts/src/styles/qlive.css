@@ -229,9 +229,15 @@
     }
     #domain-types-container
     {
-        position: absolute;
-        left: 0;
-        top: 0;
+        /*
+         * Relative, not absolute: the arrows SVG inside positions itself against this box, and it still
+         * needs that whether or not the box takes part in the page's flow. Taking it out of flow entirely
+         * used to be how this got its shrink-to-fit width, but it also collapsed #domain-types-wrapper to
+         * zero height and let anything after DomainTables sit on top of it -- width: fit-content gets the
+         * same sizing in flow instead.
+         */
+        position: relative;
+        width: fit-content;
 
         /*
          * Capped, or the longest description in the schema sets the width of

@@ -47,6 +47,7 @@ public class EntityVersionPublisher
     {
         for (EntityVersion version : event.getVersions())
         {
+            log.debug("[DEBUG push] publishing {}", version);
             pubSub.publish(TOPIC, version);
         }
 

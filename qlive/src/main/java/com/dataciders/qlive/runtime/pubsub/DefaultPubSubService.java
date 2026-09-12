@@ -3,6 +3,7 @@ package com.dataciders.qlive.runtime.pubsub;
 import com.dataciders.qlive.model.condition.CNode;
 import com.dataciders.qlive.runtime.QLiveException;
 import com.dataciders.qlive.runtime.filter.FilterTransformer;
+import com.dataciders.qlive.runtime.util.FilterDSLDecompiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,6 +80,11 @@ public class DefaultPubSubService
 
         channel.subscribe(new TopicRegistration(recipient, id, filter));
 
+        if (log.isDebugEnabled())
+        {
+            log.debug("[DEBUG push] subscribe '{}' to '{}' recipient={}\n{}",
+                id, topic, recipient, FilterDSLDecompiler.decompile(condition));
+        }
         log.debug("Subscribed '{}' to channel '{}'", id, topic);
     }
 
@@ -153,11 +159,16 @@ public class DefaultPubSubService
     {
         final Map<Recipient, List<String>> matched = new LinkedHashMap<>();
 
+        log.debug("[DEBUG push] publish on '{}': payload={}, {} registration(s)",
+            channel.name(), payload, channel.registrations().size());
+
         for (TopicRegistration registration : channel.registrations())
         {
             try
             {
-                if (registration.wants(payload))
+                boolean wants = registration.wants(payload);
+                log.debug("[DEBUG push] {} -> wants={}", registration, wants);
+                if (wants)
                 {
                     matched.computeIfAbsent(registration.recipient(), r -> new ArrayList<>())
                         .add(registration.id());

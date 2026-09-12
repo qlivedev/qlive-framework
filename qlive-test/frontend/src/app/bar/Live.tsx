@@ -19,12 +19,12 @@ export default function Live()
     const bars: Q_BarNamesResult = useInjection(Q_BarNames, { config: { pageSize: 20 } });
 
     // Same query, same injection: this finds the document useInjection() is rendering rather than a second
-    // one. What it returns is what has moved under it since it was last read.
+    // one. What it returns is what somebody else changed under it since it was read.
     const live = useLiveRows(Q_BarNames);
 
     const connection = useSyncExternalStore(PubSubConnection.subscribe, PubSubConnection.getSnapshot);
 
-    const moved = new Set(live.moved.map(row => row.id));
+    const changed = new Set(live.remoteChanged.map(row => row.id));
 
     return (
         <div className="bar-live">
@@ -37,8 +37,8 @@ export default function Live()
             {
                 live.stale && (
                     <p className="warning">
-                        { moved.size === 1 ? "A row" : moved.size + " rows" } changed while you were
-                        looking at { moved.size === 1 ? "it" : "them" }.
+                        { changed.size === 1 ? "A row" : changed.size + " rows" } changed while you were
+                        looking at { changed.size === 1 ? "it" : "them" }.
                         <button className="btn" type="button" onClick={ () => bars.update({}) }>
                             Reload
                         </button>
@@ -58,7 +58,7 @@ export default function Live()
                         bars.rows.map(row => (
                             // The mark is per row and not per field: this view has no second value to
                             // show, so "this line is out of date" is the whole of what it knows.
-                            <tr key={ row.id } className={ moved.has(row.id) ? "qlive-moved" : "" }>
+                            <tr key={ row.id } className={ changed.has(row.id) ? "qlive-remote-changed" : "" }>
                                 <td>{ row.id }</td>
                                 <td>{ row.name }</td>
                             </tr>

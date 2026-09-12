@@ -140,7 +140,7 @@ export type { PubSubStatus, PubSubConnectionSnapshot, TopicHandler } from "./pub
 
 export type {
     EntityVersionMessage,
-    MovedRow,
+    RemoteChangedRow,
     DocumentWatch,
     DocumentWatchSnapshot
 } from "./push/entityVersion";

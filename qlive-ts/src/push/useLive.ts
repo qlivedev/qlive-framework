@@ -9,7 +9,7 @@ import {DocumentWatchSnapshot, watchDocument, watchWorkingSet} from "./entityVer
  * Subscribes the calling component to other people's writes to the rows of an injected query document.
  *
  * The document itself is left alone -- no values travel with a change notification, so there is nothing to
- * apply. What this returns says that a row on screen has moved and which fields of it did; the view
+ * apply. What this returns says that a row on screen has changed and which fields of it did; the view
  * decides what that is worth:
  *
  *     const bars = useInjection(Q_Bar)
@@ -28,7 +28,7 @@ import {DocumentWatchSnapshot, watchDocument, watchWorkingSet} from "./entityVer
  * @param query     GraphQLQuery the document was injected for
  * @param params    parameters, including __id where the same query is injected twice
  *
- * @returns what has moved under the document since it was last read
+ * @returns what has changed under the document since it was last read
  */
 export function useLiveRows<T>(query: GraphQLQuery<T>, params: InjectParams = {}): DocumentWatchSnapshot
 {
@@ -53,8 +53,8 @@ export function useLiveRows<T>(query: GraphQLQuery<T>, params: InjectParams = {}
  * Keeps a working set current with other people's writes to the rows it holds, for as long as the calling
  * component is mounted.
  *
- * A field somebody else moved takes the status it would have taken at save time, so the user sees it while
- * they are still editing -- which is the same marking the merge does, arriving early rather than late.
+ * A field somebody else changed takes the status it would have taken at save time, so the user sees it
+ * while they are still editing -- which is the same marking the merge does, arriving early rather than late.
  * Nothing is returned: what changes is the working set, and the useWorkingSet() the view already has is
  * what re-renders it.
  *

@@ -646,21 +646,21 @@ that never marks anything.
 
 Beside `field(name)` the accessor answers about the entity as a whole --
 `changedFields()`, `conflictedFields()`, `resolvedFields()`,
-`movedFields()` -- so a banner, a tab marker or a "next conflict" button
+`remoteChangedFields()` -- so a banner, a tab marker or a "next conflict" button
 needs no field list of its own. `merge.of(otherEntity)` returns the
 accessor for another entity without a second hook, which is what a form
 editing a `Bar` and its `BarLink` rows in one place needs.
 
 **A field's status is derived, not remembered.** What is stored, what the
 user changed and what they decided are three maps on the entity, and
-`unchanged` / `changed` / `conflict` / `resolved` / `moved` falls out of
-which of them the field is in. Nothing keeps the merge response around,
-which is what makes the push case the same case: a message saying a field
-moved produces the same status a conflict does, through the same entry
-point.
+`unchanged` / `changed` / `conflict` / `resolved` / `remoteChanged`
+falls out of which of them the field is in. Nothing keeps the merge
+response around, which is what makes the push case the same case: a
+message saying a field changed produces the same status a conflict does,
+through the same entry point.
 
 **That entry point is `ws.storedState()`** -- the row, the version it
-stands at now, and the fields that moved with their values. `merge()`
+stands at now, and the fields that changed with their values. `merge()`
 calls it for every conflict that came back and is today's only caller.
 See "When push arrives", where this is the seam that was left for it.
 
@@ -679,8 +679,8 @@ shipped as its own artifact:
 - `qlive-conflict` -- both changed it, and their value is the one
   standing
 - `qlive-conflict-resolved` -- they looked at it and chose
-- `qlive-moved` -- it changed under them and they had no edit of their
-  own, so the stored value was taken
+- `qlive-remote-changed` -- it changed under them and they had no edit
+  of their own, so the stored value was taken
 
 The application puts `className={ field.className }` on its input and
 styles it, or overrides the stylesheet. What the framework will not do is
@@ -911,10 +911,11 @@ then the second caller and the status computation does not change.
 With those two in place, the vocabulary this design already has starts
 answering questions it was not built for:
 
-- `qlive-moved` stops being something a user learns about at save time
-  and becomes something they see while they are still typing -- the same
-  class, the same accessor, the same "no opinion, take it" rule folding
-  in a field they never touched.
+- `qlive-remote-changed` stops being something a user learns about at
+  save time
+  and becomes something they see while they are still typing -- the
+  same class, the same accessor, the same "no opinion, take it" rule
+  folding in a field they never touched.
 - A conflict can be marked *before* the save rather than after it. The
   fields both sides changed are known the moment the other write lands,
   and marking them then is the difference between "choose one" and

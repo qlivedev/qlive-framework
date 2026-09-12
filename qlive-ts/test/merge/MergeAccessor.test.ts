@@ -33,7 +33,7 @@ function mergeResponse(result: MergeResult)
 
 /**
  * A merge that came back saying somebody else got there first, with the given fields as the ones that
- * moved. A field carrying a "mine" is one both writes changed; one without is a field only they touched.
+ * changed. A field carrying a "mine" is one both writes changed; one without is a field only they touched.
  */
 function conflictOn(fields: MergeConflictField[]): MergeResult
 {
@@ -143,15 +143,15 @@ describe("what a field is", () => {
         )
         const field = ws.accessor(bar).field("description")
 
-        expect(field.status).toBe("moved")
-        expect(field.className).toBe("qlive-moved")
+        expect(field.status).toBe("remoteChanged")
+        expect(field.className).toBe("qlive-remote-changed")
 
         // no opinion about it, so catching up is not a decision anybody needs to make
         expect(field.value).toBe("Theirs too")
         expect(bar.description).toBe("Theirs too")
     })
 
-    it("marks a field that moved even where no value came with it", async () => {
+    it("marks a field that changed even where no value came with it", async () => {
 
         const {ws, bar} = await edited(conflictOn([
             {field: "name", mine: null, stored: null, informational: false}
@@ -159,7 +159,7 @@ describe("what a field is", () => {
         const field = ws.accessor(bar).field("name")
 
         // a type that did not opt in to resolution names the fields and carries no values. That the field
-        // moved is still worth marking, and what the form shows is what the row was read with
+        // changed is still worth marking, and what the form shows is what the row was read with
         expect(field.status).toBe("conflict")
         expect(field.stored).toBe("Bar #1")
     })
@@ -173,7 +173,7 @@ describe("what a field is", () => {
 
         expect(merge.changedFields()).toEqual(["name"])
         expect(merge.conflictedFields()).toEqual(["name"])
-        expect(merge.movedFields()).toEqual(["description"])
+        expect(merge.remoteChangedFields()).toEqual(["description"])
         expect(merge.resolvedFields()).toEqual([])
     })
 
@@ -283,9 +283,9 @@ describe("deciding", () => {
 
         bar.name = "Theirs"
 
-        // what "no change" means is what is in the database, which moved when the other write landed
+        // what "no change" means is what is in the database, which changed when the other write landed
         expect(ws.dirty).toBe(false)
-        expect(ws.accessor(bar).field("name").status).toBe("moved")
+        expect(ws.accessor(bar).field("name").status).toBe("remoteChanged")
     })
 
     it("refuses a decision about a field nobody else wrote", async () => {
@@ -304,8 +304,8 @@ describe("deciding", () => {
         ws.undo()
 
         // the decision was about a write that no longer exists. What the other party wrote is still there,
-        // and a form still shows the field as one that moved
-        expect(ws.accessor(bar).field("name").status).toBe("moved")
+        // and a form still shows the field as one that changed
+        expect(ws.accessor(bar).field("name").status).toBe("remoteChanged")
         expect(bar.name).toBe("Theirs")
     })
 })
@@ -368,10 +368,10 @@ describe("stored state as an input", () => {
         const {ws, bar} = await edited()
 
         // what a push message will do, and what a conflict does today
-        ws.storedState({type: "Bar", id: "bar-1", version: "v9", fields: {description: "Moved"}})
+        ws.storedState({type: "Bar", id: "bar-1", version: "v9", fields: {description: "Changed"}})
 
-        expect(ws.accessor(bar).field("description").status).toBe("moved")
-        expect(bar.description).toBe("Moved")
+        expect(ws.accessor(bar).field("description").status).toBe("remoteChanged")
+        expect(bar.description).toBe("Changed")
 
         const second = respondWith(mergeResponse({status: "CONFLICT", conflicts: []}))
         await ws.merge()
@@ -387,7 +387,7 @@ describe("stored state as an input", () => {
     })
 
 
-    it("marks a field that moved without saying what to", async () => {
+    it("marks a field that changed without saying what to", async () => {
 
         // What a push message leaves behind: a mask names the fields and no values travel with it.
         const {ws, bar} = await edited()
@@ -397,7 +397,7 @@ describe("stored state as an input", () => {
         const name = ws.accessor(bar).field("name")
 
         expect(name.status).toBe("conflict")
-        expect(ws.accessor(bar).field("description").status).toBe("moved")
+        expect(ws.accessor(bar).field("description").status).toBe("remoteChanged")
 
         // A form offering the two values to choose between has only one of them, and saying so is what
         // keeps it from labeling the value the row was read with as the one that is saved.

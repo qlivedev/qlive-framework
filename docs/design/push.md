@@ -771,7 +771,7 @@ happened and decides nothing:
 
 ```ts
 const live = watchDocument(document)
-// subscribe/getSnapshot, over { stale: boolean, moved: {type, id, fields}[] }
+// subscribe/getSnapshot, over { stale: boolean, remoteChanged: {type, id, fields}[] }
 ```
 
 Case 1 is not calling it. Case 2 renders `live` and puts `update({})`

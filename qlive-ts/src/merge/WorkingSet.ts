@@ -79,8 +79,8 @@ export type WorkingSetSnapshot = {
  *
  * An input to the store rather than the shape a merge response happens to have: a field's state is the base
  * it was registered with, the change the user made, and the value that is stored, and a failed merge is
- * merely today's only source of the third. A push message saying a row moved is the next one, and nothing
- * below this has to change for it.
+ * merely today's only source of the third. A push message saying a row changed is the next one, and
+ * nothing below this has to change for it.
  */
 export type StoredState = {
     type: string
@@ -149,8 +149,8 @@ type Entity = {
     changes: Map<string, unknown>
 
     /**
-     * what the database holds now, for the fields somebody else's write moved. Empty until a merge comes
-     * back with a conflict, which is today's only way to hear about one
+     * what the database holds now, for the fields somebody else's write changed. Empty until a merge
+     * comes back with a conflict, which is today's only way to hear about one
      */
     stored: Map<string, unknown>
 
@@ -521,7 +521,7 @@ export class WorkingSet
      * merge() calls this for every conflict that came back, which is today's only caller. It is public
      * because the second one is a push message and nothing about it would differ.
      *
-     * @param state     the row, the version it stands at, and the fields that moved
+     * @param state     the row, the version it stands at, and the fields that changed
      */
     storedState(state: StoredState): void
     {
@@ -583,8 +583,8 @@ export class WorkingSet
      * Takes every change back, leaving the rows as they were registered. Conflicts go with them, and so do
      * the decisions taken about them: they are all about a write that no longer exists.
      *
-     * What stays is what the working set was told about the database -- the fields somebody else moved are
-     * still moved, and a form still shows them as such. That is knowledge rather than unsaved work, and
+     * What stays is what the working set was told about the database -- the fields somebody else changed
+     * are still changed, and a form still shows them as such. That is knowledge rather than unsaved work, and
      * throwing it away would only mean showing the user values that are no longer there.
      */
     undo = (): void =>
@@ -726,8 +726,8 @@ export class WorkingSet
                 if (source)
                 {
                     // The link row is not a field of any form, and the array it came out of is. Marked as
-                    // moved and not to what: an association somebody else took away says nothing about the
-                    // ones they may have added, so the set that is stored is not knowable from here.
+                    // changed and not to what: an association somebody else took away says nothing about
+                    // the ones they may have added, so the set that is stored is not knowable from here.
                     //
                     // An insert that came back conflicted is one the database already holds -- the only way
                     // a new link row is refused is the constraint on the pair -- so the association it
@@ -1066,7 +1066,7 @@ export class WorkingSet
 
         const next = value === undefined ? null : value
 
-        // what "no change" means is what the database holds, so a field somebody else moved is compared
+        // what "no change" means is what the database holds, so a field somebody else changed is compared
         // against their value rather than against the one this row was read with
         const known = entity.stored.has(name) ? entity.stored : entity.base
 
@@ -1389,8 +1389,8 @@ function pending(entity: Entity): string[]
  * The stored values one conflict carries, by field name.
  *
  * A field whose value was withheld -- a type that did not opt in to resolution, or a caller with nobody to
- * show it to -- is in here as undefined rather than left out: that the field moved is worth marking in the
- * form whether or not there is a value to put next to it.
+ * show it to -- is in here as undefined rather than left out: that the field changed is worth marking in
+ * the form whether or not there is a value to put next to it.
  */
 function storedFields(conflict: MergeConflict): Record<string, unknown>
 {

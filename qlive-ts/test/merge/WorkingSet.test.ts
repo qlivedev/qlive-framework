@@ -852,7 +852,7 @@ describe("an association somebody else changed", () => {
         // and nothing stood in the way of the scalar, which still reads as the user's own change
         expect(merge.field("name").status).toBe("changed")
 
-        // what is stored is that the associations moved, not what they moved to: an association taken away
+        // what is stored is that the associations changed, not what they changed to: an association taken away
         // says nothing about ones that were added
         expect(merge.field("bazLinks").stored).toBe(document.rows[0].bazLinks)
         expect(merge.of(document.rows[0].bazLinks[0]).gone).toBe(true)

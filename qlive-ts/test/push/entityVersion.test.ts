@@ -202,7 +202,7 @@ describe("following what is on screen", () => {
 
 describe("a working set hears what a merge would have told it later", () => {
 
-    it("marks the fields somebody else moved", () => {
+    it("marks the fields somebody else changed", () => {
 
         const rows = registered()
         const ws = new WorkingSet()
@@ -220,7 +220,7 @@ describe("a working set hears what a merge would have told it later", () => {
 
         // one the user also changed is a conflict, one they did not is simply taken
         expect(accessor.field("name").status).toBe("conflict")
-        expect(accessor.field("description").status).toBe("moved")
+        expect(accessor.field("description").status).toBe("remoteChanged")
         expect(accessor.field("num").status).toBe("unchanged")
     })
 
@@ -240,9 +240,9 @@ describe("a working set hears what a merge would have told it later", () => {
 
         const accessor = ws.accessor(row)
 
-        expect(accessor.field("name").status).toBe("moved")
+        expect(accessor.field("name").status).toBe("remoteChanged")
 
-        // A field known to have moved and not known to what reads as the value the row was read with --
+        // A field known to have changed and not known to what reads as the value the row was read with --
         // there being nothing else to show, and the status saying the rest.
         expect(accessor.field("name").stored).toBe("Bar #1")
         expect(ws.edit(row).name).toBe("Bar #1")
@@ -291,7 +291,7 @@ describe("a working set hears what a merge would have told it later", () => {
 
 describe("a document reports and decides nothing", () => {
 
-    it("goes stale when a row it shows moved, naming the fields", async () => {
+    it("goes stale when a row it shows changed, naming the fields", async () => {
 
         const doc = await loadBars()
         const live = watchDocument(doc)
@@ -302,7 +302,7 @@ describe("a document reports and decides nothing", () => {
         publish(subscribes()[0].id, "Bar", "bar-1", ["name"])
 
         expect(live.getSnapshot().stale).toBe(true)
-        expect(live.getSnapshot().moved).toEqual([{type: "Bar", id: "bar-1", fields: ["name"]}])
+        expect(live.getSnapshot().remoteChanged).toEqual([{type: "Bar", id: "bar-1", fields: ["name"]}])
     })
 
 

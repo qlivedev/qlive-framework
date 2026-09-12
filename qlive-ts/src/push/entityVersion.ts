@@ -12,7 +12,8 @@ import {HeldRows, heldRows} from "../util/rows";
 export const ENTITY_VERSION = "EntityVersion"
 
 /**
- * One recorded change to one row, as it arrives: which row moved, which fields it touched, and who did it.
+ * One recorded change to one row, as it arrives: which row changed, which fields it touched, and who did
+ * it.
  *
  * The EntityVersion record the merge writes, and nothing more -- no field values travel, which is what
  * makes the message the same size whatever changed and is why what a subscriber can do with one is either
@@ -30,7 +31,7 @@ export interface EntityVersionMessage
     /** the version the change was made against, null for a row that had none */
     prev: string | null
 
-    /** the fields that moved, as a decimal string: 128 bits is past what a number holds exactly */
+    /** the fields that changed, as a decimal string: 128 bits is past what a number holds exactly */
     fieldMask: string | null
 
     /** id of the field layout the mask was written against */
@@ -44,9 +45,9 @@ export interface EntityVersionMessage
 }
 
 /**
- * One row that moved under us, and the fields of it that did.
+ * One row somebody else changed under us, and the fields of it they touched.
  */
-export interface MovedRow
+export interface RemoteChangedRow
 {
     type: string
 
@@ -92,7 +93,7 @@ function conditionFor(held: HeldRows[]): FilterExpression | null
 
 
 /**
- * A stable spelling of what a store holds, which is how "the rows on screen moved" is recognised without
+ * A stable spelling of what a store holds, which is how "the rows on screen changed" is recognised without
  * comparing conditions.
  */
 function keyOf(held: HeldRows[]): string
@@ -109,21 +110,21 @@ function keyOf(held: HeldRows[]): string
  * Keeps one subscription in step with what a store is holding.
  *
  * What is on screen moves -- a page turns, a sort changes, a row is created -- and a subscription's
- * condition is fixed once it is registered. So a store that moved is subscribed anew and the old
+ * condition is fixed once it is registered. So a store that changed is subscribed anew and the old
  * registration dropped afterwards, in that order: between the two the client hears a message twice, and
  * the other order would have it hear nothing at all.
  *
  * Not debounced. What this follows is an id set, and an id set turns over on a page change, which is a
  * user action rather than a keystroke.
  */
-function watch(read: () => HeldRows[], moved: (row: MovedRow) => void)
+function watch(read: () => HeldRows[], changed: (row: RemoteChangedRow) => void)
 {
     let key: string | null = null
     let unsubscribe: (() => void) | null = null
 
     const receive = (message: EntityVersionMessage) =>
     {
-        moved({
+        changed({
             type: message.entityType,
             id: message.entityId,
             fields: message.fieldMask ? maskedFields(message.entityType, BigInt(message.fieldMask)) : []
@@ -167,7 +168,7 @@ function watch(read: () => HeldRows[], moved: (row: MovedRow) => void)
  *
  * The rows are being edited, so a change to one means something on its own: the field takes the status it
  * would have taken at save time, and the user sees it while they are still typing rather than afterwards.
- * No values arrive, which the working set already has a shape for -- a field known to have moved and not
+ * No values arrive, which the working set already has a shape for -- a field known to have changed and not
  * known to what reads as the value the row was read with, and carries the same status a conflict does.
  *
  * The version is deliberately left where it stands. Adopting the one that just landed would quietly remove
@@ -188,13 +189,13 @@ export function watchWorkingSet(workingSet: WorkingSet): () => void
         () => workingSet.held(),
         ({type, id, fields}) =>
         {
-            const moved: Record<string, unknown> = {}
+            const stored: Record<string, unknown> = {}
 
-            // undefined is the value: it says the field moved and that we were not told to what, which is
-            // the whole of a mask-only message.
-            fields.forEach(name => { moved[name] = undefined })
+            // undefined is the value: it says the field changed and that we were not told to what, which
+            // is the whole of a mask-only message.
+            fields.forEach(name => { stored[name] = undefined })
 
-            workingSet.storedState({type, id, fields: moved})
+            workingSet.storedState({type, id, fields: stored})
         }
     )
 
@@ -222,8 +223,8 @@ export interface DocumentWatchSnapshot
      */
     stale: boolean
 
-    /** what moved, oldest first */
-    moved: MovedRow[]
+    /** what somebody else changed, oldest first */
+    remoteChanged: RemoteChangedRow[]
 }
 
 /**
@@ -263,7 +264,7 @@ export interface DocumentWatch
  */
 export function watchDocument(document: QueryDocument<any>): DocumentWatch
 {
-    let moved: MovedRow[] = []
+    let remoteChanged: RemoteChangedRow[] = []
     let snapshot: DocumentWatchSnapshot | null = null
     let listeners: (() => void)[] = []
 
@@ -277,16 +278,16 @@ export function watchDocument(document: QueryDocument<any>): DocumentWatch
         () => heldRows(document.rows, document.type),
         row =>
         {
-            moved = [...moved, row]
+            remoteChanged = [...remoteChanged, row]
             notify()
         }
     )
 
     const clear = () =>
     {
-        if (moved.length > 0)
+        if (remoteChanged.length > 0)
         {
-            moved = []
+            remoteChanged = []
             notify()
         }
     }
@@ -314,7 +315,7 @@ export function watchDocument(document: QueryDocument<any>): DocumentWatch
         {
             if (!snapshot)
             {
-                snapshot = {stale: moved.length > 0, moved}
+                snapshot = {stale: remoteChanged.length > 0, remoteChanged}
             }
 
             return snapshot

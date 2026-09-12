@@ -19,7 +19,7 @@ import { Q_BazList, Q_BazListResult } from "./Q_BazList";
  * class a field carries -- and the application renders the inputs, which is the whole of the split. The
  * conflict path is worth trying twice in two browser windows: save in one, then save in the other.
  *
- * With push wired in, the second window does not have to save to find out. A field somebody else moved is
+ * With push wired in, the second window does not have to save to find out. A field somebody else changed is
  * marked while the user is still typing, which is the same marking the merge does, arriving early rather
  * than late -- so what the two windows show is a notice before the save rather than a conflict after it.
  */
@@ -191,7 +191,7 @@ function BarForm({ ws, row, bazes }: {
                             }
 
                             {
-                                // A push message says which fields moved and carries no values, so there
+                                // A push message says which fields changed and carries no values, so there
                                 // is no second value to offer yet. Saving asks the server, which answers
                                 // with both -- and the two buttons above appear then.
                                 field.status === "conflict" && !field.storedKnown && (

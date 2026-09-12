@@ -11,10 +11,10 @@
 /**
  * Which values a read returns: the user's own edits, what is in the database, or the two folded together.
  *
- * "merged" is the default and the one a form wants: the user's edits, with the fields somebody else moved
- * and this user has no opinion about taken silently. The other two are what a "show me what I typed" and a
- * "show me what is saved" toggle switch to, and a form that knows nothing about merging renders all three
- * correctly, because the draft is what decides.
+ * "merged" is the default and the one a form wants: the user's edits, with the fields somebody else
+ * changed and this user has no opinion about taken silently. The other two are what a "show me what I
+ * typed" and a "show me what is saved" toggle switch to, and a form that knows nothing about merging
+ * renders all three correctly, because the draft is what decides.
  */
 export type MergeView = "mine" | "stored" | "merged"
 
@@ -30,9 +30,9 @@ export type Resolution = "mine" | "stored"
  * - `changed` -- the user changed it and nobody else did
  * - `conflict` -- both changed it, and the user's value is the one standing
  * - `resolved` -- both changed it and the user looked at it and chose
- * - `moved` -- somebody else changed it and the user did not, so their value was taken
+ * - `remoteChanged` -- somebody else changed it and the user did not, so their value was taken
  */
-export type MergeFieldStatus = "unchanged" | "changed" | "conflict" | "resolved" | "moved"
+export type MergeFieldStatus = "unchanged" | "changed" | "conflict" | "resolved" | "remoteChanged"
 
 /**
  * The class one status carries, which is what an application puts on its input. They are styled in
@@ -43,7 +43,7 @@ const CLASSES: Record<MergeFieldStatus, string> = {
     changed: "qlive-changed",
     conflict: "qlive-conflict",
     resolved: "qlive-conflict-resolved",
-    moved: "qlive-moved"
+    remoteChanged: "qlive-remote-changed"
 }
 
 /**
@@ -54,7 +54,7 @@ export type MergeEntity = {
     type: string
     id: string
 
-    /** what the database holds now, for the fields somebody else moved */
+    /** what the database holds now, for the fields somebody else changed */
     stored: Map<string, unknown>
 
     /** what the user set */
@@ -111,7 +111,7 @@ export type MergeField = {
 
     /**
      * What is in the database, as far as this working set has been told: the other write's value for a
-     * field it moved, and the value the row was read with otherwise.
+     * field it changed, and the value the row was read with otherwise.
      */
     stored: unknown
 
@@ -123,7 +123,7 @@ export type MergeField = {
     /**
      * Whether `stored` is the other write's value or merely the value the row was read with.
      *
-     * false where the field is known to have moved and not known to what -- a push message carries a mask
+     * false where the field is known to have changed and not known to what -- a push message carries a mask
      * and no values, and a type that did not opt in to resolution carries none either. A form showing the
      * two values to choose between asks this first: labeling the read value "saved" names it as something
      * it is not.
@@ -185,7 +185,7 @@ export type MergeAccessor = {
     resolvedFields(): string[]
 
     /** fields somebody else changed and the user did not, alphabetically */
-    movedFields(): string[]
+    remoteChangedFields(): string[]
 
     /**
      * The accessor for another row of the same working set -- what a form editing a Bar and its BarLink
@@ -201,7 +201,7 @@ export type MergeAccessor = {
  * What has happened to one field of one entity.
  *
  * Derived from the state rather than remembered from a merge response, which is what lets a push message
- * saying "this field moved" produce the same answer as a conflict does.
+ * saying "this field changed" produce the same answer as a conflict does.
  */
 export function statusOf(entity: MergeEntity, name: string): MergeFieldStatus
 {
@@ -212,7 +212,7 @@ export function statusOf(entity: MergeEntity, name: string): MergeFieldStatus
             return "resolved"
         }
 
-        return entity.changes.has(name) ? "conflict" : "moved"
+        return entity.changes.has(name) ? "conflict" : "remoteChanged"
     }
 
     return entity.changes.has(name) ? "changed" : "unchanged"
@@ -238,9 +238,9 @@ export function valueOf(entity: MergeEntity, name: string, view: MergeView): unk
 
     if (view !== "mine" && entity.stored.get(name) !== undefined)
     {
-        // undefined rather than null is a field known to have moved and not known to what -- a type that
-        // did not opt in to resolution carries no values -- and what a form shows for one of those is what
-        // the row was read with
+        // undefined rather than null is a field known to have changed and not known to what -- a type
+        // that did not opt in to resolution carries no values -- and what a form shows for one of those
+        // is what the row was read with
         return entity.stored.get(name)
     }
 
@@ -286,7 +286,7 @@ export function createAccessor(host: MergeHost, entity: MergeEntity): MergeAcces
         changedFields: () => [...entity.changes.keys()].sort(),
         conflictedFields: () => withStatus("conflict"),
         resolvedFields: () => withStatus("resolved"),
-        movedFields: () => withStatus("moved"),
+        remoteChangedFields: () => withStatus("remoteChanged"),
 
         of: (row: object) => host.accessor(row)
     }

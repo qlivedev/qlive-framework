@@ -41,7 +41,7 @@
         --qlive-color-changed: #2563eb;
         --qlive-color-conflict: #d97706;
         --qlive-color-resolved: #16a34a;
-        --qlive-color-moved: #7c3aed;
+        --qlive-color-remote-changed: #7c3aed;
 
         --qlive-space-1: 0.25rem;
         --qlive-space-2: 0.5rem;
@@ -72,7 +72,7 @@
             --qlive-color-changed: #60a5fa;
             --qlive-color-conflict: #fbbf24;
             --qlive-color-resolved: #4ade80;
-            --qlive-color-moved: #c084fc;
+            --qlive-color-remote-changed: #c084fc;
         }
     }
 
@@ -230,7 +230,7 @@
     .qlive-changed,
     .qlive-conflict,
     .qlive-conflict-resolved,
-    .qlive-moved
+    .qlive-remote-changed
     {
         border-color: var(--qlive-mark-color);
         box-shadow: inset var(--qlive-space-1) 0 0 0 var(--qlive-mark-color);
@@ -256,9 +256,9 @@
 
     /* it changed under them and they had no edit of their own, so the stored
        value was taken */
-    .qlive-moved
+    .qlive-remote-changed
     {
-        --qlive-mark-color: var(--qlive-color-moved);
+        --qlive-mark-color: var(--qlive-color-remote-changed);
     }
 
     /*

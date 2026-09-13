@@ -42,6 +42,9 @@ const ViteDevHome = ({ quickLoginUsers }: ViteDevHomeProps) => {
             <Logout/>
             <ul className="nav-list">
                 <li>
+                    <a href="/app/home">Home</a>
+                </li>
+                <li>
                     <a href="/app/bar/live">Bar Live</a>
                 </li>
                 <li>

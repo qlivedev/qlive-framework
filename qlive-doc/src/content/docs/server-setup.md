@@ -2,7 +2,7 @@
 title: Server setup
 description: The Spring beans an application wires up.
 sidebar:
-  order: 9
+  order: 109
 ---
 
 The Java half is a Spring Boot application depending on `qlive`, which

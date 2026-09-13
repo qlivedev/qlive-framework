@@ -2,7 +2,7 @@
 title: Filter DSL
 description: Building conditions and sort fields.
 sidebar:
-  order: 8
+  order: 108
 ---
 The FilterDSL is a TypeScript fluent API that produces JSON-like graphs. To enable chaining, the API creates instances 
 with a prototype that allows further operations or conditions. 
@@ -33,7 +33,7 @@ A module that does little besides build conditions would rather not repeat
 the namespace, and can take the names straight from a second entry point:
 
 ```ts
-import {field, value, values, and, or, not, component} from "@quinscape/qlive-ts/filter";
+import {field, value, values, and, or, not} from "@quinscape/qlive-ts/filter";
 ```
 
 Both routes reach the same module. Conditions built through one are the
@@ -62,9 +62,17 @@ const filter = and(
 ```
 
 Field paths are dotted and follow relations: `field("owner.login")` filters
-on the login of the related user. A path may cross a to-many relation --
+on the login of the related user. 
+
+### Semantic Differences per Technology
+
+For a database query condition, a path may cross a to-many relation --
 `bazLinks.baz.name` -- and becomes a correlated `EXISTS` rather than a
 join.
+
+For a java object condition, the same path has memory graph semantics and needs an index. `bazLinks.0.baz.name` refers
+to one concrete baz object linked to by the first bazLink. `owner.login` happens to express the same thing in both worlds. 
+
 
 ## Values
 

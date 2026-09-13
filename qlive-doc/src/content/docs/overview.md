@@ -5,32 +5,89 @@ sidebar:
   order: 1
 ---
 
-QLive is a full-stack framework with a Java half and a TypeScript half. The
-Java half is `qlive`, a Spring Boot library built on
-[DomainQL](https://github.com/quinscape/domainql) and jOOQ. The TypeScript
-half is `@quinscape/qlive-ts`, a React library. They are two halves of one
+QLive is a full-stack framework written in Java and TypeScrip. The Java half is `qlive`, a Spring Boot library built on
+[DomainQL](https://github.com/quinscape/domainql) and jOOQ. The TypeScript half is `@quinscape/qlive-ts`, a React library. They are two halves of one
 thing, not a server and a client that happen to talk.
 
+In a way, QLive is both big and small. The setup is pretty complex which we hope to help you over with the testing
+app `qlive-test` and future tooling. The complexity comes from both the fullstack nature but also from the intricacies
+of implementing the concepts within QLive.
 
-<img src="/qlive-framework/media/injection-light.svg" alt="Data injection diagram" class="dark:sl-hidden" />
-<img src="/qlive-framework/media/injection-dark.svg"  alt="Data injection diagram" class="light:sl-hidden" />
+The feature-set, however, focuses on a small number of features and concepts, highly adaptable to your needs and your 
+domain.
 
-## The idea
 
-An application's views declare the data they need, in the view, once:
+## Data Access
+
+For data access we have to consider it on two levels: What we offer now and basically limitless possibilities.
+
+Hibernate/JPA has wrought havoc on many a project, and of course, it is because the critics have always been right 
+and the mismatch between the OOP world and databases is fundamental. 
+
+### JOOQ
+
+We use JOOQ for database access, and you can, too, but you don't have to. The declarative features are powerful enough
+that you can plausibly create entire applications without writing a JOOQ query. It defines however what we can send to 
+client from our logic functions and that is anything expressible as a hierarchy of GraphQL compatible POJOs. GraphQL
+limits us a bit because it e.g. does not allow typed maps or discriminator based JSON parsing.  
+
+But still, the possibilities of what can be expressed in these POJOs is endless. If you have other data sources, I'm
+pretty sure that you can integrate them. But you can also mix and match. But you can also just use REST or whatever with
+Spring. These work just fine to integrate as runtime fetch requests, but they cannot enjoy the data injection features.
+
+### GraphQL: Database/code-first
+
+Our GraphQL schema is generated and the result of what is currently used. At the beginning we have a database we want to 
+connect to. We generally support all [databases supported by JOOQ](https://www.jooq.org/doc/latest/manual/reference/supported-rdbms/). 
+
+<img src="/qlive-framework/media/domainql-workflow-light.svg"  alt="DomainQL workflow diagram" class="dark:sl-hidden" />
+<img src="/qlive-framework/media/domainql-workflow-dark.svg"  alt="DomainQL workflow diagram" class="light:sl-hidden" />
+
+We use JOOQ to generate POJOs (plain old Java objects) that mirror the tables in the database. Our GraphQL methods are
+contained in logic beans which can also reference handwritten POJO models. The existing GraphQL methods and all POJOS
+together build the GraphQL schema.
+
+At runtime, GraphQL resolves our methods by their name in the schema and executes them. They in turn use JOOQ directly
+or through services to speak to the database. The results are fed back into GraphQL and return to the client.
+                  
+
+## Data Injection
+
+With the dominance of client side frameworks, the role of the Java server became a bit odd. We used to have complex view
+technologies like JSP or even JSF, but now, the server is relegated to serve files and JSON data to the client. Nothing 
+is wrong with that per se, but it leads to data access patterns that are far from optimal. 
+
+The complexity of the domain drives up the request count needed and the async load states proliferate on the client making
+all components more complex than they need to be.
+
+Of course, GraphQL alone addresses a lot of these concerns with the ability to fetch all kinds of disjointed queries in 
+one go. Instead, we decided to go another way and invented GraphQL data injection.
+
+### Using data injection on the client
+
+Using data injection on the client couldn't be easier. We just declare that we want to use an injection of the named
+query Q_Foo and the system's static analysis tracks all those declarations and provides the data at runtime before the
+HTML view is even sent to the client.
 
 ```tsx
 export default function Home() {
-    const foos = useInjection(Q_Foo, {config: {pageSize: 5}});
+    const foos = useInjection(Q_Foo);
     // ...
 }
 ```
+From the client's perspective, the data is just there without any fetch or useEffect or anything.                                       
+
+
+### How it works
 
 The frontend build analyses that call statically and records it. The server
 reads that analysis, so by the time a request for the page arrives it
 already knows which queries that page runs. It runs them and ships the
 results **inside the HTML document**. The page arrives with its data in it;
 nothing fetches anything for the first render.
+
+<img src="/qlive-framework/media/injection-light.svg" alt="Data injection diagram" class="dark:sl-hidden" />
+<img src="/qlive-framework/media/injection-dark.svg"  alt="Data injection diagram" class="light:sl-hidden" />
 
 That is the central trade of the framework. What it buys is a page that is
 complete when it paints. What it costs is a constraint: a `useInjection()`

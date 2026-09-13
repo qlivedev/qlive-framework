@@ -2,7 +2,7 @@
 title: Views and routing
 description: How a URL becomes a view module.
 sidebar:
-  order: 4
+  order: 104
 ---
 
 A **view** is the component a URL renders. Views live under `src/app`, they

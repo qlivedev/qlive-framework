@@ -2,7 +2,7 @@
 title: GraphQL and Typescript
 description: GraphQLQuery, generated result types, types.d.ts and converters.
 sidebar:
-  order: 5
+  order: 105
 ---
 Since we're using both Typescript and GraphQL as basis for our project, we tried to unite them as much as we could. In 
 general, we generate Typescript types from the GraphQL schema. GraphQL queries however introduce another complication 
@@ -232,7 +232,7 @@ the first.
 ## Hand-written types on the Java side
 
 When a table's columns do not say everything about a type, replace the
-generated POJO with a hand-written class that extends it, and register it
+generated POJO with a handwritten class that extends it, and register it
 with `objectType()` after the schema's own types. DomainQL resolves a
 domain type by simple name, so yours takes the generated one's place --
 including for the query document service, which materializes whatever the

@@ -2,7 +2,7 @@
 title: Injections
 description: useInjection() and the rules the static analysis imposes.
 sidebar:
-  order: 6
+  order: 106
 ---
 
 An injection is a query the server runs **before the page is sent**, whose

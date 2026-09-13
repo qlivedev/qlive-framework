@@ -2,7 +2,7 @@
 title: Startup and entry points
 description: startup(), further entry points, and noSchema().
 sidebar:
-  order: 3
+  order: 103
 ---
 
 An **entry point** is an HTML file plus the module it loads. Every
@@ -11,7 +11,7 @@ may declare more.
 
 ## The main entry point
 
-```tsx {9-12}
+```tsx {9-13} title="main.tsx"
 import "@quinscape/qlive-ts/styles.css";
 import "./style.css";
 
@@ -23,25 +23,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     await startup({
         views: import.meta.glob("./app/**/*.tsx"),
         root: Landing,
+        input: async () => …
     });
 });
 ```
 
 `startup(options)` returns a promise and does three things: registers the
-view modules, obtains the bootstrap data, and initialises the config, the
-converters and the injections from it. Nothing that reads the config may
-run before it resolves.
+view modules, obtains the bootstrap data, and initializes the config, the
+converters and the injections from it. 
 
 ### StartupOptions
 
 | Field | Type | |
 |---|---|---|
-| `path` | `string` | required. `location.pathname` -- the browser's own, including the context path and percent-encoded the way the browser encodes it |
 | `views` | `ViewModules` | optional. The map `import.meta.glob(pattern)` returns |
+| `init` | `( config: QLiveConfig ) => Promise<void>` | optional init function to call after the config is initialized but before anything renders.|
+| `render` | `FunctionComponent<{ config: QLiveConfig}>` | optional render function to use when no views are defined. |
+| `root` | `string \| FunctionComponent<any>` | optional property to define what happens when the user invokes /app/. A string is redirected to the view with that name, a function component is rendered | 
+| `strictMode` | `boolean` | Whether to wrap the views in React.StrictMode. Default is `true` | 
 
-`path` has to be `location.pathname` verbatim. The server compares it
-against the request URI of the production route, and the two have to agree
-down to the character.
 
 `import.meta.glob()` is resolved by Vite at build time, relative to the
 file it appears in, and only accepts literal patterns -- which is why the

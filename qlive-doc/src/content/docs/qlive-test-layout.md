@@ -1,8 +1,8 @@
 ---
-title: Example Application layout
+title: qlive-test layout
 description: Folder structure, and the constants both halves have to agree on.
 sidebar:
-  order: 2
+  order: 102
 ---
 
 An application is one Maven module with a Vite frontend inside it.
@@ -15,9 +15,9 @@ you need to copy into your Spring configuration.
 ```
 my-app/
   pom.xml                        Spring Boot app, depends on qlive
-  src/main/java/...              logic beans, config, hand-written types
+  src/main/java/...              logic beans, config, handwritten types
     domain/                      code generator output -- do not hand-edit
-    model/                       hand-written model types
+    model/                       handwritten model types
     runtime/                     config, controllers, logic
   src/main/resources/
   frontend/
@@ -25,20 +25,21 @@ my-app/
     vite.config.ts
     index.html                   the application entry point
     login.html                   a second entry point, if you want one
-    schema.graphql               input for the type codegen
+    schema.graphql               central artifact of the unified domain, input for the type codegen
     src/
       main.tsx                   entry module: calls startup()
-      types.d.ts                 generated from schema.graphql
-      app/                       views -- and only views
+      types.d.ts                 Defines the GraphQL schema types as TyprScript types, generated from schema.graphql
+      app/                       views. Everything ending in .tsx is considered a view definition. Query definitions can
+                                 live here too with .ts extension.
         Home.tsx
         sub/View.tsx
-      component/                 everything that is not a view
+      component/                 React components that are not a view
     test/                        mirrors src/
 ```
 
 The `domain` / `model` / `runtime` split on the Java side is a convention
 worth keeping: the code generator owns `domain` outright and deletes
-anything in it that it did not write, so a hand-written type cannot live
+anything in it that it did not write, so a handwritten type cannot live
 there even if you wanted it to.
 
 ## The constants both halves agree on

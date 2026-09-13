@@ -2,7 +2,7 @@
 title: Query documents
 description: Paging, sorting, update(), and the server-side query.
 sidebar:
-  order: 7
+  order: 107
 ---
 
 A **query document** is the framework's paged result: rows, the config they

@@ -31,7 +31,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc --noEmit && tsc --noEmit -p tsconfig.vite.json && tsdown --minify",
+    "build": "tsc --noEmit && tsc --noEmit -p tsconfig.vite.json && tsdown",
     "check-exports": "node tooling/checkExports.mjs",
     "watch": "tsdown -w",
     "test": "vitest run"

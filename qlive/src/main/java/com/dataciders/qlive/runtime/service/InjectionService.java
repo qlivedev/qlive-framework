@@ -373,20 +373,15 @@ public class InjectionService
             // A variable the call did not name is left alone: a query that insists on one should report a
             // missing one, not be handed a default nobody asked for.
             final Object value = variables.get(definition.getName());
-            if (typeName == null || value == null)
+            if (typeName == null)
             {
                 continue;
             }
 
             final InjectionArgumentProcessor processor = processorFor(typeName);
-            if (processor == null)
-            {
-                continue;
-            }
-
             variables.put(
                 definition.getName(),
-                process(
+                processor != null ? process(
                     processor,
                     definition.getType(),
                     module,
@@ -394,7 +389,7 @@ public class InjectionService
                     typeName,
                     value,
                     usages.getOrDefault(definition.getName(), List.of())
-                )
+                ) : value
             );
         }
     }
@@ -513,11 +508,6 @@ public class InjectionService
         List<GraphQLFieldDefinition> usedAt
     )
     {
-        if (value == null)
-        {
-            return null;
-        }
-
         return switch (type)
         {
             case NonNullType nonNull ->

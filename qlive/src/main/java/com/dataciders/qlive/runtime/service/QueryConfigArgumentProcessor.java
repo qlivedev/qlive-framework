@@ -55,11 +55,15 @@ public class QueryConfigArgumentProcessor
     @Override
     public Object process(InjectionArgument argument)
     {
-        if (!(argument.value() instanceof Map<?, ?> delta))
+        Map<?, ?> delta;
+
+        if (argument.value() instanceof Map<?, ?>)
         {
-            // Left to the scalar's own coercing, which is the thing that knows what else a config could
-            // have been written as.
-            return argument.value();
+            delta = (Map<?, ?>) argument.value();
+        }
+        else
+        {
+            delta = new LinkedHashMap<>();
         }
 
         final QueryConfig defaults = new QueryConfig();

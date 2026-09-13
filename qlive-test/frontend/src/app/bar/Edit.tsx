@@ -69,8 +69,8 @@ function bazIdOf(link: EditLink): string
 
 export default function Edit()
 {
-    const bars: Q_BarResult = useInjection(Q_Bar, { config: { pageSize: 5 } });
-    const bazes: Q_BazListResult = useInjection(Q_BazList, { config: { pageSize: 50 } });
+    const bars: Q_BarResult = useInjection(Q_Bar);
+    const bazes: Q_BazListResult = useInjection(Q_BazList);
 
     // Made once and registered at once: the working set lives as long as the editing does, and a view that
     // rendered before its rows were registered could not edit them. A merge that lands refreshes the

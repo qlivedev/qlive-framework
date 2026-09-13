@@ -175,7 +175,7 @@ fields are optional, not by the two generators being kept in step, but
 because both answers come off one annotation on one accessor. `?` means
 one thing in both files.
 
-A hand-written payload class opts in with an annotation its author has
+A handwritten payload class opts in with an annotation its author has
 already read in every generated POJO, which is a smaller thing to learn
 than a QLive-specific marker would have been. The one asymmetry worth
 knowing is on DomainQL's side: it lets `@GraphQLField(notNull = ...)`

@@ -12,7 +12,7 @@ are carried over, the parts that kept it from being used are not.
 ## Problem
 
 Querying has a generic path. One `QueryDocument<T>` query per type,
-driven by a config, no hand-written query per use case. Writing has
+driven by a config, no handwritten query per use case. Writing has
 nothing: an application declares its own `*Input` types, writes a
 mutation per operation, and maps the input onto jOOQ by hand. On top of
 that, every one of those mutations is a last-write-wins update, so two
@@ -1260,6 +1260,6 @@ type analysis.
   provider is either the first piece of one or a context with a single
   consumer. Deliberately left open, and step 8 is the evidence so far: the
   edit view passes the accessor one level, to the component rendering the
-  association editor, and wants nothing. That is one hand-written form of
+  association editor, and wants nothing. That is one handwritten form of
   three fields, so it argues for waiting rather than against a context --
   the tree that would want one is the one a form library builds.

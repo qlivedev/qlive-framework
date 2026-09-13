@@ -395,7 +395,7 @@ JSON properties, read through the same Svenson class introspection
 A hop resolves to "getter", full stop -- a `Collection`-typed property is
 to-many, addressed by numeric index below; anything else is to-one. This
 works identically whether the payload class happens to be DomainQL-
-registered or hand-written, so unlike the SQL-side condition compiler
+registered or handwritten, so unlike the SQL-side condition compiler
 `FieldResolver`/`QueryPlanBuilder.PathResolver` implement dotted-path
 walking for, there is no "channel not registered, skip this step" case
 left to carve out -- validation was never really a DomainQL question here,

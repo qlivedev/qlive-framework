@@ -208,7 +208,7 @@ Change kinds sort by whether that is mechanical:
   which types participate.
 - **Narrowing, renaming, dropping, retyping** -- not mechanical, and may
   break application code that referenced the column. The installer
-  refuses to invent these and places the module author's own hand-written
+  refuses to invent these and places the module author's own handwritten
   migration unmodified, with a warning.
 
 `validate-modules` is what makes emit-don't-apply safe: the descriptor

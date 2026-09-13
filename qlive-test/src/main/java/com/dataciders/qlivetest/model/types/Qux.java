@@ -17,11 +17,11 @@ import jakarta.persistence.Table;
 ///     fetcher context all come along, and only what is written here is different.
 ///
 ///
-///     What documents this type to the schema is not the javadoc here but the hand-written
+///     What documents this type to the schema is not the Javadoc here but the handwritten
 ///     `src/main/resources/domain-typedocs.json`. The extraction feeding `source-typedocs.json`
 ///     reads a class's own source and sees only the members declared in it, so documenting a column would
 ///     mean overriding its getter for no reason but to hang a comment on it. Type docs merge by whole type
-///     with the last source winning, and the extracted docs are read after the hand-written ones, so the two
+///     with the last source winning, and the extracted docs are read after the handwritten ones, so the two
 ///     cannot each document a part of this type: moving the computed field's documentation to where it is
 ///     written would take every column's along with it.
 ///
@@ -64,7 +64,7 @@ public class Qux
     ///
     /// Defined as integer containing 1/10000th currency units. So 10000 would be 1 EUR, e.g.
     ///
-    /// The client holds these in a Javascript number, which represents every integer exactly up to
+    /// The client holds these in a JavaScript number, which represents every integer exactly up to
     /// Number.MAX_SAFE_INTEGER, 9007199254740991 -- 900,719,925,474.0991 EUR. Up to there the value carries
     /// exactly, with no error at all. Above it the column stays a long, but the client sees only every
     /// second value, then every fourth, and so on: what an amount rounds to is off by up to half that step.

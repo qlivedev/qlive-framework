@@ -6,7 +6,7 @@ import jakarta.persistence.Table;
 /// no column backs.
 ///
 /// The package follows the split an application is laid out by: the generated types live in `testdomain`,
-/// the hand-written ones here.
+/// the handwritten ones here.
 @Table(name = "test_foo", schema = "public")
 public class TestFoo
     extends com.dataciders.qlive.testdomain.tables.pojos.TestFoo

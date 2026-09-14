@@ -16,6 +16,8 @@
     "generate": "pnpm --filter @quinscape/qlive-test-frontend run generate",
     "docs:dev": "pnpm -C qlive-doc dev",
     "docs:build": "pnpm -C qlive-doc build",
+    "docs:api": "node tooling/generateApiDocs.mjs",
+    "docs:api:check": "node tooling/generateApiDocs.mjs --check",
     "docs:preview": "pnpm -C qlive-doc preview"
   },
   "devDependencies": {

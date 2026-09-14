@@ -1,0 +1,157 @@
+{
+  "_comment": [
+    "Which public export of @quinscape/qlive-ts is looked up on which generated page,",
+    "and in which order it appears there. Read by tooling/generateApiDocs.mjs.",
+    "",
+    "Grouped by the subject a reader has in mind, not by source module: module",
+    "boundaries are an implementation detail, and more than one topic here draws from",
+    "several of them. Order within a topic is reading order -- the entry point first,",
+    "then what it hands back -- so this file decides the shape of the page and not just",
+    "its membership.",
+    "",
+    "Every export is named exactly once. An export missing from here fails the",
+    "generator rather than quietly going undocumented, which is the same bargain",
+    "checkExports.mjs makes with its DELIBERATELY NOT EXPORTED list."
+  ],
+
+  "external": {
+    "Temporal": "temporal-polyfill"
+  },
+
+  "topics": [
+    {
+      "slug": "startup-and-config",
+      "title": "Startup and configuration",
+      "description": "Booting the application and reading what the server sent with the page.",
+      "narrative": "/qlive-framework/reference/startup/",
+      "members": [
+        "startup", "StartupOptions", "noSchema",
+        "config", "QLiveConfig", "QLiveBoostrap", "Authentication", "CSRFToken",
+        "DomainQLMeta", "DomainQLTypeMeta", "DomainQLTypeMetaProps", "DomainQLFieldMeta",
+        "GenericTypeInfo", "RelationInfo", "SourceField", "TargetField",
+        "i18n", "findRoot"
+      ]
+    },
+    {
+      "slug": "views-and-routing",
+      "title": "Views and routing",
+      "description": "Resolving a path to a view module and building URLs for one.",
+      "narrative": "/qlive-framework/reference/router/",
+      "members": [
+        "loadViewForPath", "loadView", "routeOf", "urlOf", "appBase",
+        "routeNames", "viewNames", "ViewModules"
+      ]
+    },
+    {
+      "slug": "injection",
+      "title": "Injection",
+      "description": "Declaring a query and reading the data the server shipped with the page.",
+      "narrative": null,
+      "members": [
+        "useInjection", "InjectParams",
+        "GraphQLQuery", "data", "injectionSource", "Injection", "InjectionSource",
+        "graphql", "GraphQLParams", "firstValue",
+        "parseQuery", "ParsedQuery", "QuerySelection", "OperationType"
+      ]
+    },
+    {
+      "slug": "query-documents",
+      "title": "Query documents",
+      "description": "The store behind an injected query, and the config it carries.",
+      "narrative": "/qlive-framework/reference/query-documents/",
+      "members": [
+        "QueryDocument", "QueryDocumentSnapshot", "QueryDocumentMethods",
+        "DocumentOrSnapshot", "QueryConfig", "QueryConfigDelta"
+      ]
+    },
+    {
+      "slug": "filter-dsl",
+      "title": "Filter DSL",
+      "description": "The condition and expression graph, and what builds one.",
+      "narrative": "/qlive-framework/reference/filter-dsl/",
+      "members": ["FilterDSL", "decompileFilter"]
+    },
+    {
+      "slug": "working-sets",
+      "title": "Working sets",
+      "description": "Holding drafts of the rows a form edits, and rendering their state.",
+      "narrative": null,
+      "members": [
+        "WorkingSet", "WorkingSetOptions", "useWorkingSet", "UseWorkingSetOptions",
+        "WorkingSetSnapshot", "StoredState",
+        "useMerge", "MergeAccessor", "MergeField", "MergeFieldStatus", "MergeView",
+        "Resolution", "HeldRows"
+      ]
+    },
+    {
+      "slug": "merge",
+      "title": "Merge",
+      "description": "Sending a working set to the server, and what comes back.",
+      "narrative": null,
+      "members": [
+        "mergeWorkingSet", "MergeConfig", "MergeResult", "MergeStatus",
+        "EntityChange", "FieldChange", "EntityDeletion",
+        "MergeConflict", "MergeConflictField",
+        "MergeMeta", "MergeTypeMeta", "LinkRelation"
+      ]
+    },
+    {
+      "slug": "push-and-subscriptions",
+      "title": "Push and subscriptions",
+      "description": "Finding out that somebody else changed a row on screen.",
+      "narrative": null,
+      "members": [
+        "useDocumentWatch", "watchDocument", "watchWorkingSet", "WatchOptions",
+        "DocumentWatch", "DocumentWatchSnapshot", "RemoteChangedRow",
+        "ENTITY_VERSION", "EntityVersionMessage",
+        "subscribeToTopic", "PubSubConnection", "PubSubConnectionSnapshot",
+        "PubSubStatus", "TopicHandler"
+      ]
+    },
+    {
+      "slug": "schema-and-types",
+      "title": "Schema and type utilities",
+      "description": "The introspected schema as TypeScript, and walking a type reference.",
+      "narrative": null,
+      "members": [
+        "GraphQLSchema", "GraphQLType", "GraphQLNamedTypeBase", "GraphQLScalarType",
+        "GraphQLObjectType", "GraphQLInterfaceType", "GraphQLUnionType",
+        "GraphQLEnumType", "GraphQLInputObjectType", "GraphQLField",
+        "GraphQLInputValue", "GraphQLEnumValue", "GraphQLTypeRef",
+        "GraphQLNamedTypeRef", "GraphQLModifiedTypeRef", "GraphQLList",
+        "GraphQLNonNull", "GraphQLTypeKind", "GraphQLNamedTypes", "GraphQLModifiedTypes",
+        "findType", "objectFields", "unwrapAll", "unwrapNonNull",
+        "isListType", "isNonNull", "isQueryDocumentType", "LIST", "NON_NULL"
+      ]
+    },
+    {
+      "slug": "scalars-and-conversion",
+      "title": "Scalars and conversion",
+      "description": "What a scalar looks like on the wire, in the browser, and how it gets between.",
+      "narrative": "/qlive-framework/reference/graphql-and-typescript/",
+      "members": [
+        "Temporal",
+        "registerConverter", "getConverter", "Converter", "ConversionFn",
+        "convertToServer", "convertVariablesToServer",
+        "convertResultFromServer", "convertSelectionFromServer",
+        "SelectionNode", "QueryConversionMap",
+        "scalarEqual", "genericScalarEqual",
+        "GenericScalar", "GenericBigDecimal", "GenericByte", "GenericComputedValue",
+        "GenericCondition", "GenericDate", "GenericDomainObject",
+        "GenericFieldExpression", "GenericJSONB", "GenericLong", "GenericTimestamp"
+      ]
+    },
+    {
+      "slug": "components",
+      "title": "Components",
+      "description": "The React components the framework ships.",
+      "narrative": null,
+      "members": [
+        "DomainTables", "DomainTablesProps",
+        "ErrorBoundary", "ErrorBoundaryProps", "ErrorViewProps",
+        "Logout", "LogoutProps",
+        "QuickLogin", "QuickLoginProps", "QuickLoginUser"
+      ]
+    }
+  ]
+}

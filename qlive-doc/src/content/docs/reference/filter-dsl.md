@@ -140,43 +140,24 @@ is how a form reads back the term it contributed.
 
 ## Operators
 
-Every name below is a method on a field or value node, and also reachable
-as `condition(name, operands)` / `operation(name, operands)` for building
-graphs programmatically.
-
-**Comparison and predicates**
-
-`eq` `equal` `ne` `notEqual` `lt` `lessThan` `le` `lessOrEqual` `gt`
-`greaterThan` `ge` `greaterOrEqual` `isNull` `isNotNull` `isTrue` `isFalse`
-`isDistinctFrom` `isNotDistinctFrom` `equalIgnoreCase` `notEqualIgnoreCase`
-`between` `notBetween` `betweenSymmetric` `notBetweenSymmetric` `in`
-
-**String**
-
-`contains` `notContains` `containsIgnoreCase` `notContainsIgnoreCase`
-`startsWith` `endsWith` `likeRegex` `notLikeRegex`
-
-**Logical** (on a condition)
-
-`and` `or` `andNot` `orNot` `not`
-
-**Arithmetic and bitwise** (on a field, producing an expression)
-
-`add` `plus` `sub` `subtract` `minus` `mul` `times` `multiply` `div`
-`divide` `mod` `modulo` `rem` `pow` `power` `neg` `unaryMinus` `unaryPlus`
-`bitAnd` `bitOr` `bitXor` `bitNand` `bitNor` `bitXNor` `bitNot` `shl` `shr`
-
-**Other**
-
-`lower` `upper` `concat` `toString` (translated to a cast to string)
-
-**Sort order**
-
-`asc` `desc`
+Every operator is a method on a field, value or condition node, and each is
+also reachable as `condition(name, operands)` / `operation(name, operands)`
+for building a graph programmatically. There are comparisons and
+predicates, string tests, logical combinators, arithmetic and bitwise
+operations, and the two sort directions.
 
 The names are not invented: they are methods of jOOQ's `Field`, dispatched
 by name and operand count. That is also the security boundary -- conditions
-arrive from browsers, and a name not on this list never reaches reflection.
+arrive from browsers, and a name the dispatch does not know never reaches
+reflection.
+
+Which is why the list of them is not kept here. They are installed on the
+node prototypes at runtime, so nothing in the generated type declarations
+names one, and a copy maintained by hand beside the map they come from is a
+copy that drifts. See
+[Filter DSL in the API reference](/qlive-framework/api/filter-dsl/), which
+is generated from that map and gives each operator the number of operands
+it takes.
 
 ## Sort fields
 

@@ -231,6 +231,7 @@ function onMessage(event: MessageEvent): void
     switch (message.type)
     {
         case "Topic":
+            // console.log("[DEBUG push] Topic", message)
             // One outgoing message can name several of this connection's subscriptions: a publish matching
             // more than one of them is batched rather than sent once per match.
             for (const id of message.ids)
@@ -256,6 +257,7 @@ function onMessage(event: MessageEvent): void
             break
 
         case "Subscribed":
+            // console.log("[DEBUG push] Subscribed", message)
             // Nothing to do with it -- but the other outcome is an Error naming what was refused, and that
             // distinction only exists because this is acknowledged at all.
             break
@@ -354,6 +356,8 @@ export function subscribeToTopic<T>(
 ): () => void
 {
     const id = String(++idCounter)
+
+    // console.log("[DEBUG push] subscribeToTopic", topic, id, "\n" + decompileFilter(condition))
 
     const subscription: Subscription = {
         id,

@@ -186,33 +186,10 @@ interface QueryDocumentSnapshot<T> {
 
 See [the QueryDocuments page](/qlive-framework/reference/query-documents/) for more details on QueryDocuments.
 
-## QueryDocumentService Patterns
-                                                                              
-You can have as many QueryDocumentService endpoints with as many configurations as you want. They can even share
-row types. 
+## Customizing a query
 
-Note how you are in control before you invoke the service and after you received the result. We can use this for all kinds
-of interesting ways to create specialized endpoint implementations.
-
-### Pattern: Defaults
-
-If you use an injection with default params, the handling of the QueryConfig parameter is special. We don't even
-define the config level, and then we have no QueryConfig object which could be coerced into a valid object with normal
-GraphQL.
-
-Instead, we not only make sure that your query method is called with a proper QueryConfig object, this object also reflects
-what the meta configuration suggests for that type. The default `pageSize`, default sorting, etc. 
-
-The meaning of no object is normally: "Give me this object with default configuration", but you can redefine 
-it to mean something else: "The latest edited favorites of the current user" or whatever satisfies your needs. You
-just intercept the QueryConfig before you pass it into the service, detect that it is the default and replace e.g. the
-condition with the complex condition of your liking and also a complex sortFields expression list.
-
-You just replace the QueryConfig object, the query will execute with your config. The same config will be returned to 
-the user who can then update the query starting from that point.
-
-### Pattern: Manual Security
-
-Starts out as the pattern before, but we just extend the incoming condition of all incoming queries 
-with the necessary filters the security rules demand for the respective type. In this case it is usually preferable 
-to restore the original condition so that the user can just continue to view "their" data with minimal filter.
+You can have as many QueryDocumentService endpoints with as many
+configurations as you want. They can even share row types. You are in
+control before you invoke the service and after you received the result --
+see
+[Customize a document query](/qlive-framework/how-to/customize-a-document-query/).

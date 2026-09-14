@@ -480,3 +480,95 @@ form using the FilterDSL API (and DateTime.fromIso() expressions)
 
 **Returns** {string} pretty-printed source string. If match was used, the >> << might prevent it from being valid JavaScript
 
+## Conditions on a field
+
+Called on a field or value node, and reachable as `condition(name, operands)` for building a graph programmatically. Operands are the ones passed besides the node it is called on, so `isNull` takes none and `between` takes two.
+
+| Operator | Operands |
+|---|---|
+| `between` | 2 |
+| `betweenSymmetric` | 2 |
+| `contains` | 1 |
+| `containsIgnoreCase` | 1 |
+| `endsWith` | 1 |
+| `eq` | 1 |
+| `equal` | 1 |
+| `equalIgnoreCase` | 1 |
+| `ge` | 1 |
+| `greaterOrEqual` | 1 |
+| `greaterThan` | 1 |
+| `gt` | 1 |
+| `in` | 1 |
+| `isDistinctFrom` | 1 |
+| `isFalse` | 0 |
+| `isNotDistinctFrom` | 1 |
+| `isNotNull` | 0 |
+| `isNull` | 0 |
+| `isTrue` | 0 |
+| `le` | 1 |
+| `lessOrEqual` | 1 |
+| `lessThan` | 1 |
+| `likeRegex` | 1 |
+| `lt` | 1 |
+| `ne` | 1 |
+| `notBetween` | 2 |
+| `notBetweenSymmetric` | 2 |
+| `notContains` | 1 |
+| `notContainsIgnoreCase` | 1 |
+| `notEqual` | 1 |
+| `notEqualIgnoreCase` | 1 |
+| `notLikeRegex` | 1 |
+| `startsWith` | 1 |
+
+## Combining conditions
+
+Called on a condition. The functional forms `and()`, `or()` and `not()` build the same nodes.
+
+| Operator | Operands |
+|---|---|
+| `and` | 1 |
+| `andNot` | 1 |
+| `not` | 0 |
+| `or` | 1 |
+| `orNot` | 1 |
+
+## Operations on a field
+
+Called on a field, producing an expression rather than a condition, and reachable as `operation(name, operands)`. `toString` is translated into a cast to string; `asc` and `desc` are the sort directions.
+
+| Operator | Operands |
+|---|---|
+| `add` | 1 |
+| `asc` | 0 |
+| `bitAnd` | 1 |
+| `bitNand` | 1 |
+| `bitNor` | 1 |
+| `bitNot` | 0 |
+| `bitOr` | 1 |
+| `bitXNor` | 1 |
+| `bitXor` | 1 |
+| `concat` | 1 |
+| `desc` | 0 |
+| `div` | 1 |
+| `divide` | 1 |
+| `lower` | 0 |
+| `minus` | 1 |
+| `mod` | 1 |
+| `modulo` | 1 |
+| `mul` | 1 |
+| `multiply` | 1 |
+| `neg` | 0 |
+| `plus` | 1 |
+| `pow` | 1 |
+| `power` | 1 |
+| `rem` | 1 |
+| `shl` | 1 |
+| `shr` | 1 |
+| `sub` | 1 |
+| `subtract` | 1 |
+| `times` | 1 |
+| `toString` | 0 |
+| `unaryMinus` | 0 |
+| `unaryPlus` | 0 |
+| `upper` | 0 |
+

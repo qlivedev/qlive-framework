@@ -246,6 +246,61 @@ function parseMembers(body)
     return members;
 }
 
+/*
+ * The operators are the one part of the public API that never reaches the
+ * declarations. They are installed on the node prototypes at runtime from the
+ * maps below, so a .d.ts knows the nodes but not a single method name on them --
+ * which is why this reads a source file where the rest of the generator reads the
+ * build. The maps are the only record there is, and a table kept by hand beside
+ * them is a table that drifts.
+ */
+const OPERATOR_MAP = name =>
+    new RegExp(`const ${name} = \\{([\\s\\S]*?)\\} as const;`);
+
+/**
+ * The operator names of one `as const` map, with the number of operands each
+ * takes besides the field or condition it is called on.
+ */
+function parseOperators(source, constName)
+{
+    const body = OPERATOR_MAP(constName).exec(source);
+    if (!body)
+    {
+        throw new Error(`${constName} is not a map in the FilterDSL source`);
+    }
+
+    return [...body[1].matchAll(/"([^"]+)":\s*(\d+)/g)]
+        .map(match => ({name: match[1], operands: Number(match[2])}))
+        .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * The operator tables of a topic, each a lookup list rather than prose: the
+ * question they answer is whether a name exists and how many operands it takes.
+ */
+function renderOperators(spec, repoRoot)
+{
+    const source = fs.readFileSync(path.join(repoRoot, spec.source), "utf8");
+    const out = [];
+
+    for (const table of spec.tables)
+    {
+        out.push(`## ${table.title}`, "");
+        if (table.lead)
+        {
+            out.push(table.lead, "");
+        }
+        out.push("| Operator | Operands |", "|---|---|");
+        for (const operator of parseOperators(source, table.const))
+        {
+            out.push(`| \`${operator.name}\` | ${operator.operands} |`);
+        }
+        out.push("");
+    }
+
+    return out.join("\n");
+}
+
 /**
  * Whether a declaration reads better as a header plus a member list than as one
  * block. A class or an interface does -- its members are looked up one at a time
@@ -449,6 +504,11 @@ function renderPage(topic, order, resolve, externals)
             ? renderNamespace(name, found.namespace, found.declarations)
             : renderExport(found);
     });
+
+    if (topic.operatorTables)
+    {
+        sections.push(renderOperators(topic.operatorTables, repoRoot));
+    }
 
     return front.join("\n") + "\n" + sections.join("\n") + "\n";
 }

@@ -29,6 +29,7 @@ import graphql.schema.GraphQLFieldsContainer;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLTypeUtil;
+import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -423,6 +424,11 @@ public class InjectionService
         Map<String, List<GraphQLFieldDefinition>> usages
     )
     {
+        if (parent == null)
+        {
+            throw new IllegalArgumentException("parent can't be null");
+        }
+
         for (Selection<?> selection : selectionSet.getSelections())
         {
             switch (selection)

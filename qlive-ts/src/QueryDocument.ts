@@ -60,6 +60,21 @@ export interface QueryDocumentSnapshot<T> extends QueryDocumentMethods<QueryDocu
 }
 
 /**
+ * A query document as anything holding on to one takes it: the type of its rows, the rows, and the way to
+ * run the query again. Both a QueryDocument and the snapshot a view holds of one are this.
+ *
+ * A view has the snapshot -- useInjection() returns one -- and what has to be held on to is the document
+ * behind it, so everything taking this resolves through documentOf().
+ */
+export interface DocumentOrSnapshot
+{
+    type: string
+    rows: any[]
+
+    update(delta: QueryConfigDelta): Promise<DocumentOrSnapshot>
+}
+
+/**
  * Carries the document a snapshot was taken of. A symbol rather than a property: it must not collide with
  * a field of the result and must not survive a spread into a plain object.
  */

@@ -4,10 +4,11 @@ import {act, Component, ReactNode, StrictMode} from "react";
 import {createRoot, Root} from "react-dom/client";
 import {init} from "../../src/config";
 import {GraphQLQuery} from "../../src/GraphQLQuery";
+import {useInjection} from "../../src/useInjection";
 import {maskOf} from "../../src/merge/fieldMask";
 import {initPubSub} from "../../src/pubsub";
 import {DocumentWatchSnapshot} from "../../src/push/entityVersion";
-import {useLiveRows} from "../../src/push/useLive";
+import {useDocumentWatch} from "../../src/push/useDocumentWatch";
 import {connected, FakeWebSocket, lastSocket} from "../fixtures/fakeWebSocket";
 import {barDocument, mergeConfig} from "../fixtures/mergeConfig";
 import {testAuthentication} from "../fixtures/testConfig";
@@ -33,7 +34,9 @@ let live: DocumentWatchSnapshot
 
 function BarsLive()
 {
-    live = useLiveRows(Q_BarNames)
+    const bars = useInjection<any>(Q_BarNames)
+
+    live = useDocumentWatch(bars)
 
     return (
         <p>{ live.stale ? live.remoteChanged.length + " changed" : "current" }</p>
@@ -116,7 +119,7 @@ afterEach(() => {
 })
 
 
-describe("useLiveRows", () => {
+describe("useDocumentWatch", () => {
 
     // StrictMode calls the useState() initializer twice and mounts, unmounts and mounts again, and a view
     // that hears nothing afterwards is a live view that is dead in dev and works in production.

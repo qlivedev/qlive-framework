@@ -312,8 +312,8 @@ export interface WatchOptions
      * Opening registers a subscription, which is a side effect and so belongs in an effect rather than in
      * a render -- React calls a useState() initializer twice under StrictMode and keeps one of the two
      * results, so a watch that opened where it was created would leave a second, live one that nothing
-     * holds and nothing can ever close. useLiveRows() therefore constructs the watch closed and opens it
-     * from its effect.
+     * holds and nothing can ever close. useDocumentWatch() therefore constructs the watch closed and opens
+     * it from its effect.
      */
     open?: boolean
 }
@@ -326,7 +326,7 @@ export interface WatchOptions
  * that runs from nothing at all, through a notice the user acts on, to running the query again -- and none
  * of those is a decision a framework is in a position to make, so this reports and stops.
  *
- *     const live = useLiveRows(Q_Bar)
+ *     const live = useDocumentWatch(bars)
  *     ...
  *     { live.stale && <button onClick={ () => bars.update({}) }>Reload</button> }
  *

@@ -1,7 +1,7 @@
 import {v4 as uuid} from "uuid";
 import {GraphQLQuery} from "../GraphQLQuery";
 import {GraphQLField} from "../GraphQLSchema";
-import {documentOf, QueryConfigDelta} from "../QueryDocument";
+import {DocumentOrSnapshot, documentOf} from "../QueryDocument";
 import {findType, LIST, objectFields, unwrapAll, unwrapNonNull} from "../type-utils";
 import {HeldRows, RowVisit, walkRows} from "../util/rows";
 import {scalarEqual} from "../util/scalar";
@@ -30,18 +30,6 @@ const DRAFT = Symbol("QLive WorkingSet draft")
  * The same reasons as DRAFT: a symbol collides with no field and does not survive a spread.
  */
 const SET = Symbol("QLive WorkingSet")
-
-/**
- * A query document as a working set uses one: the type of its rows, the rows, and the way to run the query
- * again. Both a QueryDocument and the snapshot a view holds of one are this.
- */
-export interface RegisteredDocument
-{
-    type: string
-    rows: any[]
-
-    update(delta: QueryConfigDelta): Promise<RegisteredDocument>
-}
 
 /**
  * What a view renders: the state of one working set at one point in time, plus what moves it on.
@@ -221,7 +209,7 @@ export class WorkingSet
     private readonly conflictValues: boolean;
 
     /** documents the rows came from, kept so that a merge that landed can leave them holding fresh rows */
-    private documents: RegisteredDocument[];
+    private documents: DocumentOrSnapshot[];
 
     /** every entity, by type and id */
     private entities: Map<string, Entity>;
@@ -282,7 +270,7 @@ export class WorkingSet
      *
      * @param document      query document, or the snapshot a view holds of one
      */
-    register(document: RegisteredDocument): void
+    register(document: DocumentOrSnapshot): void
     {
         // The live document where the caller handed a snapshot of one. A view holds snapshots and a
         // snapshot is a still: its rows are the array the document held when it was taken, so a working
@@ -848,7 +836,7 @@ export class WorkingSet
     /**
      * Registers every row of one document.
      */
-    private walk(document: RegisteredDocument): void
+    private walk(document: DocumentOrSnapshot): void
     {
         const query = GraphQLQuery.access(document as any)
         const source = query ? `query "${query.queryName}"` : "the query the rows came from"

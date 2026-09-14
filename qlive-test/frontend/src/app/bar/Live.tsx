@@ -1,4 +1,4 @@
-import { PubSubConnection, useInjection, useLiveRows } from "@quinscape/qlive-ts";
+import { PubSubConnection, useDocumentWatch, useInjection } from "@quinscape/qlive-ts";
 import { useSyncExternalStore } from "react";
 import { Q_BarNames, Q_BarNamesResult } from "./Q_BarNames";
 
@@ -18,9 +18,10 @@ export default function Live()
 {
     const bars: Q_BarNamesResult = useInjection(Q_BarNames, { config: { pageSize: 20 } });
 
-    // Same query, same injection: this finds the document useInjection() is rendering rather than a second
-    // one. What it returns is what somebody else changed under it since it was read.
-    const live = useLiveRows(Q_BarNames);
+    // The snapshot above knows the document it was taken of, so watching the rows on screen is the value
+    // beside it and not the query again. What it returns is what somebody else changed under it since it
+    // was read.
+    const live = useDocumentWatch(bars);
 
     const connection = useSyncExternalStore(PubSubConnection.subscribe, PubSubConnection.getSnapshot);
 

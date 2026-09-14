@@ -127,9 +127,12 @@ public class DomainQLConfiguration
 
             .withMetadataProviders(
 
+                // The house rule for every row type the domain has a query document for. Small on purpose:
+                // it makes paging visible in the example views. A view wanting something else for a local
+                // reason says so at its own useInjection() call rather than here.
                 QueryConfigMetadataProvider.newProvider().
                     forAllTypes()
-                    .pageSize(5)
+                        .pageSize(5)
                     .build(),
 
                 MergeMetadataProvider.newProvider()

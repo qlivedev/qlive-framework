@@ -70,7 +70,11 @@ function bazIdOf(link: EditLink): string
 export default function Edit()
 {
     const bars: Q_BarResult = useInjection(Q_Bar);
-    const bazes: Q_BazListResult = useInjection(Q_BazList);
+
+    // The one config this view spells out, and the shape of the exception: bazes are the options of a
+    // picker rather than a page to leaf through, so this view needs all of them at once. That is a fact
+    // about this form and not about the type, so it is said here and the domain's default is left alone.
+    const bazes: Q_BazListResult = useInjection(Q_BazList, { config: { pageSize: 50 } });
 
     // Made once and registered at once: the working set lives as long as the editing does, and a view that
     // rendered before its rows were registered could not edit them. A merge that lands refreshes the

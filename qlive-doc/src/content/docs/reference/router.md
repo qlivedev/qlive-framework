@@ -24,6 +24,9 @@ import {loadView, viewNames, routeNames} from "@quinscape/qlive-ts";
 | `loadView(name)` | the view component by view name, e.g. `"sub/View"` |
 | `routeNames()` / `viewNames()` | every registered route / view name, sorted |
 
+Each signature in full, and what it hands back, is
+[Views and routing in the API reference](/qlive-framework/api/views-and-routing/).
+
 Build links with `urlOf()` rather than by hand. It is the only thing that
 knows both the servlet context path (which Vite knows nothing about) and
 the Vite base.

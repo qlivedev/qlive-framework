@@ -199,3 +199,7 @@ A converter is never called with `null` or `undefined`. Import `Temporal`
 from `@quinscape/qlive-ts`, never from `temporal-polyfill` directly -- a
 second copy of the polyfill produces instants that do not typecheck against
 the first.
+
+The `Converter` shape, the conversion calls the framework makes with it, and
+the generic scalar types a value arrives in are
+[Scalars and conversion in the API reference](/qlive-framework/api/scalars-and-conversion/).

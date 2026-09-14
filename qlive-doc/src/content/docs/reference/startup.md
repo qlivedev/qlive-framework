@@ -42,6 +42,10 @@ converters and the injections from it.
 | `root` | `string \| FunctionComponent<any>` | optional property to define what happens when the user invokes /app/. A string is redirected to the view with that name, a function component is rendered | 
 | `strictMode` | `boolean` | Whether to wrap the views in React.StrictMode. Default is `true` | 
 
+`ViewModules`, `QLiveConfig` and the rest of what those types are made of are
+in
+[Startup and configuration in the API reference](/qlive-framework/api/startup-and-config/).
+
 
 `import.meta.glob()` is resolved by Vite at build time, relative to the
 file it appears in, and only accepts literal patterns -- which is why the

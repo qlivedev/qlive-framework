@@ -24,6 +24,9 @@ query Q_Foo($config: QueryConfig!) {
 
 `useInjection()` on a query selecting a document gives you a **snapshot**:
 
+Every method of a document and every field of a snapshot is
+[Query documents in the API reference](/qlive-framework/api/query-documents/).
+
 ```ts
 interface QueryDocumentSnapshot<T> {
     type: string

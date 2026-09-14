@@ -185,6 +185,9 @@ the GraphQL type or the meta alongside the value, or the id of an injection
 no view claimed. It gives you the value in whatever state it is in -- raw
 as received until the first read converts it -- and subscribes to nothing.
 
+Both, and the query and parameter types they are spelled with, are
+[Injection in the API reference](/qlive-framework/api/injection/).
+
 ## When something goes wrong
 
 A view reads its injection unconditionally, so a page served without one

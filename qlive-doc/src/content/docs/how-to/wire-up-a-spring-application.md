@@ -1,6 +1,6 @@
 ---
-title: Server setup
-description: The Spring beans an application wires up.
+title: Wire up a Spring application
+description: The beans an application contributes, and the ones QLive brings.
 sidebar:
   order: 1
 ---
@@ -28,9 +28,7 @@ again" -- rather than doubling as "this application never configured one".
 Forgetting the bean gets you a missing-bean failure at startup instead of
 pages that answer 503 forever.
 
-## What your application wires up
-
-### The domain
+## The domain
 
 ```java
 @Bean
@@ -59,7 +57,11 @@ schema than you ship.
 
 (See com.dataciders.qlivetest.runtime.config.GraphQLConfiguration.domainQL)
 
-### Static analysis, per profile
+Every `MetadataProvider` bean the context holds is handed to the domain
+here -- see
+[Add schema metadata](/qlive-framework/how-to/add-schema-metadata/).
+
+## Static analysis, per profile
 
 ```java
 @Profile("dev")
@@ -86,7 +88,7 @@ first request, so a build whose injections are not where they belong fails
 at startup rather than on the page that happens to hit the mistake. The dev
 provider reports the same thing and carries on -- you are mid-edit.
 
-### Page rendering
+## Page rendering
 
 ```java
 @Bean
@@ -108,7 +110,7 @@ emitted assets back to static resource handling, and answers
 controllers -- it caches the entry point templates, which only change when
 the frontend is rebuilt.
 
-### The GraphQL endpoint
+## The GraphQL endpoint
 
 ```java
 @Bean
@@ -122,7 +124,7 @@ public GraphQLController graphQLController(GraphQL graphQL)
 is a second, dev-only endpoint exempt from CSRF, enabled with the `dev`
 profile.
 
-### Dev-only: receiving the pushed analysis
+## Dev-only: receiving the pushed analysis
 
 ```java
 @Bean
@@ -153,89 +155,6 @@ one generic method with `@GraphQLTypeParam` covers every type.
 
 ## Security
 
-Three things are worth knowing because they are easy to get wrong.
-
-**The GraphQL endpoint wants GraphQL-shaped errors.** Spring Security's own
-answers are aimed at a browser following links: an unauthenticated request
-is redirected to the login page, a denied one gets an empty 403. The
-frontend parses every response from `/graphql` as a GraphQL result, so both
-arrive as a parse error about HTML rather than the reason the call failed.
-Register `GraphQLSecurityErrorHandler` for that URL alone, as both entry
-point and access-denied handler:
-
-```java
-.exceptionHandling(exceptions -> {
-    final GraphQLSecurityErrorHandler graphQLErrors = new GraphQLSecurityErrorHandler();
-    final PathPatternRequestMatcher graphQLEndpoint =
-        PathPatternRequestMatcher.withDefaults().matcher(GraphQLController.GRAPHQL_URI);
-
-    exceptions
-        .defaultAuthenticationEntryPointFor(graphQLErrors, graphQLEndpoint)
-        .defaultAccessDeniedHandlerFor(graphQLErrors, graphQLEndpoint);
-})
-```
-
-The HTTP status still says what happened -- 401 for "not authenticated",
-403 for "not allowed" -- so a caller can tell an expired session from a
-missing role without inspecting the error body. Your other URLs are served
-to a browser and want the redirect.
-
-**The login POST stays CSRF-protected.** The login page is reachable
-without authentication, but do not put it in the list of URIs excluded from
-CSRF: that POST is exactly the request that has to stay protected, so a
-foreign page cannot log a user in as someone else.
-
-**The dev endpoints have to be closed outside the dev profile, by you.**
-QLive maps `/_dev/graphql` and `/_dev/track-usage` for the frontend
-tooling. They are unauthenticated and CSRF-exempt -- that is what makes
-them usable from the Vite dev server, and what makes them a hole anywhere
-else. `QLivePaths.DEV_URIS` is the pattern covering them:
-
-```java
-if (environment.acceptsProfiles(Profiles.of("dev")))
-{
-    auth.requestMatchers(QLivePaths.DEV_URIS).permitAll();
-}
-else
-{
-    auth.requestMatchers(QLivePaths.DEV_URIS).denyAll();
-}
-```
-
-Ahead of your `/**` rule, or that one lets any logged-in user at them --
-which is the point of the rule, and not something CSRF covers for you. CSRF
-stops a foreign page using a visitor's session; it stops nobody who calls
-the endpoint directly and fetches a token for their own session the way
-your frontend does. Keep them CSRF-exempt only in dev as well, but do not
-mistake that for the gate.
-
-Do not reach for `@Profile` on the controller method instead: Spring
-evaluates it for bean definitions, not for the request mappings of a bean
-that exists, so it reads as a gate while being none. The mappings are there
-in every profile; your security configuration is the whole of what decides
-whether they answer. `acceptsProfiles` rather than a look at
-`spring.profiles.active`, so that a `spring.profiles.default` counts too.
-
-## Metadata providers
-
-Every `MetadataProvider` bean is picked up automatically and writes into
-the `DomainQLMeta` the server embeds in the page, on two levels: an
-addendum next to `types`, `genericTypes` and `relations`, and field meta
-data on individual fields.
-
-The client-side counterpart is declaration merging -- name your addenda
-once and they are typed everywhere the application reads `config().meta`:
-
-```ts
-declare module "@quinscape/qlive-ts" {
-    interface DomainQLMeta {
-        quickSearchTypes: string[]
-    }
-    interface DomainQLFieldMeta {
-        quickSearch?: boolean
-    }
-}
-```
-
-Nothing but a test on the Java side notices when the two drift apart, so it
-is worth having one.
+The security configuration is yours, and three of its rules are QLive's.
+See [Secure an application](/qlive-framework/how-to/secure-an-application/)
+-- the dev endpoints in particular are open until you close them.

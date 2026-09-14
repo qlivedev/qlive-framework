@@ -166,7 +166,7 @@ refresh it from a running backend:
 
   An introspection query and `printSchema`, nothing besides. It reads
   `/_dev/graphql` -- unauthenticated and CSRF-exempt, and
-  [refused outside the dev profile](/qlive-framework/how-to/server-setup/), so the
+  [refused outside the dev profile](/qlive-framework/how-to/secure-an-application/), so the
   backend has to be running one.
 
 **Pick one and stay with it.** Both produce the same schema, but not the

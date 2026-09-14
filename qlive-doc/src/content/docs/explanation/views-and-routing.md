@@ -58,7 +58,7 @@ moment -- nothing loaded it up to that point.
 
 The application root, `/app/` itself, addresses no view. What it renders
 is the `root` option of
-[`startup()`](/qlive-framework/reference/startup-and-entry-points/) -- a component,
+[`startup()`](/qlive-framework/reference/startup/) -- a component,
 or the name of the view the root should behave as. `qlive-test` renders a
 landing component of its own there.
 

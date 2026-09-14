@@ -220,7 +220,7 @@ registerConverter("MyScalar", {
 
 Registering a second converter for a type replaces the first, so you can
 override the ones QLive brings. Do that from `startup()`'s
-[`init` hook](/qlive-framework/reference/startup-and-entry-points/): the built-ins
+[`init` hook](/qlive-framework/reference/startup/): the built-ins
 are registered while `startup()` initializes the config, and the hook is
 the point after that and before the first view renders.
 

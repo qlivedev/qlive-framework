@@ -1,13 +1,13 @@
 ---
-title: Startup and entry points
-description: startup(), further entry points, and noSchema().
+title: Startup
+description: startup(), StartupOptions and noSchema().
 sidebar:
   order: 2
 ---
 
 An **entry point** is an HTML file plus the module it loads. Every
 application has at least one -- `index.html` loading `src/main.tsx` -- and
-may declare more.
+may [declare more](/qlive-framework/how-to/add-an-entry-point/).
 
 ## The main entry point
 
@@ -64,36 +64,6 @@ the JS, so your application decides where it lands in the cascade.
 Everything in it sits in `@layer qlive`, which anything unlayered overrides
 regardless of specificity. See
 [`docs/styling.md`](https://github.com/quinscape/qlive-framework/blob/main/docs/styling.md).
-
-## Further entry points
-
-Declare the HTML file in your Vite config's
-`build.rollupOptions.input`, and serve it from a controller through the
-same `VitePageRenderer` the application itself uses. It then boots exactly
-like the application does: bootstrap embedded in production, fetched in
-`vite dev`.
-
-The login page in `qlive-test` is the worked example. It is deliberately an
-application controller rather than part of QLive -- the login page is the
-one page every application wants to look like its own.
-
-```tsx
-// src/login.tsx
-import {noSchema, startup} from "@quinscape/qlive-ts";
-
-noSchema();
-
-document.addEventListener("DOMContentLoaded", async () => {
-    await startup({path: location.pathname});
-    // render the form
-});
-```
-
-A plain HTML form is the right thing there: the POST is what authenticates
-the session, and letting the browser submit it means the response -- a
-redirect to the requested view, or back with `?error` -- is handled by the
-browser too. The CSRF token that POST needs arrives with the bootstrap,
-which is why the page is served through the renderer at all.
 
 ## `noSchema()`
 

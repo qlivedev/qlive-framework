@@ -1,6 +1,6 @@
 import config from "../config";
 import {and, field, FilterExpression, or, value, values} from "../FilterDSL";
-import {maskedFields, maskOf} from "../merge/fieldMask";
+import {fieldOrder, maskedFields, maskOf} from "../merge/fieldMask";
 import {WorkingSet} from "../merge/WorkingSet";
 import {subscribeToTopic} from "../pubsub";
 import {QueryDocument} from "../QueryDocument";
@@ -53,7 +53,10 @@ export interface RemoteChangedRow
 
     id: string
 
-    /** the fields the change touched that this client has a name for, in bit order */
+    /**
+     * the fields the change touched that this client has a name for, in bit order. In a document's record
+     * this is every field the row has changed in, the messages about it having been folded together.
+     */
     fields: string[]
 }
 
@@ -264,6 +267,51 @@ export function watchWorkingSet(workingSet: WorkingSet): () => void
 
 
 /**
+ * The record with the given change folded into it: one entry per row, and the fields of a row that changed
+ * twice unioned rather than listed twice.
+ *
+ * What the record answers is which rows on screen are out of date and in which of their fields, which is a
+ * fact about the rows and not about the messages that carried it. So a row keeps the place it took when it
+ * was first heard about -- a list that reshuffled as messages arrived would be a worse answer to the same
+ * question -- and a change that adds nothing returns the record it was given, which is how the caller
+ * knows not to tell anyone.
+ *
+ * @param changed   the record so far
+ * @param row       what arrived
+ *
+ * @returns the record including it, or the one passed in where it was already in there
+ */
+function record(changed: RemoteChangedRow[], row: RemoteChangedRow): RemoteChangedRow[]
+{
+    const index = changed.findIndex(known => known.type === row.type && known.id === row.id)
+
+    if (index < 0)
+    {
+        return [...changed, row]
+    }
+
+    const known = changed[index]
+    const fields = new Set(known.fields)
+
+    row.fields.forEach(name => fields.add(name))
+
+    if (fields.size === known.fields.length)
+    {
+        return changed
+    }
+
+    const order = fieldOrder(row.type)
+    const merged = [...changed]
+
+    // Bit order, the way the fields of a single message arrive in it: the record reads the same whether a
+    // row changed once or twice.
+    merged[index] = {...known, fields: [...fields].sort((a, b) => order.indexOf(a) - order.indexOf(b))}
+
+    return merged
+}
+
+
+/**
  * What has happened under a document since it was last read.
  */
 export interface DocumentWatchSnapshot
@@ -276,7 +324,10 @@ export interface DocumentWatchSnapshot
      */
     stale: boolean
 
-    /** what somebody else changed, oldest first */
+    /**
+     * Which rows are out of date and in which of their fields: one entry per row, however many times it
+     * changed, in the order the rows were first heard about.
+     */
     remoteChanged: RemoteChangedRow[]
 }
 
@@ -291,9 +342,6 @@ export interface DocumentWatch
 
     /** starts watching, and does nothing to a watch that is watching already */
     open: () => void
-
-    /** forgets what has arrived, for a view that dismissed the notice without running the query again */
-    clear: () => void
 
     /** stops watching, reversibly: open() puts the subscription back */
     close: () => void
@@ -354,8 +402,15 @@ export function watchDocument(document: QueryDocument<any>, options: WatchOption
         () => heldRows(document.rows, document.type),
         row =>
         {
-            remoteChanged = [...remoteChanged, row]
-            notify()
+            const next = record(remoteChanged, row)
+
+            // A field that changed again says nothing the record does not already hold, and a view that
+            // re-rendered for it would be re-rendering to show what it is showing.
+            if (next !== remoteChanged)
+            {
+                remoteChanged = next
+                notify()
+            }
         }
     )
 
@@ -414,8 +469,6 @@ export function watchDocument(document: QueryDocument<any>, options: WatchOption
 
             return snapshot
         },
-
-        clear,
 
         close: () =>
         {

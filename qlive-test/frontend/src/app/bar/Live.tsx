@@ -25,6 +25,8 @@ export default function Live()
 
     const connection = useSyncExternalStore(PubSubConnection.subscribe, PubSubConnection.getSnapshot);
 
+    // One entry per row already, however many messages arrived about it, so this is an index and not a
+    // deduplication: every row below asks whether it is in it.
     const changed = new Set(live.remoteChanged.map(row => row.id));
 
     return (

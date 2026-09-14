@@ -431,16 +431,67 @@ describe("a document reports and decides nothing", () => {
     })
 
 
-    it("forgets what arrived once the view dismissed it", async () => {
+    // The only thing that makes a stale row fresh is reading it again, so that is the only thing that
+    // empties the record. There is no dismissing it: the rows would still be out of date, and a view that
+    // wants a notice the user can wave away holds that decision itself.
+    it("forgets what arrived once the document was read again", async () => {
 
         const doc = await loadBars()
         const live = watchDocument(doc)
         connected()
 
         publish(subscribes()[0].id, "Bar", "bar-1", ["name"])
-        live.clear()
+
+        expect(live.getSnapshot().stale).toBe(true)
+
+        respondWith({data: {queryBarDocument: barDocument()}, errors: []})
+        await doc.update({})
 
         expect(live.getSnapshot().stale).toBe(false)
+        expect(live.getSnapshot().remoteChanged).toEqual([])
+    })
+
+
+    it("holds one entry per row, whatever arrives about it", async () => {
+
+        const doc = await loadBars()
+        const live = watchDocument(doc)
+        connected()
+
+        const id = subscribes()[0].id
+
+        publish(id, "Bar", "bar-1", ["name"])
+        publish(id, "Bar", "bar-2", ["num"])
+        publish(id, "Bar", "bar-1", ["description"])
+
+        expect(live.getSnapshot().remoteChanged).toEqual([
+            // fields unioned and in bit order, and bar-1 keeps the place it took when it was first heard
+            // about rather than moving to the end
+            {type: "Bar", id: "bar-1", fields: ["description", "name"]},
+            {type: "Bar", id: "bar-2", fields: ["num"]}
+        ])
+    })
+
+
+    it("says nothing where a field changed again", async () => {
+
+        const doc = await loadBars()
+        const live = watchDocument(doc)
+        connected()
+
+        const id = subscribes()[0].id
+
+        publish(id, "Bar", "bar-1", ["name"])
+
+        const first = live.getSnapshot()
+        let told = 0
+        live.subscribe(() => { told++ })
+
+        publish(id, "Bar", "bar-1", ["name"])
+
+        // the record already held it, so there is nothing to re-render for
+        expect(told).toBe(0)
+        expect(live.getSnapshot()).toBe(first)
     })
 
 

@@ -267,11 +267,11 @@
   },
   {
     "name":"EntityChange",
-    "description":"Everything one row of one type changed by, as a working set hands it over.\n\nA change names the row, the base it was read at and the fields that moved -- never the whole row. What the\nuser did not touch is not in here, which is what makes a concurrent change to a different field mergeable\nrather than a clash.",
+    "description":"Everything one row of one type changed by, as a working set hands it over.\n\nA change names the row, the base it was read at and the fields that changed -- never the whole row. What\nthe user did not touch is not in here, which is what makes a concurrent change to a different field\nmergeable rather than a clash.",
     "fieldDocs":[
       {
         "name":"changes",
-        "description":"The fields that moved, one entry each.",
+        "description":"The fields that changed, one entry each.",
         "paramDocs":[
           
         ]
@@ -308,7 +308,7 @@
   },
   {
     "name":"EntityDeletion",
-    "description":"One row to remove.\n\nThe same optimistic lock as a change and for the same reason: a row that moved since it was read may not be\nthe row the user meant to delete, and a delete that quietly removed it anyway would be the worst-behaved\nlost update of the lot.",
+    "description":"One row to remove.\n\nThe same optimistic lock as a change and for the same reason: a row that changed since it was read may\nnot be the row the user meant to delete, and a delete that quietly removed it anyway would be the\nworst-behaved lost update of the lot.",
     "fieldDocs":[
       {
         "name":"id",
@@ -470,7 +470,7 @@
   },
   {
     "name":"MergeConflictField",
-    "description":"One field of a row that could not be written as asked.\n\nThe vocabulary is deliberately not \"ours\" and \"theirs\". Whoever wrote first is gone; the only person still\nhere is the one whose save just bounced, and what they are choosing between is the value they typed and the\nvalue that is in the database. So: mine and stored.\n\nNot every field in here is a decision. A field the other write touched and this one did not is attached\nas informational, so that a form can show what moved under the user rather than only what clashed.",
+    "description":"One field of a row that could not be written as asked.\n\nThe vocabulary is deliberately not \"ours\" and \"theirs\". Whoever wrote first is gone; the only person still\nhere is the one whose save just bounced, and what they are choosing between is the value they typed and the\nvalue that is in the database. So: mine and stored.\n\nNot every field in here is a decision. A field the other write touched and this one did not is attached\nas informational, so that a form can show what changed under the user rather than only what clashed.",
     "fieldDocs":[
       {
         "name":"field",

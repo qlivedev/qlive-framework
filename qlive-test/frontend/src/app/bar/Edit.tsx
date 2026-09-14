@@ -3,7 +3,6 @@ import {
     MergeAccessor,
     MergeView,
     useInjection,
-    useLiveWorkingSet,
     useMerge,
     useWorkingSet,
     WorkingSet
@@ -85,11 +84,10 @@ export default function Edit()
         return set
     })
 
-    const { dirty, conflicts, view, merge, undo, setView } = useWorkingSet(ws)
-
-    // One line, and other people's writes land in the working set as they happen. Nothing is returned:
-    // what changes is the working set, and the useWorkingSet() above is what re-renders for it.
-    useLiveWorkingSet(ws)
+    // One flag, and other people's writes land in the working set as they happen -- a field somebody else
+    // changed is marked while this user is still typing, rather than at save time. Nothing is added to
+    // what comes back: what changes is the working set, and this is what re-renders for it.
+    const { dirty, conflicts, view, merge, undo, setView } = useWorkingSet(ws, { watch: true })
 
     return (
         <div className="bar-edit">

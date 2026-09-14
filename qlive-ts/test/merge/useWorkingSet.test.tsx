@@ -7,6 +7,8 @@ import {GraphQLQuery} from "../../src/GraphQLQuery";
 import {QueryDocument} from "../../src/QueryDocument";
 import {WorkingSet, WorkingSetSnapshot} from "../../src/merge/WorkingSet";
 import {useWorkingSet} from "../../src/merge/useWorkingSet";
+import {initPubSub} from "../../src/pubsub";
+import {connected, FakeWebSocket, lastSocket} from "../fixtures/fakeWebSocket";
 import {barDocument, mergeConfig} from "../fixtures/mergeConfig";
 import {respondWith} from "../fixtures/graphqlMock";
 import {testAuthentication} from "../fixtures/testConfig";
@@ -32,9 +34,9 @@ const Q_BARS = new GraphQLQuery<QueryDocument<any>>(
 let snapshot: WorkingSetSnapshot | null = null
 let renderCount = 0
 
-function BarForm({ws, row}: { ws: WorkingSet, row: any })
+function BarForm({ws, row, watch}: { ws: WorkingSet, row: any, watch?: boolean })
 {
-    snapshot = useWorkingSet(ws)
+    snapshot = useWorkingSet(ws, {watch})
     renderCount++
 
     const bar = ws.edit(row)
@@ -67,6 +69,10 @@ beforeEach(() => {
     // react-dom asks for this before it will let act() drive a render
     vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true)
 
+    FakeWebSocket.instances = []
+    vi.stubGlobal("WebSocket", FakeWebSocket)
+    initPubSub()
+
     container = document.createElement("div")
     document.body.appendChild(container)
     root = createRoot(container)
@@ -80,8 +86,28 @@ afterEach(() => {
         root.unmount()
     })
     container.remove()
+    initPubSub()
     vi.unstubAllGlobals()
 })
+
+
+/** The subscription ids the module has live: every Subscribe it sent that it has not unsubscribed. */
+function liveSubscriptions(): string[]
+{
+    if (FakeWebSocket.instances.length === 0)
+    {
+        return []
+    }
+
+    const gone = new Set(
+        lastSocket().messages().filter(m => m.type === "Unsubscribe").map(m => m.id)
+    )
+
+    return lastSocket().messages()
+        .filter(m => m.type === "Subscribe")
+        .map(m => m.id)
+        .filter(id => !gone.has(id))
+}
 
 
 async function editableBar()
@@ -130,5 +156,62 @@ describe("useWorkingSet", () => {
         // rendered twice, on the same object both times -- what keeps a memoized child from churning
         expect(renderCount).toBe(2)
         expect(snapshot).toBe(first)
+    })
+})
+
+
+/**
+ * The flag that used to be a second hook. What it buys is tested where watchWorkingSet() is; what is
+ * tested here is that the view drives it -- on while mounted, off when the view goes, and one subscription
+ * however many components read the same set.
+ */
+describe("useWorkingSet({watch: true})", () => {
+
+    it("watches nothing unless it is asked to", async () => {
+
+        const {ws, row} = await editableBar()
+        render(<BarForm ws={ws} row={row}/>)
+
+        expect(liveSubscriptions()).toEqual([])
+    })
+
+    it("subscribes while the view is mounted and stops when it goes", async () => {
+
+        const {ws, row} = await editableBar()
+        render(<BarForm ws={ws} row={row} watch={true}/>)
+        connected()
+
+        expect(liveSubscriptions()).toHaveLength(1)
+
+        render(<p>gone</p>)
+
+        expect(liveSubscriptions()).toEqual([])
+    })
+
+    it("holds one subscription however many components read the set", async () => {
+
+        const {ws, row} = await editableBar()
+        render(
+            <>
+                <BarForm ws={ws} row={row} watch={true}/>
+                <BarForm ws={ws} row={row} watch={true}/>
+            </>
+        )
+        connected()
+
+        expect(liveSubscriptions()).toHaveLength(1)
+    })
+
+    it("follows the flag, which a view may turn off again", async () => {
+
+        const {ws, row} = await editableBar()
+        render(<BarForm ws={ws} row={row} watch={true}/>)
+        connected()
+
+        expect(liveSubscriptions()).toHaveLength(1)
+
+        render(<BarForm ws={ws} row={row} watch={false}/>)
+
+        expect(liveSubscriptions()).toEqual([])
     })
 })

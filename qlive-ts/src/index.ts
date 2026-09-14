@@ -73,9 +73,10 @@ export * as MergeMeta from "./merge/meta";
 
 export { subscribeToTopic, PubSubConnection } from "./pubsub";
 
-// Push's first consumer: what other people's writes mean for the rows this
-// page is showing or editing.
-export { useLiveRows, useLiveWorkingSet } from "./push/useLive";
+// Push's first consumer: what other people's writes mean for the rows a page
+// is showing. For rows it is editing the answer belongs to the working set, so
+// that half is useWorkingSet({watch: true}) below.
+export { useLiveRows } from "./push/useLive";
 export { watchDocument, watchWorkingSet, ENTITY_VERSION } from "./push/entityVersion";
 
 export { WorkingSet } from "./merge/WorkingSet";
@@ -159,6 +160,8 @@ export type {
     WorkingSetOptions,
     StoredState
 } from "./merge/WorkingSet";
+
+export type { UseWorkingSetOptions } from "./merge/useWorkingSet";
 
 export type { HeldRows } from "./util/rows";
 

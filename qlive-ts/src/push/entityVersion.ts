@@ -208,7 +208,8 @@ function release(workingSet: WorkingSet, entry: {held: number, close: () => void
  *
  * A row this working set holds is its case and not a document's, even where the document it was registered
  * from is on screen: refetching that document would swap the row objects the drafts stand on. A view that
- * edits calls this one, and a view that only displays calls the other.
+ * edits watches its working set -- useWorkingSet({watch: true}) -- and a view that only displays watches
+ * its document.
  *
  * One subscription per working set, however many callers ask for it: a working set is read by as many
  * components as care to render it, and what arrives is applied to the set rather than handed to a caller,

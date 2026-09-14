@@ -62,31 +62,12 @@ is the `root` option of
 or the name of the view the root should behave as. `qlive-test` renders a
 landing component of its own there.
 
-## Router helpers
-
-```ts
-import {appBase, routeOf, urlOf, loadViewForPath} from "@quinscape/qlive-ts";
-import {loadView, viewNames, routeNames} from "@quinscape/qlive-ts";
-```
-
-| Function | |
-|---|---|
-| `appBase()` | the prefix the application is served under, with trailing slash. Context path + Vite base |
-| `routeOf(pathName)` | `location.pathname` -> route, lower case, no leading or trailing slash. `""` for the root |
-| `urlOf(route)` | route -> URL. `"sub/view"` -> `/app/sub/view` |
-| `loadViewForPath(pathName)` | the view component for a browser path |
-| `loadView(name)` | the view component by view name, e.g. `"sub/View"` |
-| `routeNames()` / `viewNames()` | every registered route / view name, sorted |
-
-Build links with `urlOf()` rather than by hand. It is the only thing that
-knows both the servlet context path (which Vite knows nothing about) and
-the Vite base.
-
 ## Navigating
 
 QLive does not ship a router. What it gives you is the resolution step --
-route to module -- and a way to refresh the injected data for a new path
-without a full page load: `GET /api/update?path=...` answers with the
+route to module, in
+[Router helpers](/qlive-framework/reference/router/) -- and a way to refresh
+the injected data for a new path without a full page load: `GET /api/update?path=...` answers with the
 injections for that path alone, so an application that swaps views
 client-side can ask for the data the new path needs. Those are the result
 of actually running that path's queries, so the data is current as of the

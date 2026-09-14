@@ -164,6 +164,37 @@ function watch(read: () => HeldRows[], changed: (row: RemoteChangedRow) => void)
 
 
 /**
+ * The watch each working set has, and how many callers are holding it.
+ */
+const watchers = new WeakMap<WorkingSet, {held: number, close: () => void}>()
+
+
+/**
+ * Hands back the one function that stops the caller watching: idempotent, because a React effect cleanup
+ * may run more than once and a caller counted twice would keep a watch alive that nothing is holding.
+ */
+function release(workingSet: WorkingSet, entry: {held: number, close: () => void}): () => void
+{
+    let released = false
+
+    return () =>
+    {
+        if (released)
+        {
+            return
+        }
+        released = true
+
+        if (--entry.held === 0)
+        {
+            watchers.delete(workingSet)
+            entry.close()
+        }
+    }
+}
+
+
+/**
  * Tells the given working set about the writes other people land on the rows it is holding, as they land.
  *
  * The rows are being edited, so a change to one means something on its own: the field takes the status it
@@ -179,12 +210,26 @@ function watch(read: () => HeldRows[], changed: (row: RemoteChangedRow) => void)
  * from is on screen: refetching that document would swap the row objects the drafts stand on. A view that
  * edits calls this one, and a view that only displays calls the other.
  *
+ * One subscription per working set, however many callers ask for it: a working set is read by as many
+ * components as care to render it, and what arrives is applied to the set rather than handed to a caller,
+ * so a second registration would only deliver every message twice. The last caller to stop watching is the
+ * one that closes it.
+ *
  * @param workingSet    the working set to keep current
  *
  * @returns a function that stops watching
  */
 export function watchWorkingSet(workingSet: WorkingSet): () => void
 {
+    const shared = watchers.get(workingSet)
+
+    if (shared)
+    {
+        shared.held++
+
+        return release(workingSet, shared)
+    }
+
     const watcher = watch(
         () => workingSet.held(),
         ({type, id, fields}) =>
@@ -202,11 +247,18 @@ export function watchWorkingSet(workingSet: WorkingSet): () => void
     const unlisten = workingSet.subscribe(watcher.refresh)
     watcher.refresh()
 
-    return () =>
-    {
-        unlisten()
-        watcher.close()
+    const entry = {
+        held: 1,
+        close: () =>
+        {
+            unlisten()
+            watcher.close()
+        }
     }
+
+    watchers.set(workingSet, entry)
+
+    return release(workingSet, entry)
 }
 
 

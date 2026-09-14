@@ -69,6 +69,13 @@ function subscribes(): any[]
 }
 
 
+/** The ids the module has unsubscribed on the current socket. */
+function unsubscribed(): string[]
+{
+    return lastSocket().messages().filter(m => m.type === "Unsubscribe").map(m => m.id)
+}
+
+
 /** Delivers one EntityVersion message to the subscription of the given id. */
 function publish(id: string, entityType: string, entityId: string, fields: string[], ownerId = "somebody")
 {
@@ -196,6 +203,80 @@ describe("following what is on screen", () => {
         ws.edit(rows.rows[0]).name = "edited"
 
         expect(subscribes()).toHaveLength(1)
+    })
+})
+
+
+describe("one subscription per working set", () => {
+
+    // A working set is read by as many components as care to render it, and what arrives is applied to the
+    // set rather than handed to a caller. A second registration would deliver every message twice.
+    it("is shared between callers, and closed by the last of them", () => {
+
+        const rows = registered()
+        const ws = new WorkingSet()
+        ws.register(rows)
+
+        const first = watchWorkingSet(ws)
+        const second = watchWorkingSet(ws)
+        connected()
+
+        expect(subscribes()).toHaveLength(1)
+
+        const id = subscribes()[0].id
+
+        first()
+
+        expect(unsubscribed()).not.toContain(id)
+
+        second()
+
+        expect(unsubscribed()).toContain(id)
+    })
+
+
+    // A React effect cleanup can run more than once, and a caller counted twice would leave the last one
+    // holding a watch that had already closed.
+    it("counts a caller that stops twice once", () => {
+
+        const rows = registered()
+        const ws = new WorkingSet()
+        ws.register(rows)
+
+        const first = watchWorkingSet(ws)
+        const second = watchWorkingSet(ws)
+        connected()
+
+        const id = subscribes()[0].id
+
+        first()
+        first()
+
+        expect(unsubscribed()).not.toContain(id)
+
+        second()
+
+        expect(unsubscribed()).toContain(id)
+    })
+
+
+    it("starts again once the last caller let go", () => {
+
+        const rows = registered()
+        const ws = new WorkingSet()
+        ws.register(rows)
+
+        const stop = watchWorkingSet(ws)
+        connected()
+
+        stop()
+
+        expect(unsubscribed()).toContain(subscribes()[0].id)
+
+        watchWorkingSet(ws)
+
+        expect(subscribes()).toHaveLength(2)
+        expect(unsubscribed()).not.toContain(subscribes()[1].id)
     })
 })
 

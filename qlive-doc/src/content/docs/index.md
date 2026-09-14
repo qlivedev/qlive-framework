@@ -27,7 +27,8 @@ the two sides. The common language is a GraphQL schema, and you do not write
 it: it comes from your tables and your server code.
 
 Filters are the same story. One condition, written once, runs as SQL against
-the database, as a predicate over Java objects, or in the browser.
+the database or as a predicate over Java objects -- in the semantics of
+wherever it lands, rather than a lowest common denominator.
 
 ## The data is already there
 

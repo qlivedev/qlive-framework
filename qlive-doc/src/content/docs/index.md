@@ -26,7 +26,7 @@ QLive is a fullstack framework for running applications using React and Typescri
  * vite
  * React 18
  * Spring Boot
- * JOOQ
+ * jOOQ
 
 ## Motivation
        

@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await startup({
         views: import.meta.glob("./app/**/*.tsx"),
         root: Landing,
-        input: async () => …
+        init: async () => …
     });
 });
 ```

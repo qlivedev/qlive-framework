@@ -5,8 +5,8 @@ sidebar:
   order: 3
 ---
 
-QLive inherits the basic GraphQL flavor based on Spring Boot, Java, and JOOQ from DomainQL. It replaces DomainQLs rudimentary
-data-fetching with a sophisticated Graph querying engine that analyses a query and splits it into the optimal amount
+QLive inherits the basic GraphQL flavor based on Spring Boot, Java, and jOOQ from DomainQL. It replaces DomainQL's rudimentary
+data-fetching with a sophisticated Graph querying engine that analyzes a query and splits it into the optimal amount
 of nicely joined SQL queries.
                              
 
@@ -14,14 +14,14 @@ of nicely joined SQL queries.
 
 Here we see an end point definition, that might very well serve all data requests in a simple application.
 
-```java {6, 10, 16} title='Endpoints.java'
+```java {6, 10, 16} title='QueryAndMutationExample.java'
 import de.quinscape.domainql.annotation.GraphQLLogic;
 import de.quinscape.domainql.annotation.GraphQLQuery;
 import de.quinscape.domainql.annotation.GraphQLMutation;
 import jakarta.validation.constraints.NotNull;
 
 @GraphQLLogic
-public class QueryLogic
+public class QueryAndMutationExample
 {
 
     @GraphQLQuery
@@ -39,7 +39,7 @@ public class QueryLogic
 }
 
 ```
-The most importing thing are the two main annotations. `@GraphQLLogic` is a spring meta annotation that declares that this
+The most important thing are the two main annotations. `@GraphQLLogic` is a spring meta annotation that declares that this
 is a spring bean and that it contains GraphQL methods.
 
 `@GraphQLQuery` declares that the given method is part of the GraphQL schema. The input types, output types, and scalars
@@ -52,7 +52,7 @@ GraphQL fields or define GraphQL types that are not clear from the database.
 
 ## QueryDocumentService
 
-The query document service it the central data access service for QLive. It analyzes the currently executed GraphQL query
+The query document service is the central data access service for QLive. It analyzes the currently executed GraphQL query
 and creates a query plan spanning one or more queries. `com.dataciders.qlive.model.QueryConfig` instances control
 how the query is executed. 
 
@@ -129,7 +129,7 @@ we want to exist.
 
 `@GraphQLTypeParam` defines the details of the type creation. For every type T mentioned in `types`, we create a type that is 
 QueryDocument<T> on the Java side and here `FooDocument` or `BarDocument` in GraphQL and TypeScript. 
-Also , each type of course needs its own query method returning it, named `queryFooDocument` and `queryBarDocument` in 
+Also, each type of course needs its own query method returning it, named `queryFooDocument` and `queryBarDocument` in 
 this example.   
                     
 As implementation, we just need to invoke `buildQuery()` with the query defining parameters. `type` is the runtime row class
@@ -140,11 +140,11 @@ type, `env` is the GraphQL environment containing the current selection and `con
 The QueryDocument returned is a container for the results that also contains the QueryConfig it was created with so the 
 user can apply a QueryConfigDelta to it and update the query. Next page, different sorting, different filter etc.
 
-On the client side, the query document implements its on storage, `useInjection()` returns a snapshot of the document
+On the client side, the query document implements its own storage, `useInjection()` returns a snapshot of the document
 with an update method that can be used to receive the next snapshot etc. QueryDocument is mutable while the snapshots
 enjoy all the benefits React has for immutable data.
 
-```ts title="QueryDocumentService<T>"
+```ts title="QueryDocumentSnapshot<T>"
 interface QueryDocumentSnapshot<T> {
     type: string
     config: QueryConfig

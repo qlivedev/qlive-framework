@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-QLive is a full-stack framework written in Java and TypeScrip. The Java half is `qlive`, a Spring Boot library built on
+QLive is a full-stack framework written in Java and TypeScript. The Java half is `qlive`, a Spring Boot library built on
 [DomainQL](https://github.com/quinscape/domainql) and jOOQ. The TypeScript half is `@quinscape/qlive-ts`, a React library. They are two halves of one
 thing, not a server and a client that happen to talk.
 
@@ -24,10 +24,10 @@ For data access we have to consider it on two levels: What we offer now and basi
 Hibernate/JPA has wrought havoc on many a project, and of course, it is because the critics have always been right 
 and the mismatch between the OOP world and databases is fundamental. 
 
-### JOOQ
+### jOOQ
 
-We use JOOQ for database access, and you can, too, but you don't have to. The declarative features are powerful enough
-that you can plausibly create entire applications without writing a JOOQ query. It defines however what we can send to 
+We use jOOQ for database access, and you can, too, but you don't have to. The declarative features are powerful enough
+that you can plausibly create entire applications without writing a jOOQ query. It defines however what we can send to 
 client from our logic functions and that is anything expressible as a hierarchy of GraphQL compatible POJOs. GraphQL
 limits us a bit because it e.g. does not allow typed maps or discriminator based JSON parsing.  
 
@@ -38,16 +38,16 @@ Spring. These work just fine to integrate as runtime fetch requests, but they ca
 ### GraphQL: Database/code-first
 
 Our GraphQL schema is generated and the result of what is currently used. At the beginning we have a database we want to 
-connect to. We generally support all [databases supported by JOOQ](https://www.jooq.org/doc/latest/manual/reference/supported-rdbms/). 
+connect to. We generally support all [databases supported by jOOQ](https://www.jooq.org/doc/latest/manual/reference/supported-rdbms/). 
 
 <img src="/qlive-framework/media/domainql-workflow-light.svg"  alt="DomainQL workflow diagram" class="dark:sl-hidden" />
 <img src="/qlive-framework/media/domainql-workflow-dark.svg"  alt="DomainQL workflow diagram" class="light:sl-hidden" />
 
-We use JOOQ to generate POJOs (plain old Java objects) that mirror the tables in the database. Our GraphQL methods are
+We use jOOQ to generate POJOs (plain old Java objects) that mirror the tables in the database. Our GraphQL methods are
 contained in logic beans which can also reference handwritten POJO models. The existing GraphQL methods and all POJOS
 together build the GraphQL schema.
 
-At runtime, GraphQL resolves our methods by their name in the schema and executes them. They in turn use JOOQ directly
+At runtime, GraphQL resolves our methods by their name in the schema and executes them. They in turn use jOOQ directly
 or through services to speak to the database. The results are fed back into GraphQL and return to the client.
                   
 
@@ -80,7 +80,7 @@ From the client's perspective, the data is just there without any fetch or useEf
 
 ### How it works
 
-The frontend build analyses that call statically and records it. The server
+The frontend build analyzes that call statically and records it. The server
 reads that analysis, so by the time a request for the page arrives it
 already knows which queries that page runs. It runs them and ships the
 results **inside the HTML document**. The page arrives with its data in it;
@@ -123,7 +123,7 @@ Consumers never see the difference: both are `StaticAnalysisProvider`.
 Three things, and they are worth naming because they are the seams:
 
 - **Which module serves a path.** Derived from the analysis and from the
-  path conventions in [Application layout](/qlive-framework/application-layout/).
+  path conventions in [Application layout](/qlive-framework/qlive-test-layout/).
 - **Which queries that module injects, and with what parameters.**
   Recorded by the build's track-usage analysis from the `useInjection()`
   call itself.
@@ -144,4 +144,4 @@ If you edit a module holding a `GraphQLQuery` the system **corrects the correct 
 
 The next view you invoke will correctly reflect the new data selection. 
 
-See [GraphQL and Typescript](/qlive-framework/queries-and-types/).
+See [GraphQL and Typescript](/qlive-framework/graphql-and-typescript/).

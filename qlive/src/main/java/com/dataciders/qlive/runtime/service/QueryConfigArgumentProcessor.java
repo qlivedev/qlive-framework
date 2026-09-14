@@ -55,15 +55,23 @@ public class QueryConfigArgumentProcessor
     @Override
     public Object process(InjectionArgument argument)
     {
-        Map<?, ?> delta;
+        final Map<?, ?> delta;
 
-        if (argument.value() instanceof Map<?, ?>)
+        if (argument.value() == null)
         {
-            delta = (Map<?, ?>) argument.value();
+            // The call named no config at all, which is the normal case: what the type declares is the
+            // whole of what it asks for, and an empty delta is how that is said here.
+            delta = Map.of();
+        }
+        else if (argument.value() instanceof Map<?, ?> named)
+        {
+            delta = named;
         }
         else
         {
-            delta = new LinkedHashMap<>();
+            // Left to the scalar's own coercing, which is the thing that knows what else a config could
+            // have been written as. Completing it here would have to guess at a shape it does not know.
+            return argument.value();
         }
 
         final QueryConfig defaults = new QueryConfig();

@@ -5,7 +5,7 @@ template: splash
 sidebar:
   hidden: true
 hero:
-  tagline: A full-stack GraphQL injection framework
+  tagline: One domain, from the database to the browser
   actions:
     - text: Read the overview
       link: /qlive-framework/explanation/overview/
@@ -15,9 +15,38 @@ hero:
       icon: external
       variant: minimal
 ---
-## Introduction
 
-QLive is a fullstack framework for running applications using React and Typescript with a Java/Spring Boot server. 
+Your domain is one thing. It starts in the database and reaches the browser
+without being translated on the way.
+
+## Defined once
+
+A type is defined once, and everything downstream knows it -- the database,
+the Java code, the TypeScript in the browser. Nothing is hand-mapped between
+the two sides. The common language is a GraphQL schema, and you do not write
+it: it comes from your tables and your server code.
+
+Filters are the same story. One condition, written once, runs as SQL against
+the database, as a predicate over Java objects, or in the browser.
+
+## The data is already there
+
+A view's query is a static declaration in that shared language, so the
+server can tell what a page needs before the page exists:
+
+```tsx
+export default function Home() {
+    const foos = useInjection(Q_Foo);
+    // ...
+}
+```
+
+It runs the query and puts the result in the page. Nothing fetches it, and
+there is no loading state to render. Components get simpler for it, and
+their tests more so: there is no fetch to mock and nothing to wait for.
+
+If React Server Components are your reference point: the same idea, for
+teams that want a Java server.
 
 ## Requirements
 
@@ -28,22 +57,10 @@ QLive is a fullstack framework for running applications using React and Typescri
  * Spring Boot
  * jOOQ
 
-## Motivation
-       
-QLive is a conceptually an alternative to React Server components. There are many reasons you want to use a Java server
-if only for the whole Spring Boot eco system. QLive allows components to declare the GraphQL queries they need. 
-The server uses static code analysis of the Typescript code to find all invocations of e.g. the `useInjection` function.
+## Where to look
 
-This analysis data allows the preparation of all needed data from the server and embed the results in the first response.
-React components are not hydrated in the React Server component sense but just find all the data they need already present.
-
-It simplifies component lifecycles. Ideally it removes *all* async behavior at page load. The more complex the data, the
-more request latency is saved. It simplifies testing the components. 
-
-## Getting Started
-
-Start with the [Overview](/qlive-framework/explanation/overview/), which explains what the framework
-does and how a page reaches the browser.
+Start with the [Overview](/qlive-framework/explanation/overview/), which
+explains what the framework does and how a page reaches the browser.
 
 The rest is grouped by what you came for:
 

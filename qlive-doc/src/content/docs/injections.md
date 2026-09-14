@@ -110,17 +110,67 @@ only you can say which.
 
 ## Query config parameters
 
-A `QueryConfig` variable may be given as a **delta** -- the fields you care
-about, and no others:
+Naming no config at all is the normal case:
 
 ```tsx
-useInjection(Q_Foo, {config: {pageSize: 5}});
+useInjection(Q_Foo);
 ```
 
-The rest comes from the default config, the same way `QueryConfigDelta`
-behaves on the client. A variable the call does not name at all is left
-alone, so a query that insists on its config reports a missing one rather
-than being handed a default nobody asked for.
+The injection still runs with a complete `QueryConfig`. It is assembled on
+the server, most general first:
+
+1. the defaults a fresh `QueryConfig` has,
+2. the delta the row type of the queried document declares, if it declares
+   one -- see [Per-type query config](#per-type-query-config) below,
+3. whatever the call itself names.
+
+So the page size, sort order and standing condition of a type are said once,
+on the server, next to the type -- and every view querying those rows gets
+them without repeating itself.
+
+Where a view does want something else, it gives a **delta**: the fields it
+cares about, and no others.
+
+```tsx
+useInjection(Q_BazList, {config: {pageSize: 50}});
+```
+
+The rest still comes from the two layers underneath, the same way
+`QueryConfigDelta` spreads over a document's current config on the client.
+
+That is what strong defaults are for -- to be broken, and broken only where
+something local wants something different. The example above is a picker
+that needs its options all at once, which is a fact about that one form and
+not about the type, so it is said at the call site. A page size every view
+of those rows should have is the opposite kind of fact and belongs on the
+type, where saying it once covers all of them.
+
+### Per-type query config
+
+What a type declares is written by a `QueryConfigMetadataProvider` bean on
+the Java side:
+
+```java
+@Bean
+public MetadataProvider queryConfigMetadata()
+{
+    return QueryConfigMetadataProvider.newProvider()
+        .forAllTypes()
+            .pageSize(20)
+        .andForType(Foo.class)
+            .sortFields("name")
+            .maxPageSize(100)
+        .build();
+}
+```
+
+`forAllTypes()` is the house rule for every row type the domain has a query
+document for; `forType(Class)` and `forTypes(Class...)` are the departures
+from it. Chain statements with `andForType()`, `andForTypes()` and
+`andForAllTypes()`, and close the chain with `build()`.
+
+A type may only be named once -- say it with `forAllTypes()` and depart from
+it per type rather than declaring the same type twice.
 
 ## Reading the raw injection
 

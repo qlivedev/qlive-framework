@@ -170,7 +170,9 @@ browser. A type can say how far that goes:
 public MetadataProvider queryConfigMetadata()
 {
     return QueryConfigMetadataProvider.newProvider()
-        .maxPageSize(Foo.class, 100);
+        .forType(Foo.class)
+            .maxPageSize(100)
+            .build();
 }
 ```
 

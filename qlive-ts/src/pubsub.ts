@@ -357,6 +357,7 @@ export function subscribeToTopic<T>(
 {
     const id = String(++idCounter)
 
+    // Uncomment with: import {decompileFilter} from "./util/decompileFilter"
     // console.log("[DEBUG push] subscribeToTopic", topic, id, "\n" + decompileFilter(condition))
 
     const subscription: Subscription = {

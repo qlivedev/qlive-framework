@@ -33,7 +33,7 @@ class MergeMetadataTest
     @BeforeAll
     static void buildDomain() throws IOException
     {
-        // QueryLogic carries the type list that puts the hand-written Qux in the generated POJO's place, so
+        // QueryLogic carries the type list that puts the handwritten Qux in the generated POJO's place, so
         // leaving it out would build a schema the application never runs. Nothing calls into it here, which
         // is why it can be handed a null service.
         domainQL = DomainQLConfiguration.newDomainQL(

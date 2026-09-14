@@ -195,7 +195,7 @@ class QueryDocumentServiceTest
     }
 
 
-    /// The scalars, through a type that a hand-written class replaces: the query document materializes
+    /// The scalars, through a type that a handwritten class replaces: the query document materializes
     /// that class, its Currency annotation reaches the schema, and the field it adds -- which no column
     /// backs -- comes back alongside the ones that do.
     @Test
@@ -228,7 +228,7 @@ class QueryDocumentServiceTest
         assertThat(full.get("byteValue"), is((byte) 23));
         assertThat(full.get("jsonbValue"), is(notNullValue()));
 
-        // the field the hand-written type adds, computed off the row rather than selected from it
+        // the field the handwritten type adds, computed off the row rather than selected from it
         assertThat(full.get("summary"), is("Qux #1 / abc"));
 
         // and the row that is null throughout stays null throughout

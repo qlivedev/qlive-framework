@@ -29,7 +29,7 @@ import jakarta.persistence.Table;
 ///     Where it lives follows the split the application is laid out by: `domain` is what the code
 ///     generator writes, `model` what is written by hand, `runtime` the code that runs. The
 ///     generator owns `domain` outright and deletes anything in it that it did not write, so a
-///     hand-written type could not live there even if the convention allowed it.
+///     handwritten type could not live there even if the convention allowed it.
 ///
 @Table(name = "qux", schema = "public")
 public class Qux

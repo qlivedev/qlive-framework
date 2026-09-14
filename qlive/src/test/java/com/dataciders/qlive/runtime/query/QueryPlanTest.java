@@ -174,7 +174,7 @@ class QueryPlanTest
     }
 
 
-    /// A hand-written type can add fields the table has no column for. DomainQL fetches those from the
+    /// A handwritten type can add fields the table has no column for. DomainQL fetches those from the
     /// object, so the planner has nothing to select for them and says so by leaving them alone -- rather
     /// than refusing a query it has no reason to refuse.
     @Test

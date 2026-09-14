@@ -41,7 +41,7 @@ public class QueryTestLogic
             namePattern = "query*Document",
             typeNamePattern = "*Document",
             types = {
-                // the hand-written TestFoo, which is what puts it in the generated one's place: a type
+                // the handwritten TestFoo, which is what puts it in the generated one's place: a type
                 // reached from a logic bean is registered as an output type, and DomainQL resolves the
                 // simple name against those
                 com.dataciders.qlive.testmodel.types.TestFoo.class,

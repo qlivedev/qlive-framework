@@ -222,7 +222,7 @@ public class QueryPlanBuilder
 
     /// Selects one field of the GraphQL selection, if it is a column.
     ///
-    /// A field that is not one is left where it is. A hand-written type replacing a generated one can add
+    /// A field that is not one is left where it is. A handwritten type replacing a generated one can add
     /// fields the table has no column for, and DomainQL fetches those from the object itself -- there is
     /// nothing for this to select and nothing to fail over, and GraphQL has already established that the
     /// field exists on the type. What such a field computes from, it computes from the columns the query

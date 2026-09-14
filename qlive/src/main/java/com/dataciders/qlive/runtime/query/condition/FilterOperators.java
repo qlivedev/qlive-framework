@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 ///
 /// The names the FilterDSL can produce are, without exception, methods of {@link Field} taking as many
 /// `Field` arguments as the node has operands beyond the first. That is what makes this a lookup instead of
-/// seventy hand-written lambdas: two methods of one interface cannot share an erasure, so a name plus an
+/// seventy handwritten lambdas: two methods of one interface cannot share an erasure, so a name plus an
 /// arity names exactly one method, and the mapping cannot drift out of step with the DSL by a typo. `in` is
 /// the single exception -- its argument is a list of values -- and its caller handles it.
 ///

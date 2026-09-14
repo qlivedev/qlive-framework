@@ -154,7 +154,7 @@ public class DomainQLConfiguration
                 new ClassPathResource("qlive-typedocs.json").getInputStream()
             )
             /*
-                hand-written JSON docs for example
+                handwritten JSON docs for example
              */
             .withTypeDocsFrom(
                 new ClassPathResource("domain-typedocs.json").getInputStream()

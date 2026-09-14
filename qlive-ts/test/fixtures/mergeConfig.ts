@@ -175,7 +175,7 @@ export const mergeConfig: QLiveConfig = {
                 inputValue("value", NAMED("GenericScalar"))
             ]),
             inputObject("MergeConfigInput", [
-                inputValue("resolveConflicts", NAMED("Boolean"))
+                inputValue("conflictValues", NAMED("Boolean"))
             ]),
             object("MergeResult", [
                 field("status", NOT_NULL(NAMED("MergeStatus", "ENUM"))),

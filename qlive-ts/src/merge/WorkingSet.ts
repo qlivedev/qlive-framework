@@ -120,11 +120,18 @@ export type StoredState = {
 export type WorkingSetOptions = {
 
     /**
-     * false where nobody is going to be shown a conflict, e.g. a working set a background job submits. A
-     * conflict then names the fields that clashed and carries no values, there being nobody to choose
-     * between them. Defaults to true, a working set being the thing a form edits through.
+     * Whether a conflict comes back carrying both values per field: the user's and the one in the database.
+     *
+     * false where nobody is going to be shown a conflict, e.g. a working set a background job submits.
+     * Nothing else about the merge changes -- the conflict is still detected, the write still fails, and
+     * the fields that clashed are still named and marked; what a caller with nobody in front of it declines
+     * is a copy of the other user's values it has no use for.
+     *
+     * The type has to agree, and it is the type that decides: values travel where this is true and the
+     * application declared MergeMetadataProvider#resolveConflicts for the type. Setting it here can only
+     * narrow that, never widen it. Defaults to true, a working set being the thing a form edits through.
      */
-    resolveConflicts?: boolean
+    conflictValues?: boolean
 }
 
 /**
@@ -211,7 +218,7 @@ type LinkSource = {
  */
 export class WorkingSet
 {
-    private readonly resolveConflicts: boolean;
+    private readonly conflictValues: boolean;
 
     /** documents the rows came from, kept so that a merge that landed can leave them holding fresh rows */
     private documents: RegisteredDocument[];
@@ -240,7 +247,7 @@ export class WorkingSet
 
     constructor(options: WorkingSetOptions = {})
     {
-        this.resolveConflicts = options.resolveConflicts !== false
+        this.conflictValues = options.conflictValues !== false
         this.documents = []
         this.entities = new Map()
         this.rows = new WeakMap()
@@ -702,7 +709,7 @@ export class WorkingSet
             return {status: "DONE", conflicts: []}
         }
 
-        const result = await mergeWorkingSet(changes, deletions, {resolveConflicts: this.resolveConflicts})
+        const result = await mergeWorkingSet(changes, deletions, {conflictValues: this.conflictValues})
 
         if (result.status === "DONE")
         {

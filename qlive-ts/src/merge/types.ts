@@ -60,7 +60,7 @@ export type MergeConfig = {
      * true if the caller can put a conflict in front of a user and take a decision back. Only then does a
      * conflict come back carrying both values per field.
      */
-    resolveConflicts: boolean
+    conflictValues: boolean
 }
 
 /**

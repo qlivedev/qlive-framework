@@ -414,7 +414,7 @@ describe("what a merge sends", () => {
         const {changes, deletions, mergeConfig: config} = sentVariables(fetchMock)
 
         expect(deletions).toEqual([])
-        expect(config).toEqual({resolveConflicts: true})
+        expect(config).toEqual({conflictValues: true})
         expect(changes).toEqual([
             {
                 type: "Bar",
@@ -502,10 +502,10 @@ describe("what a merge sends", () => {
         expect(fetchMock).not.toHaveBeenCalled()
     })
 
-    it("says it cannot show a conflict where it was made that way", async () => {
+    it("declines the other user's values where it was made that way", async () => {
 
         const document = await loadBars()
-        const ws = new WorkingSet({resolveConflicts: false})
+        const ws = new WorkingSet({conflictValues: false})
         ws.register(document)
 
         ws.edit(document.rows[0]).name = "Changed"
@@ -513,7 +513,7 @@ describe("what a merge sends", () => {
         const fetchMock = respondWith(mergeResponse({status: "CONFLICT", conflicts: []}))
         await ws.merge()
 
-        expect(sentVariables(fetchMock).mergeConfig).toEqual({resolveConflicts: false})
+        expect(sentVariables(fetchMock).mergeConfig).toEqual({conflictValues: false})
     })
 })
 

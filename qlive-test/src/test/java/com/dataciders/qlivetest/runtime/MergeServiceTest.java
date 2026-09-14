@@ -523,7 +523,7 @@ class MergeServiceTest
     private static MergeConfig resolving()
     {
         final MergeConfig config = new MergeConfig();
-        config.setResolveConflicts(true);
+        config.setConflictValues(true);
 
         return config;
     }

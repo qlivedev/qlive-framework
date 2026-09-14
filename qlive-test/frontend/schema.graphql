@@ -502,9 +502,13 @@ input MergeConfigInput {
     conflict come back carrying both values per field; otherwise it names the fields that clashed and
     nothing else.
 
-    The type has to agree: a conflict carries values where this is set and the type declared that
-    it resolves conflicts in the view. A caller that cannot show two values has no use for the stored row
-    and every reason not to be handed a copy of it.
+    Nothing else about the merge turns on this. The conflict is detected either way, the write fails
+    either way, and the fields that clashed are named either way -- what it decides is whether the other
+    user's values travel. A caller that cannot show two values has no use for the stored row and every
+    reason not to be handed a copy of it.
+
+    The type has to agree: values travel where this is set and the type declared that it resolves
+    conflicts in the view.
     """
-    resolveConflicts: Boolean
+    conflictValues: Boolean
 }

@@ -106,7 +106,7 @@ class MergeMutationTest
         final Map<String, Object> result = mergeWorkingSet(
             List.of(change(id, base, field("name", "String", "typed by me"))),
             List.of(),
-            Map.of("resolveConflicts", true)
+            Map.of("conflictValues", true)
         );
 
         assertThat(result.get("status"), is("CONFLICT"));
@@ -170,7 +170,7 @@ class MergeMutationTest
 
     private Map<String, Object> mergeWorkingSet(List<Map<String, Object>> changes)
     {
-        return mergeWorkingSet(changes, List.of(), Map.of("resolveConflicts", false));
+        return mergeWorkingSet(changes, List.of(), Map.of("conflictValues", false));
     }
 
 

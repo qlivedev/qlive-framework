@@ -656,7 +656,7 @@ public class DefaultMergeService
         conflict.setStoredVersion(storedVersion);
 
         final boolean withValues =
-            config != null && config.isResolveConflicts() &&
+            config != null && config.isConflictValues() &&
                 MergeMeta.resolvesConflicts(domainQL, change.typeName);
 
         final List<MergeConflictField> fields = new ArrayList<>();

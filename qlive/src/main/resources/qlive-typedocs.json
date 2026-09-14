@@ -419,8 +419,8 @@
     "description":"What the caller of a merge says about itself.\n\nEverything a type decides about merging is type meta data and is declared once, in the\napplication's MergeMetadataProvider. What is in here is the other half: the same working set can be\nsubmitted by a form with a user in front of it and by a service with nobody there, and the two want\ndifferent things back from a conflict.",
     "fieldDocs":[
       {
-        "name":"resolveConflicts",
-        "description":"true if the caller can put a conflict in front of a user and take a decision back. Only then does a\nconflict come back carrying both values per field; otherwise it names the fields that clashed and\nnothing else.\n\nThe type has to agree: a conflict carries values where this is set and the type declared that\nit resolves conflicts in the view. A caller that cannot show two values has no use for the stored row\nand every reason not to be handed a copy of it.",
+        "name":"conflictValues",
+        "description":"true if the caller can put a conflict in front of a user and take a decision back. Only then does a\nconflict come back carrying both values per field; otherwise it names the fields that clashed and\nnothing else.\n\nNothing else about the merge turns on this. The conflict is detected either way, the write fails\neither way, and the fields that clashed are named either way -- what it decides is whether the other\nuser's values travel. A caller that cannot show two values has no use for the stored row and every\nreason not to be handed a copy of it.\n\nThe type has to agree: values travel where this is set and the type declared that it resolves\nconflicts in the view.",
         "paramDocs":[
           
         ]

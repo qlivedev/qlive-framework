@@ -236,11 +236,33 @@ export interface DocumentWatch
 
     getSnapshot: () => DocumentWatchSnapshot
 
+    /** starts watching, and does nothing to a watch that is watching already */
+    open: () => void
+
     /** forgets what has arrived, for a view that dismissed the notice without running the query again */
     clear: () => void
 
-    /** stops watching */
+    /** stops watching, reversibly: open() puts the subscription back */
     close: () => void
+}
+
+
+/**
+ * How a watch is to be started.
+ */
+export interface WatchOptions
+{
+    /**
+     * Whether the watch is watching when it is handed over. Default true, which is what a caller outside
+     * React wants: it asked for a watch and gets one that is live.
+     *
+     * Opening registers a subscription, which is a side effect and so belongs in an effect rather than in
+     * a render -- React calls a useState() initializer twice under StrictMode and keeps one of the two
+     * results, so a watch that opened where it was created would leave a second, live one that nothing
+     * holds and nothing can ever close. useLiveRows() therefore constructs the watch closed and opens it
+     * from its effect.
+     */
+    open?: boolean
 }
 
 /**
@@ -259,10 +281,11 @@ export interface DocumentWatch
  * the document changes, that being either the refetch or a page turn, and either way rows that are fresh.
  *
  * @param document      the document to watch
+ * @param options       how to start it, see WatchOptions
  *
  * @returns the store, which has to be closed when the view holding it goes
  */
-export function watchDocument(document: QueryDocument<any>): DocumentWatch
+export function watchDocument(document: QueryDocument<any>, options: WatchOptions = {}): DocumentWatch
 {
     let remoteChanged: RemoteChangedRow[] = []
     let snapshot: DocumentWatchSnapshot | null = null
@@ -292,17 +315,35 @@ export function watchDocument(document: QueryDocument<any>): DocumentWatch
         }
     }
 
-    const unlisten = document.subscribe(() =>
-    {
-        // The document moved on: its rows are what the query says they are now, so what we had collected
-        // about the ones before them is spent.
-        clear()
-        watcher.refresh()
-    })
+    // null while closed, which is also how open() knows there is nothing to do.
+    let unlisten: (() => void) | null = null
 
-    watcher.refresh()
+    const open = () =>
+    {
+        if (unlisten)
+        {
+            return
+        }
+
+        unlisten = document.subscribe(() =>
+        {
+            // The document moved on: its rows are what the query says they are now, so what we had
+            // collected about the ones before them is spent.
+            clear()
+            watcher.refresh()
+        })
+
+        watcher.refresh()
+    }
+
+    if (options.open !== false)
+    {
+        open()
+    }
 
     return {
+        open,
+
         subscribe: fn =>
         {
             listeners.push(fn)
@@ -325,7 +366,8 @@ export function watchDocument(document: QueryDocument<any>): DocumentWatch
 
         close: () =>
         {
-            unlisten()
+            unlisten?.()
+            unlisten = null
             watcher.close()
         }
     }

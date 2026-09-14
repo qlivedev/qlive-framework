@@ -41,9 +41,21 @@ export function useLiveRows<T>(query: GraphQLQuery<T>, params: InjectParams = {}
         )
     }
 
-    const [watch] = useState(() => watchDocument(value as QueryDocument<unknown>))
+    // Constructed closed: opening registers a subscription, and StrictMode calls this initializer twice
+    // while keeping one of the two watches, so a watch that opened here would leave a live one that
+    // nothing holds and nothing can close.
+    const [watch] = useState(() => watchDocument(value as QueryDocument<unknown>, {open: false}))
 
-    useEffect(() => watch.close, [watch])
+    // StrictMode also mounts, unmounts and mounts again, so opening has to survive having been closed:
+    // without the open() the second mount would leave the view with a watch that hears nothing.
+    useEffect(
+        () =>
+        {
+            watch.open()
+            return watch.close
+        },
+        [watch]
+    )
 
     return useSyncExternalStore(watch.subscribe, watch.getSnapshot)
 }

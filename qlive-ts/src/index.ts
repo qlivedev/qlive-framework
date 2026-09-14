@@ -147,7 +147,8 @@ export type {
     EntityVersionMessage,
     RemoteChangedRow,
     DocumentWatch,
-    DocumentWatchSnapshot
+    DocumentWatchSnapshot,
+    WatchOptions
 } from "./push/entityVersion";
 
 export type { MergeTypeMeta, LinkRelation } from "./merge/meta";

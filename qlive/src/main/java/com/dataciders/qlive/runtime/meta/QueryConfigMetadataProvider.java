@@ -9,9 +9,7 @@ import de.quinscape.domainql.meta.MetadataProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,13 +24,27 @@ import java.util.Set;
 ///     public MetadataProvider queryConfigMetadata()
 ///     {
 ///         return QueryConfigMetadataProvider.newProvider()
-///             .forType(Foo.class, QueryConfigDelta.newDelta().pageSize(20).sortFields("name"))
-///             .forType(Bar.class, QueryConfigDelta.newDelta().pageSize(50))
-///             .maxPageSize(Foo.class, 100);
+///             .forAllTypes()
+///                 .pageSize(20)
+///                 .maxPageSize(500)
+///             .andForType(Foo.class)
+///                 .sortFields("name")
+///                 .maxPageSize(100)
+///             .andForTypes(Bar.class, Baz.class)
+///                 .pageSize(50)
+///                 .build();
 ///     }
 ///
-/// The two are separate statements about the same type, which is why they are separate calls: the delta says
-/// where a query starts and anything may move it from there, the maximum says how far it can be moved.
+/// Which types a statement is about is said first -- {@link #forType(Class)}, {@link #forTypes(Class[])} or
+/// {@link #forAllTypes()} -- and what it says about them follows on the configurer that comes back. Chain
+/// the next statement with its `andFor...` twin and close the last one with
+/// {@link QueryConfigTypeConfigurer#build()}, which hands the provider back for the bean to return.
+///
+/// Only the row types of the query documents the domain declares can be configured; anything else is
+/// reported when the domain is built rather than written under a name nothing reads.
+///
+/// The delta and the maximum are separate statements about the same type: the delta says where a query
+/// starts and anything may move it from there, the maximum says how far it can be moved.
 ///
 /// Nothing keeps an application from writing {@link QueryConfigMeta#QUERY_CONFIG} or
 /// {@link QueryConfigMeta#MAX_PAGE_SIZE} from a provider of its own -- this is the convenient way to say it,
@@ -42,20 +54,26 @@ public class QueryConfigMetadataProvider
 {
     private final static Logger log = LoggerFactory.getLogger(QueryConfigMetadataProvider.class);
 
-    /// Deltas declared by Java type, whose GraphQL name only the built domain knows.
+    /// What every row type gets that does not declare a delta of its own, or null where nothing said
+    /// {@link #forAllTypes()}.
     private QueryConfigTypeConfigurer allTypesConfigurer;
 
-    private int allTypesMaxPageSize = -1;
+    /// The maximum declared for all types, or null where none was. A box rather than a sentinel number:
+    /// every int is a value {@link #validMax} either accepts or rejects, so none of them is free to mean
+    /// "unset".
+    private Integer allTypesMaxPageSize;
 
+    /// Deltas declared by Java type, whose GraphQL name only the built domain knows.
     private final Map<Class<?>, QueryConfigTypeConfigurer> byJavaType = new LinkedHashMap<>();
 
     /// Maximum page sizes declared by Java type, whose GraphQL name only the built domain knows.
     private final Map<Class<?>, Integer> maxByJavaType = new LinkedHashMap<>();
 
+
     private QueryConfigMetadataProvider()
     {
-        
     }
+
 
     public static QueryConfigMetadataProvider newProvider()
     {
@@ -63,30 +81,36 @@ public class QueryConfigMetadataProvider
     }
 
 
-    /// Declares the delta of the type DomainQL exposes the given Java type as.
+    /// Declares what one type says, i.e. {@link #forTypes(Class[])} for the one type it usually is.
     ///
-    /// The way to say it where the application has the class: the GraphQL name of a domain type is DomainQL's
-    /// to decide, and a class that turns out not to be in the schema is reported rather than written under a
-    /// name nothing reads.
+    /// A class that turns out not to be the row type of a query document is reported when the domain is
+    /// built rather than written under a name nothing reads.
+    ///
+    /// @return the configurer for that type
     public QueryConfigTypeConfigurer forType(Class<?> javaType)
     {
         return forTypes(javaType);
     }
 
 
-    /// Defines the following QueryConfigTypeConfigurer for all query document types that are not
-    /// defined explicitly.
+    /// Declares what every row type of a query document says, which is the way round an application wants
+    /// where a page size is a house rule and the types departing from it are the exception.
     ///
-    /// @return a new query type configurer
+    /// The delta is the fallback: a type that declares one of its own keeps it whole, and this is never
+    /// merged into it. The maximum is not a fallback but a ceiling, so it is applied to every type that
+    /// does not name a maximum of its own -- including the types that do declare a delta.
+    ///
+    /// Called more than once -- including through {@link QueryConfigTypeConfigurer#andForAllTypes()} --
+    /// this goes on configuring the one all-types statement rather than starting a second.
+    ///
+    /// @return the configurer for all types
     public QueryConfigTypeConfigurer forAllTypes()
     {
         if (allTypesConfigurer == null)
         {
             this.allTypesConfigurer = new QueryConfigTypeConfigurer(
                 this,
-                max -> {
-                    this.allTypesMaxPageSize = max;
-                }
+                max -> this.allTypesMaxPageSize = validMax(max, "all types")
             );
         }
 
@@ -94,11 +118,11 @@ public class QueryConfigMetadataProvider
     }
 
 
-    /// Configures a number of types with the same QueryConfigTypeConfigurer.
+    /// Declares what a number of types say, all of them the same thing.
     ///
-    /// @param javaTypes types
+    /// @param javaTypes  the types, at least one
     ///
-    /// @return a new query type configurer
+    /// @return the configurer for those types
     public QueryConfigTypeConfigurer forTypes(Class<?>... javaTypes)
     {
         if (javaTypes == null || javaTypes.length == 0)
@@ -106,7 +130,7 @@ public class QueryConfigMetadataProvider
             throw new QLiveException("No types given");
         }
 
-        final QueryConfigTypeConfigurer delta = new QueryConfigTypeConfigurer(
+        final QueryConfigTypeConfigurer configurer = new QueryConfigTypeConfigurer(
             this,
             maxPageSize -> {
                 for (Class<?> cls : javaTypes)
@@ -118,10 +142,16 @@ public class QueryConfigMetadataProvider
 
         for (Class<?> cls : javaTypes)
         {
-            byJavaType.put(cls, delta);
+            // Two statements about one type are two opinions about it, and the second silently winning
+            // would be the kind of thing an application finds out about in a browser. Say it once, or say
+            // it with forAllTypes() and depart from it per type.
+            if (byJavaType.putIfAbsent(cls, configurer) != null)
+            {
+                throw new QLiveException("Query config declared twice for " + cls.getSimpleName());
+            }
         }
 
-        return delta;
+        return configurer;
     }
 
     /// The given maximum, if it is one. A maximum of 0 is the one number that cannot be meant: it is how a
@@ -149,7 +179,7 @@ public class QueryConfigMetadataProvider
         {
             queryDocumentRowTypes.forEach(cls -> {
                 byJavaType.putIfAbsent(cls, allTypesConfigurer);
-                if (allTypesMaxPageSize != -1)
+                if (allTypesMaxPageSize != null)
                 {
                     maxByJavaType.putIfAbsent(cls, allTypesMaxPageSize);
                 }

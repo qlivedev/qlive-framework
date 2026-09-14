@@ -199,6 +199,65 @@ class QueryConfigMetadataProviderTest
 
 
     @Test
+    void chainsStatementsAcrossTypes()
+    {
+        final DomainQL domainQL = domainWith(
+            QueryConfigMetadataProvider.newProvider()
+                .forAllTypes()
+                    .pageSize(20)
+                    .maxPageSize(500)
+                .andForType(TestFoo.class)
+                    .pageSize(30)
+                    .maxPageSize(100)
+                .andForTypes(TestUser.class)
+                    .sortFields("login")
+                    .build()
+        );
+
+        assertThat(QueryConfigMeta.deltaForType(domainQL, TestFoo.class).get("pageSize"), is(30));
+        assertThat(QueryConfigMeta.maxPageSizeForType(domainQL, TestFoo.class), is(100));
+
+        // named by a statement of its own, so its delta is that statement whole -- and the all-types page
+        // size is not merged into it
+        assertThat(QueryConfigMeta.deltaForType(domainQL, TestUser.class).get("sortFields"), is(List.of("login")));
+        assertThat(QueryConfigMeta.deltaForType(domainQL, TestUser.class).get("pageSize"), is(nullValue()));
+
+        // the maximum is a ceiling rather than a fallback, so a type that named none is held to the
+        // all-types one even where it declared a delta of its own
+        assertThat(QueryConfigMeta.maxPageSizeForType(domainQL, TestUser.class), is(500));
+    }
+
+
+    @Test
+    void reportsATypeDeclaredTwice()
+    {
+        final QLiveException e = assertThrows(
+            QLiveException.class,
+            () -> QueryConfigMetadataProvider.newProvider()
+                .forType(TestFoo.class).pageSize(10)
+                .andForType(TestFoo.class).pageSize(20)
+                .build()
+        );
+
+        assertThat(e.getMessage(), containsString("TestFoo"));
+        assertThat(e.getMessage(), containsString("twice"));
+    }
+
+
+    @Test
+    void reportsAMaximumPageSizeForAllTypesThatLimitsNothing()
+    {
+        // the same rejection the per-type maximum gets -- an all-types statement is not a way around it
+        final QLiveException e = assertThrows(
+            QLiveException.class,
+            () -> QueryConfigMetadataProvider.newProvider().forAllTypes().maxPageSize(0).build()
+        );
+
+        assertThat(e.getMessage(), containsString("greater than 0"));
+    }
+
+
+    @Test
     void answersATypeThatDeclaredNothing()
     {
         final DomainQL domainQL = TestDomainConfig.domainQLNoMeta(new TestLogic());

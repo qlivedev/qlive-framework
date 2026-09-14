@@ -65,12 +65,12 @@ public final class QueryConfigMeta
 
     /// The delta declared for the given type.
     ///
-    /// @param typeName  name of a GraphQL type, known or not
+    /// @param javaType  a Java type, exposed by the domain or not
     ///
     /// @return the delta, or `null` where the type is unknown or declares none
-    public static Map<String, Object> deltaForType(DomainQL domainQL, Class<?> typeName)
+    public static Map<String, Object> deltaForType(DomainQL domainQL, Class<?> javaType)
     {
-        final DomainQLTypeMeta typeMeta = Util.typeMeta(domainQL, typeName.getSimpleName());
+        final DomainQLTypeMeta typeMeta = Util.typeMeta(domainQL, javaType.getSimpleName());
 
         return typeMeta == null ? null : typeMeta.getMeta(QUERY_CONFIG);
     }
@@ -78,7 +78,7 @@ public final class QueryConfigMeta
 
     /// The maximum page size declared for the given type.
     ///
-    /// @param typeName  name of a GraphQL type, known or not
+    /// @param javaType  a Java type, exposed by the domain or not
     ///
     /// @return the maximum, or 0 where the type is unknown or declares none. 0 is also what a query config
     ///         says when it wants every row, so "no maximum" and "no limit" are the same number throughout.

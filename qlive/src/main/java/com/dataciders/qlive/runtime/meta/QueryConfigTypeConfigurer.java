@@ -3,7 +3,6 @@ package com.dataciders.qlive.runtime.meta;
 import com.dataciders.qlive.model.condition.CNode;
 import com.dataciders.qlive.runtime.scalar.ConditionCoercing;
 import de.quinscape.domainql.DomainQL;
-import de.quinscape.domainql.meta.MetadataProvider;
 import graphql.GraphQLContext;
 
 import java.util.LinkedHashMap;
@@ -12,19 +11,31 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 
-/// What a type's default query config says, as the partial config it is: the fields named here are the ones
-/// the type has an opinion about, and everything else stays at the defaults
-/// {@link com.dataciders.qlive.model.QueryConfig} describes.
+/// What the types one statement of a {@link QueryConfigMetadataProvider} is about say about being queried:
+/// the default query config as the partial config it is -- the fields named here are the ones the types
+/// have an opinion about, and everything else stays at the defaults
+/// {@link com.dataciders.qlive.model.QueryConfig} describes -- plus the maximum page size, which is the
+/// other kind of statement and goes elsewhere in the meta data.
+///
+/// Never constructed directly: {@link QueryConfigMetadataProvider#forType(Class)},
+/// {@link QueryConfigMetadataProvider#forTypes(Class[])} and
+/// {@link QueryConfigMetadataProvider#forAllTypes()} say which types are meant and hand one of these back.
+///
+///     QueryConfigMetadataProvider.newProvider()
+///         .forType(Foo.class)
+///             .pageSize(20)
+///             .sortFields("name")
+///             .maxPageSize(100)
+///             .build()
+///
+/// {@link #build()} ends the chain and returns the provider; the `andFor...` methods end one statement and
+/// begin the next.
 ///
 /// This is the declaring end of {@link QueryConfigMeta}. What ends up in the meta data is the map
 /// {@link #toMeta(DomainQL)} produces, which is the shape the client's QueryConfigDelta already is -- a
 /// condition as FilterDSL JSON, sort fields as the names the client writes them as. Written as a builder
 /// rather than as that map so that an application says what it means and finds out about a mistake here
-/// instead of in a browser:
-///
-///     QueryConfigDelta.newDelta()
-///         .pageSize(20)
-///         .sortFields("name")
+/// instead of in a browser.
 public final class QueryConfigTypeConfigurer
 {
     private Integer offset;
@@ -128,22 +139,33 @@ public final class QueryConfigTypeConfigurer
         return coercing.serialize(condition, GraphQLContext.getDefault(), Locale.ROOT);
     }
 
+    /// The largest page any query of these rows comes back with, whoever asks. Not part of the delta: a
+    /// delta says where a query starts and anything may move it from there, this says how far it can be
+    /// moved.
+    ///
+    /// @param maxPageSize  largest allowed page, greater than 0 -- declare none to leave queries unlimited
     public QueryConfigTypeConfigurer maxPageSize(int maxPageSize)
     {
         this.maxPageSizeConsumer.accept(maxPageSize);
         return this;
     }
 
+
+    /// Ends this statement and begins one about the given type.
     public QueryConfigTypeConfigurer andForType(Class<?> javaType)
     {
         return this.queryConfigMetadataProvider.forType(javaType);
     }
 
+
+    /// Ends this statement and begins one about the given types.
     public QueryConfigTypeConfigurer andForTypes(Class<?>... javaTypes)
     {
         return this.queryConfigMetadataProvider.forTypes(javaTypes);
     }
 
+
+    /// Ends this statement and begins -- or goes on with -- the one about all types.
     public QueryConfigTypeConfigurer andForAllTypes()
     {
         return this.queryConfigMetadataProvider.forAllTypes();
@@ -161,6 +183,7 @@ public final class QueryConfigTypeConfigurer
     }
 
 
+    /// Ends the chain, for the bean that has to return the provider itself.
     public QueryConfigMetadataProvider build()
     {
         return this.queryConfigMetadataProvider;

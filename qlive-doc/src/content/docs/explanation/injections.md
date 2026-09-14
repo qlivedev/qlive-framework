@@ -15,7 +15,7 @@ import {Q_Foo} from "./Q_Foo";
 
 export default function Home() {
 
-    const foos = useInjection(Q_Foo, {config: {pageSize: 5}});
+    const foos = useInjection(Q_Foo);
 
     return <pre>{JSON.stringify(foos, null, 4)}</pre>;
 }

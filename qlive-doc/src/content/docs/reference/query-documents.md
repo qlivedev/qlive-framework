@@ -46,7 +46,7 @@ and it is why you render the snapshot rather than the document.
 ## Updating
 
 ```tsx
-const foos = useInjection(Q_Foo, {config: {pageSize: 5}});
+const foos = useInjection(Q_Foo);
 
 <button onClick={() => foos.update({offset: 5})}>Next page</button>
 ```

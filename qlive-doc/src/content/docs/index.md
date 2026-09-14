@@ -8,7 +8,7 @@ hero:
   tagline: A full-stack GraphQL injection framework
   actions:
     - text: Read the overview
-      link: /qlive-framework/overview/
+      link: /qlive-framework/explanation/overview/
       icon: right-arrow
     - text: View on GitHub
       link: https://github.com/quinscape/qlive-framework
@@ -42,6 +42,6 @@ more request latency is saved. It simplifies testing the components.
 
 ## Getting Started
 
-Start with the [Overview](/qlive-framework/overview/), which explains what the framework
+Start with the [Overview](/qlive-framework/explanation/overview/), which explains what the framework
 does and how a page reaches the browser. The rest follows the order of
 the sidebar.

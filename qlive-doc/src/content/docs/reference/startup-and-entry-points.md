@@ -2,7 +2,7 @@
 title: Startup and entry points
 description: startup(), further entry points, and noSchema().
 sidebar:
-  order: 103
+  order: 2
 ---
 
 An **entry point** is an HTML file plus the module it loads. Every

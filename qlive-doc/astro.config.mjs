@@ -33,10 +33,19 @@ export default defineConfig({
                     href: "https://github.com/quinscape/qlive-framework",
                 },
             ],
-            // No sidebar config on purpose: Starlight autogenerates one from
-            // everything in src/content/docs, and each page places itself with
-            // `sidebar.order` in its frontmatter. Adding a page is therefore a
-            // one-file change rather than an edit here as well.
+            // One group per Diataxis quadrant, in the order a reader meets
+            // them: understand, then do, then look up. Only the labels are
+            // named here -- Starlight would otherwise use the bare directory
+            // name -- and the pages inside each group still place themselves
+            // with `sidebar.order` in their frontmatter, numbered from 1
+            // within the group. Adding a page stays a one-file change; only a
+            // new quadrant is an edit here. The tutorial group goes on top
+            // once there is a generated application to write it against.
+            sidebar: [
+                {label: "Explanation", items: [{autogenerate: {directory: "explanation"}}]},
+                {label: "How-to guides", items: [{autogenerate: {directory: "how-to"}}]},
+                {label: "Reference", items: [{autogenerate: {directory: "reference"}}]},
+            ],
             editLink: {
                 baseUrl:
                     "https://github.com/quinscape/qlive-framework/edit/main/qlive-doc/",

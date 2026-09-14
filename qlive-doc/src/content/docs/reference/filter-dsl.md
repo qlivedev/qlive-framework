@@ -2,7 +2,7 @@
 title: Filter DSL
 description: Building conditions and sort fields.
 sidebar:
-  order: 108
+  order: 6
 ---
 The FilterDSL is a TypeScript fluent API that produces JSON-like graphs. To enable chaining, the API creates instances 
 with a prototype that allows further operations or conditions. 

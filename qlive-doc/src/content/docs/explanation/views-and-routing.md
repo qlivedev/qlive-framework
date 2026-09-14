@@ -2,7 +2,7 @@
 title: Views and routing
 description: How a URL becomes a view module.
 sidebar:
-  order: 104
+  order: 4
 ---
 
 A **view** is the component a URL renders. Views live under `src/app`, they
@@ -10,7 +10,7 @@ are the only modules that may call `useInjection()`, and they are the only
 modules the server ever resolves a request to.
 
 Anything else is a component. The distinction is not stylistic: see
-[Injections](/qlive-framework/injections/).
+[Injections](/qlive-framework/explanation/injections/).
 
 ## From URL to module
 
@@ -58,7 +58,7 @@ moment -- nothing loaded it up to that point.
 
 The application root, `/app/` itself, addresses no view. What it renders
 is the `root` option of
-[`startup()`](/qlive-framework/startup-and-entry-points/) -- a component,
+[`startup()`](/qlive-framework/reference/startup-and-entry-points/) -- a component,
 or the name of the view the root should behave as. `qlive-test` renders a
 landing component of its own there.
 

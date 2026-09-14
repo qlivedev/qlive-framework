@@ -2,7 +2,7 @@
 title: QLive in Java
 description: How to use QLive in Java
 sidebar:
-  order: 3
+  order: 7
 ---
 
 QLive inherits the basic GraphQL flavor based on Spring Boot, Java, and jOOQ from DomainQL. It replaces DomainQL's rudimentary
@@ -154,7 +154,7 @@ interface QueryDocumentSnapshot<T> {
 }
 ```
 
-See [the QueryDocuments page](/qlive-framework/query-documents/) for more details on QueryDocuments.
+See [the QueryDocuments page](/qlive-framework/reference/query-documents/) for more details on QueryDocuments.
 
 ## QueryDocumentService Patterns
                                                                               

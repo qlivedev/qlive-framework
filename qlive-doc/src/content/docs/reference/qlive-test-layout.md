@@ -2,7 +2,7 @@
 title: qlive-test layout
 description: Folder structure, and the constants both halves have to agree on.
 sidebar:
-  order: 102
+  order: 1
 ---
 
 An application is one Maven module with a Vite frontend inside it.

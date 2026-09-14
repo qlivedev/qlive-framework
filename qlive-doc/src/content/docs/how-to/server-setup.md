@@ -2,7 +2,7 @@
 title: Server setup
 description: The Spring beans an application wires up.
 sidebar:
-  order: 109
+  order: 1
 ---
 
 The Java half is a Spring Boot application depending on `qlive`, which
@@ -143,12 +143,12 @@ which query a view injects, which paths declared `noSchema()`.
 
 A push carries only the modules one save changed; the plugin collects them
 for `pushDebounceMs` first. Nothing is generated here: the
-[query result types](/qlive-framework/graphql-and-typescript/) are written
+[query result types](/qlive-framework/reference/graphql-and-typescript/) are written
 by the plugin, in the frontend, where the sources are.
 
 ## Query logic
 
-See [Query documents](/qlive-framework/query-documents/) for the document query bean --
+See [Query documents](/qlive-framework/reference/query-documents/) for the document query bean --
 one generic method with `@GraphQLTypeParam` covers every type.
 
 ## Security

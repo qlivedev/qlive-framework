@@ -2,7 +2,7 @@
 title: GraphQL and Typescript
 description: GraphQLQuery, generated result types, types.d.ts and converters.
 sidebar:
-  order: 105
+  order: 4
 ---
 Since we're using both Typescript and GraphQL as basis for our project, we tried to unite them as much as we could. In 
 general, we generate Typescript types from the GraphQL schema. GraphQL queries however introduce another complication 
@@ -166,7 +166,7 @@ refresh it from a running backend:
 
   An introspection query and `printSchema`, nothing besides. It reads
   `/_dev/graphql` -- unauthenticated and CSRF-exempt, and
-  [refused outside the dev profile](/qlive-framework/server-setup/), so the
+  [refused outside the dev profile](/qlive-framework/how-to/server-setup/), so the
   backend has to be running one.
 
 **Pick one and stay with it.** Both produce the same schema, but not the
@@ -220,7 +220,7 @@ registerConverter("MyScalar", {
 
 Registering a second converter for a type replaces the first, so you can
 override the ones QLive brings. Do that from `startup()`'s
-[`init` hook](/qlive-framework/startup-and-entry-points/): the built-ins
+[`init` hook](/qlive-framework/reference/startup-and-entry-points/): the built-ins
 are registered while `startup()` initializes the config, and the hook is
 the point after that and before the first view renders.
 

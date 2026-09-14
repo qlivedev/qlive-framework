@@ -92,7 +92,7 @@ nothing fetches anything for the first render.
 That is the central trade of the framework. What it buys is a page that is
 complete when it paints. What it costs is a constraint: a `useInjection()`
 call has to be readable at build time. See
-[Injections](/qlive-framework/injections/) for what that rules out.
+[Injections](/qlive-framework/explanation/injections/) for what that rules out.
 
 ## How a page is served
 
@@ -123,7 +123,7 @@ Consumers never see the difference: both are `StaticAnalysisProvider`.
 Three things, and they are worth naming because they are the seams:
 
 - **Which module serves a path.** Derived from the analysis and from the
-  path conventions in [Application layout](/qlive-framework/qlive-test-layout/).
+  path conventions in [qlive-test layout](/qlive-framework/reference/qlive-test-layout/).
 - **Which queries that module injects, and with what parameters.**
   Recorded by the build's track-usage analysis from the `useInjection()`
   call itself.
@@ -144,4 +144,4 @@ If you edit a module holding a `GraphQLQuery` the system **corrects the correct 
 
 The next view you invoke will correctly reflect the new data selection. 
 
-See [GraphQL and Typescript](/qlive-framework/graphql-and-typescript/).
+See [GraphQL and Typescript](/qlive-framework/reference/graphql-and-typescript/).

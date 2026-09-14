@@ -32,7 +32,7 @@ client from our logic functions and that is anything expressible as a hierarchy 
 limits us a bit because it e.g. does not allow typed maps or discriminator based JSON parsing.  
 
 But still, the possibilities of what can be expressed in these POJOs is endless. If you have other data sources, I'm
-pretty sure that you can integrate them. But you can also mix and match. But you can also just use REST or whatever with
+pretty sure that you can integrate them. But you can also mix and match -- just use REST or whatever with
 Spring. These work just fine to integrate as runtime fetch requests, but they cannot enjoy the data injection features.
 
 ### GraphQL: Database/code-first
@@ -44,8 +44,8 @@ connect to. We generally support all [databases supported by jOOQ](https://www.j
 <img src="/qlive-framework/media/domainql-workflow-dark.svg"  alt="DomainQL workflow diagram" class="light:sl-hidden" />
 
 We use jOOQ to generate POJOs (plain old Java objects) that mirror the tables in the database. Our GraphQL methods are
-contained in logic beans which can also reference handwritten POJO models. The existing GraphQL methods and all POJOS
-together build the GraphQL schema.
+contained in logic beans which can also reference handwritten POJO models. The existing GraphQL methods, all POJOS, and type
+documentation together build the GraphQL schema.
 
 At runtime, GraphQL resolves our methods by their name in the schema and executes them. They in turn use jOOQ directly
 or through services to speak to the database. The results are fed back into GraphQL and return to the client.

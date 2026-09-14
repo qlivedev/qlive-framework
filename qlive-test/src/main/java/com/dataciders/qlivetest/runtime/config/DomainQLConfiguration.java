@@ -65,50 +65,6 @@ public class DomainQLConfiguration
     }
 
 
-    /**
-     * What the application declares about merging its types. A second MetadataProvider bean next to the one
-     * above, picked up the same way -- nothing about merging is wired anywhere else.
-     * <p>
-     * Which types take part is deliberately not in here: bar, baz, bar_link and foo have a version column
-     * and therefore take part, qux and foo_type do not. What is declared is only what the framework cannot
-     * work out, and an application declaring none of it still gets conflict detection on every versioned
-     * type.
-     */
-    @Bean
-    public MetadataProvider mergeMetadata()
-    {
-        return newMergeMetadata();
-    }
-
-    @Bean
-    public QueryConfigMetadataProvider queryConfigMetadataProvider()
-    {
-        return QueryConfigMetadataProvider.newProvider().
-            forAllTypes()
-                .pageSize(5)
-                .build();
-    }
-
-    /**
-     * The declarations themselves, kept apart from the bean wiring for the same reason {@link #newDomainQL}
-     * is: a test builds the application's schema without a context and has to hand over the same providers
-     * to get the same meta data.
-     */
-    static MetadataProvider newMergeMetadata()
-    {
-        return MergeMetadataProvider.newProvider()
-
-            // The two sides of the many-to-many, which is what an edit view here works on: a clash on one of
-            // those comes back to the form with both values rather than failing the save.
-            .resolveConflicts(Bar.class)
-            .resolveConflicts(Baz.class)
-
-            // Set when the row is written and never again, so no two users can hold different opinions about
-            // it and there is nothing to gain from spending a mask bit on it.
-            .ignoreFields(Foo.class, "created");
-    }
-
-
     @Bean
     public DomainQL domainQL() throws IOException
     {
@@ -168,6 +124,25 @@ public class DomainQLConfiguration
             .configureRelation(BAR_LINK.BAR_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY, "bar", "bazLinks")
             .configureRelation(BAR_LINK.BAZ_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY, "baz", "bazLinks")
             .configureNameField("name")
+
+            .withMetadataProviders(
+
+                QueryConfigMetadataProvider.newProvider().
+                    forAllTypes()
+                    .pageSize(5)
+                    .build(),
+
+                MergeMetadataProvider.newProvider()
+
+                    // The two sides of the many-to-many, which is what an edit view here works on: a clash on one of
+                    // those comes back to the form with both values rather than failing the save.
+                    .resolveConflicts(Bar.class)
+                    .resolveConflicts(Baz.class)
+
+                    // Set when the row is written and never again, so no two users can hold different opinions about
+                    // it and there is nothing to gain from spending a mask bit on it.
+                    .ignoreFields(Foo.class, "created")
+            )
 
             /*
                 documentation for the types defined in the QLive library

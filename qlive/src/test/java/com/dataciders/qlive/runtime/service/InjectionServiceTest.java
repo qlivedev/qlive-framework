@@ -5,7 +5,6 @@ import com.dataciders.qlive.model.ts.TrackUsageData;
 import com.dataciders.qlive.runtime.QLiveException;
 import com.dataciders.qlive.runtime.domain.TestDomainConfig;
 import com.dataciders.qlive.runtime.domain.TestLogic;
-import com.dataciders.qlive.runtime.meta.QueryConfigTypeConfigurer;
 import com.dataciders.qlive.runtime.meta.QueryConfigMetadataProvider;
 import com.dataciders.qlive.testdomain.tables.pojos.TestFoo;
 import de.quinscape.domainql.DomainQL;
@@ -13,6 +12,8 @@ import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.GraphQL;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 class InjectionServiceTest
 {
+    private final static Logger log = LoggerFactory.getLogger(InjectionServiceTest.class);
+
     /**
      * A query on the test domain, as the track-usage data holds it: one string, JSON-escaped.
      */
@@ -203,8 +206,8 @@ class InjectionServiceTest
 
         assertThat(injections.keySet(), contains("Q_Test"));
 
-        // nothing said about the page size, so the config arrives at its default
-        assertThat(pageSizeOf(injections.get("Q_Test")), is(0));
+        // nothing said about the page size, so the config arrives at its meta config defaults
+        assertThat(pageSizeOf(injections.get("Q_Test")), is(5));
     }
 
 
@@ -232,7 +235,7 @@ class InjectionServiceTest
         );
 
         assertThat(configOf(injections.get("Q_Test")).get("offset"), is(2));
-        assertThat(configOf(injections.get("Q_Test")).get("pageSize"), is(0));
+        assertThat(configOf(injections.get("Q_Test")).get("pageSize"), is(5));
     }
 
 
@@ -362,7 +365,7 @@ class InjectionServiceTest
 
 
     @Test
-    void reportsErrorsOfTheInjectedQuery()
+    void handlesMissingQueryConfig()
     {
         // The query needs a config, and this call names none -- the kind of mismatch that would otherwise
         // surface as missing data in the browser.
@@ -379,12 +382,12 @@ class InjectionServiceTest
             }
             """.formatted(Q_TEST));
 
-        final QLiveException e = assertThrows(
-            QLiveException.class,
-            () -> injectionService.provideInjections(analysis, "./app/Home")
-        );
+        final Map<String, Injection> injections = injectionService.provideInjections(analysis, "./app/Home");
 
-        assertThat(e.getMessage(), containsString("Q_Test"));
+        assertThat(injections.keySet(), contains("Q_Test"));
+
+        // we get the pageSize from the meta config
+        assertThat(pageSizeOf(injections.get("Q_Test")), is(5));
     }
 
 

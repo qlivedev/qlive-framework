@@ -201,7 +201,7 @@ class QueryConfigMetadataProviderTest
     @Test
     void answersATypeThatDeclaredNothing()
     {
-        final DomainQL domainQL = TestDomainConfig.domainQL(new TestLogic());
+        final DomainQL domainQL = TestDomainConfig.domainQLNoMeta(new TestLogic());
 
         assertThat(QueryConfigMeta.deltaForType(domainQL, TestFoo.class), is(nullValue()));
 

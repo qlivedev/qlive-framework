@@ -1,6 +1,10 @@
 package com.dataciders.qlivetest.runtime.config;
 
 import com.dataciders.qlive.runtime.meta.MergeMeta;
+import com.dataciders.qlive.runtime.meta.MergeMetadataProvider;
+import com.dataciders.qlivetest.domain.tables.pojos.Bar;
+import com.dataciders.qlivetest.domain.tables.pojos.Baz;
+import com.dataciders.qlivetest.domain.tables.pojos.Foo;
 import com.dataciders.qlivetest.runtime.logic.QueryLogic;
 import de.quinscape.domainql.DomainQL;
 import org.junit.jupiter.api.BeforeAll;
@@ -35,7 +39,18 @@ class MergeMetadataTest
         domainQL = DomainQLConfiguration.newDomainQL(
             null,
             List.of(new QueryLogic(null)),
-            List.of(new ExampleMetadataProvider(), DomainQLConfiguration.newMergeMetadata())
+            List.of(
+                new ExampleMetadataProvider(), MergeMetadataProvider.newProvider()
+
+                    // The two sides of the many-to-many, which is what an edit view here works on: a clash on one of
+                    // those comes back to the form with both values rather than failing the save.
+                    .resolveConflicts(Bar.class)
+                    .resolveConflicts(Baz.class)
+
+                    // Set when the row is written and never again, so no two users can hold different opinions about
+                    // it and there is nothing to gain from spending a mask bit on it.
+                    .ignoreFields(Foo.class, "created")
+            )
         );
     }
 

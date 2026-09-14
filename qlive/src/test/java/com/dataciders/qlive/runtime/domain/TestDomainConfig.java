@@ -1,5 +1,6 @@
 package com.dataciders.qlive.runtime.domain;
 
+import com.dataciders.qlive.runtime.meta.QueryConfigMetadataProvider;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.config.SourceField;
 import de.quinscape.domainql.config.TargetField;
@@ -8,12 +9,23 @@ import com.dataciders.qlive.testdomain.Public;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import static com.dataciders.qlive.testdomain.Tables.*;
 
 public class TestDomainConfig
 {
     public static DomainQL domainQL(Object... logicBeans)
+    {
+        return domainQL(List.of(
+            QueryConfigMetadataProvider.newProvider()
+                .forAllTypes()
+                .pageSize(5)
+                .build()
+        ), logicBeans);
+    }
+
+    public static DomainQL domainQLNoMeta(Object... logicBeans)
     {
         return domainQL(Collections.emptyList(), logicBeans);
     }

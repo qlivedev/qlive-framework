@@ -150,36 +150,6 @@ const data = await graphql(query, params);   // the whole "data" object
 
 It rejects on a transport error or on any GraphQL error in the response.
 
-## Where `schema.graphql` comes from
-
-Everything above generates from `schema.graphql`, so a stale one is not an
-error anyone sees -- it is wrong types in checked-in source. Two ways to
-refresh it from a running backend:
-
-- **your IDE's GraphQL plugin**, pointed at the backend, which is what
-  `qlive-test`'s own file was written by;
-- **the codegen CLI**, for when you have no such plugin:
-
-  ```bash
-  generate-schema http://localhost:8080 schema.graphql
-  ```
-
-  An introspection query and `printSchema`, nothing besides. It reads
-  `/_dev/graphql` -- unauthenticated and CSRF-exempt, and
-  [refused outside the dev profile](/qlive-framework/how-to/secure-an-application/), so the
-  backend has to be running one.
-
-**Pick one and stay with it.** Both produce the same schema, but not the
-same file: printers disagree about indentation and about how a description
-is quoted. Neither shape is the right one, and nothing here checks which
-you used -- but two of them alternating rewrite the whole file back and
-forth, and a real change is then a needle in a few hundred lines of
-reformatting. Changing your mind is a one-time reformat; do it on its own.
-
-Neither belongs in `pnpm generate`. That has to keep working on a fresh
-checkout with no backend running, which is exactly when you want the types
-regenerated from the schema you already have.
-
 ## `types.d.ts`
 
 The TypeScript view of your domain is generated from the schema by the
@@ -196,7 +166,8 @@ schema's object types.
 
 Nothing typechecks a generated `.d.ts` in a normal build -- applications
 set `skipLibCheck`, and should -- so regenerate it when the schema changes
-rather than editing it.
+rather than editing it. See
+[Regenerate from the schema](/qlive-framework/how-to/regenerate-from-the-schema/).
 
 ## Converters
 
@@ -228,33 +199,3 @@ A converter is never called with `null` or `undefined`. Import `Temporal`
 from `@quinscape/qlive-ts`, never from `temporal-polyfill` directly -- a
 second copy of the polyfill produces instants that do not typecheck against
 the first.
-
-## Hand-written types on the Java side
-
-When a table's columns do not say everything about a type, replace the
-generated POJO with a handwritten class that extends it, and register it
-with `objectType()` after the schema's own types. DomainQL resolves a
-domain type by simple name, so yours takes the generated one's place --
-including for the query document service, which materializes whatever the
-table lookup names.
-
-Extending the generated POJO is what keeps it able to hold a row: the
-columns, their JPA annotations and the fetcher context all come along.
-
-A field no column backs is fetched from the object rather than selected:
-
-```java
-@GraphQLComputed
-public String getSummary()
-{
-    return getName() + " / " + getStringValue();
-}
-```
-
-A property has to be writable to become a field at all, so such a field
-needs a setter even when nothing reads what it stores.
-
-A query selecting it should select the fields it is computed from as well
--- nothing fetches a column on its account. A filter is the other case: a
-computed property cannot go into a `WHERE` clause, and a filter path naming
-one is an error.

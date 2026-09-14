@@ -50,6 +50,36 @@ GraphQL fields or define GraphQL types that are not clear from the database.
 `@GraphQLMutation` is the write side. You should declare all modifications as mutations.
 
 
+## Hand-written types on the Java side
+
+When a table's columns do not say everything about a type, replace the
+generated POJO with a handwritten class that extends it, and register it
+with `objectType()` after the schema's own types. DomainQL resolves a
+domain type by simple name, so yours takes the generated one's place --
+including for the query document service, which materializes whatever the
+table lookup names.
+
+Extending the generated POJO is what keeps it able to hold a row: the
+columns, their JPA annotations and the fetcher context all come along.
+
+A field no column backs is fetched from the object rather than selected:
+
+```java
+@GraphQLComputed
+public String getSummary()
+{
+    return getName() + " / " + getStringValue();
+}
+```
+
+A property has to be writable to become a field at all, so such a field
+needs a setter even when nothing reads what it stores.
+
+A query selecting it should select the fields it is computed from as well
+-- nothing fetches a column on its account. A filter is the other case: a
+computed property cannot go into a `WHERE` clause, and a filter path naming
+one is an error.
+
 ## QueryDocumentService
 
 The query document service is the central data access service for QLive. It analyzes the currently executed GraphQL query

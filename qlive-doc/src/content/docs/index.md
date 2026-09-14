@@ -43,5 +43,13 @@ more request latency is saved. It simplifies testing the components.
 ## Getting Started
 
 Start with the [Overview](/qlive-framework/explanation/overview/), which explains what the framework
-does and how a page reaches the browser. The rest follows the order of
-the sidebar.
+does and how a page reaches the browser.
+
+The rest is grouped by what you came for:
+
+- **Explanation** -- what QLive does and why it is built that way. Meant to
+  be read through, in the order it is in.
+- **How-to guides** -- one task at a time: wiring up a Spring application,
+  refreshing the schema after a domain change, adding an entry point.
+- **Reference** -- the API and the generated artifacts. Meant to be looked
+  up, not read.

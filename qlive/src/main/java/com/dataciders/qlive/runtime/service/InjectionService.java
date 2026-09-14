@@ -29,7 +29,6 @@ import graphql.schema.GraphQLFieldsContainer;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLTypeUtil;
-import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -371,27 +370,43 @@ public class InjectionService
         {
             final String typeName = typeNameOf(definition.getType());
 
-            // A variable the call did not name is left alone: a query that insists on one should report a
-            // missing one, not be handed a default nobody asked for.
-            final Object value = variables.get(definition.getName());
             if (typeName == null)
             {
                 continue;
             }
 
             final InjectionArgumentProcessor processor = processorFor(typeName);
-            variables.put(
+            if (processor == null)
+            {
+                // Nobody answers for the type, so there is nothing to complete and nothing to say about a
+                // variable the call did not name. Leaving it out rather than writing a null back matters:
+                // GraphQL reads an absent variable and an explicit null differently, and a variable the
+                // query declared a default for only gets it while it is absent.
+                continue;
+            }
+
+            // A variable the call did not name arrives as null and is completed all the same -- what a
+            // query config of a type looks like when nothing asks for anything is exactly what the type's
+            // own meta data says, and having to spell that out at every call site is what the meta data
+            // exists to avoid. See QueryConfigArgumentProcessor.
+            final boolean named = variables.containsKey(definition.getName());
+
+            final Object processed = process(
+                processor,
+                definition.getType(),
+                module,
                 definition.getName(),
-                processor != null ? process(
-                    processor,
-                    definition.getType(),
-                    module,
-                    definition.getName(),
-                    typeName,
-                    value,
-                    usages.getOrDefault(definition.getName(), List.of())
-                ) : value
+                typeName,
+                variables.get(definition.getName()),
+                usages.getOrDefault(definition.getName(), List.of())
             );
+
+            // A processor that had nothing to complete leaves an unnamed variable absent rather than
+            // present and null, which GraphQL reads as two different things.
+            if (named || processed != null)
+            {
+                variables.put(definition.getName(), processed);
+            }
         }
     }
 
@@ -518,6 +533,11 @@ public class InjectionService
         {
             case NonNullType nonNull ->
                 process(processor, nonNull.getType(), module, variable, typeName, value, usedAt);
+
+            // A list variable the call did not name stays absent. Completing it would have to invent how
+            // many elements were meant, and one is no better an answer than none.
+            case ListType _ when value == null ->
+                null;
 
             case ListType list when value instanceof List<?> elements ->
             {

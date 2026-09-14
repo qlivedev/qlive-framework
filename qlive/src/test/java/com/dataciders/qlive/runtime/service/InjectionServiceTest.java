@@ -12,8 +12,6 @@ import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.GraphQL;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -31,8 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 class InjectionServiceTest
 {
-    private final static Logger log = LoggerFactory.getLogger(InjectionServiceTest.class);
-
     /**
      * A query on the test domain, as the track-usage data holds it: one string, JSON-escaped.
      */
@@ -367,8 +363,8 @@ class InjectionServiceTest
     @Test
     void handlesMissingQueryConfig()
     {
-        // The query needs a config, and this call names none -- the kind of mismatch that would otherwise
-        // surface as missing data in the browser.
+        // The query takes a config and this call names none, which is the normal case: what the type
+        // declares is what the injection runs with.
         final TrackUsageData analysis = analysis("""
             {
                 "./app/Home": {

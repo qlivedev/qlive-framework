@@ -45,6 +45,12 @@ export default defineConfig({
                 {label: "Explanation", items: [{autogenerate: {directory: "explanation"}}]},
                 {label: "How-to guides", items: [{autogenerate: {directory: "how-to"}}]},
                 {label: "Reference", items: [{autogenerate: {directory: "reference"}}]},
+                // Written from the qlive-ts declarations by
+                // tooling/generateApiDocs.mjs. Its own tree rather than a
+                // directory inside `reference`, so that "nothing in here is
+                // hand-edited" is a property of the whole directory and a
+                // regeneration can simply overwrite it.
+                {label: "API", items: [{autogenerate: {directory: "api"}}]},
             ],
             editLink: {
                 baseUrl:

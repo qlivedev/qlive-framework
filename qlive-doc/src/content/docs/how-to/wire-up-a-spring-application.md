@@ -126,11 +126,10 @@ profile.
 
 ## Dev-only: receiving the pushed analysis
 
-```java
-@Bean
-@Profile("dev")
-public DevStaticAnalysisProvider devStaticAnalysisProvider() { ... }
+The dev provider above is what the Vite plugin pushes into. The endpoint
+receiving that push is one more bean, `dev` only as well:
 
+```java
 @Bean
 @Profile("dev")
 public TrackUsageDevController trackUsageDevController(

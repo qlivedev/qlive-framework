@@ -46,6 +46,12 @@ const DECLARATION =
 
 const CHUNK_IMPORT = /^import [\s\S]*? from "(\.\/[^"]+)\.js";?\s*$/;
 
+// Column 0 again, and for the same reason. The indented export lists belong to a
+// namespace block, and a chunk has one of its own re-exporting under one-letter
+// linkage names for whichever entry point imports it. Neither is the surface an
+// application sees.
+const EXPORT_LIST = /^export \{(.*)\};?\s*$/;
+
 // `export * as FilterDSL from "./FilterDSL"` becomes `declare namespace
 // FilterDSL_d_exports` in the bundle, named after the module file rather than the
 // namespace an application sees. Read index.ts to get from one to the other, so
@@ -66,6 +72,41 @@ function declarationFiles(entry)
         .filter(file => fs.existsSync(file));
 
     return [entry, ...new Set(chunks)];
+}
+
+/**
+ * Every name the entry point exports, spelled as an application says it -- the
+ * name after an `as`, which is what the topic map and the headings use.
+ *
+ * checkExports.mjs asks the other half of the question, whether a declaration
+ * that reached the bundle is nameable at all, and its DELIBERATELY NOT EXPORTED
+ * list is the answer for the ones that are not. Reading the export list rather
+ * than the declarations therefore needs no second copy of that list: what stays
+ * internal on purpose is not exported, so it never arrives here.
+ */
+function exportedNames(entry)
+{
+    const exported = new Set();
+
+    for (const line of fs.readFileSync(entry, "utf8").split("\n"))
+    {
+        const list = EXPORT_LIST.exec(line);
+        if (!list)
+        {
+            continue;
+        }
+
+        for (const item of list[1].split(","))
+        {
+            const name = /([A-Za-z_$][\w$]*)\s*$/.exec(item.trim());
+            if (name)
+            {
+                exported.add(name[1]);
+            }
+        }
+    }
+
+    return exported;
 }
 
 /**
@@ -433,11 +474,20 @@ function renderTags(tags)
 }
 
 /**
+ * Every name a page gave a section of its own, recorded while the pages are
+ * written rather than derived from the topic map: what the map names and what a
+ * page ends up holding are the two things the check below compares.
+ */
+const rendered = new Set();
+
+/**
  * One export as a section: what it is, how it is spelled, and what its doc comment
  * says about it.
  */
 function renderExport(declaration)
 {
+    rendered.add(declaration.name);
+
     const out = [`## ${heading(declaration)}`, ""];
     const members = splitIntoMembers(declaration) ? declaration.members : [];
 
@@ -478,6 +528,8 @@ function renderExport(declaration)
  */
 function renderNamespace(name, memberNames, declarations)
 {
+    rendered.add(name);
+
     const out = [`## ${name}`, "", `<span class="api-kind">namespace</span>`, ""];
     out.push(`Imported as a namespace, and re-exported member by member from a second entry point.`, "");
     out.push(...extraFor(name));
@@ -487,8 +539,10 @@ function renderNamespace(name, memberNames, declarations)
         const declaration = declarations.get(member);
         if (!declaration)
         {
-            continue;
+            throw new Error(`${name}: the bundle exports "${member}" from the namespace but declares it nowhere`);
         }
+
+        rendered.add(declaration.name);
 
         out.push(`### ${name}.${heading(declaration)}`, "");
         const inner = splitIntoMembers(declaration) ? declaration.members : [];
@@ -520,6 +574,8 @@ function renderPage(topic, order, resolve, externals)
     {
         if (externals[name])
         {
+            rendered.add(name);
+
             return [
                 `## ${name}`, "",
                 `<span class="api-kind">re-export</span>`, "",
@@ -626,9 +682,6 @@ function resolve(name)
     return declarations.get(name) ?? null;
 }
 
-const mapped = new Set(config.topics.flatMap(topic => topic.members));
-const unmapped = [...declarations.keys()].filter(name => !mapped.has(name));
-
 const pages = config.topics.map((topic, index) => ({
     file: path.join(outDir, topic.slug + ".md"),
     text: renderPage(topic, index + 1, resolve, config.external)
@@ -646,6 +699,21 @@ if (orphaned.length > 0)
         console.error("  " + path.relative(repoRoot, path.join(extraDir, symbol + ".md")));
     }
     console.error("\nRename the file after whatever the symbol is called now, or delete it.");
+    process.exit(2);
+}
+
+// The bargain tooling/apiTopics.json describes, in the direction the topic map
+// cannot keep on its own: it fails on a member the build output does not have,
+// and this fails on an export no page took.
+const undocumented = [...exportedNames(dtsPath)].filter(name => !rendered.has(name));
+if (undocumented.length > 0)
+{
+    console.error(`${undocumented.length} exports of @quinscape/qlive-ts are on no page:\n`);
+    for (const name of undocumented)
+    {
+        console.error("  " + name);
+    }
+    console.error("\nGive each one a topic in tooling/apiTopics.json, or stop exporting it.");
     process.exit(2);
 }
 
@@ -676,7 +744,3 @@ for (const page of pages)
 }
 
 console.log(`Wrote ${pages.length} API pages to ${path.relative(repoRoot, outDir)}.`);
-if (unmapped.length > 0)
-{
-    console.log(`\nNote: ${unmapped.length} bundled declarations are on no page (inlined types the bundler pulled in).`);
-}

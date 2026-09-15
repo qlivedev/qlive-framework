@@ -16,6 +16,9 @@
  * Which export lands on which page is tooling/apiTopics.json, not a rule derived
  * from the module layout -- see the comment at the top of that file.
  *
+ * A symbol whose page wants more than its doc comment says takes an optional
+ * prose fragment, tooling/apiExtra/<symbol path>.md -- see readExtras below.
+ *
  * Reads the build output, so run `pnpm --filter @quinscape/qlive-ts build` first.
  *
  * Usage: node tooling/generateApiDocs.mjs [--check]
@@ -32,6 +35,7 @@ const dtsPath = path.join(repoRoot, "qlive-ts", "dist", "index.d.ts");
 const indexPath = path.join(repoRoot, "qlive-ts", "src", "index.ts");
 const topicsPath = path.join(repoRoot, "tooling", "apiTopics.json");
 const outDir = path.join(repoRoot, "qlive-doc", "src", "content", "docs", "api");
+const extraDir = path.join(repoRoot, "tooling", "apiExtra");
 
 const check = process.argv.includes("--check");
 
@@ -302,6 +306,64 @@ function renderOperators(spec, repoRoot)
 }
 
 /**
+ * The optional prose fragments under tooling/apiExtra, keyed by the symbol path
+ * they are appended to as it is spelled on the page: `startup.md`,
+ * `FilterDSL.field.md`, `QueryDocument.commit.md` -- no parentheses on a function.
+ *
+ * A fragment carries what belongs on the page but not in an IDE hover: a platform
+ * difference worth restating where it is looked up, a clarification that would
+ * crowd a call site. The doc comment stays the contract, and the fragment is
+ * pulled from the docs side, so nothing in the shipped declarations points at a
+ * file the package does not contain.
+ *
+ * Reach for one only after asking whether the text is really reference. A worked
+ * example is how-to and a rationale is explanation, and both have a page of their
+ * own that these link to.
+ */
+function readExtras()
+{
+    if (!fs.existsSync(extraDir))
+    {
+        return new Map();
+    }
+
+    const extras = new Map();
+    for (const file of fs.readdirSync(extraDir).filter(name => name.endsWith(".md")))
+    {
+        const text = fs.readFileSync(path.join(extraDir, file), "utf8").trim();
+
+        // The heading structure is the generator's, and Starlight builds the page
+        // table of contents out of it.
+        if (/^#{1,6} /m.test(text))
+        {
+            throw new Error(`apiExtra/${file}: a fragment is prose under a heading the generator wrote, so it cannot carry one of its own`);
+        }
+
+        extras.set(file.slice(0, -".md".length), text);
+    }
+
+    return extras;
+}
+
+const extras = readExtras();
+const extrasUsed = new Set();
+
+/**
+ * The fragment appended to one symbol's section, if there is one.
+ */
+function extraFor(symbol)
+{
+    const text = extras.get(symbol);
+    if (!text)
+    {
+        return [];
+    }
+
+    extrasUsed.add(symbol);
+    return [text, ""];
+}
+
+/**
  * Whether a declaration reads better as a header plus a member list than as one
  * block. A class or an interface does -- its members are looked up one at a time
  * and carry their own doc comments. An object type alias does not: it is small,
@@ -382,33 +444,28 @@ function renderExport(declaration)
     out.push(`<span class="api-kind">${KIND_LABEL[declaration.kind] ?? declaration.kind}</span>`, "");
     out.push("```ts", members.length > 0 ? declaration.header : declaration.body.join("\n"), "```", "");
 
-    if (declaration.doc)
-    {
-        const {prose, tags} = parseDoc(declaration.doc);
-        if (prose)
-        {
-            out.push(prose, "");
-        }
-        out.push(...renderTags(tags));
-    }
-    else
+    if (!declaration.doc)
     {
         out.push(":::note[Undocumented]", "This export carries no doc comment in the source.", ":::", "");
     }
+
+    const {prose, tags} = declaration.doc ? parseDoc(declaration.doc) : {prose: "", tags: []};
+    if (prose)
+    {
+        out.push(prose, "");
+    }
+    out.push(...extraFor(declaration.name), ...renderTags(tags));
 
     for (const member of members)
     {
         out.push(`### ${declaration.name}.${member.name}`, "");
         out.push("```ts", member.signature, "```", "");
-        if (member.doc)
+        const {prose, tags} = member.doc ? parseDoc(member.doc) : {prose: "", tags: []};
+        if (prose)
         {
-            const {prose, tags} = parseDoc(member.doc);
-            if (prose)
-            {
-                out.push(prose, "");
-            }
-            out.push(...renderTags(tags));
+            out.push(prose, "");
         }
+        out.push(...extraFor(`${declaration.name}.${member.name}`), ...renderTags(tags));
     }
 
     return out.join("\n");
@@ -423,6 +480,7 @@ function renderNamespace(name, memberNames, declarations)
 {
     const out = [`## ${name}`, "", `<span class="api-kind">namespace</span>`, ""];
     out.push(`Imported as a namespace, and re-exported member by member from a second entry point.`, "");
+    out.push(...extraFor(name));
 
     for (const member of memberNames)
     {
@@ -438,15 +496,12 @@ function renderNamespace(name, memberNames, declarations)
             ? declaration.header
             : declaration.body.join("\n"), "```", "");
 
-        if (declaration.doc)
+        const {prose, tags} = declaration.doc ? parseDoc(declaration.doc) : {prose: "", tags: []};
+        if (prose)
         {
-            const {prose, tags} = parseDoc(declaration.doc);
-            if (prose)
-            {
-                out.push(prose, "");
-            }
-            out.push(...renderTags(tags));
+            out.push(prose, "");
         }
+        out.push(...extraFor(`${name}.${declaration.name}`), ...renderTags(tags));
 
         for (const member of inner)
         {
@@ -459,28 +514,7 @@ function renderNamespace(name, memberNames, declarations)
 
 function renderPage(topic, order, resolve, externals)
 {
-    const front = [
-        "---",
-        `title: ${topic.title}`,
-        `description: ${topic.description}`,
-        // The edit link would point at a file that is overwritten on the next
-        // build; the doc comment it came from is the thing to edit.
-        "editUrl: false",
-        "sidebar:",
-        `  order: ${order}`,
-        "---",
-        "",
-        "<!-- Generated by tooling/generateApiDocs.mjs -- edit the doc comments in",
-        "     qlive-ts/src instead, then run `pnpm docs:api`. -->",
-        ""
-    ];
-
-    if (topic.narrative)
-    {
-        front.push(`:::tip[Start here]`,
-            `[${topic.title} in the reference](${topic.narrative}) explains how these fit together.`,
-            ":::", "");
-    }
+    const extrasBefore = extrasUsed.size;
 
     const sections = topic.members.map(name =>
     {
@@ -508,6 +542,39 @@ function renderPage(topic, order, resolve, externals)
     if (topic.operatorTables)
     {
         sections.push(renderOperators(topic.operatorTables, repoRoot));
+    }
+
+    const banner = ["<!-- Generated by tooling/generateApiDocs.mjs -- edit the doc comments in",
+        "     qlive-ts/src instead, then run `pnpm docs:api`."];
+
+    // Named only where there is one to find, so that the usual page sends the
+    // reader straight to the source and nothing else.
+    if (extrasUsed.size > extrasBefore)
+    {
+        banner.push("     Paragraphs that are in no doc comment come from tooling/apiExtra.");
+    }
+    banner[banner.length - 1] += " -->";
+
+    const front = [
+        "---",
+        `title: ${topic.title}`,
+        `description: ${topic.description}`,
+        // The edit link would point at a file that is overwritten on the next
+        // build; the doc comment it came from is the thing to edit.
+        "editUrl: false",
+        "sidebar:",
+        `  order: ${order}`,
+        "---",
+        "",
+        ...banner,
+        ""
+    ];
+
+    if (topic.narrative)
+    {
+        front.push(`:::tip[Start here]`,
+            `[${topic.title} in the reference](${topic.narrative}) explains how these fit together.`,
+            ":::", "");
     }
 
     return front.join("\n") + "\n" + sections.join("\n") + "\n";
@@ -566,6 +633,21 @@ const pages = config.topics.map((topic, index) => ({
     file: path.join(outDir, topic.slug + ".md"),
     text: renderPage(topic, index + 1, resolve, config.external)
 }));
+
+// A fragment is invisible from the source it belongs to, so somebody renaming an
+// export does not see it. Unappended means wrong, and it has to say so here or it
+// never says so at all.
+const orphaned = [...extras.keys()].filter(symbol => !extrasUsed.has(symbol));
+if (orphaned.length > 0)
+{
+    console.error("These prose fragments name a symbol no page has a section for:\n");
+    for (const symbol of orphaned)
+    {
+        console.error("  " + path.relative(repoRoot, path.join(extraDir, symbol + ".md")));
+    }
+    console.error("\nRename the file after whatever the symbol is called now, or delete it.");
+    process.exit(2);
+}
 
 if (check)
 {

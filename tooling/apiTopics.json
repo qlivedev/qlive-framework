@@ -11,7 +11,9 @@
     "",
     "Every export is named exactly once. An export missing from here fails the",
     "generator rather than quietly going undocumented, which is the same bargain",
-    "checkExports.mjs makes with its DELIBERATELY NOT EXPORTED list."
+    "checkExports.mjs makes with its DELIBERATELY NOT EXPORTED list. The way out is",
+    "an @internal tag on the declaration, which is a decision recorded where the",
+    "declaration is read rather than a name quietly absent from this file."
   ],
   "external": {
     "Temporal": "temporal-polyfill"

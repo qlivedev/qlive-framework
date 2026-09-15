@@ -154,6 +154,20 @@ function parseDoc(text)
 }
 
 /**
+ * Whether a doc comment marks what it describes as framework-internal: reached
+ * from the framework's other modules, and so not expressible as `private`, but no
+ * part of what an application is meant to call.
+ *
+ * `@internal` is TypeScript's own spelling of this, which is what a reader of the
+ * declarations will take it for. The tag stays in the shipped .d.ts on purpose --
+ * somebody who reaches one anyway should find that out at the call site.
+ */
+function isInternal(doc)
+{
+    return !!doc && /^\s*@internal\b/m.test(doc);
+}
+
+/**
  * Every top-level declaration of one file, with the doc comment above it, and the
  * member list of the ones that have a body.
  */
@@ -282,7 +296,7 @@ function parseMembers(body)
         }
 
         const name = /^  (?:readonly |get |set |static )*([A-Za-z_$][\w$]*|constructor|\[[^\]]+\])/.exec(line)?.[1];
-        if (name)
+        if (name && !isInternal(doc))
         {
             members.push({name, doc, signature: signature.map(l => l.slice(2)).join("\n")});
         }
@@ -543,6 +557,11 @@ function renderNamespace(name, memberNames, declarations)
             throw new Error(`${name}: the bundle exports "${member}" from the namespace but declares it nowhere`);
         }
 
+        if (isInternal(declaration.doc))
+        {
+            continue;
+        }
+
         rendered.add(declaration.name);
 
         out.push(`### ${name}.${heading(declaration)}`, "");
@@ -589,6 +608,11 @@ function renderPage(topic, order, resolve, externals)
         if (!found)
         {
             throw new Error(`${topic.slug}: "${name}" is in the topic map but not in the build output`);
+        }
+
+        if (!found.namespace && isInternal(found.doc))
+        {
+            throw new Error(`${topic.slug}: "${name}" is in the topic map and marked @internal, which cannot both be true`);
         }
 
         return found.namespace
@@ -706,7 +730,18 @@ if (orphaned.length > 0)
 // The bargain tooling/apiTopics.json describes, in the direction the topic map
 // cannot keep on its own: it fails on a member the build output does not have,
 // and this fails on an export no page took.
-const undocumented = [...exportedNames(dtsPath)].filter(name => !rendered.has(name));
+const undocumented = [...exportedNames(dtsPath)].filter(name =>
+{
+    if (rendered.has(name))
+    {
+        return false;
+    }
+
+    // An @internal export is accounted for by the tag: it says the name is not for
+    // applications, which is the whole of what a page would have had to say.
+    const found = resolve(name);
+    return !(found && !found.namespace && isInternal(found.doc));
+});
 if (undocumented.length > 0)
 {
     console.error(`${undocumented.length} exports of @quinscape/qlive-ts are on no page:\n`);
@@ -714,7 +749,7 @@ if (undocumented.length > 0)
     {
         console.error("  " + name);
     }
-    console.error("\nGive each one a topic in tooling/apiTopics.json, or stop exporting it.");
+    console.error("\nGive each one a topic in tooling/apiTopics.json, mark it @internal, or stop exporting it.");
     process.exit(2);
 }
 

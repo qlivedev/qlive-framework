@@ -52,26 +52,51 @@ where it can simply be rewritten.
 
 ## Write the entry module
 
-```tsx title="src/login.tsx"
+A second entry module that is integrated into the QLive world can be useful e.g.
+to create a separate admin area that is logically separated from the normal application
+and is served from a `/admin/**` requiring ROLE_ADMIN or so.
+
+```tsx title="src/another.tsx"
+import {startup} from "@quinscape/qlive-ts";
+
+document.addEventListener("DOMContentLoaded", async () => {
+    await startup({
+        views: import.meta.glob("./app/**/*.tsx"),
+        root: () => <ViteDevHome quickLoginUsers={ quickLoginUsers }/>
+    });
+});
+```
+We define the views as vite meta glob import that reads all *.tsx below the `app/` directory. Every .tsx is a view, other
+files like query definitions can live there if they have a .ts extension.
+
+Since all our views are in `./app/**`, the system does not know what to render for `/app/`. We can either define the name
+of the view to use for root with an client-side redirect, or we can define a component that is rendered there. The example
+application uses it to have a dev starting page with `<QuickLogin/>` buttons.
+
+See [startup in the reference](/qlive-framework/reference/startup/) for more details.
+
+
+### noSchema entry-point
+
+An entry-point that does not query anything and that does not need to know about the GraphQL schema can use a 
+`noSchema` declaration to get a simplified boostrap injection. You still might need the boostrap to know e.g. which CSRF 
+Token to send to submit your forms or know which user is logged in with which roles.
+
+See [noSchema in the startup reference](/qlive-framework/reference/startup/#noschema) for details on the reduced schema.
+
+```tsx title="src/simplified.tsx"
 import {noSchema, startup} from "@quinscape/qlive-ts";
 
 noSchema();
 
 document.addEventListener("DOMContentLoaded", async () => {
-    await startup({path: location.pathname});
-    // render the form
+    await startup({
+        render: ({config}) => (
+            <MyComponent config={ config }/>
+        )
+    });
 });
 ```
 
-No `views` option: the page resolves no routes. `noSchema()` keeps the
-domain out of the bootstrap this page gets -- see
-[Startup](/qlive-framework/reference/startup/) for what that leaves and
-when it is not allowed.
-
-## Let the browser submit the form
-
-A plain HTML form is the right thing on a login page: the POST is what
-authenticates the session, and letting the browser submit it means the
-response -- a redirect to the requested view, or back with `?error` -- is
-handled by the browser too. The CSRF token that POST needs arrives with the
-bootstrap, which is why the page is served through the renderer at all.
+No `views` option: the page resolves no routes. If we want it to render we can define a function component with `render`.
+Otherwise, startup will resolve after initialization.

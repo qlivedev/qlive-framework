@@ -10,7 +10,7 @@
         "-y",
         "@mozilla/firefox-devtools-mcp@latest",
         "--profile-path",
-        "${CLAUDE_PROJECT_DIR}/.firefox-mcp-profile"
+        ".firefox-mcp-profile"
       ]
     }
   }

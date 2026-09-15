@@ -14,12 +14,19 @@ up, but it is already three sentences too many for a tooltip.
 
 ## The form
 
-The generator looks for an optional `tooling/apiExtra/<symbol path>.md`
-and appends it to that symbol's section, after the prose of the doc
-comment and before the parameter tables. The path is the heading as the
-page spells it, minus a function's parentheses: `startup.md`,
-`FilterDSL.field.md`, `QueryDocument.type.md`. `operatorTables` in
-`tooling/apiTopics.json` was already a hook of that shape.
+The generator looks for an optional
+`qlive-doc/src/content/apiExtra/<symbol path>.md` and appends it to that
+symbol's section, after the prose of the doc comment and before the
+parameter tables. The path is the heading as the page spells it, minus a
+function's parentheses: `startup.md`, `FilterDSL.field.md`,
+`QueryDocument.type.md`. `operatorTables` in `tooling/apiTopics.json` was
+already a hook of that shape.
+
+They sit beside the pages they are appended to rather than with the
+generator, because a fragment is documentation and not tooling. Astro
+ignores a directory under `src/content` that no collection claims, so
+the only thing the placement costs is that editing one counts as a
+change to `qlive-doc` -- which it is.
 
 Two rules keep the mechanism from eating the pages:
 
@@ -29,9 +36,9 @@ Two rules keep the mechanism from eating the pages:
   invisible from the source it belongs to, so somebody renaming an
   export never sees it, and an orphan that only got a warning would stay
   wrong quietly. This is the same bargain the topic map makes with an
-  unmapped export.
+  export that ends up on no page.
 
-The generated pages name `tooling/apiExtra` in their banner, but only on
+The generated pages name the directory in their banner, but only on
 a page that actually has a fragment, so the usual page still sends the
 reader straight to the doc comment.
 

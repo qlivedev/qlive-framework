@@ -17,7 +17,8 @@
  * from the module layout -- see the comment at the top of that file.
  *
  * A symbol whose page wants more than its doc comment says takes an optional
- * prose fragment, tooling/apiExtra/<symbol path>.md -- see readExtras below.
+ * prose fragment, qlive-doc/src/content/apiExtra/<symbol path>.md -- see
+ * readExtras below.
  *
  * Reads the build output, so run `pnpm --filter @quinscape/qlive-ts build` first.
  *
@@ -35,7 +36,7 @@ const dtsPath = path.join(repoRoot, "qlive-ts", "dist", "index.d.ts");
 const indexPath = path.join(repoRoot, "qlive-ts", "src", "index.ts");
 const topicsPath = path.join(repoRoot, "tooling", "apiTopics.json");
 const outDir = path.join(repoRoot, "qlive-doc", "src", "content", "docs", "api");
-const extraDir = path.join(repoRoot, "tooling", "apiExtra");
+const extraDir = path.join(repoRoot, "qlive-doc", "src", "content", "apiExtra");
 
 const check = process.argv.includes("--check");
 
@@ -347,8 +348,8 @@ function renderOperators(spec, repoRoot)
 }
 
 /**
- * The optional prose fragments under tooling/apiExtra, keyed by the symbol path
- * they are appended to as it is spelled on the page: `startup.md`,
+ * The optional prose fragments beside the generated pages, keyed by the symbol
+ * path they are appended to as it is spelled on the page: `startup.md`,
  * `FilterDSL.field.md`, `QueryDocument.commit.md` -- no parentheses on a function.
  *
  * A fragment carries what belongs on the page but not in an IDE hover: a platform
@@ -607,7 +608,7 @@ function renderPage(topic, order, resolve, externals)
     // reader straight to the source and nothing else.
     if (extrasUsed.size > extrasBefore)
     {
-        banner.push("     Paragraphs that are in no doc comment come from tooling/apiExtra.");
+        banner.push("     Paragraphs that are in no doc comment come from qlive-doc/src/content/apiExtra.");
     }
     banner[banner.length - 1] += " -->";
 

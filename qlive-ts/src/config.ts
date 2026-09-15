@@ -80,7 +80,10 @@ export type RelationInfo = {
      */
     targetFields: [string]
 }
-
+/**
+ * Source field configuration for a relation. Defines what fields to add for the relation on the side where the foreign
+ * key is.
+ */
 export type SourceField =
 /**
  * Ignore field for source type.
@@ -105,10 +108,14 @@ export type SourceField =
      */
     "OBJECT_AND_SCALAR"
 
-export type TargetField =
 /**
- * Do nothing on target side.
+ * Target field configuration for a relation. Defines what fields should be added for the relation to the side the
+ * foreign key points to.
  */
+export type TargetField =
+    /**
+     * Do nothing on target side.
+     */
     "NONE" |
     /**
      * Assume the foreign key to represent a one-to-one relationship and embed a single object as back reference.
@@ -117,21 +124,40 @@ export type TargetField =
     /** Assume the foreign key to represent a many-to-one relationship and embed a list of back references.*/
     "MANY"
 
+/**
+ * Injection as it comes in over the wire.
+ */
 export type InjectionSource = {
     data: any,
     type: string,
     meta: any,
 }
 
+/**
+ * Injection with converted value.
+ */
 export type Injection = {
     value: any,
     type: string,
     meta: any
 }
 
+/**
+ * Cross-Site Request-Forging protection token handling.
+ */
 export type CSRFToken = {
+    /**
+     * Name of the hidden input field carrying the token inside an HTML form POST
+     */
     param: string
+    /**
+     * HTTP header that contains the token value for a fetch POST or similar.
+     */
     header: string
+
+    /**
+     * CSRF token value
+     */
     value: string
 }
 
@@ -142,15 +168,39 @@ export type CSRFToken = {
  * login, its role and its fixed id, so a reader never has to handle "not logged in" as a missing value.
  */
 export type Authentication = {
+    /**
+     * Login name of the current user
+     */
     login: string
+    /**
+     * Roles of the current user.
+     */
     roles: string[]
+    /**
+     * Id of the current user (Usually pointing to the app_user table)
+     */
     id: string
 }
 
+/**
+ * Entry-point boostrap data.
+ */
 export type QLiveBoostrap = {
+    /**
+     * System config
+     */
     config: QLiveConfig | null;
+    /**
+     * CSRF-Token needed to POST stuff
+     */
     csrfToken: CSRFToken
+    /**
+     * The current user
+      */
     authentication: Authentication
+    /**
+     * Injection data
+     */
     data: {
         [key: string]: InjectionSource;
     }
@@ -160,7 +210,15 @@ export type QLiveConfig = {
      * Relative path of the QLive server
      */
     contextPath: string;
+    /**
+     * GraphQL schema for this application
+     */
     schema: GraphQLSchema
+    /**
+     * DomainQL meta information for the schema.
+     * Contents vary with MetadataProvider configuration. QLive comes with `maxPageSize` and query configuration by type
+     * which is transmitted here.
+     */
     meta: DomainQLMeta,
 
     // client-side only
@@ -173,7 +231,13 @@ export type QLiveConfig = {
      */
     authentication?: Authentication
 
+    /**
+     * Cached set of the names of QueryDocument<T> equivalent types in the application
+     */
     queryDocumentTypes?: Set<string>
+    /**
+     * Cached lookup for GraphQL types by name
+     */
     typesByName?: Map<string, GraphQLType>
 
     /**

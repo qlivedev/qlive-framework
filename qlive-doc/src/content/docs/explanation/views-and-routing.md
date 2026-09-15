@@ -2,7 +2,7 @@
 title: Views and routing
 description: How a URL becomes a view module.
 sidebar:
-  order: 4
+  order: 5
 ---
 
 A **view** is the component a URL renders. Views live under `src/app`, they
@@ -58,17 +58,23 @@ moment -- nothing loaded it up to that point.
 
 The application root, `/app/` itself, addresses no view. What it renders
 is the `root` option of
-[`startup()`](/qlive-framework/reference/startup/) -- a component,
-or the name of the view the root should behave as. `qlive-test` renders a
+[`startup()`](/qlive-framework/api/startup-and-config/#startupoptionsroot)
+-- a component, or the name of the view the root should behave as. `qlive-test` renders a
 landing component of its own there.
 
 ## Navigating
 
 QLive does not ship a router. What it gives you is the resolution step --
-route to module, in
-[Router helpers](/qlive-framework/reference/router/) -- and a way to refresh
-the injected data for a new path without a full page load: `GET /api/update?path=...` answers with the
+route to module -- and a way to refresh the injected data for a new path
+without a full page load: `GET /api/update?path=...` answers with the
 injections for that path alone, so an application that swaps views
 client-side can ask for the data the new path needs. Those are the result
 of actually running that path's queries, so the data is current as of the
 call rather than as of the page load.
+
+`appBase()`, `routeOf()`, `urlOf()` and the view loaders are
+[Views and routing in the API reference](/qlive-framework/api/views-and-routing/).
+
+Build links with `urlOf()` rather than by hand. It is the only thing that
+knows both the servlet context path -- which Vite knows nothing about --
+and the Vite base.

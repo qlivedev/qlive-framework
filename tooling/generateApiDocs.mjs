@@ -653,12 +653,35 @@ function renderPage(topic, order, resolve, externals)
 
     if (topic.narrative)
     {
+        const {url, title} = topic.narrative;
         front.push(`:::tip[Start here]`,
-            `[${topic.title} in the reference](${topic.narrative}) explains how these fit together.`,
+            `[${title}](${url}) ${narrativeLead(url)}.`,
             ":::", "");
     }
 
     return front.join("\n") + "\n" + sections.join("\n") + "\n";
+}
+
+/**
+ * How a topic's narrative link is introduced, taken from the quadrant it points
+ * into. A page is written for one purpose, and the tip says which -- an
+ * explanation page is not a how-to guide with worse examples.
+ */
+const NARRATIVE_LEAD = {
+    explanation: "explains how these fit together",
+    "how-to": "walks through using these",
+    reference: "has the rules and artifacts around these"
+};
+
+function narrativeLead(url)
+{
+    const quadrant = url.split("/").filter(Boolean)[1];
+    const lead = NARRATIVE_LEAD[quadrant];
+    if (!lead)
+    {
+        throw new Error(`narrative ${url} points outside the documented quadrants`);
+    }
+    return lead;
 }
 
 // --- main ------------------------------------------------------------------

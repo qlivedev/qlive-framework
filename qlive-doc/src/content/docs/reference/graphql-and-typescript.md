@@ -1,26 +1,22 @@
 ---
-title: GraphQL and Typescript
-description: GraphQLQuery, generated result types, types.d.ts and converters.
+title: Generated artifacts
+description: The rules a query has to follow, and what the codegen writes from it.
 sidebar:
-  order: 4
+  order: 2
 ---
-Since we're using both Typescript and GraphQL as basis for our project, we tried to unite them as much as we could. In 
-general, we generate Typescript types from the GraphQL schema. GraphQL queries however introduce another complication 
-because they are all about selecting from types that claim to have all kinds of fields the selected data actually does
-not have.
 
-So we introduced a way to automatically derive the correct Typescript types for a GraphQL Query. The standard we use
-here is derived both from the needs of Typescript and the injection mechanism.
+Every TypeScript type the frontend has for the domain is generated from
+`schema.graphql`: the domain types in `types.d.ts`, and a result type next
+to each query. This page is what those artifacts contain and what the
+generator requires of your source. Refreshing them is
+[Regenerate from the schema](/qlive-framework/how-to/regenerate-from-the-schema/).
 
-## Query rules
+GraphQL queries complicate the picture, because they select from types that
+claim to have all kinds of fields the selected data does not have. So the
+correct TypeScript type for a query is derived rather than written, and the
+rules below are what makes that derivation possible.
 
-The standard is that every query is defined in its own file and that the exported name matches the internal query name.
-
-Also, every query is allowed to only defined one query method. This might seem like a loss at first, but the main reason 
-for that is effectively fetching data and with the injection mechanism it does not matter how many queries we use since 
-it all is done in one go on the server anyway. 
-
-### Query Example
+## Rules a query has to follow
 
 ```ts {11-24} title="src/app/Q_Foo.ts"
 import {GraphQLQuery, QueryDocumentMethods} from "@quinscape/qlive-ts";
@@ -50,22 +46,28 @@ export const Q_Foo = new GraphQLQuery<Q_FooResult>(
 )
 ```
 
-Two rules the analysis depends on:
-
-- **`export const <Name> = new GraphQLQuery(...)` at module scope.** The
-  name is how the query is identified, and it doubles as the GraphQL
-  operation name, so it has to be a GraphQL name: `[_A-Za-z][_0-9A-Za-z]*`.
-  Upper case first is the convention -- query names are type-like.
-- **The query source is a literal.** A query assembled at runtime is
-  invisible to the analysis, cannot be injected, and gets no generated type.
+| | |
+|---|---|
+| **Module scope, exported const** | `export const <Name> = new GraphQLQuery(...)`. The name identifies the query and doubles as the GraphQL operation name, so it has to be a GraphQL name: `[_A-Za-z][_0-9A-Za-z]*`. Upper case first is the convention -- query names are type-like. |
+| **The source is a literal** | A query assembled at runtime is invisible to the analysis, cannot be injected, and gets no generated type. |
+| **One query method per query** | Every query defines exactly one top-level selection. |
+| **No fragments** | Neither spreads nor inline. Both the generated result type and the client's conversion map would silently miss the fields a fragment contributes, so a query using one is refused where it is declared. |
+| **Naming** | Either the module is named after the query -- `app/Q_Foo.ts` exporting `Q_Foo`, which is what the generated result types assume -- or the operation is named like the identifier, which covers queries collected in a shared module. |
 
 `T` in `GraphQLQuery<T>` is what **one execution** yields: the value of the
-query's single top-level selection, unwrapped. Aliasing the one method changes
-nothing.
+query's single top-level selection, unwrapped. Aliasing the one method
+changes nothing.
 
-Fragments are not supported, spreads or inline. Both the generated result
-type and the client's conversion map would silently miss the fields a
-fragment contributes, so a query using one is refused where it is declared.
+Only one method per query looks like a loss at first. The point of the
+restriction is effective data fetching, and with the injection mechanism it
+does not matter how many queries a view uses -- the server runs them in one
+go anyway. Why the literal and the module scope are not negotiable is
+[Injections](/qlive-framework/explanation/injections/).
+
+Queries are not required to live in any particular directory. `src/app/` is
+where `qlive-test` puts them, next to the views that inject them, but the
+analysis resolves the identifier through the view's imports rather than by
+location.
 
 ## Generated result types
 
@@ -130,29 +132,9 @@ reported by name and skipped. The other queries still get theirs, so a
 query halfway through an edit does not hold up the module you are looking
 at. `generate-query-types` exits non-zero when any query was skipped.
 
-## Running a query directly
-
-```ts
-const result = await Q_Foo.execute({config: {offset: 0, pageSize: 10}});
-```
-
-`execute()` posts the query, converts the variables on the way out and the
-result on the way in, and unwraps the single top-level selection -- so it
-resolves to `T`.
-
-For the cases that do not fit -- several top-level selections, or you want
-the wire format -- there is the raw call:
-
-```ts
-import graphql, {firstValue} from "@quinscape/qlive-ts";
-const data = await graphql(query, params);   // the whole "data" object
-```
-
-It rejects on a transport error or on any GraphQL error in the response.
-
 ## `types.d.ts`
 
-The TypeScript view of your domain is generated from the schema by the
+The TypeScript view of your domain, generated from the schema by the
 codegen CLI:
 
 ```bash
@@ -166,40 +148,4 @@ schema's object types.
 
 Nothing typechecks a generated `.d.ts` in a normal build -- applications
 set `skipLibCheck`, and should -- so regenerate it when the schema changes
-rather than editing it. See
-[Regenerate from the schema](/qlive-framework/how-to/regenerate-from-the-schema/).
-
-## Converters
-
-Values do not arrive as they travel. A converter is registered per GraphQL
-named type and runs in both directions:
-
-| Type | On the wire | In the application |
-|---|---|---|
-| `Timestamp` | ISO-8601 string | `Temporal.Instant` |
-| `Date` | ISO-8601 string | `Temporal` value |
-| `FooDocument` and friends | plain JSON object | `QueryDocument` instance |
-
-```ts
-import {registerConverter, Temporal} from "@quinscape/qlive-ts";
-
-registerConverter("MyScalar", {
-    fromServer: (value, type) => ...,
-    toServer:   (value, type) => ...,   // optional for output-only types
-});
-```
-
-Registering a second converter for a type replaces the first, so you can
-override the ones QLive brings. Do that from `startup()`'s
-[`init` hook](/qlive-framework/reference/startup/): the built-ins
-are registered while `startup()` initializes the config, and the hook is
-the point after that and before the first view renders.
-
-A converter is never called with `null` or `undefined`. Import `Temporal`
-from `@quinscape/qlive-ts`, never from `temporal-polyfill` directly -- a
-second copy of the polyfill produces instants that do not typecheck against
-the first.
-
-The `Converter` shape, the conversion calls the framework makes with it, and
-the generic scalar types a value arrives in are
-[Scalars and conversion in the API reference](/qlive-framework/api/scalars-and-conversion/).
+rather than editing it.

@@ -13,7 +13,11 @@
     "generator rather than quietly going undocumented, which is the same bargain",
     "checkExports.mjs makes with its DELIBERATELY NOT EXPORTED list. The way out is",
     "an @internal tag on the declaration, which is a decision recorded where the",
-    "declaration is read rather than a name quietly absent from this file."
+    "declaration is read rather than a name quietly absent from this file.",
+    "",
+    "\"narrative\" is the prose page a reader should start on, as {url, title}. The",
+    "quadrant in the url decides how the generated tip introduces it, so a topic",
+    "whose prose is a how-to guide does not get announced as an explanation."
   ],
   "external": {
     "Temporal": "temporal-polyfill"
@@ -23,7 +27,10 @@
       "slug": "startup-and-config",
       "title": "Startup and configuration",
       "description": "Booting the application and reading what the server sent with the page.",
-      "narrative": "/qlive-framework/reference/startup/",
+      "narrative": {
+        "url": "/qlive-framework/how-to/add-an-entry-point/",
+        "title": "Add an entry point"
+      },
       "members": [
         "startup",
         "StartupOptions",
@@ -49,7 +56,10 @@
       "slug": "views-and-routing",
       "title": "Views and routing",
       "description": "Resolving a path to a view module and building URLs for one.",
-      "narrative": "/qlive-framework/reference/router/",
+      "narrative": {
+        "url": "/qlive-framework/explanation/views-and-routing/",
+        "title": "Views and routing"
+      },
       "members": [
         "loadViewForPath",
         "loadView",
@@ -65,34 +75,47 @@
       "slug": "injection",
       "title": "Injection",
       "description": "Declaring a query and reading the data the server shipped with the page.",
-      "narrative": null,
+      "narrative": {
+        "url": "/qlive-framework/explanation/injections/",
+        "title": "Injections"
+      },
       "members": [
         "useInjection",
         "InjectParams",
-        "GraphQLQuery",
         "data",
         "injectionSource",
         "Injection",
-        "InjectionSource",
+        "InjectionSource"
+      ]
+    },
+    {
+      "slug": "runtime-graphql",
+      "title": "Runtime GraphQL",
+      "description": "Using GraphQL at runtime",
+      "narrative": {
+        "url": "/qlive-framework/how-to/runtime-graphql/",
+        "title": "Use GraphQLQuery at runtime"
+      },
+      "members": [
+        "GraphQLQuery",
+        "useQueryDocument",
         "graphql",
         "GraphQLParams",
-        "firstValue",
-        "parseQuery",
-        "ParsedQuery",
-        "QuerySelection",
-        "OperationType"
+        "firstValue"
       ]
     },
     {
       "slug": "query-documents",
       "title": "Query documents",
       "description": "The store behind an injected query, and the config it carries.",
-      "narrative": "/qlive-framework/reference/query-documents/",
+      "narrative": {
+        "url": "/qlive-framework/explanation/query-documents/",
+        "title": "Query documents"
+      },
       "members": [
         "QueryDocument",
         "QueryDocumentSnapshot",
         "QueryDocumentMethods",
-        "DocumentOrSnapshot",
         "QueryConfig",
         "QueryConfigDelta"
       ]
@@ -101,7 +124,10 @@
       "slug": "filter-dsl",
       "title": "Filter DSL",
       "description": "The condition and expression graph, and what builds one.",
-      "narrative": "/qlive-framework/reference/filter-dsl/",
+      "narrative": {
+        "url": "/qlive-framework/explanation/filter-dsl/",
+        "title": "Filter DSL"
+      },
       "members": [
         "FilterDSL",
         "decompileFilter"
@@ -231,7 +257,10 @@
       "slug": "scalars-and-conversion",
       "title": "Scalars and conversion",
       "description": "What a scalar looks like on the wire, in the browser, and how it gets between.",
-      "narrative": "/qlive-framework/reference/graphql-and-typescript/",
+      "narrative": {
+        "url": "/qlive-framework/how-to/register-a-converter/",
+        "title": "Register a converter"
+      },
       "members": [
         "Temporal",
         "registerConverter",

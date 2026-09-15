@@ -2,7 +2,7 @@
 title: Regenerate from the schema
 description: Refreshing schema.graphql after a domain change, and the types that come off it.
 sidebar:
-  order: 4
+  order: 5
 ---
 
 Every TypeScript type the frontend has for the domain is generated from
@@ -66,5 +66,5 @@ a result type that lost a field, or -- if it cannot be typed at all -- is
 reported by name and skipped, which `generate-query-types` exits non-zero
 for.
 
-See [GraphQL and Typescript](/qlive-framework/reference/graphql-and-typescript/)
-for what the generated artifacts contain.
+See [Generated artifacts](/qlive-framework/reference/generated-artifacts/)
+for what they contain, and for the rules a query has to follow to get one.

@@ -10,7 +10,7 @@ sidebar:
      qlive-ts/src instead, then run `pnpm docs:api`. -->
 
 :::tip[Start here]
-[Startup and configuration in the reference](/qlive-framework/reference/startup/) explains how these fit together.
+[Add an entry point](/qlive-framework/how-to/add-an-entry-point/) walks through using these.
 :::
 
 ## startup()
@@ -21,9 +21,13 @@ sidebar:
 declare function startup(options: StartupOptions): Promise<Root>;
 ```
 
-:::note[Undocumented]
-This export carries no doc comment in the source.
-:::
+Initializes QLive by
+
+**Parameters**
+
+| | |
+|---|---|
+| `options` |  |
 
 ## StartupOptions
 
@@ -33,9 +37,7 @@ This export carries no doc comment in the source.
 interface StartupOptions
 ```
 
-:::note[Undocumented]
-This export carries no doc comment in the source.
-:::
+QLive startup options.
 
 ### StartupOptions.views
 
@@ -141,7 +143,15 @@ type QLiveConfig = {
    * Relative path of the QLive server
    */
   contextPath: string;
+  /**
+   * GraphQL schema for this application
+   */
   schema: GraphQLSchema;
+  /**
+   * DomainQL meta information for the schema.
+   * Contents vary with MetadataProvider configuration. QLive comes with `maxPageSize` and query configuration by type
+   * which is transmitted here.
+   */
   meta: DomainQLMeta;
   csrfToken?: CSRFToken;
   /**
@@ -150,7 +160,13 @@ type QLiveConfig = {
    * this is where an application looks things up.
    */
   authentication?: Authentication;
+  /**
+   * Cached set of the names of QueryDocument<T> equivalent types in the application
+   */
   queryDocumentTypes?: Set<string>;
+  /**
+   * Cached lookup for GraphQL types by name
+   */
   typesByName?: Map<string, GraphQLType>;
   /**
    * The component rendered in place of a view QLive could not produce -- a path no view answers, a view
@@ -181,18 +197,28 @@ This export carries no doc comment in the source.
 
 ```ts
 type QLiveBoostrap = {
+  /**
+   * System config
+   */
   config: QLiveConfig | null;
+  /**
+   * CSRF-Token needed to POST stuff
+   */
   csrfToken: CSRFToken;
+  /**
+   * The current user
+   */
   authentication: Authentication;
+  /**
+   * Injection data
+   */
   data: {
     [key: string]: InjectionSource;
   };
 };
 ```
 
-:::note[Undocumented]
-This export carries no doc comment in the source.
-:::
+Entry-point boostrap data.
 
 ## Authentication
 
@@ -200,8 +226,17 @@ This export carries no doc comment in the source.
 
 ```ts
 type Authentication = {
+  /**
+   * Login name of the current user
+   */
   login: string;
+  /**
+   * Roles of the current user.
+   */
   roles: string[];
+  /**
+   * Id of the current user (Usually pointing to the app_user table)
+   */
   id: string;
 };
 ```
@@ -217,15 +252,22 @@ login, its role and its fixed id, so a reader never has to handle "not logged in
 
 ```ts
 type CSRFToken = {
+  /**
+   * Name of the hidden input field carrying the token inside an HTML form POST
+   */
   param: string;
+  /**
+   * HTTP header that contains the token value for a fetch POST or similar.
+   */
   header: string;
+  /**
+   * CSRF token value
+   */
   value: string;
 };
 ```
 
-:::note[Undocumented]
-This export carries no doc comment in the source.
-:::
+Cross-Site Request-Forging protection token handling.
 
 ## DomainQLMeta
 
@@ -488,9 +530,8 @@ type SourceField =
 "OBJECT_AND_SCALAR";
 ```
 
-:::note[Undocumented]
-This export carries no doc comment in the source.
-:::
+Source field configuration for a relation. Defines what fields to add for the relation on the side where the foreign
+key is.
 
 ## TargetField
 
@@ -510,9 +551,8 @@ type TargetField =
 "MANY";
 ```
 
-:::note[Undocumented]
-This export carries no doc comment in the source.
-:::
+Target field configuration for a relation. Defines what fields should be added for the relation to the side the
+foreign key points to.
 
 ## i18n()
 

@@ -1,15 +1,27 @@
 import {FieldExpression, FilterExpression} from "./FilterDSL";
 import {GraphQLQuery} from "./GraphQLQuery";
 
-
+/**
+ *  The configuration part of a QueryDocument.
+ */
 export interface QueryConfig
 {
-    // Data only - serialized into the GraphQL query, never called on.
-    // Accepts both styles: fluent (a.and(b)) and functional (and(a, b)),
-    // plus null for "no filter".
+    /**
+     * FilterDSL condition or `null` for "Not filtered".
+     */
     condition: FilterExpression | null;
+    /**
+     * Current offset in rows.
+     */
     offset: number;
+    /**
+     * Current pagination size
+     */
     pageSize: number;
+    /**
+     * Array of sort field expression which are either column names with optional `!` prefix to describe descending sort
+     * or a complex field expression like the sum of two fields.
+     */
     sortFields: FieldExpression[];
 }
 
@@ -18,9 +30,22 @@ export interface QueryConfig
  */
 export interface QueryConfigDelta
 {
+    /**
+     * FilterDSL condition or `null` for "Not filtered".
+     */
     condition?: FilterExpression | null;
+    /**
+     * Current offset in rows.
+     */
     offset?: number;
+    /**
+     * Current pagination size
+     */
     pageSize?: number;
+    /**
+     * Array of sort field expression which are either column names with optional `!` prefix to describe descending sort
+     * or a complex field expression like the sum of two fields.
+     */
     sortFields?: FieldExpression[];
 }
 
@@ -37,12 +62,23 @@ export interface QueryConfigDelta
  */
 export interface QueryDocumentMethods<D>
 {
+    /**
+     * Re-executes the query this document snapshot came from with its config changed as given and
+     * updates the document in place.
+     *
+     * Calling this from a snapshot will update the mutable QueryDocument it came up which in turn will trigger
+     * a rerendering of that document, so the returned snapshot is mostly there in case anybody else might need it
+     * before that.
+     * 
+     * @param newConfig     config fields to change
+     *
+     * @returns the snapshot the update produced
+     */
     update(newConfig: QueryConfigDelta): Promise<D>
 }
 
 /**
- * What a view actually renders: the state of one query document at one point in time,
- * plus the methods that move it on.
+ * Immutable snapshot of a QueryDocument
  *
  * The document itself is a store that gets mutated in place -- it has to be, or the
  * subscription a view holds would point at a stale object after every update. What
@@ -53,10 +89,22 @@ export interface QueryDocumentMethods<D>
  */
 export interface QueryDocumentSnapshot<T> extends QueryDocumentMethods<QueryDocumentSnapshot<T>>
 {
-    type: string
-    config: QueryConfig
-    rows: T[]
-    rowCount: number
+    /**
+     * The name of the row type
+     */
+    type: string;
+    /**
+     * Current config
+     */
+    config: QueryConfig;
+    /**
+     * The current result rows.
+     */
+    rows: T[];
+    /**
+     * Total number of available rows.
+     */
+    rowCount: number;
 }
 
 /**
@@ -65,6 +113,8 @@ export interface QueryDocumentSnapshot<T> extends QueryDocumentMethods<QueryDocu
  *
  * A view has the snapshot -- useInjection() returns one -- and what has to be held on to is the document
  * behind it, so everything taking this resolves through documentOf().
+ *
+ * @internal
  */
 export interface DocumentOrSnapshot
 {
@@ -80,16 +130,49 @@ export interface DocumentOrSnapshot
  */
 const DOCUMENT = Symbol("QLive QueryDocument")
 
+/**
+ * QueryDocument or its snapshots are the way you are interacting with injections.
+ *
+ */
 export class QueryDocument<T> implements QueryDocumentMethods<QueryDocumentSnapshot<T>>
 {
+    /**
+     * The name of the row type
+     */
     type: string;
+    /**
+     * Current config
+     */
     config: QueryConfig;
+    /**
+     * The current result rows.
+     */
     rows: T[];
+    /**
+     * Total number of available rows.
+     */
     rowCount: number;
 
+    /**
+     * Subscriber functions
+     * @private
+     */
     private subscribers: (() => void)[];
+
+    /**
+     * The current snapshot
+     * @private
+     */
     private snapshot: QueryDocumentSnapshot<T> | null;
 
+    /**
+     * Creates a new QueryDocument from raw data.
+     *
+     * @param type          row type name
+     * @param config        current config
+     * @param rows          current result rows
+     * @param rowCount      total number of rows available
+     */
     constructor(type: string, config: QueryConfig, rows: T[], rowCount: number)
     {
         this.type = type;
@@ -135,6 +218,12 @@ export class QueryDocument<T> implements QueryDocumentMethods<QueryDocumentSnaps
         return this.notify()
     }
 
+    /**
+     * Subscribe to this query document for updates
+     *
+     * @param fn    subscriber function
+     * @internal
+     */
     subscribe = (fn: () => void) => {
         this.subscribers.push(fn)
 
@@ -145,6 +234,10 @@ export class QueryDocument<T> implements QueryDocumentMethods<QueryDocumentSnaps
         }
     }
 
+    /**
+     * Returns a snapshot of thie query document. The snapshot will only be different if the query document is changed.
+     * @internal
+     */
     getSnapshot = () : QueryDocumentSnapshot<T> =>
     {
         if (!this.snapshot)

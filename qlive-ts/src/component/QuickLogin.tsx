@@ -1,10 +1,22 @@
 import config from "../config";
 
+/**
+ * A quick login account
+ */
 export type QuickLoginUser = {
+    /**
+     * login
+     */
     login: string
+    /**
+     * Clear text password
+     */
     password: string
 }
 
+/**
+ * PropTypes for the QuickLogin component
+ */
 export type QuickLoginProps = {
     /**
      * Accounts offered as one-click switches. The framework has no accounts of its own to suggest -- an

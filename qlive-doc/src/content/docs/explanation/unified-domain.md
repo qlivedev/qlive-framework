@@ -41,13 +41,19 @@ The types exist at different positions within the fullstack, each with a slightl
 <sup>* provided by useSyncExternalStore and snapshots</sup>
 
 ## Unified Filter
-                 
-The FilterDSL concept also bridges all fullstack levels. It is a unified condition language that also exists in the most
-appropriate form for the current technology.
 
-If we're doing Queries, the conditions are translated into jOOQ conditions before executing the SQL query. They have SQL
-query semantics.
+The FilterDSL concept bridges all fullstack levels in the same way. It is a
+unified condition language that exists in the most appropriate form for the
+current technology.
 
-If we're filtering pubsub messages on the same server, the conditions are translated into a Java predicate tree that
-can express conditions on Java object graphs. Here, the conditions inherit the memory access semantics from the use case.
+If we're doing queries, the conditions are translated into jOOQ conditions
+before executing the SQL query. They have SQL query semantics.
+
+If we're filtering pubsub messages on the same server, the conditions are
+translated into a Java predicate tree that can express conditions on Java
+object graphs. Here, the conditions inherit the memory access semantics
+from the use case.
+
+One condition graph, written once, therefore does not mean one thing. What
+that costs and what it buys is [Filter DSL](/qlive-framework/explanation/filter-dsl/).
 

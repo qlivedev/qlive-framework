@@ -144,4 +144,4 @@ If you edit a module holding a `GraphQLQuery` the system **corrects the correct 
 
 The next view you invoke will correctly reflect the new data selection. 
 
-See [GraphQL and Typescript](/qlive-framework/reference/graphql-and-typescript/).
+See [Generated artifacts](/qlive-framework/reference/generated-artifacts/).

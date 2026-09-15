@@ -137,9 +137,9 @@ public class DomainQLConfiguration
 
                 MergeMetadataProvider.newProvider()
 
-                    // The two sides of the many-to-many, which is what an edit view here works on: a clash on one of
-                    // those comes back to the form with both values rather than failing the save.
+                    // Resolve conflicts for the Bar edit example
                     .resolveConflicts(Bar.class)
+                    // many-to-many connected to Bar
                     .resolveConflicts(Baz.class)
 
                     // Set when the row is written and never again, so no two users can hold different opinions about

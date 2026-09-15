@@ -12,8 +12,16 @@
  * conversion map built from such a document would silently lack those fields.
  */
 
-export type OperationType = "query" | "mutation" | "subscription"
+/**
+ * GraphQL operation type
+ * @internal
+ */
+export type OperationType = "query" | "mutation"
 
+/**
+ * The selections within a query
+ * @internal
+ */
 export interface QuerySelection
 {
     /** alias of the selection, null if the field was selected under its own name */
@@ -26,6 +34,10 @@ export interface QuerySelection
     selections: QuerySelection[]
 }
 
+/**
+ * Encapsulates QLive's analysis of a query string.
+ * @internal
+ */
 export interface ParsedQuery
 {
     /** operation kind, "query" for the anonymous `{ ... }` shorthand */
@@ -51,8 +63,7 @@ const NAME_CHAR = /[_0-9A-Za-z]/
 
 const OPERATIONS: { [name: string]: OperationType } = {
     query: "query",
-    mutation: "mutation",
-    subscription: "subscription"
+    mutation: "mutation"
 }
 
 /**
@@ -263,6 +274,7 @@ class Scanner
  *
  * @returns operation kind, name and top-level selections
  * @throws if the document contains no operation
+ * @internal
  */
 export function parseQuery(query: string): ParsedQuery
 {

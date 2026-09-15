@@ -6,17 +6,41 @@ import {QueryDocument} from "./QueryDocument";
 
 const secret = Symbol("GraphQLQuery Secret")
 
+/**
+ * Encapsulates a GraphQL query using exactly one GraphQL query or mutation method.
+ */
 export class GraphQLQuery<T>
 {
+    /**
+     * Query string
+     * @internal
+     */
     query: string;
-    /** name of the operation, e.g. "Q_Foo" */
+    /**
+     * name of the operation, e.g. "Q_Foo"
+     * @internal
+     */
     queryName: string;
-    /** kind of operation, "query" or "mutation" */
+    /**
+     * kind of operation, "query" or "mutation"
+     * @internal
+     */
     operation: OperationType;
-    /** top-level selections of the operation with their alias and field name */
+    /**
+     * top-level selections of the operation with their alias and field name
+     * @internal
+     */
     selections: QuerySelection[];
 
+    /**
+     * Cached parsed query for this query
+     * @private
+     */
     private readonly parsed: ParsedQuery;
+    /**
+     * Cached conversion map for this query
+     * @private
+     */
     private map: QueryConversionMap | null;
 
     constructor(query: string)
@@ -52,6 +76,8 @@ export class GraphQLQuery<T>
      * Built on first use, not in the constructor: queries are declared at module
      * scope, which is evaluated while the modules are imported -- before startup()
      * has fetched the config the schema comes from.
+     *
+     * @internal
      */
     get conversionMap(): QueryConversionMap
     {
@@ -69,6 +95,7 @@ export class GraphQLQuery<T>
      * @param key   result key
      *
      * @returns selection or null
+     * @internal
      */
     selection(key: string): QuerySelection | null
     {
@@ -97,6 +124,11 @@ export class GraphQLQuery<T>
         return (o as Record<symbol, unknown>)[secret] as GraphQLQuery<T> || null
     }
 
+    /**
+     * Executes the query with the given parameters at runtime.
+     * 
+     * @param params
+     */
     async execute(params: GraphQLParams): Promise<T>
     {
         const map = this.conversionMap;

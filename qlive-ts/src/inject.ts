@@ -4,6 +4,10 @@ import data, {injectionSource, storeInjection} from "./data";
 import {convertResultFromServer} from "./converter";
 import {QueryDocument} from "./QueryDocument";
 
+/**
+ * GraphQL types plus a declarative injection id that is declared with it to disambiguate injection
+ * but which is never sent as GraphQL parameter.
+ */
 export type InjectParams = GraphQLParams & {
     /**
      * Used to disambiguate query results when the same named query gets used multiple times.

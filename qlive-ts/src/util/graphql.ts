@@ -6,16 +6,40 @@ type GraphQLErrorLocation = {
     line: number
     column: number
 }
+
+/**
+ * GraphQL Error
+ */
 type GraphQLError = {
+    /**
+     * Error message
+     */
     message: string,
+    /**
+     * Query string location
+     */
     locations?: GraphQLErrorLocation[]
 }
 
+/**
+ * GraphQL standard for a response
+ */
 type GraphQLResponse = {
+    /**
+     * Contains the response result data, if any.
+     */
     data: any;
+    /**
+     * Contains an errors GraphQLError instances
+     */
     errors: GraphQLError[]
 }
 
+/**
+ * Returns true if the given object is a GraphQL response.
+ *
+ * @param d input
+ */
 function isGraphQLResponse(d: unknown): d is GraphQLResponse
 {
     // @ts-ignore
@@ -43,6 +67,10 @@ export function firstValue(result: any)
     return null;
 }
 
+/**
+ * Parameters for a GraphQL query. This is just the most generic description. Queries will complain loudly and in
+ * great length if you don't give them their inputs.
+ */
 export type GraphQLParams =
     {
         [name: string]: any

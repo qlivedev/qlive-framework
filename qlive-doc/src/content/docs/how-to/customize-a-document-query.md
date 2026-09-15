@@ -2,7 +2,7 @@
 title: Customize a document query
 description: Intercepting the QueryConfig for defaults and for row-level security.
 sidebar:
-  order: 5
+  order: 7
 ---
 
 The config a document query executes with is the one you hand
@@ -45,5 +45,5 @@ condition they did not write and would then be updating against.
 
 This is a filter, not a boundary. What a config posted by a browser can
 reach at all is decided by
-[`selectByFilter`](/qlive-framework/reference/query-documents/) -- left at
+[`selectByFilter`](/qlive-framework/how-to/expose-document-queries/#selectbyfilter) -- left at
 its default, a path may only name a field the query already selects.

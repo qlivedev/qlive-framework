@@ -2,7 +2,7 @@
 title: Injections
 description: useInjection() and the rules the static analysis imposes.
 sidebar:
-  order: 3
+  order: 4
 ---
 
 An injection is a query the server runs **before the page is sent**, whose
@@ -35,7 +35,7 @@ function useInjection<T>(query: GraphQLQuery<T>, params?: InjectParams): T
 It returns `T`, the value of the query's single top-level selection. Where
 that value is a query document, what you get is a **snapshot** of it and
 your component is subscribed: an `update()` re-renders it. See
-[Query documents](/qlive-framework/reference/query-documents/).
+[Query documents](/qlive-framework/explanation/query-documents/).
 
 Rules of hooks apply -- call it at the top level of a view,
 unconditionally.
@@ -83,14 +83,14 @@ For values only known at runtime, inject a starting page and move on with
 
 ### The query has to be a declared constant
 
-`new GraphQLQuery(...)` at module scope, with a literal source. Two ways of
-naming it are accepted, because both are in use:
+`new GraphQLQuery(...)` at module scope, with a literal source. A query
+assembled at runtime is not there to be read when the build reads it, so
+there is nothing to carry to the server and nothing to generate a result
+type from.
 
-- the query lives in a module named after it -- `app/Q_Foo.ts` exporting
-  `Q_Foo` -- which is what the generated result types assume, or
-- the operation itself is named like the identifier:
-  `export const Q_Foo = new GraphQLQuery("query Q_Foo ...")`, which covers
-  queries collected in a shared module.
+The full statement of that rule, and the two accepted ways of naming a
+query, are
+[Generated artifacts](/qlive-framework/reference/generated-artifacts/#rules-a-query-has-to-follow).
 
 ## Injection ids and `__id`
 

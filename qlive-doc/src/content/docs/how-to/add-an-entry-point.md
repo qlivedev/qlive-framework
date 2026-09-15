@@ -2,14 +2,45 @@
 title: Add an entry point
 description: A second HTML page that boots the way the application does.
 sidebar:
-  order: 3
+  order: 4
 ---
 
-An application starts with one entry point, `index.html` loading
-`src/main.tsx`. A login page, an error page or a public landing page is a
-second one: its own HTML file, its own module, served outside the Vite base
-and booted the same way. The login page in `qlive-test` is the worked
-example.
+An **entry point** is an HTML file plus the module it loads. An application
+starts with one, `index.html` loading `src/main.tsx`. A login page, an
+error page or a public landing page is a second one: its own HTML file, its
+own module, served outside the Vite base and booted the same way. The login
+page in `qlive-test` is the worked example.
+
+## What the main one looks like
+
+```tsx {9-13} title="main.tsx"
+import "@quinscape/qlive-ts/styles.css";
+import "./style.css";
+
+import {startup} from "@quinscape/qlive-ts";
+import Landing from "./component/Landing";
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+    await startup({
+        views: import.meta.glob("./app/**/*.tsx"),
+        root: Landing,
+        init: async () => …
+    });
+});
+```
+
+`startup(options)` returns a promise and does three things: it registers
+the view modules, obtains the bootstrap data, and initializes the config,
+the converters and the injections from it. Every entry point below is a
+variation on this one.
+
+**Import QLive's stylesheet before your own.** QLive ships its CSS as a
+separate artifact rather than pulling it in from the JS, so your
+application decides where it lands in the cascade. Everything in it sits in
+`@layer qlive`, which anything unlayered overrides regardless of
+specificity. See
+[`docs/styling.md`](https://github.com/quinscape/qlive-framework/blob/main/docs/styling.md).
 
 ## Declare the HTML file
 
@@ -73,7 +104,8 @@ Since all our views are in `./app/**`, the system does not know what to render f
 of the view to use for root with an client-side redirect, or we can define a component that is rendered there. The example
 application uses it to have a dev starting page with `<QuickLogin/>` buttons.
 
-See [startup in the reference](/qlive-framework/reference/startup/) for more details.
+Every option `startup()` takes is
+[Startup and configuration in the API reference](/qlive-framework/api/startup-and-config/).
 
 
 ### noSchema entry-point
@@ -82,7 +114,7 @@ An entry-point that does not query anything and that does not need to know about
 `noSchema` declaration to get a simplified boostrap injection. You still might need the boostrap to know e.g. which CSRF 
 Token to send to submit your forms or know which user is logged in with which roles.
 
-See [noSchema in the startup reference](/qlive-framework/reference/startup/#noschema) for details on the reduced schema.
+See [noSchema() in the API reference](/qlive-framework/api/startup-and-config/#noschema) for details on the reduced bootstrap.
 
 ```tsx title="src/simplified.tsx"
 import {noSchema, startup} from "@quinscape/qlive-ts";

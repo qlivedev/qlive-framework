@@ -10,7 +10,7 @@ sidebar:
      qlive-ts/src instead, then run `pnpm docs:api`. -->
 
 :::tip[Start here]
-[Views and routing in the reference](/qlive-framework/reference/router/) explains how these fit together.
+[Views and routing](/qlive-framework/explanation/views-and-routing/) explains how these fit together.
 :::
 
 ## loadViewForPath()

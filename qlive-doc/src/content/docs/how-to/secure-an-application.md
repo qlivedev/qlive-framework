@@ -2,7 +2,7 @@
 title: Secure an application
 description: GraphQL-shaped errors, the login POST, and closing the dev endpoints.
 sidebar:
-  order: 2
+  order: 3
 ---
 
 Spring Security configures a QLive application the way it configures any

@@ -2,13 +2,8 @@ import {useSyncExternalStore} from "react";
 import {GraphQLQuery} from "./GraphQLQuery";
 import inject, {InjectParams} from "./inject";
 import {QueryDocument} from "./QueryDocument";
+import useQueryDocument from "./useQueryDocument";
 
-/**
- * An injection that is not a query document has nothing that could change it, so its
- * store never fires. Module scope, not per call: useSyncExternalStore only resubscribes
- * when the subscribe function changes identity.
- */
-const noSubscribe = () => () => {}
 
 /**
  * Reads the data the server injected for the given query and subscribes the calling
@@ -34,10 +29,5 @@ export function useInjection<T>(query: GraphQLQuery<T>, params: InjectParams = {
     const value = inject(query, params)
     const document = value instanceof QueryDocument ? value as QueryDocument<unknown> : null
 
-    return useSyncExternalStore<unknown>(
-        document ? document.subscribe : noSubscribe,
-        // identity-stable: the injection is read once and cached, so a value that is not
-        // a document is the same object on every render
-        document ? document.getSnapshot : () => value
-    ) as T
+    return useQueryDocument(document) as T
 }

@@ -84,6 +84,7 @@ export { useWorkingSet } from "./merge/useWorkingSet";
 export { useMerge } from "./merge/useMerge";
 export { mergeWorkingSet } from "./merge/mergeWorkingSet";
 
+export { default as useQueryDocument } from "./useQueryDocument";
 /**
  * Declares that this entry point needs no domain schema.
  *

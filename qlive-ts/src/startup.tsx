@@ -11,6 +11,9 @@ import {loadViewForPath} from "./router";
 import {initPubSub} from "./pubsub";
 import {FunctionComponent} from "react";
 
+/**
+ * QLive startup options.
+ */
 export interface StartupOptions
 {
     /**
@@ -78,14 +81,17 @@ async function fetchBootstrap(path : string): Promise<QLiveBoostrap>
     }
 }
 
-
+/**
+ * Initializes QLive by   
+ * @param options
+ */
 export async function startup(options: StartupOptions): Promise<Root>
 {
 
     const {
         views,
         root,
-        render,
+        render : RenderComponent,
         strictMode = true,
     } = options
 
@@ -174,9 +180,9 @@ export async function startup(options: StartupOptions): Promise<Root>
             );
         }
     }
-    else if (render)
+    else if (RenderComponent)
     {
-        View = () => render({config})
+        View = () => <RenderComponent config={config} />;
     }
 
     // Nothing to render is a valid outcome: an entry point that gave neither views nor root nor render asked

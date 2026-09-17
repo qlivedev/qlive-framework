@@ -30,10 +30,29 @@ what that means for each type.
 Generally the merge service operates in two modes based on type configuration. The default mode already protects you from
 the silent overwrites described above as long as the fields the two users change don't overlap.
 
+### Why the default mode can do that
+
+A versioned type carries a `version` column holding the id of the record
+that describes the row's current state, and a write goes out `WHERE id = ?
+AND version = <the version the row was read at>`. That is the whole of the
+concurrency control. Nothing is locked, nothing is paid while nobody else
+is editing, and a write that matches no row is a write somebody else got in
+front of.
+
+Which is not yet a conflict. Every write records which fields it touched,
+so the chain of records between the version we read and the version that is
+there now says what the other writes changed. Where that set does not meet
+ours, both edits belong in the row, and the write is simply made again
+against what they left behind. That is the common case and the reason for
+all of it; a real conflict is the one where the two sets meet.
+
+What it costs to run is two tables and a column per participating type --
+[Enable merging for a type](/qlive-framework/how-to/enable-merging-for-a-type/).
+
 You can opt into even more protection in the meta configuration. Here we see the configuration in qlive-test for 
 the `Bar` edit example.
 
-```java title="DoimainQLConfiguration.java"
+```java title="DomainQLConfiguration.java"
     final DomainQL domainQL = QLiveDomain.newDomain(dslContext, metadataProviders)
         // ... rest of the domain configuration
         .withMetadataProviders(
@@ -51,11 +70,19 @@ the `Bar` edit example.
 `.resolveConflicts()` enables full merge for the given type and `.ignoreFields` can be used for fields that always change
 and would just cause conflicts forever.
 
-In the default mode, whenever USER B has already edited a field that User A is now changing, User A's changes will just 
-win and overwrite User B's changes.  
-                                    
-With `.resolveConflicts()` we will do a full changes merge where we will just refuse the action until User A confirms what
-is in fact the right value.
+In the default mode, a field both of them changed still refuses the save and
+names itself. What the form does not get is User B's value, so all it can
+say is that somebody else changed this too -- and User A's second save,
+which now stands against what User B left behind, writes their value over
+it.
+
+With `.resolveConflicts()` the refusal carries both values per field, so
+User A is shown what they would be overwriting and decides field by field
+before saving again.
+
+Those two and the other statements a type can make -- `.autoMerge()` and
+`.linkType()` -- are
+[Enable merging for a type](/qlive-framework/how-to/enable-merging-for-a-type/#what-a-type-declares).
 
 
 ## WorkingSet
@@ -71,7 +98,16 @@ It has its own hook `useWorkingSet` that provides a live view on the status of t
     })
 ```
 
+Building a form on one -- registering the rows, editing through drafts,
+rendering what happened to a field and offering the choice a conflict
+leaves -- is
+[Edit rows with a working set](/qlive-framework/how-to/edit-rows-with-a-working-set/).
+
 ### Live updates
+
+<!-- TODO: link the push explanation here once it exists. What arrives is a
+     pub/sub message on the entity-version channel, and this section is the
+     one place a reader meets that mechanism without being told what it is. -->
 
 The watch enables live-updates of changes via web-socket. This way, User A sees User B's edits. The fields are
 marked with a "remoteChanged" status before User A saves the first time. If they edit such a flagged file it will turn

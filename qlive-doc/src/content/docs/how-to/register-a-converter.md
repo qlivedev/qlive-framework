@@ -2,7 +2,7 @@
 title: Register a converter
 description: Overriding how a scalar crosses the wire, and when to do it.
 sidebar:
-  order: 9
+  order: 11
 ---
 
 Values do not arrive as they travel. A converter is registered per GraphQL

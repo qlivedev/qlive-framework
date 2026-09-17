@@ -2,7 +2,7 @@
 title: Use generic schema types
 description: Receiving object and scalars of all types
 sidebar:
-  order: 11
+  order: 13
 ---
 GraphQL forces you to define all your input and output types and dealing with all that, especially on the mutating side
 can be a lot of hassle with little pay-off.

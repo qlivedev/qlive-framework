@@ -2,7 +2,7 @@
 title: Use GraphQLQuery at runtime
 description: Executing a named query that could not have been injected.
 sidebar:
-  order: 10
+  order: 12
 ---
 
 Most data a page needs is

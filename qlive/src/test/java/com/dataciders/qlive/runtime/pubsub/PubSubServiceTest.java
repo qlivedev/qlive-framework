@@ -2,6 +2,7 @@ package com.dataciders.qlive.runtime.pubsub;
 
 import com.dataciders.qlive.model.push.ServerMessage;
 import com.dataciders.qlive.runtime.QLiveException;
+import com.dataciders.qlive.runtime.push.Recipient;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

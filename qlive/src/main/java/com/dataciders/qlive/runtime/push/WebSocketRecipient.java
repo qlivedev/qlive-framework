@@ -1,4 +1,4 @@
-package com.dataciders.qlive.runtime.pubsub;
+package com.dataciders.qlive.runtime.push;
 
 import com.dataciders.qlive.model.push.ServerMessage;
 import de.quinscape.spring.jsview.util.JSONUtil;
@@ -9,16 +9,16 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 
-/// One websocket connection, as the pub/sub core sees it.
+/// One websocket connection, as anything delivering over it sees it.
 ///
 /// Sends are serialized on this object because a `WebSocketSession` is not safe for two threads to write
-/// to at once, and two threads publishing on two channels a connection subscribes to is ordinary. A slow
-/// client therefore holds up whoever is publishing, which is the price of the simple version and is
+/// to at once, and two threads delivering to one connection at once is ordinary. A slow
+/// client therefore holds up whoever is sending, which is the price of the simple version and is
 /// accepted at the scale the framework is built for.
 ///
 /// A failed send is logged and swallowed. The connection is about to be closed by whatever broke it, and
-/// {@link PushWebSocketHandler#afterConnectionClosed} sweeps its subscriptions then -- a publisher has
-/// nothing to do about a socket that is not its own.
+/// {@link PushWebSocketHandler#afterConnectionClosed} tells every {@link ConnectionListener} then -- a
+/// sender has nothing to do about a socket that is not its own.
 final class WebSocketRecipient
     implements Recipient
 {

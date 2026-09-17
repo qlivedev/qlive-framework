@@ -1,4 +1,4 @@
-package com.dataciders.qlive.runtime.pubsub;
+package com.dataciders.qlive.runtime.push;
 
 import com.dataciders.qlive.runtime.auth.AppAuthentication;
 import com.dataciders.qlive.runtime.auth.AppUserDetails;

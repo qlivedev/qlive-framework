@@ -8,12 +8,14 @@ import jakarta.validation.constraints.NotNull;
 /// channel.
 public class Unsubscribe
     extends ClientMessage
+    implements Addressed
 {
     private String topic;
 
     private String id;
 
 
+    @Override
     @NotNull
     public String getTopic()
     {
@@ -28,6 +30,7 @@ public class Unsubscribe
 
 
     /// The id the matching {@link Subscribe} carried.
+    @Override
     @NotNull
     public String getId()
     {

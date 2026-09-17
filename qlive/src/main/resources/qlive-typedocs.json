@@ -1,5 +1,25 @@
 [
   {
+    "name":"Addressed",
+    "description":"Implemented by client message kinds that name what they are about, so a failure can be reported back\nagainst that rather than against the connection at large.\n\nWhat Error carries, in other words, seen from the message that provoked it. The transport\ncatches a failure without knowing which kind it was handling -- that is the point of it being a\ntransport -- and this is how a kind says how it wants to be named in the answer. A kind that\nimplements neither this nor DynamicPayload still gets an `Error`; it just gets one that names\nonly what went wrong.",
+    "fieldDocs":[
+      {
+        "name":"id",
+        "description":"Subscription this message is about.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"topic",
+        "description":"Channel this message is about.",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
     "name":"AllScalars",
     "description":"Test type containing all standard scalar types",
     "fieldDocs":[

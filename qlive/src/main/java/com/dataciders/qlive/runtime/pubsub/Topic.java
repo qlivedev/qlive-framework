@@ -1,5 +1,7 @@
 package com.dataciders.qlive.runtime.pubsub;
 
+import com.dataciders.qlive.runtime.push.Recipient;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;

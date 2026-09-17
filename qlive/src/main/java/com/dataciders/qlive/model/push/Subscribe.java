@@ -11,6 +11,7 @@ import jakarta.validation.constraints.NotNull;
 /// {@link Error} rejecting it.
 public class Subscribe
     extends ClientMessage
+    implements Addressed
 {
     private String topic;
 
@@ -20,6 +21,7 @@ public class Subscribe
 
 
     /// Name of the channel to subscribe to.
+    @Override
     @NotNull
     public String getTopic()
     {
@@ -34,6 +36,7 @@ public class Subscribe
 
 
     /// The client's own id for this subscription, unique within its connection.
+    @Override
     @NotNull
     public String getId()
     {

@@ -1,5 +1,7 @@
 package com.dataciders.qlive.runtime.pubsub;
 
+import com.dataciders.qlive.runtime.push.Recipient;
+
 import java.util.function.Predicate;
 
 /// One subscription: who gets the messages, under which id, and which of them.

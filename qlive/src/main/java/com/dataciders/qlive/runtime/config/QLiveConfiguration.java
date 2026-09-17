@@ -13,9 +13,12 @@ import com.dataciders.qlive.runtime.merge.VersionService;
 import com.dataciders.qlive.runtime.QLivePaths;
 import com.dataciders.qlive.runtime.pubsub.DefaultPubSubService;
 import com.dataciders.qlive.runtime.pubsub.EntityVersionPublisher;
+import com.dataciders.qlive.runtime.pubsub.PubSubMessageHandler;
 import com.dataciders.qlive.runtime.pubsub.PubSubService;
-import com.dataciders.qlive.runtime.pubsub.PushHandshakeInterceptor;
-import com.dataciders.qlive.runtime.pubsub.PushWebSocketHandler;
+import com.dataciders.qlive.runtime.push.ConnectionListener;
+import com.dataciders.qlive.runtime.push.PushHandshakeInterceptor;
+import com.dataciders.qlive.runtime.push.PushMessageHandler;
+import com.dataciders.qlive.runtime.push.PushWebSocketHandler;
 import com.dataciders.qlive.runtime.service.BootstrapService;
 import com.dataciders.qlive.runtime.service.DefaultBootstrapService;
 import com.dataciders.qlive.runtime.service.InjectionArgumentProcessor;
@@ -209,10 +212,27 @@ public class QLiveConfiguration
     }
 
 
+    /// Pub/sub's share of the push connection. One {@link PushMessageHandler} among however many an
+    /// application wires, and the only one the framework itself contributes today.
     @Bean
-    public PushWebSocketHandler pushWebSocketHandler(PubSubService pubSubService, DomainQL domainQL)
+    public PubSubMessageHandler pubSubMessageHandler(PubSubService pubSubService, DomainQL domainQL)
     {
-        return new PushWebSocketHandler(pubSubService, domainQL);
+        return new PubSubMessageHandler(pubSubService, domainQL);
+    }
+
+
+    /// The push transport, holding every handler the context declares.
+    ///
+    /// Collected by injection rather than named here, which is the whole point of the handler seam: an
+    /// application adding a feature to the connection declares a `PushMessageHandler` bean and changes
+    /// nothing else.
+    @Bean
+    public PushWebSocketHandler pushWebSocketHandler(
+        List<PushMessageHandler> handlers,
+        List<ConnectionListener> connectionListeners
+    )
+    {
+        return new PushWebSocketHandler(handlers, connectionListeners);
     }
 
 

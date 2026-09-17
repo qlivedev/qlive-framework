@@ -3,6 +3,7 @@ package com.dataciders.qlive.runtime.pubsub;
 import com.dataciders.qlive.model.condition.CNode;
 import com.dataciders.qlive.runtime.QLiveException;
 import com.dataciders.qlive.runtime.filter.FilterTransformer;
+import com.dataciders.qlive.runtime.push.Recipient;
 import com.dataciders.qlive.runtime.util.FilterDSLDecompiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

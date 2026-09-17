@@ -12,7 +12,7 @@ import com.dataciders.qlive.runtime.merge.VersionHolder;
 import com.dataciders.qlive.runtime.auth.AppAuthentication;
 import com.dataciders.qlive.runtime.pubsub.EntityVersionPublisher;
 import com.dataciders.qlive.runtime.pubsub.PubSubService;
-import com.dataciders.qlive.runtime.pubsub.Recipient;
+import com.dataciders.qlive.runtime.push.Recipient;
 import de.quinscape.domainql.generic.GenericScalar;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.jooq.DSLContext;

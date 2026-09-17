@@ -1,8 +1,10 @@
 # Push (design)
 
-Status: built, steps 1 to 9. What is left is the manual two-tab check
-step 9 describes, which needs a login. Written 2026-09-10, reordered and
-finished 2026-09-11.
+Status: built, steps 1 to 9, plus step 10 below. What is left is the
+manual two-tab check step 9 describes, which needs a login. Written
+2026-09-10, reordered and finished 2026-09-11; revised 2026-09-17 after
+the review recorded in "Registration is the server's word" and "The
+transport is not the feature".
 
 A general-purpose pub/sub mechanism for QLive, with a precompiled
 FilterDSL evaluator doing the per-subscription filtering. Entity-version
@@ -498,12 +500,14 @@ plainly: *"We don't want to deal with all the socket.js/stomp stuff...
 so we register our own... `TextWebSocketHandler`."* The same call, for
 the same reason, here -- a raw `WebSocketHandler`, not STOMP.
 
-**Named, typed channels, created lazily.** `PubSubService.publish(String
-topic, Object payload)` is a call any framework or application bean can
-make; `subscribe(recipient, topic, condition, subscriptionId)` covers
-both a websocket connection and a server-side, socket-less listener --
+**Named, typed channels.** `PubSubService.publish(String topic, Object
+payload)` is a call any framework or application bean can make;
+`subscribe(recipient, topic, condition, subscriptionId)` covers both a
+websocket connection and a server-side, socket-less listener --
 Automaton's `TopicListener`, the pattern `DomainMonitorService` uses to
-both publish and listen on its own topic in-process.
+both publish and listen on its own topic in-process. Where this does
+*not* follow Automaton is that a channel is not created lazily: see
+"Registration is the server's word" below.
 
 **Compile-once, evaluate-many condition evaluator.** Automaton's
 `JavaFilterTransformer` (`runtime/filter/`, `runtime/filter/impl/`)
@@ -638,11 +642,10 @@ genuinely new territory for QLive, not a port of anything Automaton has.
 New package `com.dataciders.qlive.runtime.pubsub`, mirroring Automaton's
 own package name for the same thing. `PubSubService` /
 `DefaultPubSubService`, `Topic`, `TopicRegistration`, `Recipient`.
-Registering, or first publishing to, a topic associates it with a Java
-`Class` -- nothing more. Subscribing does not: a subscriber brings no
-class with it, so a channel created there could validate nothing, and
-the name a client got wrong would look like a channel that is simply
-quiet. An application registers its channels at startup, which is also
+Registering a topic associates it with a Java `Class` -- nothing more --
+and registering is the only thing that does. Neither publishing nor
+subscribing creates a channel: see "Registration is the server's word"
+below. An application registers its channels at startup, which is also
 what lets a client subscribe before the first message. Path validation (above) walks that
 class's own declared JSON properties directly, so there is no separate
 DomainQL lookup here and no distinction between a domain type and a
@@ -657,11 +660,120 @@ internet audience. Automaton runs the same unindexed linear scan on
 publish without this being a known problem at comparable scale, and
 there is no reason to solve a clustering problem nobody has yet.
 
+## Registration is the server's word
+
+A channel exists because `PubSubService.register(topic, payloadType)` was
+called, and for no other reason. Publishing to a name nobody registered
+is a `QLiveException`, exactly as subscribing to one already was.
+
+The first version created a channel from the first publish, mirroring
+Automaton, and the reasoning was that nobody can have subscribed to a
+channel that did not exist a moment ago, so nothing is lost by inventing
+it. That is true about *delivery* and beside the point about everything
+else. What a channel is, in this design, is a name bound to a class: the
+binding is what a field path is validated against, what
+`PayloadRecast`/`TopicTypes` answers, and the only thing that makes a
+condition mean anything. A channel conjured from a publish is bound to
+whatever class happened to arrive, which for anything off the wire is
+`LinkedHashMap` -- and once bound, `register()` can never correct it,
+because a second binding to a different class is refused. A typo
+therefore produced a permanently unusable channel next to the real one
+and reported nothing.
+
+The rule that replaces it is the one the whole system already runs on:
+the server and the client are one system with complementary roles that
+are not equal, and what channels there are is the server's word. The
+server is the half that knows what a channel carries, so it is the half
+that says which exist. A name nobody registered is a typo far more often
+than an intention, whichever side produced it, and a publisher shouting
+into a room that does not exist should be told -- in-process callers
+included, which is where the misspelling is likeliest to survive review.
+
+Two things that sound like this rule are not it, and the distinction is
+worth keeping sharp:
+
+- Publishing to a *registered* channel with nobody subscribed stays a
+  no-op, deliberately. A publisher has no reason to know whether anyone
+  is listening and nothing it could do about the answer.
+- Subscribing to an unregistered channel was already refused, for its
+  own reason: a subscriber brings no class with it, so a channel created
+  there could validate nothing.
+
+Unregistered *publish* is now the third case rather than the exception.
+
+## The transport is not the feature
+
+`PushWebSocketHandler` lived in `runtime.pubsub`, held the
+`PubSubService` and the `DomainQL` its condition coercion needs, and
+dispatched a hardcoded switch over `Subscribe`/`Unsubscribe`/`Publish`.
+So "The general message model" above asserted general infrastructure --
+*whatever message kind QLive needs next goes in beside these, not into a
+second protocol* -- and the package one layer down contradicted it. A
+kind that was not pub/sub's had nowhere to go but that switch.
+
+The transport now lives in `com.dataciders.qlive.runtime.push` and holds
+a list of handlers:
+
+```java
+public interface PushMessageHandler
+{
+    Set<Class<? extends ClientMessage>> handles();
+
+    void handle(Recipient recipient, ClientMessage message);
+}
+```
+
+`PubSubMessageHandler` implements it for the three channel kinds and
+keeps the `PubSubService` and the coercion; `PushWebSocketHandler` parses
+a frame, looks the kind up in a map built once at construction, and
+answers the sender when a handler throws. It imports nothing from
+`runtime.pubsub`. That one-way dependency is the whole test of whether
+the split is real, and it is why `Recipient` moved to `runtime.push`
+rather than staying beside the service: a recipient is somewhere a
+`ServerMessage` can be delivered, which is a transport idea, not a
+channel one.
+
+This is Automaton's `IncomingMessageHandler` registry, with two
+differences. Automaton keyed handlers by a type *string* and gave pub/sub
+a single `"PUBSUB"` type with an inner `op` field; QLive's kinds are
+already top-level classes, so the key is the class and the wire format
+gains nothing to dispatch on twice. And a handler here claims several
+kinds rather than one, because a feature's kinds share the feature's
+state, and splitting them across classes to satisfy the registry would
+mean threading that state back through a constructor for nothing.
+
+Two smaller things follow from it:
+
+- Sweeping a closed connection was `pubSub.unsubscribeAll(recipient)` in
+  the transport's `afterConnectionClosed`. It is now a
+  `ConnectionListener` the feature registers, because what a closing
+  connection costs is the feature's to know. The transport knows only
+  that the connection is gone, and tells every listener even if one of
+  them throws.
+- Addressing an `Error` was a second switch over the same three kinds.
+  It now reads `Addressed` (`getTopic`/`getId`, implemented by
+  `Subscribe` and `Unsubscribe`) and the existing `DynamicPayload`
+  (`getTopic`, which covers `Publish`), both in `model.push`. A kind
+  added beside pub/sub gets its failures addressed by implementing an
+  interface rather than by editing the transport. `Error`'s fields stay
+  channel-shaped for now, which is the honest state of it: they are the
+  only addressing any kind has wanted so far.
+
+What did *not* change is worth stating, because the split invites it:
+the `ClientMessage`/`ServerMessage` hierarchy stays. It earns little --
+`PushMessageParser.direction()` is the only thing that reads it, and
+`parseServerMessage` still has no caller -- but a direction is a true
+thing about every kind here, and nothing yet wants to travel both ways.
+It is a candidate for removal the day something does, not a thing to
+defend.
+
+
 ## Connection & identity
 
-`PushWebSocketHandler`, `PushHandshakeInterceptor` reading
-`AppAuthentication.current().getId()` at handshake time and stashing it
-on the WS session. The open question that gates this whole section:
+`PushWebSocketHandler` and `PushHandshakeInterceptor` -- both in
+`runtime.push`, see "The transport is not the feature" above -- the
+latter reading `AppAuthentication.current().getId()` at handshake time
+and stashing it on the WS session. The open question that gates this whole section:
 does the security filter chain actually run against a WebSocket upgrade
 request here? Confirm this first, against a real authenticated session,
 before the rest of the identity design -- and `qlive-test`'s catch-all
@@ -888,7 +1000,11 @@ them.
    than creating one; and a client `Publish` is refused until the
    authorization question below is settled. `Topic` is package-private
    because the message class of the same name is the one a framework
-   user imports, and nothing outside the core needs the other.
+   user imports, and nothing outside the core needs the other. Step 10
+   later moved the transport half of this list -- `PushWebSocketHandler`,
+   `WebSocketRecipient`, `PushHandshakeInterceptor`, `Recipient` -- into
+   `runtime.push`, and made publishing to an unregistered channel fail
+   too.
 4. **The entity-version adapter, server side.** The `EntityVersionsEvent`
    listener publishing to `"EntityVersion"`. Tested by performing a
    merge and asserting the message arrives.
@@ -1014,14 +1130,57 @@ them.
    which is the rule working, and worth knowing before it is read as a
    fault.
 
+10. **Registration made mandatory, and the transport split out of
+    pub/sub.** Not a step the original build order had: it came out of
+    re-reading the open item about client `publish` and finding that it
+    was three questions wearing one coat. Both halves are written up
+    above, in "Registration is the server's word" and "The transport is
+    not the feature".
+
+    `DefaultPubSubService.publish` now refuses an unregistered channel
+    instead of creating one from `payload.getClass()`.
+    `com.dataciders.qlive.runtime.push` holds `PushWebSocketHandler`,
+    `PushMessageHandler`, `ConnectionListener`, `Recipient`,
+    `WebSocketRecipient` and `PushHandshakeInterceptor`;
+    `PubSubMessageHandler` joins the pub/sub package as the one handler
+    the framework itself contributes; `Addressed` joins `model.push`.
+    `QLiveConfiguration` collects `PushMessageHandler` and
+    `ConnectionListener` beans by injection, so an application adding a
+    feature to the connection declares a bean and changes nothing else.
+
+    Tested by `PushWebSocketHandlerTest`, which exercises the transport
+    with test-double handlers and no channel anywhere in it -- that the
+    transport can be tested without pub/sub existing is the point of the
+    split, so it is what the test asserts. The client `Publish` refusal
+    is unchanged, and so is the `ClientMessage`/`ServerMessage`
+    hierarchy.
+
+
 ## Open items
 
 - Whether the `CNode`/`ConditionParser` model already has, or should
   grow, a context-node concept -- relevant only if a genuine
   per-subscriber personalisation need ever shows up; not needed for
   `ownerId ne me`, which is handled client-side.
-- Which channels a client may `publish` to, and how that gets authorized
-  against a channel's declared type.
+- Which channels a client may `publish` to, if any, and how that gets
+  authorized. Still open, but no longer the next question, and narrower
+  than it was. Two of the three things that were tangled in it are
+  settled: the payload's type is answerable through `PayloadRecast`
+  against the channel's binding, and a client can no longer conjure a
+  channel by naming one (see "Registration is the server's word"). What
+  is left is the part that was always the hard part -- a client publish
+  is indistinguishable, to every other client, from something the
+  framework said, and on a channel like `EntityVersion` that is a way to
+  make every open form show a conflict that never happened. So the shape
+  any answer has to take is a per-channel declaration at `register()`
+  time, closed by default, that also says how the payload is validated
+  and how the sender's identity gets stamped from the connection rather
+  than trusted from the frame. The framework's own channels stay closed
+  by never opting in, not by policy.
+
+  Worth re-deriving rather than answering in the abstract, because the
+  use case that appeared to force it argues the other way: see the
+  presence item below.
 - That the FilterDSL a subscription writes reads a to-many positionally
   while the same DSL against the database reads it as "some element
   satisfies" -- deliberate, and recorded in `PropertyPath`'s javadoc,
@@ -1039,4 +1198,29 @@ them.
   it.
 - Presence -- "somebody else has this row open" -- stays deferred to its
   own design, with Automaton's `DomainMonitorService` / `useEntity.js` /
-  `Monitor` as prior art worth rereading when that gets written.
+  `Monitor` as prior art worth rereading when that gets written. One
+  finding to carry into it, from the review that produced step 10:
+  Automaton built presence *as* pub/sub with a client publish, and then
+  had `DomainMonitorService` subscribe its own `TopicListener` to its own
+  topic to merge the activity into server-side storage, plus a
+  `SubscriptionListener` to replay the current state to a newly
+  subscribed connection. That is a channel doing double duty as an
+  inbound command transport -- a roundabout way of saying it wanted a
+  message handler. Presence needs the server to own the state, stamp the
+  user from the connection (`useEntity.js` sends `config.auth.login`,
+  self-asserted) and sweep on disconnect, and none of that is what a
+  pass-through publish does. So the expectation is its own
+  `ClientMessage` kind and its own `PushMessageHandler`, with the
+  announcements going out on an ordinary channel -- which is now a thing
+  that can be built without touching the transport.
+- Non-pub/sub message kinds the connection will plausibly want, now that
+  adding one is cheap. Two are visible from here and neither is urgent:
+  a connection-scoped notice with no channel behind it (the session is
+  about to expire, the server is draining), which `Recipient.send` can
+  already carry and nothing yet sends; and the presence kind above.
+  GraphQL over the socket, which Automaton had as `GraphQLMessageHandler`
+  plus a `Response{responseTo, reply, error}` correlation, is *not* on
+  this list: queries go over HTTP, and at this framework's stated scale
+  the latency difference does not pay for a second query path. Recorded
+  so that the next person asking "should this go over the socket?" has
+  the answer that was already reached.

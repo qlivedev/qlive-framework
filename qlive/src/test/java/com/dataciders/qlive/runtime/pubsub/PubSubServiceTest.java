@@ -14,6 +14,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /// Covers the channel registry and the fan-out without a socket anywhere near it: a {@link Recipient} is
@@ -68,20 +69,24 @@ class PubSubServiceTest
     }
 
 
-    /// A channel nobody registered is created from what was published, which is what "channels are created
-    /// lazily" amounts to. Nobody can have subscribed to it yet, so there is nothing to deliver.
+    /// Publishing does not create a channel either. What channels exist is decided by registration and
+    /// nothing else, so a publisher that misspelled its own channel is told, rather than opening a second
+    /// one beside the real one and talking into it.
     @Test
-    void publishingCreatesAnUnregisteredChannel()
+    void refusesToPublishToAChannelThatDoesNotExist()
     {
-        pubSub.publish("Note", new Note("first", "sam"));
+        final QLiveException e = assertThrows(
+            QLiveException.class,
+            () -> pubSub.publish("Notes", new Note("first", "sam"))
+        );
 
-        assertThat(pubSub.topicType("Note"), is((Object) Note.class));
+        assertThat(e.getMessage(), is("No such channel: 'Notes'"));
+        assertThat(pubSub.topicType("Notes"), is(nullValue()));
     }
 
 
-    /// Subscribing does not create one, though. A subscriber brings no class with it, so a channel created
-    /// here could validate nothing -- and a misspelled channel name would look like one that is simply
-    /// quiet.
+    /// Nor does subscribing. A subscriber brings no class with it, so a channel created here could validate
+    /// nothing -- and a misspelled channel name would look like one that is simply quiet.
     @Test
     void refusesToSubscribeToAChannelThatDoesNotExist()
     {

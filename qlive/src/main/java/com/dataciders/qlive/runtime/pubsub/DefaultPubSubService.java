@@ -71,9 +71,6 @@ public class DefaultPubSubService
 
         if (channel == null)
         {
-            // Not created on demand the way publishing creates one. A subscriber brings no class with it,
-            // so a channel created here would be a channel nothing could validate a field path against --
-            // and the name a client got wrong would look like a channel that simply has nothing to say.
             throw new QLiveException("No such channel: '" + topic + "'");
         }
 
@@ -130,13 +127,7 @@ public class DefaultPubSubService
 
         if (channel == null)
         {
-            // The channel's class, learned from what was published. Nobody can have subscribed to a
-            // channel that did not exist a moment ago, so there is nothing to deliver either way.
-            if (payload != null)
-            {
-                register(topic, payload.getClass());
-            }
-            return;
+            throw new QLiveException("No such channel: '" + topic + "'");
         }
 
         if (payload != null && !channel.payloadType().isInstance(payload))

@@ -26,10 +26,16 @@ public interface PubSubService
 {
     /// Registers a channel, or confirms the one already registered.
     ///
-    /// Where an application does this is startup, next to whatever publishes on the channel. It is not
-    /// strictly required -- publishing to an unknown channel creates it from what was published -- but it
-    /// is what lets a client subscribe before the first message, and a client that cannot subscribe until
-    /// somebody publishes is a client that misses the message it was waiting for.
+    /// Required, and the only way a channel comes into being: neither publishing nor subscribing creates
+    /// one. What channels exist is the server's to say, because the server is the half of the system that
+    /// knows what they carry -- and a name that was never registered is a typo far more often than it is
+    /// an intention, whichever side produced it. Publishing to an unknown channel is therefore a failure
+    /// and not a quiet no-op, in-process callers included: a publisher that has misspelled its own channel
+    /// is shouting into a room that does not exist, and should be told.
+    ///
+    /// Where an application does this is startup, next to whatever publishes on the channel. Doing it
+    /// there is also what lets a client subscribe before the first message, and a client that cannot
+    /// subscribe until somebody publishes is a client that misses the message it was waiting for.
     ///
     /// @param topic         channel name, which is what a client names in a `Subscribe`
     /// @param payloadType   class this channel's payloads have
@@ -83,13 +89,14 @@ public interface PubSubService
 
     /// Sends a payload to everyone on a channel whose condition it matches.
     ///
-    /// Publishing to a channel nobody has subscribed to is a no-op, deliberately: a framework-internal
-    /// publisher has no reason to know whether anyone is listening yet, and making it find out would make
-    /// every publisher carry a case it cannot do anything about.
+    /// Publishing to a *registered* channel nobody has subscribed to is a no-op, deliberately: a publisher
+    /// has no reason to know whether anyone is listening yet, and making it find out would make every
+    /// publisher carry a case it cannot do anything about. A channel that was never registered is the
+    /// other thing entirely, and fails -- see {@link #register}.
     ///
     /// @param topic     channel to publish on
     /// @param payload   what to publish, an instance of the class the channel is bound to
     ///
-    /// @throws QLiveException   if the payload is not of the channel's class
+    /// @throws QLiveException   if no such channel is registered, or the payload is not of its class
     void publish(String topic, Object payload);
 }

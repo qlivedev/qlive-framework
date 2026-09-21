@@ -167,6 +167,30 @@ so it can land at any point before then. One knock-on: the
 `QLiveDomainCustomizer` bean proposed in `module-distribution.md` is named
 after the helper, and wants rereading once the name means the facade.
 
+## jOOQ stays in the signatures
+
+`lookupField` keeps returning `org.jooq.Field<?>`, and `lookupType` and
+`getJooqTables` keep returning `TableLookup`. Decided 2026-09-21.
+
+Not carried forward by default -- re-asked, and the answer is that an
+abstraction would hide a dependency that is not hidden anywhere else. jOOQ
+is already in the public signatures of the builder, which is the first
+thing an application touches: `objectTypes(Schema)` takes `Public.PUBLIC`,
+`objectTypes(Table<?>...)` and both `configureRelation` overloads take
+generated table fields, and the builder is handed a `DSLContext`. The
+template configuration in `qlive-test` imports `org.jooq` directly and
+names generated jOOQ constants throughout.
+
+The call sites point the same way. `QueryPlanBuilder.column()` passes the
+field straight to `PlanNode.addColumn()`, and `DefaultMergeService` uses it
+to build conflict rows and updates. A wrapper type would be unwrapped at
+every use.
+
+The price, stated plainly: the facade cannot be implemented without jOOQ on
+the classpath. That only costs something if QLive ever wants a non-jOOQ
+backend, which is not a goal, and if it became one the schema assembly
+behind the facade would be the larger obstacle by far.
+
 ## Placement
 
 The facade stays in `qlive-graphql`. Putting it in `qlive-api`, which would
@@ -188,9 +212,6 @@ change; see `module-distribution.md` for where that question belongs.
 
 ## Open items
 
-- **Whether `lookupField` should return `org.jooq.Field<?>`.** It puts jOOQ
-  in the signature of the type applications are handed. Inherited, not
-  chosen; worth re-asking rather than carrying forward by default.
 - **Whether the domain-mapping half should be its own interface.**
   `lookupField`, `lookupType`, `getPojoType`, `getJooqTables`,
   `getRelationModels` serve merge and query planning; `getGraphQLSchema`,

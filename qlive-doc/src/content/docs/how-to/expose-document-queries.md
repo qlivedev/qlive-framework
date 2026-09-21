@@ -15,11 +15,11 @@ DomainQL make them.
 import de.quinscape.domainql.annotation.GraphQLLogic;
 import de.quinscape.domainql.annotation.GraphQLQuery;
 import de.quinscape.domainql.annotation.GraphQLTypeParam;
-import com.dataciders.qlive.model.QueryConfig;
-import com.dataciders.qlive.model.QueryDocument;
-import com.dataciders.qlive.runtime.query.QueryDocumentService;
-import com.dataciders.qlivetest.domain.tables.pojos.Bar;
-import com.dataciders.qlivetest.domain.tables.pojos.Foo;
+import io.github.qlivedev.model.QueryConfig;
+import io.github.qlivedev.model.QueryDocument;
+import io.github.qlivedev.runtime.query.QueryDocumentService;
+import io.github.qlivedev.qlivetest.domain.tables.pojos.Bar;
+import io.github.qlivedev.qlivetest.domain.tables.pojos.Foo;
 import graphql.schema.DataFetchingEnvironment;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.context.annotation.Lazy;

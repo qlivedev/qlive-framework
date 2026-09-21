@@ -55,7 +55,7 @@ same schema with `null` and assert on it without a database. Hand it the
 same logic beans and metadata providers, or you are testing a different
 schema than you ship. 
 
-(See com.dataciders.qlivetest.runtime.config.GraphQLConfiguration.domainQL)
+(See io.github.qlivedev.qlivetest.runtime.config.GraphQLConfiguration.domainQL)
 
 Every `MetadataProvider` bean the context holds is handed to the domain
 here -- see

@@ -28,7 +28,7 @@ describe("schemaSDL", () => {
 
     it("keeps the descriptions, which types.d.ts carries into the application", () => {
         expect(schemaSDL(introspectionFromSchema(schema)))
-            .toContain("Generated for com.dataciders.qlive.model.QueryDocument<TestFoo>")
+            .toContain("Generated for io.github.qlivedev.model.QueryDocument<TestFoo>")
     })
 
 

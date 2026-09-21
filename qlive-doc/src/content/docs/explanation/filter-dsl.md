@@ -12,7 +12,7 @@ operations or conditions.
 It is a unified condition language: components express and compose
 conditions, and those conditions are then evaluated in the right location.
 The same DSL exists on both sides -- `FilterDSL` in TypeScript,
-`com.dataciders.qlive.runtime.scalar.FilterDSL` in Java -- and a condition
+`io.github.qlivedev.runtime.scalar.FilterDSL` in Java -- and a condition
 travels between them as JSON. Where that sits in the framework as a whole
 is [Unified Domain](/qlive-framework/explanation/unified-domain/).
 

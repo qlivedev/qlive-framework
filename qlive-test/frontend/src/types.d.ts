@@ -307,7 +307,7 @@ export type QueryType = {
     queryQuxDocument: QuxDocument
 }
 
-/** Every scalar type the framework supports, one column each, and the example of a schema type a hand-written class stands in for -- see com.dataciders.qlivetest.model.types.Qux, which is where the documentation of the fields no column backs would otherwise live. */
+/** Every scalar type the framework supports, one column each, and the example of a schema type a hand-written class stands in for -- see io.github.qlivedev.qlivetest.model.types.Qux, which is where the documentation of the fields no column backs would otherwise live. */
 export type Qux = {
     /** DB column 'big_decimal_value' */
     bigDecimalValue?: bigint

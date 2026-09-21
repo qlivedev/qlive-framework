@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.dataciders</groupId>
+    <groupId>io.github.qlivedev</groupId>
     <artifactId>qlive-framework-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
@@ -191,7 +191,7 @@
 
             <!-- Documentation for QLive base models -->
             <argument>--package</argument>
-            <argument>com.dataciders.qlive.model</argument>
+            <argument>io.github.qlivedev.model</argument>
 
             <argument>--output</argument>
             <argument>${project.basedir}/src/main/resources/qlive-typedocs.json</argument>
@@ -260,7 +260,7 @@
               <inputSchema>public</inputSchema>
             </database>
             <target>
-              <packageName>com.dataciders.qlive.testdomain</packageName>
+              <packageName>io.github.qlivedev.testdomain</packageName>
               <directory>src/test/java</directory>
             </target>
             <generate>

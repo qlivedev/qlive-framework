@@ -1190,7 +1190,7 @@ type analysis.
 
    `MergeLogic` and every other framework-side bean is declared
    explicitly in `QLiveConfiguration`. An application's component scan
-   does not reach `com.dataciders.qlive.*` -- qlive-test's is narrowed to
+   does not reach `io.github.qlivedev.*` -- qlive-test's is narrowed to
    its own logic and service packages -- so `@GraphQLLogic` being
    meta-annotated `@Component` picks up nothing. Declared, it is found by
    the `getBeansWithAnnotation` / `getBeansOfType` calls the application's

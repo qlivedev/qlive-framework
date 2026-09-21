@@ -153,7 +153,7 @@ export const testConfig: QLiveConfig = {
             {
                 type: "FooDocument",
                 typeParameters: ["Foo"],
-                genericType: "com.dataciders.qlive.model.QueryDocument"
+                genericType: "io.github.qlivedev.model.QueryDocument"
             }
         ],
         relations: []

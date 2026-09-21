@@ -2,7 +2,7 @@
   <configuration default="false" name="qlive-test prod" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <option name="ACTIVE_PROFILES" value="prod" />
     <module name="qlive-test" />
-    <option name="SPRING_BOOT_MAIN_CLASS" value="com.dataciders.qlivetest.runtime.QLiveTestApplication" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="io.github.qlivedev.qlivetest.runtime.QLiveTestApplication" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

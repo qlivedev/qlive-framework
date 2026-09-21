@@ -604,7 +604,7 @@
   },
   {
     "name":"PushMessage",
-    "description":"Abstract base class for every message QLive sends over its websocket connection, in either direction.\n\nThe set of message kinds is fixed at compile time and each kind is one subclass, dispatched by the same\nclass-name discriminator com.dataciders.qlive.model.condition.CNode uses. Pub/sub is one of\nthose kinds, not the protocol itself: whatever QLive needs to say over the socket next gets a class\nbeside these rather than a second protocol.\n\nA message travels in one direction only, which is what ClientMessage and ServerMessage\nsay. PushMessageParser rejects a message read against the wrong one.",
+    "description":"Abstract base class for every message QLive sends over its websocket connection, in either direction.\n\nThe set of message kinds is fixed at compile time and each kind is one subclass, dispatched by the same\nclass-name discriminator io.github.qlivedev.model.condition.CNode uses. Pub/sub is one of\nthose kinds, not the protocol itself: whatever QLive needs to say over the socket next gets a class\nbeside these rather than a second protocol.\n\nA message travels in one direction only, which is what ClientMessage and ServerMessage\nsay. PushMessageParser rejects a message read against the wrong one.",
     "fieldDocs":[
       {
         "name":"type",

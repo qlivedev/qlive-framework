@@ -3,7 +3,7 @@ import {GenericScalar} from "../GraphQL";
 /**
  * The model of QLive's write mutation, as the client sends and receives it.
  *
- * These are the same types the server declares in com.dataciders.qlive.model.merge, and an application's
+ * These are the same types the server declares in io.github.qlivedev.model.merge, and an application's
  * generated types have them too -- they are part of its schema like everything else. They are declared here
  * as well because the working set is written against them and the framework cannot import an application's
  * generated file.

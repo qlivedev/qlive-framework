@@ -11,7 +11,7 @@ import DefaultErrorView, {ErrorViewProps} from "./component/ErrorView";
 /**
  * Meta-information about types that are generic types on the Java side.
  *
- * For example, com.dataciders.qlive.model.QueryDocument<T> is the generic Java class for query documents. In the GraphQL
+ * For example, io.github.qlivedev.model.QueryDocument<T> is the generic Java class for query documents. In the GraphQL
  * world, the same type is called FooDocument with Foo replacing the generic T.
  */
 export type GenericTypeInfo = {
@@ -26,7 +26,7 @@ export type GenericTypeInfo = {
     /**
      * Full-qualified Java class name of the original generic class. Mostly useful as constant in the TS world
      */
-    genericType: "com.dataciders.qlive.model.QueryDocument" | string
+    genericType: "io.github.qlivedev.model.QueryDocument" | string
 }
 
 /**
@@ -402,7 +402,7 @@ function initializeDerivedConfig(theConfig: QLiveConfig)
 
     theConfig.queryDocumentTypes = new Set<string>(
         theConfig.meta.genericTypes
-            .filter(gt => gt.genericType === "com.dataciders.qlive.model.QueryDocument")
+            .filter(gt => gt.genericType === "io.github.qlivedev.model.QueryDocument")
             .map(gt => gt.type)
     )
 }

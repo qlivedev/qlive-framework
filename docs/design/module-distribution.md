@@ -194,7 +194,7 @@ starters.
 
 **Component scan does not reach a module, and is not made to.**
 `@SpringBootApplication` scans the package of the class declaring it and
-below -- `com.dataciders.qlivetest.runtime` in qlive-test -- so a
+below -- `io.github.qlivedev.qlivetest.runtime` in qlive-test -- so a
 module's beans in `io.qlive.*` are never scanned, with or without this
 annotation. A module declares its beans as explicit `@Bean` methods in
 the configuration class it announces, in preference to putting

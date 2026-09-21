@@ -141,7 +141,7 @@ typed message facility over its websocket connection, not a protocol
 built for pub/sub with everything else grafted on afterward. Every
 message, in either direction, is a real Java class, dispatched by a
 `"type"` discriminator field the same way
-`com.dataciders.qlive.model.condition.CNode` already is: an abstract base
+`io.github.qlivedev.model.condition.CNode` already is: an abstract base
 class per direction, one concrete subclass per message kind, each
 contributing a read-only, class-name-derived `getType()`. Parsing goes
 through a Svenson `JSONParser` configured with a `ClassNameBasedTypeMapper`
@@ -418,7 +418,7 @@ path semantics this design ships with.
 
 ## The precompiled FilterDSL evaluator
 
-New package `com.dataciders.qlive.runtime.filter`, a peer to
+New package `io.github.qlivedev.runtime.filter`, a peer to
 `runtime.query.condition`, not a replacement for it or a dependent of it.
 Plain property access throughout, through Svenson, exactly as "Field
 resolution" above describes -- no relation special case anywhere. This is
@@ -639,7 +639,7 @@ genuinely new territory for QLive, not a port of anything Automaton has.
 
 ## Server: the pub/sub core
 
-New package `com.dataciders.qlive.runtime.pubsub`, mirroring Automaton's
+New package `io.github.qlivedev.runtime.pubsub`, mirroring Automaton's
 own package name for the same thing. `PubSubService` /
 `DefaultPubSubService`, `Topic`, `TopicRegistration`, `Recipient`.
 Registering a topic associates it with a Java `Class` -- nothing more --
@@ -711,7 +711,7 @@ So "The general message model" above asserted general infrastructure --
 second protocol* -- and the package one layer down contradicted it. A
 kind that was not pub/sub's had nowhere to go but that switch.
 
-The transport now lives in `com.dataciders.qlive.runtime.push` and holds
+The transport now lives in `io.github.qlivedev.runtime.push` and holds
 a list of handlers:
 
 ```java
@@ -956,7 +956,7 @@ them.
    result is the bound concrete type with its fields filled in; assert
    recasting against an unregistered topic fails clearly.
 
-   Built as `com.dataciders.qlive.model.push`: the message classes,
+   Built as `io.github.qlivedev.model.push`: the message classes,
    `PushMessageParser`, and `PayloadRecast` against a `TopicTypes`
    lookup the channel registry implements in step 3.
 2. **The precompiled FilterDSL evaluator**, standalone, unit-tested with
@@ -968,7 +968,7 @@ them.
    (`bazLinks.0.baz.name`-shaped) asserting index semantics rather than
    any-element matching.
 
-   Built as `com.dataciders.qlive.runtime.filter`: `FilterTransformer`,
+   Built as `io.github.qlivedev.runtime.filter`: `FilterTransformer`,
    the `PayloadOperators` table, and `PropertyPath`, which is where a
    path is checked against the channel's class and where a to-many hop
    without an index is refused.
@@ -988,7 +988,7 @@ them.
    delivery; publish to a never-subscribed topic is a no-op, not an
    error.
 
-   Built as `com.dataciders.qlive.runtime.pubsub`: `PubSubService`/
+   Built as `io.github.qlivedev.runtime.pubsub`: `PubSubService`/
    `DefaultPubSubService`, the package-private `Topic`/
    `TopicRegistration`, `Recipient`, `PushWebSocketHandler`,
    `WebSocketRecipient`, `PushHandshakeInterceptor`, and `PUSH_URI` in
@@ -1139,7 +1139,7 @@ them.
 
     `DefaultPubSubService.publish` now refuses an unregistered channel
     instead of creating one from `payload.getClass()`.
-    `com.dataciders.qlive.runtime.push` holds `PushWebSocketHandler`,
+    `io.github.qlivedev.runtime.push` holds `PushWebSocketHandler`,
     `PushMessageHandler`, `ConnectionListener`, `Recipient`,
     `WebSocketRecipient` and `PushHandshakeInterceptor`;
     `PubSubMessageHandler` joins the pub/sub package as the one handler

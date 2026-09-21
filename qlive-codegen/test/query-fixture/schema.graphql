@@ -50,7 +50,7 @@ type TestFoo {
     type: String!
 }
 
-"Generated for com.dataciders.qlive.model.QueryDocument<TestFoo>"
+"Generated for io.github.qlivedev.model.QueryDocument<TestFoo>"
 type TestFooDocument {
     config: QueryConfig!
     rowCount: Int
@@ -86,7 +86,7 @@ type TestUser {
     testFoos: [TestFoo]!
 }
 
-"Generated for com.dataciders.qlive.model.QueryDocument<TestUser>"
+"Generated for io.github.qlivedev.model.QueryDocument<TestUser>"
 type TestUserDocument {
     config: QueryConfig!
     rowCount: Int

@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.dataciders</groupId>
+    <groupId>io.github.qlivedev</groupId>
     <artifactId>qlive-framework-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
@@ -42,7 +42,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.dataciders</groupId>
+      <groupId>io.github.qlivedev</groupId>
       <artifactId>qlive</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -297,7 +297,7 @@
               </forcedTypes>
             </database>
             <target>
-              <packageName>com.dataciders.qlivetest.domain</packageName>
+              <packageName>io.github.qlivedev.qlivetest.domain</packageName>
               <directory>src/main/java</directory>
             </target>
             <generate>
@@ -337,7 +337,7 @@
                 <argument>${project.basedir}/src/main/java</argument>
 
                 <argument>--package</argument>
-                <argument>com.dataciders.qlivetest.runtime.logic</argument>
+                <argument>io.github.qlivedev.qlivetest.runtime.logic</argument>
 
                 <argument>--output</argument>
                 <argument>${project.basedir}/src/main/resources/source-typedocs.json</argument>

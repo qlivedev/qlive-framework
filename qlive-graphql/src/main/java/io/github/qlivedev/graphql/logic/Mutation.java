@@ -18,7 +18,6 @@ public class Mutation
         DomainQL domainQL,
         String name,
         String description,
-        boolean full,
         Object logicBean,
         MethodAccess methodAccess,
         int methodIndex,
@@ -28,7 +27,7 @@ public class Mutation
         String genericMethodName
     )
     {
-        super(domainQL, name, description, full, logicBean, methodAccess, methodIndex, parameterProviders, resultType, typeParam, genericMethodName);
+        super(domainQL, name, description, logicBean, methodAccess, methodIndex, parameterProviders, resultType, typeParam, genericMethodName);
 
     }
 

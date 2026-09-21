@@ -21,7 +21,6 @@ import io.github.qlivedev.graphql.logicimpl.DegenerifyAndRenameLogic;
 import io.github.qlivedev.graphql.logicimpl.DegenerifyContainerLogic;
 import io.github.qlivedev.graphql.logicimpl.DoubleDegenerificationLogic;
 import io.github.qlivedev.graphql.logicimpl.FetcherContextLogic;
-import io.github.qlivedev.graphql.logicimpl.FullDirectiveLogic;
 import io.github.qlivedev.graphql.logicimpl.GenericDomainLogic;
 import io.github.qlivedev.graphql.logicimpl.GenericDomainOutputLogic;
 import io.github.qlivedev.graphql.logicimpl.GetterArgLogic;
@@ -580,108 +579,6 @@ public class DomainQLExecutionTest
                 );
             }
         }
-    }
-
-
-    @Test
-    public void testFullDirective()
-    {
-        final GraphQLSchema schema = DomainQL.newDomainQL(dslContext)
-            .logicBeans(Collections.singletonList(new FullDirectiveLogic()))
-            .withFullDirectiveSupported(true)
-            .buildGraphQLSchema();
-
-
-        GraphQL graphQL = GraphQL.newGraphQL(schema).build();
-
-        {
-
-            final DomainQLExecutionContext domainQLExecutionContext = new DomainQLExecutionContext();
-            ExecutionInput executionInput = ExecutionInput.newExecutionInput()
-                // language=GraphQL
-                .query("    query fullQuery \n" +
-                    "    {\n" +
-                    "        fullQuery @full\n" +
-                    "    }")
-                .context(domainQLExecutionContext)
-                .build();
-
-            ExecutionResult executionResult = graphQL.execute(executionInput);
-            assertThat(executionResult.getErrors(), is(Collections.emptyList()));
-            assertThat(JSON.defaultJSON().forValue(executionResult.getData()), is("{\"fullQuery\":true}"));
-
-            assertThat(
-                JSONUtil.DEFAULT_GENERATOR.forValue(domainQLExecutionContext.getResponse()),
-                is("{\"name\":\"Blafusel\",\"num\":12948}")
-            );
-        }
-    }
-
-
-    @Test
-    public void testMissingFullDirective()
-    {
-        final GraphQLSchema schema = DomainQL.newDomainQL(dslContext)
-            .logicBeans(Collections.singletonList(new FullDirectiveLogic()))
-            .withFullDirectiveSupported(true)
-            .buildGraphQLSchema();
-
-
-        GraphQL graphQL = GraphQL.newGraphQL(schema).build();
-
-        {
-
-            final DomainQLExecutionContext context = new DomainQLExecutionContext();
-            ExecutionInput executionInput = ExecutionInput.newExecutionInput()
-                // language=GraphQL
-                .query("query fullQuery \n" +
-                    "{\n" +
-                    "    fullQuery\n" +
-                    "}")
-                .context(context)
-                .build();
-
-            ExecutionResult executionResult = graphQL.execute(executionInput);
-            final List<GraphQLError> errors = executionResult.getErrors();
-            assertThat(errors.size(), is(1));
-            assertThat(
-                errors.get(0).getMessage(),
-                containsString("Query 'fullQuery' is annotated with (full=true) and cannot be queried without @full")
-            );
-        }
-    }
-
-
-    @Test
-    public void testFullDirectiveWithMissingContext()
-    {
-        final GraphQLSchema schema = DomainQL.newDomainQL(dslContext)
-            .logicBeans(Collections.singletonList(new FullDirectiveLogic()))
-            .withFullDirectiveSupported(true)
-            .buildGraphQLSchema();
-
-
-        GraphQL graphQL = GraphQL.newGraphQL(schema).build();
-
-        ExecutionInput executionInput = ExecutionInput.newExecutionInput()
-            // language=GraphQL
-            .query("query fullQuery \n" +
-                "{\n" +
-                "    fullQuery @full\n" +
-                "}")
-            .build();
-
-        ExecutionResult executionResult = graphQL.execute(executionInput);
-
-
-        final List<GraphQLError> errors = executionResult.getErrors();
-        assertThat(errors.size(), is(1));
-        assertThat(
-            errors.get(0).getMessage(),
-            containsString(
-                " A new io.github.qlivedev.graphql.DomainQLExecutionContext instance or subclass must be provided as " +
-                    ".context() in the GraphQL endpoint")
-        );
     }
 
 

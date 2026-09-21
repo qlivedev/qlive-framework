@@ -2,11 +2,8 @@ package io.github.qlivedev.graphql.logic;
 
 import com.esotericsoftware.reflectasm.MethodAccess;
 import io.github.qlivedev.graphql.DomainQL;
-import io.github.qlivedev.graphql.DomainQLExecutionContext;
-import io.github.qlivedev.graphql.DomainQLExecutionException;
 import io.github.qlivedev.graphql.TypeContext;
 import io.github.qlivedev.graphql.param.ParameterProvider;
-import graphql.language.Directive;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLOutputType;
@@ -22,8 +19,6 @@ public abstract class DomainQLMethod
     protected final String name;
 
     protected final String description;
-
-    protected final boolean full;
 
     protected final Object logicBean;
 
@@ -48,7 +43,6 @@ public abstract class DomainQLMethod
         DomainQL domainQL,
         String name,
         String description,
-        boolean full,
         Object logicBean,
         MethodAccess methodAccess,
         int methodIndex,
@@ -75,7 +69,6 @@ public abstract class DomainQLMethod
 
         this.name = name;
         this.description = description;
-        this.full = full;
         this.logicBean = logicBean;
         this.methodAccess = methodAccess;
         this.methodIndex = methodIndex;
@@ -129,33 +122,7 @@ public abstract class DomainQLMethod
             final Object value = parameterProvider.provide(environment);
             paramValues[i] = value;
         }
-        final Object result = methodAccess.invoke(logicBean, methodIndex, paramValues);
-
-        if (full)
-        {
-            ensureFullDirective(environment);
-
-            final DomainQLExecutionContext context = getExecutionContext(environment);
-            context.setResponse(result);
-
-            return true;
-        }
-        return result;
-    }
-
-
-    private DomainQLExecutionContext getExecutionContext(DataFetchingEnvironment environment)
-    {
-        final Object ctx = environment.getContext();
-        if (!(ctx instanceof DomainQLExecutionContext))
-        {
-            throw new DomainQLExecutionException(
-                "Cannot execute @full " + this.getClass().getSimpleName() + " '" + name +
-                ": A new io.github.qlivedev.graphql.DomainQLExecutionContext instance or subclass must be provided as .context() in the GraphQL endpoint."
-
-            );
-        }
-        return (DomainQLExecutionContext) ctx;
+        return methodAccess.invoke(logicBean, methodIndex, paramValues);
     }
 
 
@@ -164,23 +131,4 @@ public abstract class DomainQLMethod
         return typeContext;
     }
 
-    private void ensureFullDirective(DataFetchingEnvironment environment)
-    {
-
-
-        final List<Directive> directives = environment.getField().getDirectives();
-        boolean found = false;
-        for (Directive directive : directives)
-        {
-            if (directive.getName().equals("full"))
-            {
-                found = true;
-            }
-        }
-
-        if (!found)
-        {
-            throw new DomainQLExecutionException(this.getClass().getSimpleName() + " '" + name + "' is annotated with (full=true) and cannot be queried without @full");
-        }
-    }
 }

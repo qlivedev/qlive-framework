@@ -134,8 +134,6 @@ public class DomainQL
 
     private final List<TypeDoc> typeDocs;
 
-    private final boolean fullSupported;
-
     private final TypeRegistry typeRegistry;
 
     private final GraphQLSchema graphQLSchema;
@@ -158,8 +156,7 @@ public class DomainQL
         Set<Class<?>> additionalInputTypes,
         List<TypeDoc> typeDocs,
         Map<String, Field<?>> dbFieldLookup,
-        Set<MetadataProvider> metadataProviders,
-        boolean fullSupported
+        Set<MetadataProvider> metadataProviders
     )
     {
         this.dslContext = dslContext;
@@ -169,7 +166,6 @@ public class DomainQL
         this.additionalDirectives = additionalDirectives;
         this.additionalInputTypes = additionalInputTypes;
         this.typeDocs = typeDocs;
-        this.fullSupported = fullSupported;
         this.parameterProviderFactories = parameterProviderFactories;
         this.options = options;
 
@@ -300,20 +296,6 @@ public class DomainQL
             additionalDirectives
         );
 
-        if (fullSupported)
-        {
-            builder.additionalDirective(
-                GraphQLDirective.newDirective()
-                    .name("full")
-                    .description(
-                        "Escape-hatch to make GraphQL get out of your way and return the complete DomainQL query or " +
-                            "mutation response as-is with standard JSONification")
-                    .validLocations(
-                        Introspection.DirectiveLocation.FIELD
-                    )
-                    .build()
-            );
-        }
 
         builder.codeRegistry(codeRegistryBuilder.build());
 
@@ -963,10 +945,6 @@ public class DomainQL
     }
 
 
-    public boolean isFullSupported()
-    {
-        return fullSupported;
-    }
 
 
     private void defineEnumTypes(GraphQLSchema.Builder builder)

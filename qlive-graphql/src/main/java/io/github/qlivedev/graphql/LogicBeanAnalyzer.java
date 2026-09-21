@@ -11,7 +11,6 @@ import io.github.qlivedev.graphql.logic.Mutation;
 import io.github.qlivedev.graphql.logic.Query;
 import io.github.qlivedev.graphql.param.ParameterProvider;
 import io.github.qlivedev.graphql.param.ParameterProviderFactory;
-import graphql.Scalars;
 import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNonNull;
@@ -160,11 +159,6 @@ class LogicBeanAnalyzer
         final int methodIndex = methodAccess.getIndex(methodName, parameterTypes);
         log.debug("QUERY {}", name);
 
-        if (queryAnno.full() && !domainQL.isFullSupported())
-        {
-            throw new IllegalStateException("Query " + name + " cannot declare full: DomainQL service not configured to support @full");
-        }
-
         final List<ParameterProvider> parameterProviders = createParameterProviders(
             locationInfo,
             method
@@ -216,7 +210,7 @@ class LogicBeanAnalyzer
                     null,
                     newContext
                 );
-                GraphQLOutputType modifiedType = queryAnno.full() ? Scalars.GraphQLBoolean : outputType;
+                GraphQLOutputType modifiedType = outputType;
                 if (isNotNull)
                 {
                     modifiedType = new GraphQLNonNull(modifiedType);
@@ -226,7 +220,6 @@ class LogicBeanAnalyzer
                         domainQL,
                         namePattern.replace(NAME_PATTERN_WILDCARD, typeParam.getSimpleName()),
                         queryAnno.description(),
-                        queryAnno.full(),
                         logicBean,
                         methodAccess,
                         methodIndex,
@@ -241,7 +234,7 @@ class LogicBeanAnalyzer
         }
         else
         {
-            GraphQLOutputType modifiedType  = queryAnno.full() ? Scalars.GraphQLBoolean : getGraphQLOutputType(locationInfo, method);
+            GraphQLOutputType modifiedType = getGraphQLOutputType(locationInfo, method);
             if (isNotNull)
             {
                 modifiedType = new GraphQLNonNull(modifiedType);
@@ -252,7 +245,6 @@ class LogicBeanAnalyzer
                     domainQL,
                     name,
                     queryAnno.description(),
-                    queryAnno.full(),
                     logicBean,
                     methodAccess,
                     methodIndex,
@@ -297,11 +289,6 @@ class LogicBeanAnalyzer
 
         log.debug("MUTATION {}", name);
 
-        if (mutationAnno.full() && !domainQL.isFullSupported())
-        {
-            throw new IllegalStateException("Mutation " + name +
-                " cannot declare full: DomainQL service not configured to support @full");
-        }
         final List<ParameterProvider> parameterProviders = createParameterProviders(
             locationInfo,
             method
@@ -351,7 +338,7 @@ class LogicBeanAnalyzer
                     null,
                     newContext
                 );
-                GraphQLOutputType modifiedType = mutationAnno.full() ? Scalars.GraphQLBoolean : outputType;
+                GraphQLOutputType modifiedType = outputType;
                 if (isNotNull)
                 {
                     modifiedType = new GraphQLNonNull(modifiedType);
@@ -361,7 +348,6 @@ class LogicBeanAnalyzer
                         domainQL,
                         queryNamePattern.replace(NAME_PATTERN_WILDCARD, typeParam.getSimpleName()),
                         mutationAnno.description(),
-                        mutationAnno.full(),
                         logicBean,
                         methodAccess,
                         methodIndex,
@@ -378,7 +364,7 @@ class LogicBeanAnalyzer
         {
             final GraphQLOutputType resultType = getGraphQLOutputType(locationInfo, method);
 
-            GraphQLOutputType modifiedType = mutationAnno.full() ? Scalars.GraphQLBoolean : resultType;
+            GraphQLOutputType modifiedType = resultType;
             if (isNotNull)
             {
                 modifiedType = new GraphQLNonNull(modifiedType);
@@ -389,7 +375,6 @@ class LogicBeanAnalyzer
                     domainQL,
                     name,
                     mutationAnno.description(),
-                    mutationAnno.full(),
                     logicBean,
                     methodAccess,
                     methodIndex,

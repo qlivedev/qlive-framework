@@ -110,8 +110,6 @@ public class DomainQLBuilder
 
     private Set<GraphQLDirective> additionalDirectives = new LinkedHashSet<>(STANDARD_DIRECTIVES);
 
-    private boolean fullSupported;
-
     private Map<Class<?>, GraphQLScalarType> additionalScalarTypes = new LinkedHashMap<>();
 
     private List<TypeDoc> typeDocs = new ArrayList<>();
@@ -184,8 +182,7 @@ public class DomainQLBuilder
                 TypeDocs.normalize(typeDocs)
             ),
             fieldLookup,
-            Collections.unmodifiableSet(effectiveMetadataProviders),
-            fullSupported
+            Collections.unmodifiableSet(effectiveMetadataProviders)
         );
 
         validateNameFields(domainQL.getGraphQLSchema());
@@ -560,23 +557,8 @@ public class DomainQLBuilder
     }
 
 
-    public boolean isFullSupported()
-    {
-        return fullSupported;
-    }
 
 
-    /**
-     * Configures whether to support the @full directive for this DomainQL service or not.
-     *
-     * @return this builder
-     */
-
-    public DomainQLBuilder withFullDirectiveSupported(boolean fullSupported)
-    {
-        this.fullSupported = fullSupported;
-        return this;
-    }
 
 
     public Map<Class<?>, GraphQLScalarType> getAdditionalScalarTypes()

@@ -1,14 +1,10 @@
-/// <reference path="./babel-plugin-track-usage.d.ts" />
-// Referenced rather than left to the tsconfig: an application that resolves qlive-ts through the
-// "qlive-source" condition typechecks this file inside its own program, where nothing else would
-// pull the ambient declarations for the untyped babel plugin in.
 import {createRequire} from "node:module";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import {pathToFileURL} from "node:url";
 import * as babel from "@babel/core";
-import trackUsageBabelPlugin from "babel-plugin-track-usage";
-import trackUsageData from "babel-plugin-track-usage/data";
+import trackUsageBabelPlugin from "./babel/trackUsagePlugin.js";
+import trackUsageData from "./babel/trackUsageData.js";
 import deepEqual from "deep-equal";
 import type {Plugin, ResolvedConfig} from "vite";
 
@@ -173,7 +169,7 @@ function shouldTrack(id: string, options: ResolvedOptions): boolean
 }
 
 /**
- * babel-plugin-track-usage computes each file's module id relative to the
+ * The babel plugin computes each file's module id relative to the
  * top-level babel `root` option, then strips its own `sourceRoot` plugin
  * option (which must itself be *relative to that root*, e.g. "src/" - not
  * absolute) from the result. So we derive a stable project root one level

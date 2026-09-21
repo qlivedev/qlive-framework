@@ -2,7 +2,7 @@ import {EventEmitter} from "node:events";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import trackUsageData from "babel-plugin-track-usage/data";
+import trackUsageData from "../../src/vite/babel/trackUsageData.js";
 import type {Plugin, ResolvedConfig, ViteDevServer} from "vite";
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {type TrackUsagePluginOptions, trackUsage} from "../../src/vite/trackUsage";

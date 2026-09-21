@@ -48,7 +48,6 @@
   },
   "dependencies": {
     "@babel/core": "^8.0.1",
-    "babel-plugin-track-usage": "^0.3.4",
     "deep-equal": "^2.2.3",
     "temporal-polyfill": "^0.3.0",
     "uuid": "^14.0.2"

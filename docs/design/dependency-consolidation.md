@@ -71,6 +71,61 @@ own shape:
   Dissolving it into QLive's runtime packages would turn a large coherent
   engine into shapeless fragments.
 
+### Three modules
+
+The reactor gains two modules beside `qlive`:
+
+| module | holds |
+| --- | --- |
+| `qlive-api` | what application code touches: the annotations, the domain object and generic scalar carriers |
+| `qlive-graphql` | the engine: schema assembly, fetchers, logic bean invocation, the scalar definitions |
+| `qlive` | the framework proper, depending on both |
+
+A single module would have been simpler, but the dissolve-upward plan and a
+two-module split are incompatible: `DomainQL`, `DomainQLBuilder`,
+`LogicBeanAnalyzer` and `TypeRegistry` all reference `domainql.annotation`,
+and `LogicBeanAnalyzer` exists to scan for `@GraphQLLogic`. Annotations
+above the engine with the engine below is a cycle. Three modules break it
+properly: annotations at the bottom, engine in the middle, framework on
+top.
+
+The DomainQL name retires with the fork. It survives only where it is
+owed -- the `NOTICE`, the Apache-2.0 attribution, and a mention deep in
+the documentation -- not in a package name. `qlive-graphql` rather than
+`qlive-schema` because the code is not only schema assembly: `fetcher/`
+and `logic/` are roughly 1,240 lines of `DataFetcher` and
+`DataFetchingEnvironment` handling that run during query execution.
+
+**The scalar definitions belong in `qlive-graphql`, not `qlive-api`.**
+They look like they must go up, because `generic/` imports
+`BigIntegerScalar` -- but `generic/` is not one thing. Its data carriers
+are clean leaves, while its `Coercing` and `GraphQLScalarType`
+implementations are bound to `DomainQL` itself:
+
+| file | internal dependencies | module |
+| --- | --- | --- |
+| `GenericScalar` | `annotation.GraphQLScalar` | api |
+| `DomainObject`, `GenericDomainObject` | `fetcher.FetcherContext` | api |
+| `DelayedCoercing`, `DomainObjectFactory` | none | api |
+| `DomainObjectCreationException` | `DomainQLException` | api |
+| `GenericScalarType`, `DomainObjectScalar` | `DomainQL`, `scalar.*` | graphql |
+| `GenericScalarCoercing`, `DomainObjectCoercing` | `DomainQL` | graphql |
+
+The two files that imported `BigIntegerScalar` are exactly the two that go
+down, so after the split everything referencing `scalar/` is already in
+`qlive-graphql` and no cycle appears.
+
+`annotation/` has no internal imports at all, which makes it the natural
+core of `qlive-api`. `FetcherContext` has to come up out of `fetcher/`
+because `DomainObject` needs it -- the one place a module boundary cuts
+through a package rather than between packages.
+
+Open for later: registering a custom scalar is a planned extension point,
+and a user doing so would have to reach the machinery in `qlive-graphql`.
+The built-in definitions being internal is right, but the registration
+seam may need an api-level type before `scalarEqual(type, a, b)` is
+designed.
+
 One dependency improvement falls out that the current boundary prevents:
 `docs/` splits. `TypeDoc`, `FieldDoc`, `ParamDoc` and the comparators are
 runtime -- `DomainQL` and `DomainQLBuilder` load typedocs to attach

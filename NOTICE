@@ -34,6 +34,28 @@ Changed from that commit:
   - tests migrated from JUnit 4 to JUnit Jupiter
 
 
+babel-plugin-track-usage
+------------------------
+
+src/vite/babel in qlive-ts is derived from babel-plugin-track-usage,
+Copyright Quinscape GmbH, licensed under the Apache License, Version 2.0.
+
+    https://github.com/quinscape/babel-plugin-track-usage
+
+Vendored from commit 1aa8c7c451a3683390ba991e6a19e89dc1c5e5e2, whose
+src/index.js and data.js are byte-identical to the published 0.3.4.
+
+Changed from that commit:
+
+  - converted from CommonJS to ES modules, and the unused fs import
+    dropped with it
+  - renamed to trackUsagePlugin.js and trackUsageData.js, with hand
+    written .d.ts declarations beside them
+  - src/dump.js not vendored: AST debugging scaffolding, already commented
+    out at the call site, writing to an absolute path
+  - the test suite ported from mocha and power-assert to vitest
+
+
 spring-jsview
 -------------
 

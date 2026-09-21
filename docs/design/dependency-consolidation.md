@@ -334,17 +334,35 @@ which is now a decision rather than a constraint.
 The Astro `base` derives from the repository name, so the move touches the
 site config alongside the remote.
 
-## Step 4 -- vendor babel-plugin-track-usage## Step 4 -- vendor babel-plugin-track-usage
+## Step 4 -- vendor babel-plugin-track-usage
 
-The least urgent. It is 810 lines in two files, Apache-2.0, with exactly
+The least urgent. It is 798 lines in two files, Apache-2.0, with exactly
 one consumer here (`qlive-ts/src/vite/trackUsage.ts`, already behind a
 `.d.ts` shim).
 
 Given the size and the single wrapped consumer, vendoring it into
 `qlive-ts` beats tracking it: it removes the last external dependency in
 this group, and the shim means the change stops at one file's imports.
-Until then, pin it to exactly `0.3.4` rather than `^0.3.4`, so the build is
-reproducible.
+
+It lands in `src/vite/babel/` as ES modules, still JavaScript. Porting 700
+lines of babel AST walking to TypeScript would be a rewrite, and there is
+nothing to carry the types of -- the plugin's whole job is reading
+untyped AST nodes. The shim becomes two real `.d.ts` files beside the
+sources, which is the same surface stated in the same way. `src/dump.js`
+is not vendored: AST debugging scaffolding, already commented out at the
+call site, writing to an absolute path in a home directory.
+
+The 23 upstream tests come along, ported from mocha and power-assert to
+vitest. One expectation changes. Upstream's `transform()` never set
+`babelrc: false`, so its own `.babelrc` applied `@babel/preset-env` to the
+fixtures before the plugin saw them, and the object-pattern default in
+`context.js` reached the plugin already rewritten into a conditional. The
+test recorded that. Configured the way `trackUsage.ts` configures it --
+`babelrc` and `configFile` off, TypeScript reached by parser plugin rather
+than by preset -- the plugin sees the `AssignmentPattern` that is really
+there, and `captureContext` finds no name above it. Nothing in QLive uses
+`captureContext`, but the test now asserts the production path instead of
+the harness's.
 
 ## Non-goals
 

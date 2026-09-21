@@ -16,6 +16,7 @@
   </description>
 
   <modules>
+    <module>qlive-graphql</module>
     <module>qlive</module>
     <module>qlive-test</module>
   </modules>

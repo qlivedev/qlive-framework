@@ -12,7 +12,7 @@ import io.github.qlivedev.graphql.DomainQL;
 import io.github.qlivedev.graphql.TableLookup;
 import io.github.qlivedev.graphql.config.RelationModel;
 import io.github.qlivedev.graphql.config.TargetField;
-import io.github.qlivedev.runtime.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingFieldSelectionSet;
 import graphql.schema.SelectedField;

@@ -2,7 +2,7 @@ package io.github.qlivedev.runtime.service;
 
 import io.github.qlivedev.model.ts.TrackUsageData;
 import io.github.qlivedev.runtime.QLiveException;
-import io.github.qlivedev.runtime.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;

@@ -3,7 +3,7 @@ package io.github.qlivedev.graphql.fetcher;
 import io.github.qlivedev.graphql.config.RelationModel;
 import io.github.qlivedev.graphql.config.TargetField;
 import io.github.qlivedev.graphql.generic.DomainObject;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import org.jooq.Condition;

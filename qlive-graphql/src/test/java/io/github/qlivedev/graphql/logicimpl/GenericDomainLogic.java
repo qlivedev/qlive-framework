@@ -3,7 +3,7 @@ package io.github.qlivedev.graphql.logicimpl;
 import io.github.qlivedev.graphql.annotation.GraphQLLogic;
 import io.github.qlivedev.graphql.annotation.GraphQLMutation;
 import io.github.qlivedev.graphql.generic.DomainObject;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 
 import java.util.Map;
 import java.util.TreeMap;

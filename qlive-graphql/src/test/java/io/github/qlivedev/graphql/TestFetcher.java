@@ -1,6 +1,6 @@
 package io.github.qlivedev.graphql;
 
-import de.quinscape.spring.jsview.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 

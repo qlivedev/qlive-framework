@@ -43,7 +43,7 @@ import io.github.qlivedev.graphql.testdomain.Public;
 import io.github.qlivedev.graphql.testdomain.tables.pojos.Foo;
 import io.github.qlivedev.graphql.testdomain.tables.pojos.TargetNine;
 import io.github.qlivedev.graphql.testdomain.tables.pojos.TargetNineCounts;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;

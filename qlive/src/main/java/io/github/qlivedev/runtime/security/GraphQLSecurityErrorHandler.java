@@ -1,6 +1,6 @@
 package io.github.qlivedev.runtime.security;
 
-import io.github.qlivedev.runtime.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import graphql.ErrorClassification;
 import graphql.ExecutionResult;
 import graphql.ExecutionResultImpl;

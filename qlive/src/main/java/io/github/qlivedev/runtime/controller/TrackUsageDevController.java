@@ -2,7 +2,7 @@ package io.github.qlivedev.runtime.controller;
 
 import io.github.qlivedev.model.ts.TrackUsageData;
 import io.github.qlivedev.runtime.service.DevStaticAnalysisProvider;
-import io.github.qlivedev.runtime.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

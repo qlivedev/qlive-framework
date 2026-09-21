@@ -1,7 +1,7 @@
 package io.github.qlivedev.runtime.filter;
 
 import io.github.qlivedev.runtime.QLiveException;
-import io.github.qlivedev.runtime.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import org.svenson.DynamicProperties;
 import org.svenson.info.JSONPropertyInfo;
 import org.svenson.info.JavaObjectPropertyInfo;

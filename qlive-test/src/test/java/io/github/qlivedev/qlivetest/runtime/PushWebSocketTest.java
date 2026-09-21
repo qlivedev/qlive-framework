@@ -10,7 +10,7 @@ import io.github.qlivedev.runtime.QLivePaths;
 import io.github.qlivedev.runtime.pubsub.PubSubService;
 import io.github.qlivedev.runtime.service.DevStaticAnalysisProvider;
 import io.github.qlivedev.runtime.service.ProdStaticAnalysisProvider;
-import io.github.qlivedev.runtime.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

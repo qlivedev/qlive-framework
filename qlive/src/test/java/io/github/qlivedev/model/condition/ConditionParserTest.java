@@ -1,6 +1,6 @@
 package io.github.qlivedev.model.condition;
 
-import io.github.qlivedev.runtime.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

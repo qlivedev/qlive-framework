@@ -6,7 +6,7 @@ import io.github.qlivedev.graphql.TypeContext;
 import io.github.qlivedev.graphql.TypeRegistry;
 import io.github.qlivedev.graphql.param.ParameterProvider;
 import io.github.qlivedev.graphql.util.DegenerificationUtil;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLInputObjectType;

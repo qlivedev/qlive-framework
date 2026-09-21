@@ -1,7 +1,7 @@
 package io.github.qlivedev.runtime.push;
 
 import io.github.qlivedev.model.push.ServerMessage;
-import io.github.qlivedev.runtime.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.TextMessage;

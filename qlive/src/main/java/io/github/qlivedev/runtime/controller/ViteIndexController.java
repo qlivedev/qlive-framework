@@ -5,7 +5,7 @@ import io.github.qlivedev.model.bootstrap.QLiveBoostrap;
 import io.github.qlivedev.runtime.QLivePaths;
 import io.github.qlivedev.runtime.service.BootstrapService;
 import io.github.qlivedev.runtime.view.VitePageRenderer;
-import io.github.qlivedev.runtime.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

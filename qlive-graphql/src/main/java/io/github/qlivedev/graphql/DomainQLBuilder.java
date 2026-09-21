@@ -15,8 +15,7 @@ import io.github.qlivedev.graphql.param.DataFetchingEnvironmentProviderFactory;
 import io.github.qlivedev.graphql.param.ParameterProviderFactory;
 import io.github.qlivedev.graphql.param.TypeParameterProviderFactory;
 import io.github.qlivedev.graphql.scalar.CurrencyScalar;
-import de.quinscape.spring.jsview.util.JSONUtil;
-import de.quinscape.spring.jsview.util.Util;
+import io.github.qlivedev.util.JSONUtil;
 import graphql.Directives;
 import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLFieldDefinition;
@@ -815,7 +814,11 @@ public class DomainQLBuilder
 
             for (String path : fields)
             {
-                final List<String> parts = Util.split(path, ".");
+                // Trimmed, and empty segments dropped: what the StringTokenizer this replaces did.
+                final List<String> parts = Arrays.stream(path.split("\\."))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
 
                 final int numberOfParts = parts.size();
                 if (numberOfParts > 0)

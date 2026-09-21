@@ -1,7 +1,7 @@
 package io.github.qlivedev.graphql.util;
 
 import com.google.common.collect.ImmutableMap;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.*;

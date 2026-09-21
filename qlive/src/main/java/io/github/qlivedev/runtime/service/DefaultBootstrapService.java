@@ -13,7 +13,7 @@ import io.github.qlivedev.graphql.DomainQL;
 import io.github.qlivedev.graphql.meta.DomainQLMeta;
 import io.github.qlivedev.graphql.util.IntrospectionUtil;
 import io.github.qlivedev.graphql.util.JSONHolder;
-import io.github.qlivedev.runtime.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import graphql.GraphQL;
 import jakarta.servlet.ServletContext;
 import org.slf4j.Logger;

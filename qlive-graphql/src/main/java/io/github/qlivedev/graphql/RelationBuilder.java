@@ -4,7 +4,7 @@ import io.github.qlivedev.graphql.config.Options;
 import io.github.qlivedev.graphql.config.RelationModel;
 import io.github.qlivedev.graphql.config.SourceField;
 import io.github.qlivedev.graphql.config.TargetField;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import jakarta.persistence.Column;
 import org.jooq.Field;
 import org.jooq.ForeignKey;

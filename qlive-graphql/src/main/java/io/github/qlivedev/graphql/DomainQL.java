@@ -28,7 +28,7 @@ import io.github.qlivedev.graphql.param.ParameterProvider;
 import io.github.qlivedev.graphql.param.ParameterProviderFactory;
 import io.github.qlivedev.graphql.DomainQLAware;
 import io.github.qlivedev.graphql.util.DegenerificationUtil;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import graphql.introspection.Introspection;
 import graphql.schema.Coercing;
 import graphql.schema.DataFetcher;

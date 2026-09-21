@@ -4,7 +4,7 @@ import io.github.qlivedev.model.condition.Condition;
 import io.github.qlivedev.model.condition.Field;
 import io.github.qlivedev.model.condition.Value;
 import io.github.qlivedev.runtime.QLiveException;
-import io.github.qlivedev.runtime.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

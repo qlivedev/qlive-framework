@@ -7,7 +7,7 @@ import io.github.qlivedev.graphql.scalar.DateScalar;
 import io.github.qlivedev.graphql.scalar.TimestampScalar;
 import io.github.qlivedev.graphql.scalar.LongScalar;
 import io.github.qlivedev.graphql.util.DegenerificationUtil;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import graphql.Scalars;
 import graphql.schema.GraphQLScalarType;
 import org.slf4j.Logger;

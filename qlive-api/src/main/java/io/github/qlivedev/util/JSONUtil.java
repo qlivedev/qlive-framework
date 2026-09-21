@@ -1,4 +1,4 @@
-package io.github.qlivedev.runtime.util;
+package io.github.qlivedev.util;
 
 import org.svenson.JSON;
 import org.svenson.JSONParser;

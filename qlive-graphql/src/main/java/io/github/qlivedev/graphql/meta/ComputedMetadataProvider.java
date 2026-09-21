@@ -3,7 +3,7 @@ package io.github.qlivedev.graphql.meta;
 import io.github.qlivedev.graphql.DomainQL;
 import io.github.qlivedev.graphql.OutputType;
 import io.github.qlivedev.graphql.annotation.GraphQLComputed;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLObjectType;

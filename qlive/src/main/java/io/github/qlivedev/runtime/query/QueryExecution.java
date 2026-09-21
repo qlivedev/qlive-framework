@@ -6,7 +6,7 @@ import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.graphql.config.RelationModel;
 import io.github.qlivedev.graphql.fetcher.FetcherContext;
 import io.github.qlivedev.graphql.generic.DomainObject;
-import io.github.qlivedev.runtime.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;

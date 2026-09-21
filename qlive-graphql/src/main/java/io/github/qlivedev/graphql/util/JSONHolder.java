@@ -1,6 +1,6 @@
 package io.github.qlivedev.graphql.util;
 
-import de.quinscape.spring.jsview.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import org.svenson.JSONable;
 
 /**

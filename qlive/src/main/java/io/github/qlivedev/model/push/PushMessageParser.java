@@ -3,7 +3,7 @@ package io.github.qlivedev.model.push;
 import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.util.TypeMappers;
-import io.github.qlivedev.runtime.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import org.svenson.JSONParser;
 
 /// Reads a websocket frame as the message class its "type" names.

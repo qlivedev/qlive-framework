@@ -1,7 +1,7 @@
 package io.github.qlivedev.runtime.service;
 
 import io.github.qlivedev.model.ts.TrackUsageData;
-import io.github.qlivedev.runtime.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;

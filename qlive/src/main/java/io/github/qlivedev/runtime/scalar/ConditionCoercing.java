@@ -10,7 +10,7 @@ import io.github.qlivedev.model.condition.Operation;
 import io.github.qlivedev.model.condition.Value;
 import io.github.qlivedev.model.condition.Values;
 import io.github.qlivedev.runtime.QLiveException;
-import io.github.qlivedev.runtime.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import graphql.GraphQLContext;
 import graphql.execution.CoercedVariables;
 import graphql.schema.CoercingParseLiteralException;

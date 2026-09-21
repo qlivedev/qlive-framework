@@ -1,7 +1,7 @@
 package io.github.qlivedev.graphql.jsonb;
 
 import io.github.qlivedev.graphql.scalar.BigIntegerScalar;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import graphql.schema.Coercing;
 import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;

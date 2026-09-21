@@ -5,7 +5,7 @@ import io.github.qlivedev.graphql.annotation.GraphQLMutation;
 import io.github.qlivedev.graphql.annotation.GraphQLTypeParam;
 import io.github.qlivedev.graphql.beans.ComplexInput;
 import io.github.qlivedev.graphql.beans.Container;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

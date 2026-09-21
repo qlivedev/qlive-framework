@@ -1,7 +1,7 @@
 package io.github.qlivedev.graphql.generic;
 
 import io.github.qlivedev.graphql.fetcher.FetcherContext;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import org.svenson.JSONProperty;
 
 import jakarta.validation.constraints.NotNull;

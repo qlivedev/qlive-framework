@@ -2,7 +2,7 @@ package io.github.qlivedev.runtime.controller;
 
 import io.github.qlivedev.runtime.QLivePaths;
 import io.github.qlivedev.runtime.util.GraphQLUtil;
-import io.github.qlivedev.runtime.util.JSONUtil;
+import io.github.qlivedev.util.JSONUtil;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;

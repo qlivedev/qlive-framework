@@ -1,4 +1,4 @@
-package io.github.qlivedev.graphql.schema;
+package io.github.qlivedev.graphql;
 
 import io.github.qlivedev.graphql.DomainQL;
 

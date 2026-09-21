@@ -26,7 +26,7 @@ import io.github.qlivedev.graphql.meta.DomainQLTypeMeta;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
 import io.github.qlivedev.graphql.param.ParameterProvider;
 import io.github.qlivedev.graphql.param.ParameterProviderFactory;
-import io.github.qlivedev.graphql.schema.DomainQLAware;
+import io.github.qlivedev.graphql.DomainQLAware;
 import io.github.qlivedev.graphql.util.DegenerificationUtil;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.introspection.Introspection;

@@ -2,7 +2,7 @@ package io.github.qlivedev.graphql.generic;
 
 import com.google.common.collect.Maps;
 import io.github.qlivedev.graphql.DomainQL;
-import io.github.qlivedev.graphql.schema.DomainQLAware;
+import io.github.qlivedev.graphql.DomainQLAware;
 import graphql.schema.Coercing;
 import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;

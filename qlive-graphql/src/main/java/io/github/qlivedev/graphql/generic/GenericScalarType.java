@@ -2,7 +2,7 @@ package io.github.qlivedev.graphql.generic;
 
 import io.github.qlivedev.graphql.DomainQL;
 import io.github.qlivedev.graphql.scalar.BigIntegerScalar;
-import io.github.qlivedev.graphql.schema.DomainQLAware;
+import io.github.qlivedev.graphql.DomainQLAware;
 import graphql.schema.GraphQLScalarType;
 
 import java.math.BigInteger;

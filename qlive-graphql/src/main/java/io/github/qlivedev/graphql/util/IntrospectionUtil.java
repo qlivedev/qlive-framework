@@ -9,7 +9,7 @@ import graphql.schema.GraphQLSchema;
 import java.util.Map;
 
 /**
- * GraphQL schema introspection utility class used by {@link io.github.qlivedev.graphql.schema.SchemaDataProvider}.
+ * GraphQL schema introspection utility class used by the bootstrap service.
  */
 public final class IntrospectionUtil
 {

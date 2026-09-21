@@ -164,11 +164,9 @@ describe("parseQuery", () => {
         ]);
     });
 
-    test("subscriptions are recognized, too", () => {
-        expect(parseQuery("subscription S_Foo { fooChanged { id } }")).toMatchObject({
-            operation: "subscription",
-            name: "S_Foo"
-        });
+    test("rejects subscriptions by name", () => {
+        expect(() => parseQuery("subscription S_Foo { fooChanged { id } }"))
+            .toThrow(/does not support GraphQL subscriptions/);
     });
 
     test("complains about a document without operation", () => {

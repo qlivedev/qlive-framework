@@ -273,7 +273,7 @@ class Scanner
  * @param query     GraphQL query or mutation document
  *
  * @returns operation kind, name and top-level selections
- * @throws if the document contains no operation
+ * @throws if the document contains no query or mutation, or is a subscription
  * @internal
  */
 export function parseQuery(query: string): ParsedQuery
@@ -313,6 +313,17 @@ export function parseQuery(query: string): ParsedQuery
         if (operation)
         {
             return parseOperation(scanner, operation)
+        }
+
+        if (keyword === "subscription")
+        {
+            // Recognised only to say so: qlive pushes over its own websocket rather than
+            // serving a GraphQL subscription, so this is a limit worth naming rather than
+            // letting the document fall through to "no query or mutation found".
+            throw new Error(
+                "qlive does not support GraphQL subscriptions -- watch the document over the push " +
+                "connection and refetch instead: " + query
+            )
         }
 
         // fragment definition or anything else we do not model: skip its body

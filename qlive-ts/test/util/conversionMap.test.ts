@@ -95,7 +95,8 @@ describe("buildConversionMap", () => {
             .toThrowError(`Field "rowz" not found in FooDocument`)
     })
 
-    test("has nothing to convert in a subscription", () => {
-        expect(mapOf(`subscription S_Foo { fooChanged { id } }`)).toEqual({selections: {}, variables: {}})
+    test("rejects a subscription", () => {
+        expect(() => mapOf(`subscription S_Foo { fooChanged { id } }`))
+            .toThrow(/does not support GraphQL subscriptions/)
     })
 })

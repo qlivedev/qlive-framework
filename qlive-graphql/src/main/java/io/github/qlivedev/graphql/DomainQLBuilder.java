@@ -6,8 +6,8 @@ import io.github.qlivedev.graphql.config.Options;
 import io.github.qlivedev.graphql.config.RelationModel;
 import io.github.qlivedev.graphql.config.SourceField;
 import io.github.qlivedev.graphql.config.TargetField;
-import io.github.qlivedev.graphql.docs.DocsExtractor;
 import io.github.qlivedev.graphql.docs.TypeDoc;
+import io.github.qlivedev.graphql.docs.TypeDocs;
 import io.github.qlivedev.graphql.meta.ComputedMetadataProvider;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
 import io.github.qlivedev.graphql.meta.NameFieldProvider;
@@ -181,7 +181,7 @@ public class DomainQLBuilder
             additionalScalarTypes,
             Collections.unmodifiableSet(additionalInputTypes),
             Collections.unmodifiableList(
-                DocsExtractor.normalize(typeDocs)
+                TypeDocs.normalize(typeDocs)
             ),
             fieldLookup,
             Collections.unmodifiableSet(effectiveMetadataProviders),

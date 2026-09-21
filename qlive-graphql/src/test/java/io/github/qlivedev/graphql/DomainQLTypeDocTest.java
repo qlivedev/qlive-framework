@@ -4,6 +4,7 @@ import com.github.javaparser.utils.SourceRoot;
 import io.github.qlivedev.graphql.docs.DocsExtractor;
 import io.github.qlivedev.graphql.docs.FieldDoc;
 import io.github.qlivedev.graphql.docs.TypeDoc;
+import io.github.qlivedev.graphql.docs.TypeDocs;
 import io.github.qlivedev.graphql.generic.DomainObject;
 import io.github.qlivedev.graphql.logicimpl.DocumentedLogic;
 import io.github.qlivedev.graphql.testdomain.Public;
@@ -117,7 +118,7 @@ public class DomainQLTypeDocTest
             docsExtractor.extract(mainSourceRoot,"", "io/github/qlivedev/graphql/util/Paged.java")
         );
 
-        final List<TypeDoc> normalized = DocsExtractor.normalize(docs);
+        final List<TypeDoc> normalized = TypeDocs.normalize(docs);
 
         //
         // JOOQ POJOs can be documented if the corresponding data is included in the JSON docs

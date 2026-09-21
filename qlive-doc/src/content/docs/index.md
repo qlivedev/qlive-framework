@@ -11,7 +11,7 @@ hero:
       link: /qlive-framework/explanation/overview/
       icon: right-arrow
     - text: View on GitHub
-      link: https://github.com/quinscape/qlive-framework
+      link: https://github.com/qlivedev/qlive-framework
       icon: external
       variant: minimal
 ---

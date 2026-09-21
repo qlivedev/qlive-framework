@@ -40,7 +40,7 @@ separate artifact rather than pulling it in from the JS, so your
 application decides where it lands in the cascade. Everything in it sits in
 `@layer qlive`, which anything unlayered overrides regardless of
 specificity. See
-[`docs/styling.md`](https://github.com/quinscape/qlive-framework/blob/main/docs/styling.md).
+[`docs/styling.md`](https://github.com/qlivedev/qlive-framework/blob/main/docs/styling.md).
 
 ## Declare the HTML file
 

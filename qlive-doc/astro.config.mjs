@@ -13,7 +13,7 @@ import starlight from "@astrojs/starlight";
 const base = "/qlive-framework";
 
 export default defineConfig({
-    site: "https://quinscape.github.io",
+    site: "https://qlivedev.github.io",
     base,
     // `astro dev --open` lands on the base *without* its trailing slash, and there
     // every relative path in a page resolves one level too high. Open the canonical
@@ -30,7 +30,7 @@ export default defineConfig({
                 {
                     icon: "github",
                     label: "GitHub",
-                    href: "https://github.com/quinscape/qlive-framework",
+                    href: "https://github.com/qlivedev/qlive-framework",
                 },
             ],
             // One group per Diataxis quadrant, in the order a reader meets
@@ -54,7 +54,7 @@ export default defineConfig({
             ],
             editLink: {
                 baseUrl:
-                    "https://github.com/quinscape/qlive-framework/edit/main/qlive-doc/",
+                    "https://github.com/qlivedev/qlive-framework/edit/main/qlive-doc/",
             },
             lastUpdated: true,
         }),

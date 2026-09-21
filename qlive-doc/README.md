@@ -2,7 +2,7 @@
 
 Framework-user documentation for QLive, built with
 [Astro Starlight](https://starlight.astro.build) and published to GitHub
-Pages at <https://quinscape.github.io/qlive-framework/>.
+Pages at <https://qlivedev.github.io/qlive-framework/>.
 
 The pages themselves are plain Markdown in `src/content/docs/`. Everything
 else here is the site build.
@@ -39,7 +39,7 @@ serves a *project* site under the repository name. It has nothing to do with
 Starlight, and it is what makes the deployed links correct.
 
 If the site ever moves somewhere it is served at a root -- a custom domain, a
-`quinscape.github.io` repository, or any other host -- change `base` to `/`
+`qlivedev.github.io` repository, or any other host -- change `base` to `/`
 and the problem disappears along with the prefix. For a custom domain, add
 the domain to `public/CNAME` at the same time.
 

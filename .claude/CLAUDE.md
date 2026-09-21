@@ -25,11 +25,12 @@ Some projects next to this one are readable (the paths are granted in
 `.claude/settings.local.json`, which is personal and gitignored). What they are
 for differs, and the difference matters:
 
-- `domainql` -- a live dependency. QLive compiles against it, so what is there
-  is current and binding. `GenericScalar`, the schema introspection, the
-  filter model.
-- `babel-plugin-track-usage` -- upstream of the track-usage Vite plugin, and
-  like DomainQL a likely fork target.
+- `domainql` -- former dependency, now vendored into `qlive-api` and
+  `qlive-graphql` and diverging. Reference only: read it to see what an
+  upstream fix looks like, never as binding. What QLive compiles against is
+  in this repository.
+- `babel-plugin-track-usage` -- likewise vendored, into
+  `qlive-ts/src/vite/babel`. Reference only.
 - `automaton`, `automaton-js`, `automaton-test` -- reference only. Read them to
   see how a problem was solved before -- `equalsScalar`, `evaluateMemoryQuery`,
   `createMockedQuery`, `filterTransformer` are the interesting ones -- and cite

@@ -1,6 +1,6 @@
 package com.dataciders.qlive.model.condition;
 
-import de.quinscape.spring.jsview.util.JSONUtil;
+import com.dataciders.qlive.runtime.util.JSONUtil;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

@@ -2,7 +2,7 @@ package com.dataciders.qlive.runtime.service;
 
 import com.dataciders.qlive.model.ts.TrackUsageData;
 import com.dataciders.qlive.runtime.QLiveException;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import com.dataciders.qlive.runtime.util.JSONUtil;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;

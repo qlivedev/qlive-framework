@@ -8,7 +8,6 @@ import com.dataciders.qlive.model.condition.Operation;
 import com.dataciders.qlive.model.condition.Value;
 import com.dataciders.qlive.model.condition.Values;
 import com.dataciders.qlive.runtime.scalar.ComputedValue;
-import de.quinscape.spring.jsview.util.JSONUtil;
 
 import java.util.List;
 import java.util.stream.Collectors;

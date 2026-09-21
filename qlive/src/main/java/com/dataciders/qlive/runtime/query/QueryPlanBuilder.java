@@ -12,7 +12,7 @@ import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.TableLookup;
 import de.quinscape.domainql.config.RelationModel;
 import de.quinscape.domainql.config.TargetField;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import com.dataciders.qlive.runtime.util.JSONUtil;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingFieldSelectionSet;
 import graphql.schema.SelectedField;

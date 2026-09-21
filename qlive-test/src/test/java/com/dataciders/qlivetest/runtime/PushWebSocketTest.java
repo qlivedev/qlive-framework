@@ -10,7 +10,7 @@ import com.dataciders.qlive.runtime.QLivePaths;
 import com.dataciders.qlive.runtime.pubsub.PubSubService;
 import com.dataciders.qlive.runtime.service.DevStaticAnalysisProvider;
 import com.dataciders.qlive.runtime.service.ProdStaticAnalysisProvider;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import com.dataciders.qlive.runtime.util.JSONUtil;
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

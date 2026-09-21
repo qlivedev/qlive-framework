@@ -8,7 +8,7 @@ import com.dataciders.qlive.runtime.domain.TestLogic;
 import com.dataciders.qlive.runtime.meta.QueryConfigMetadataProvider;
 import com.dataciders.qlive.testdomain.tables.pojos.TestFoo;
 import de.quinscape.domainql.DomainQL;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import com.dataciders.qlive.runtime.util.JSONUtil;
 import graphql.GraphQL;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

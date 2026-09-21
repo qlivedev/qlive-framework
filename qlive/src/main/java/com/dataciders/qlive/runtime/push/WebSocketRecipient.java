@@ -1,7 +1,7 @@
 package com.dataciders.qlive.runtime.push;
 
 import com.dataciders.qlive.model.push.ServerMessage;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import com.dataciders.qlive.runtime.util.JSONUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.TextMessage;

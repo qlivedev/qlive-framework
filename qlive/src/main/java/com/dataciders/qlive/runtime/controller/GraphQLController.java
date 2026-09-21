@@ -2,7 +2,7 @@ package com.dataciders.qlive.runtime.controller;
 
 import com.dataciders.qlive.runtime.QLivePaths;
 import com.dataciders.qlive.runtime.util.GraphQLUtil;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import com.dataciders.qlive.runtime.util.JSONUtil;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;

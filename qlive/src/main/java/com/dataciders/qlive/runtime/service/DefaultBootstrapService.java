@@ -13,7 +13,7 @@ import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.meta.DomainQLMeta;
 import de.quinscape.domainql.util.IntrospectionUtil;
 import de.quinscape.domainql.util.JSONHolder;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import com.dataciders.qlive.runtime.util.JSONUtil;
 import graphql.GraphQL;
 import jakarta.servlet.ServletContext;
 import org.slf4j.Logger;

@@ -6,7 +6,7 @@ import com.dataciders.qlive.runtime.QLiveException;
 import de.quinscape.domainql.config.RelationModel;
 import de.quinscape.domainql.fetcher.FetcherContext;
 import de.quinscape.domainql.generic.DomainObject;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import com.dataciders.qlive.runtime.util.JSONUtil;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;

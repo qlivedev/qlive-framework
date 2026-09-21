@@ -1,6 +1,6 @@
 package com.dataciders.qlive.runtime.security;
 
-import de.quinscape.spring.jsview.util.JSONUtil;
+import com.dataciders.qlive.runtime.util.JSONUtil;
 import graphql.ErrorClassification;
 import graphql.ExecutionResult;
 import graphql.ExecutionResultImpl;

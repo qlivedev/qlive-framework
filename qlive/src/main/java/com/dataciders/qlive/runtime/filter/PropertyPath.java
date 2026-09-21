@@ -1,7 +1,7 @@
 package com.dataciders.qlive.runtime.filter;
 
 import com.dataciders.qlive.runtime.QLiveException;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import com.dataciders.qlive.runtime.util.JSONUtil;
 import org.svenson.DynamicProperties;
 import org.svenson.info.JSONPropertyInfo;
 import org.svenson.info.JavaObjectPropertyInfo;

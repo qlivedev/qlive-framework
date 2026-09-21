@@ -1,7 +1,7 @@
 package com.dataciders.qlive.runtime.service;
 
 import com.dataciders.qlive.model.ts.TrackUsageData;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import com.dataciders.qlive.runtime.util.JSONUtil;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;

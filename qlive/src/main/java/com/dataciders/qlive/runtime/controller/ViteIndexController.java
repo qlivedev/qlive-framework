@@ -5,7 +5,7 @@ import com.dataciders.qlive.model.bootstrap.QLiveBoostrap;
 import com.dataciders.qlive.runtime.QLivePaths;
 import com.dataciders.qlive.runtime.service.BootstrapService;
 import com.dataciders.qlive.runtime.view.VitePageRenderer;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import com.dataciders.qlive.runtime.util.JSONUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

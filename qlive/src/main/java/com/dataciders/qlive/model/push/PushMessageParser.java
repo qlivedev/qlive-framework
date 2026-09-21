@@ -3,7 +3,7 @@ package com.dataciders.qlive.model.push;
 import com.dataciders.qlive.model.condition.CNode;
 import com.dataciders.qlive.runtime.QLiveException;
 import com.dataciders.qlive.runtime.util.TypeMappers;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import com.dataciders.qlive.runtime.util.JSONUtil;
 import org.svenson.JSONParser;
 
 /// Reads a websocket frame as the message class its "type" names.

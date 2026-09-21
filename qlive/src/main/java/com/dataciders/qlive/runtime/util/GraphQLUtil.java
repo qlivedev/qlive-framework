@@ -1,7 +1,6 @@
 package com.dataciders.qlive.runtime.util;
 
 import de.quinscape.domainql.DomainQL;
-import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;

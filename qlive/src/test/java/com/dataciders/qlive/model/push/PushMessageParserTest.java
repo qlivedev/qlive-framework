@@ -4,7 +4,7 @@ import com.dataciders.qlive.model.condition.Condition;
 import com.dataciders.qlive.model.condition.Field;
 import com.dataciders.qlive.model.condition.Value;
 import com.dataciders.qlive.runtime.QLiveException;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import com.dataciders.qlive.runtime.util.JSONUtil;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

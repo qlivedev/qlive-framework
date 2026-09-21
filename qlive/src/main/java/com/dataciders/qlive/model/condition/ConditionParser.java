@@ -1,7 +1,7 @@
 package com.dataciders.qlive.model.condition;
 
 import com.dataciders.qlive.runtime.util.TypeMappers;
-import de.quinscape.spring.jsview.util.JSONUtil;
+import com.dataciders.qlive.runtime.util.JSONUtil;
 import org.svenson.JSONParser;
 
 /**

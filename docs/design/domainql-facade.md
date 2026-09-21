@@ -144,6 +144,29 @@ listed here so the ordering is on record.
 Steps 1 through 4 are independently landable and each leaves the build
 green. Step 5 is the large one and should not start until 4 is in.
 
+## Naming
+
+**The facade is `QLiveDomain`.** Decided 2026-09-21.
+
+That name is currently held by a helper in
+`io.github.qlivedev.runtime.domain`, which is a single static method with
+no state: it pre-registers the eight QLive scalars and forwards metadata
+providers to `DomainQL.newDomainQL()`. An application that wants a
+different set replaces it rather than customizing it, and it has two call
+sites in code. That is a weak claim on the name against the type every
+application's SPI implementations and bean signatures will mention.
+
+So it becomes `QLiveDefaultDomain`, which also says more accurately what
+it is -- a default set of registrations, not the domain itself.
+
+The rejected alternative was `QLiveSchema`, which overlaps `GraphQLSchema`
+-- a thing the facade exposes rather than a thing it is.
+
+The rename is a precondition for step 4 and independent of steps 1 to 3,
+so it can land at any point before then. One knock-on: the
+`QLiveDomainCustomizer` bean proposed in `module-distribution.md` is named
+after the helper, and wants rereading once the name means the facade.
+
 ## Placement
 
 The facade stays in `qlive-graphql`. Putting it in `qlive-api`, which would
@@ -165,9 +188,6 @@ change; see `module-distribution.md` for where that question belongs.
 
 ## Open items
 
-- **What the facade is called.** `QLiveSchema` reads well but overlaps
-  `GraphQLSchema`, which it exposes. `QLiveDomain` is taken by the builder
-  entry point in the runtime. Undecided.
 - **Whether `lookupField` should return `org.jooq.Field<?>`.** It puts jOOQ
   in the signature of the type applications are handed. Inherited, not
   chosen; worth re-asking rather than carrying forward by default.

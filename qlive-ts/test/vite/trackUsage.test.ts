@@ -17,7 +17,7 @@ describe("trackUsage", () => {
     const DEBOUNCE_MS = 200;
 
     const HOME = `
-        import {useInjection} from "@quinscape/qlive-ts";
+        import {useInjection} from "@qlivedev/qlive-ts";
         import {Q_Foo} from "./Q_Foo";
 
         export default function Home() {
@@ -26,7 +26,7 @@ describe("trackUsage", () => {
     `;
 
     const Q_FOO = `
-        import {GraphQLQuery} from "@quinscape/qlive-ts";
+        import {GraphQLQuery} from "@qlivedev/qlive-ts";
 
         export const Q_Foo = new GraphQLQuery("query Q_Foo { foo }");
     `;
@@ -359,15 +359,15 @@ describe("trackUsage", () => {
         `;
 
         const Q_TYPED = `
-            import {GraphQLQuery} from "@quinscape/qlive-ts";
+            import {GraphQLQuery} from "@qlivedev/qlive-ts";
 
             export const Q_Foo = new GraphQLQuery<any>("query Q_Foo { foo { id name } }");
         `;
 
-        /** Makes the application's `@quinscape/qlive-codegen` resolvable from the temp project. */
+        /** Makes the application's `@qlivedev/qlive-codegen` resolvable from the temp project. */
         function installCodegen(): void
         {
-            const dir = path.join(projectRoot, "node_modules", "@quinscape");
+            const dir = path.join(projectRoot, "node_modules", "@qlivedev");
             fs.mkdirSync(dir, {recursive: true});
             fs.symlinkSync(
                 path.resolve(import.meta.dirname, "../../../qlive-codegen"),

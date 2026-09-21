@@ -1,5 +1,5 @@
 /*
- * The filter DSL as a flat set of names, imported from "@quinscape/qlive-ts/filter".
+ * The filter DSL as a flat set of names, imported from "@qlivedev/qlive-ts/filter".
  *
  * The main entry exports the same module as the FilterDSL namespace, because field(), value() and and()
  * are short, common names that collide in an application's import list. That is the safe default and not

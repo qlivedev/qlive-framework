@@ -2,9 +2,9 @@
 // from the JS, so the application controls where it lands in the cascade.
 // Import it before your own styles: everything in it sits in @layer qlive,
 // which anything unlayered overrides regardless of specificity.
-import "@quinscape/qlive-ts/styles.css";
+import "@qlivedev/qlive-ts/styles.css";
 import "./style.css"
-import { startup } from "@quinscape/qlive-ts";
+import { startup } from "@qlivedev/qlive-ts";
 import ViteDevHome from "./component/ViteDevHome";
 
 // The three accounts the backup seeds app_user with. Plaintext here is fine -- QuickLogin exists for

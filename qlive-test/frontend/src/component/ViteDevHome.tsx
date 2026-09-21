@@ -1,5 +1,5 @@
 import React, {useLayoutEffect, useState} from "react"
-import { i18n, config, isListType, isNonNull, unwrapAll, DomainTables, Logout, QuickLogin } from "@quinscape/qlive-ts"
+import { i18n, config, isListType, isNonNull, unwrapAll, DomainTables, Logout, QuickLogin } from "@qlivedev/qlive-ts"
 import type {
     DomainQLMeta,
     GraphQLField, GraphQLInterfaceType, GraphQLObjectType,
@@ -7,7 +7,7 @@ import type {
     GraphQLType,
     GraphQLTypeRef,
     QuickLoginUser
-} from "@quinscape/qlive-ts"
+} from "@qlivedev/qlive-ts"
 import {posix} from "node:path";
 
 

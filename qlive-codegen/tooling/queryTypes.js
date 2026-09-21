@@ -19,7 +19,7 @@ import path from "node:path"
 import {getNamedType, isListType, isNonNullType, isObjectType, parse} from "graphql"
 
 /** npm package the generated result types import their QLive types from */
-export const QLIVE_PACKAGE = "@quinscape/qlive-ts"
+export const QLIVE_PACKAGE = "@qlivedev/qlive-ts"
 
 /** Interface mixed into the result type of a query selecting a query document */
 export const DOCUMENT_METHODS = "QueryDocumentMethods"

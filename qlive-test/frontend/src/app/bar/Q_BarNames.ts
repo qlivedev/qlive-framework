@@ -1,5 +1,5 @@
 import { Bar, BarDocument } from "../../types";
-import { GraphQLQuery, QueryDocumentMethods } from "@quinscape/qlive-ts";
+import { GraphQLQuery, QueryDocumentMethods } from "@qlivedev/qlive-ts";
 
 /**
  * Bars as a view that only displays them reads them: two fields and no version.

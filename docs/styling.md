@@ -2,7 +2,7 @@
 
 Status: describes the repo as of 2026-09-05.
 
-How `@quinscape/qlive-ts` ships CSS, and what an application that
+How `@qlivedev/qlive-ts` ships CSS, and what an application that
 installs it gets. No components exist yet, so what follows is the
 packaging path and the conventions the first component will be written
 against, not a component library.
@@ -25,7 +25,7 @@ The stylesheet is not imported by `src/index.ts`. The application
 imports it by hand, through a named export:
 
 ```ts
-import "@quinscape/qlive-ts/styles.css";
+import "@qlivedev/qlive-ts/styles.css";
 ```
 
 `qlive-test/frontend/src/main.tsx` does this before its own
@@ -46,7 +46,7 @@ Three pieces of packaging make that work:
   to import it by hand — a dev/prod divergence.
 
 In `qlive-test/frontend`, `vite.config.ts` aliases both
-`@quinscape/qlive-ts` and `@quinscape/qlive-ts/styles.css` to their
+`@qlivedev/qlive-ts` and `@qlivedev/qlive-ts/styles.css` to their
 sources in serve mode, so editing the stylesheet shows up without a
 rebuild. Only `vite build` resolves `dist`.
 
@@ -76,7 +76,7 @@ component, with no `!important` and nothing to learn about how the
 component was authored. That is the reason the layer is not optional.
 
 The practical consequence for an application: import
-`@quinscape/qlive-ts/styles.css` before your own CSS, and your own CSS
+`@qlivedev/qlive-ts/styles.css` before your own CSS, and your own CSS
 does not need to be layered at all.
 
 ## Tokens

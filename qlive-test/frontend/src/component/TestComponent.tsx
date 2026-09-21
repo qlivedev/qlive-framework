@@ -1,5 +1,5 @@
 import * as React from "react";
-import {i18n} from "@quinscape/qlive-ts";
+import {i18n} from "@qlivedev/qlive-ts";
 
 const TestComponent = ({}) => {
 

@@ -103,7 +103,7 @@ class InjectionServiceTest
             analysis("""
                 {
                     "./app/Home": {
-                        "requires": [ "@quinscape/qlive-ts", "./app/Q_Test" ],
+                        "requires": [ "@qlivedev/qlive-ts", "./app/Q_Test" ],
                         "calls": {
                             "useInjection": [
                                 [ { "__identifier": "Q_Test" }, { "config": { "pageSize": 5 } } ]
@@ -111,7 +111,7 @@ class InjectionServiceTest
                         }
                     },
                     "./app/Q_Test": {
-                        "requires": [ "@quinscape/qlive-ts" ],
+                        "requires": [ "@qlivedev/qlive-ts" ],
                         "calls": { "GraphQLQuery": [ [ "%s" ] ] }
                     }
                 }
@@ -312,7 +312,7 @@ class InjectionServiceTest
         final TrackUsageData analysis = analysis("""
             {
                 "./app/Home": {
-                    "requires": [ "@quinscape/qlive-ts" ],
+                    "requires": [ "@qlivedev/qlive-ts" ],
                     "calls": {
                         "useInjection": [ [ { "__identifier": "Q_Missing" }, { "config": {} } ] ]
                     }
@@ -394,7 +394,7 @@ class InjectionServiceTest
             analysis("""
                 {
                     "./login": {
-                        "requires": [ "@quinscape/qlive-ts" ],
+                        "requires": [ "@qlivedev/qlive-ts" ],
                         "calls": { "noSchema": [ [] ] }
                     }
                 }

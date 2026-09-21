@@ -1,5 +1,5 @@
 import { TestFooDocument, TestFoo, TestUser } from "../types";
-import { GraphQLQuery, QueryDocumentMethods } from "@quinscape/qlive-ts";
+import { GraphQLQuery, QueryDocumentMethods } from "@qlivedev/qlive-ts";
 
 export type Q_TestResult = Pick<TestFooDocument,"type" | "config"> & {
     rows : Array<Pick<TestFoo,"name"> & {

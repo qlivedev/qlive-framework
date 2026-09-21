@@ -45,17 +45,17 @@ export interface TrackedFunctionSpec
  */
 export const QLIVE_TRACKED_FUNCTIONS: Record<string, TrackedFunctionSpec> = {
     i18n: {
-        module: "@quinscape/qlive-ts", fn: "i18n",
+        module: "@qlivedev/qlive-ts", fn: "i18n",
         varArgs: true
     },
     useInjection: {
-        module: "@quinscape/qlive-ts", fn: "useInjection", allowIdentifier: true
+        module: "@qlivedev/qlive-ts", fn: "useInjection", allowIdentifier: true
     },
     noSchema: {
-        module: "@quinscape/qlive-ts", fn: "noSchema"
+        module: "@qlivedev/qlive-ts", fn: "noSchema"
     },
     GraphQLQuery: {
-        module: "@quinscape/qlive-ts", fn: "GraphQLQuery"
+        module: "@qlivedev/qlive-ts", fn: "GraphQLQuery"
     },
 };
 
@@ -116,7 +116,7 @@ export interface TrackUsagePluginOptions
      * `GraphQLQuery<T>` rewritten, so the type next to a query follows the query.
      *
      * Left out, the types are generated whenever `schema.graphql` is next to the Vite config and
-     * `@quinscape/qlive-codegen` is installed. Given, its schema has to exist -- silence would look
+     * `@qlivedev/qlive-codegen` is installed. Given, its schema has to exist -- silence would look
      * like a plugin that does not work. `false` turns the generation off.
      */
     queryTypes?: QueryTypeOptions | false;
@@ -147,7 +147,7 @@ interface ResolvedOptions
 
 /**
  * Rewrites the `GraphQLQuery<T>` of every module handed to it. This is what
- * `@quinscape/qlive-codegen` returns; the plugin only ever calls update().
+ * `@qlivedev/qlive-codegen` returns; the plugin only ever calls update().
  */
 interface QueryTypeGenerator
 {
@@ -347,7 +347,7 @@ function resolveScanOptions(options: AnalyzeSourceTreeOptions): ResolvedOptions
 
 
 /**
- * Loads the query result type generator out of the *application's* `@quinscape/qlive-codegen`.
+ * Loads the query result type generator out of the *application's* `@qlivedev/qlive-codegen`.
  *
  * Resolved from the application rather than imported, because it is the application's build tool:
  * qlive-ts must not carry `graphql` and `@graphql-tools/*` into the dependency graph of an app that
@@ -366,12 +366,12 @@ async function loadQueryTypeGenerator(
     let entry: string;
     try
     {
-        entry = require.resolve("@quinscape/qlive-codegen");
+        entry = require.resolve("@qlivedev/qlive-codegen");
     }
     catch
     {
         throw new Error(
-            `@quinscape/qlive-codegen is not installed. It is what generates the query result types; ` +
+            `@qlivedev/qlive-codegen is not installed. It is what generates the query result types; ` +
             `add it as a devDependency, or pass queryTypes: false to do without them.`
         );
     }

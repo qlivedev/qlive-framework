@@ -1,5 +1,5 @@
 import { Bar, BarDocument, BarLink, Baz } from "../../types";
-import { GraphQLQuery, QueryDocumentMethods } from "@quinscape/qlive-ts";
+import { GraphQLQuery, QueryDocumentMethods } from "@qlivedev/qlive-ts";
 
 /**
  * The rows the edit view edits.

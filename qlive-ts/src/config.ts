@@ -267,7 +267,7 @@ export type QLiveConfig = {
  * and declaration merging is the client-side equivalent: name the addenda your providers write once and they are
  * typed at every place the application reads config().meta.
  *
- *     declare module "@quinscape/qlive-ts" {
+ *     declare module "@qlivedev/qlive-ts" {
  *         interface DomainQLMeta {
  *             myAddendum: MyAddendumInfo[]
  *         }

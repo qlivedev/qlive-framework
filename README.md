@@ -5,8 +5,8 @@ command; nothing is published to iterate locally.
 
 ```
 qlive/                     Java library, version 1.0.0-SNAPSHOT
-qlive-ts/                  @quinscape/qlive-ts, linked by pnpm workspace (built with tsdown; dev aliases to its TS source)
-qlive-codegen/             @quinscape/qlive-codegen, the codegen CLIs (schema.graphql -> types.d.ts and the
+qlive-ts/                  @qlivedev/qlive-ts, linked by pnpm workspace (built with tsdown; dev aliases to its TS source)
+qlive-codegen/             @qlivedev/qlive-codegen, the codegen CLIs (schema.graphql -> types.d.ts and the
                            query result types; and optionally schema.graphql itself, from a running backend)
 qlive-test/                Spring Boot app, depends on qlive as a SNAPSHOT
   frontend/                 Vite + React app, depends on qlive-ts via "workspace:*"
@@ -95,7 +95,7 @@ rather than in the inner loop. `pnpm build` runs that build, so they are
 still caught before anything ships.
 
 QLive's stylesheet is shipped as a separate artifact, imported explicitly
-by the application (`import "@quinscape/qlive-ts/styles.css"`) rather than
+by the application (`import "@qlivedev/qlive-ts/styles.css"`) rather than
 pulled in by the JS, so the app controls where it lands in the cascade.
 See `docs/styling.md`.
 

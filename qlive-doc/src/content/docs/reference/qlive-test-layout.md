@@ -72,18 +72,18 @@ module id comes out wrong.
 ```jsonc
 {
   "dependencies": {
-    "@quinscape/qlive-ts": "...",
+    "@qlivedev/qlive-ts": "...",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@quinscape/qlive-codegen": "...",   // the codegen CLIs
+    "@qlivedev/qlive-codegen": "...",   // the codegen CLIs
     // ... vite, typescript, vitest
   }
 }
 ```
 
-`@quinscape/qlive-codegen` is a separate package on purpose: it pulls in
+`@qlivedev/qlive-codegen` is a separate package on purpose: it pulls in
 `graphql` and `@graphql-tools/*`, about 5 MB the `qlive-ts` runtime never
 imports. Applications that do not run codegen should not carry it.
 
@@ -96,7 +96,7 @@ instants from the first.
 The two pieces QLive needs:
 
 ```ts
-import {trackUsage} from "@quinscape/qlive-ts/vite";
+import {trackUsage} from "@qlivedev/qlive-ts/vite";
 
 const backendOrigin = "http://localhost:8080";
 
@@ -110,7 +110,7 @@ export default defineConfig(({command}) => ({
 }));
 ```
 
-`@quinscape/qlive-ts/vite` is the package's build-time entry point. It is
+`@qlivedev/qlive-ts/vite` is the package's build-time entry point. It is
 Node code your Vite config loads, kept apart from the runtime entry so that
 babel never enters your application bundle's dependency graph.
 

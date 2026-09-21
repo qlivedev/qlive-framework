@@ -6,7 +6,7 @@ sidebar:
 ---
 
 QLive is a full-stack framework written in Java and TypeScript. The Java half is `qlive`, a Spring Boot library built on
-[DomainQL](https://github.com/quinscape/domainql) and jOOQ. The TypeScript half is `@quinscape/qlive-ts`, a React library. They are two halves of one
+[DomainQL](https://github.com/quinscape/domainql) and jOOQ. The TypeScript half is `@qlivedev/qlive-ts`, a React library. They are two halves of one
 thing, not a server and a client that happen to talk.
 
 In a way, QLive is both big and small. The setup is pretty complex which we hope to help you over with the testing

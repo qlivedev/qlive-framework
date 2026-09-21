@@ -1,4 +1,4 @@
-import { GraphQLQuery, } from "@quinscape/qlive-ts";
+import { GraphQLQuery, } from "@qlivedev/qlive-ts";
 
 export const Q_Test = new GraphQLQuery<any>(
     // language=GraphQL

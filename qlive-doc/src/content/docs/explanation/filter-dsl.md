@@ -25,7 +25,7 @@ It is exported as a namespace, because it claims short, common names that
 would collide in an application's import list:
 
 ```ts
-import {FilterDSL} from "@quinscape/qlive-ts";
+import {FilterDSL} from "@qlivedev/qlive-ts";
 
 const {field, value, values, and, or, not, component} = FilterDSL;
 ```
@@ -34,7 +34,7 @@ A module that does little besides build conditions would rather not repeat
 the namespace, and can take the names straight from a second entry point:
 
 ```ts
-import {field, value, values, and, or, not} from "@quinscape/qlive-ts/filter";
+import {field, value, values, and, or, not} from "@qlivedev/qlive-ts/filter";
 ```
 
 Both routes reach the same module. Conditions built through one are the

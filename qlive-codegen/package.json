@@ -1,5 +1,5 @@
 {
-  "name": "@quinscape/qlive-codegen",
+  "name": "@qlivedev/qlive-codegen",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -25,10 +25,10 @@
     "graphql": "^16.13.1"
   },
   "peerDependencies": {
-    "@quinscape/qlive-ts": "workspace:*"
+    "@qlivedev/qlive-ts": "workspace:*"
   },
   "devDependencies": {
-    "@quinscape/qlive-ts": "workspace:*",
+    "@qlivedev/qlive-ts": "workspace:*",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
   }

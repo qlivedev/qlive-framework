@@ -5,7 +5,7 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    // Resolve @quinscape/qlive-ts to its TypeScript source rather than to its
+    // Resolve @qlivedev/qlive-ts to its TypeScript source rather than to its
     // build output, matching the alias Vite uses in serve mode. Without this the
     // IDE and `tsc` read qlive-ts/dist - a gitignored artifact that tsdown wipes
     // on every rebuild - so they disagree with the running app whenever dist is

@@ -1,5 +1,5 @@
 /*
- * Public API of @quinscape/qlive-ts.
+ * Public API of @qlivedev/qlive-ts.
  *
  * Value exports come first, type exports after -- keeping them apart makes it
  * obvious at a glance what an application can call and what it can only name.

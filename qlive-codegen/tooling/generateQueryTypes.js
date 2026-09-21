@@ -10,7 +10,7 @@
 
 import path from "node:path"
 
-import {analyzeSourceTree} from "@quinscape/qlive-ts/vite"
+import {analyzeSourceTree} from "@qlivedev/qlive-ts/vite"
 
 import {createQueryTypeGenerator} from "./queryTypeGenerator.js"
 

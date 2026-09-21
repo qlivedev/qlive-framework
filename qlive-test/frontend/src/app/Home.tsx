@@ -1,4 +1,4 @@
-import {FilterDSL, useInjection} from "@quinscape/qlive-ts";
+import {FilterDSL, useInjection} from "@qlivedev/qlive-ts";
 import {Q_Foo, Q_FooResult} from "./Q_Foo";
 
 const {field, value} = FilterDSL;

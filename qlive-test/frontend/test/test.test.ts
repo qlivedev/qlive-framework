@@ -1,5 +1,5 @@
 import {test} from "vitest"
-import {FilterDSL} from "@quinscape/qlive-ts"
+import {FilterDSL} from "@qlivedev/qlive-ts"
 
 const {field, value, or} = FilterDSL
 

@@ -5,7 +5,7 @@ import {fileURLToPath} from "node:url"
 import {describe, expect, it} from "vitest"
 
 import {buildSchema} from "graphql"
-import {analyzeSourceTree} from "@quinscape/qlive-ts/vite"
+import {analyzeSourceTree} from "@qlivedev/qlive-ts/vite"
 
 import {
     analyzeGraphQLQuery,
@@ -192,7 +192,7 @@ describe("query documents", () => {
 
 
     it("mixes the document methods into a document result", () => {
-        const rendered = renderModule(moduleInfo(`import { GraphQLQuery, } from "@quinscape/qlive-ts";\n\n`),
+        const rendered = renderModule(moduleInfo(`import { GraphQLQuery, } from "@qlivedev/qlive-ts";\n\n`),
             "TestFooDocument", true)
 
         // the document is a QueryDocument instance in the application, so update() is in its type
@@ -201,13 +201,13 @@ describe("query documents", () => {
         )
         // .. and the name it needs for that is imported without the user having to think of it
         expect(rendered).toContain(
-            `import { GraphQLQuery, QueryDocumentMethods } from "@quinscape/qlive-ts";`
+            `import { GraphQLQuery, QueryDocumentMethods } from "@qlivedev/qlive-ts";`
         )
     })
 
 
     it("leaves a plain result to itself", () => {
-        const rendered = renderModule(moduleInfo(`import { GraphQLQuery } from "@quinscape/qlive-ts";\n\n`),
+        const rendered = renderModule(moduleInfo(`import { GraphQLQuery } from "@qlivedev/qlive-ts";\n\n`),
             "TestFoo", false)
 
         expect(rendered).toContain("export type Q_TestResult = TestFoo\n")
@@ -234,21 +234,21 @@ describe("query documents", () => {
 
     it("imports the document methods without piling up imports", () => {
         // joins an existing import, keeping its formatting
-        expect(withDocumentMethodsImport(`import { GraphQLQuery } from "@quinscape/qlive-ts";\n`))
-            .toBe(`import { GraphQLQuery, QueryDocumentMethods } from "@quinscape/qlive-ts";\n`)
+        expect(withDocumentMethodsImport(`import { GraphQLQuery } from "@qlivedev/qlive-ts";\n`))
+            .toBe(`import { GraphQLQuery, QueryDocumentMethods } from "@qlivedev/qlive-ts";\n`)
 
-        expect(withDocumentMethodsImport(`import {\n    GraphQLQuery,\n    inject\n} from "@quinscape/qlive-ts";\n`))
-            .toBe(`import {\n    GraphQLQuery,\n    inject, QueryDocumentMethods\n} from "@quinscape/qlive-ts";\n`)
+        expect(withDocumentMethodsImport(`import {\n    GraphQLQuery,\n    inject\n} from "@qlivedev/qlive-ts";\n`))
+            .toBe(`import {\n    GraphQLQuery,\n    inject, QueryDocumentMethods\n} from "@qlivedev/qlive-ts";\n`)
 
         // adds an import of its own if the module does not import from the package yet
         expect(withDocumentMethodsImport(`import { Foo } from "./types";\n`))
-            .toBe(`import { QueryDocumentMethods } from "@quinscape/qlive-ts";\nimport { Foo } from "./types";\n`)
+            .toBe(`import { QueryDocumentMethods } from "@qlivedev/qlive-ts";\nimport { Foo } from "./types";\n`)
 
         // and leaves the module alone once the name is there, so repeated updates do not pile up imports
-        const alreadyImported = `import { GraphQLQuery, QueryDocumentMethods } from "@quinscape/qlive-ts";\n`
+        const alreadyImported = `import { GraphQLQuery, QueryDocumentMethods } from "@qlivedev/qlive-ts";\n`
         expect(withDocumentMethodsImport(alreadyImported)).toBe(alreadyImported)
 
-        const typeOnly = `import type { QueryDocumentMethods } from "@quinscape/qlive-ts";\n`
+        const typeOnly = `import type { QueryDocumentMethods } from "@qlivedev/qlive-ts";\n`
         expect(withDocumentMethodsImport(typeOnly)).toBe(typeOnly)
     })
 })

@@ -14,7 +14,7 @@ The client-side counterpart is declaration merging -- name your addenda
 once and they are typed everywhere the application reads `config().meta`:
 
 ```ts
-declare module "@quinscape/qlive-ts" {
+declare module "@qlivedev/qlive-ts" {
     interface DomainQLMeta {
         quickSearchTypes: string[]
     }

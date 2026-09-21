@@ -174,7 +174,7 @@
             <phase>generate-resources</phase>
             <configuration>
               <workingDirectory>${project.basedir}/..</workingDirectory>
-              <arguments>--filter @quinscape/qlive-ts run build</arguments>
+              <arguments>--filter @qlivedev/qlive-ts run build</arguments>
             </configuration>
           </execution>
           <execution>

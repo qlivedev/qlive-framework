@@ -1,4 +1,4 @@
-import { GraphQLQuery, QueryDocumentMethods } from "@quinscape/qlive-ts";
+import { GraphQLQuery, QueryDocumentMethods } from "@qlivedev/qlive-ts";
 import {AppUser, Foo, FooDocument, FooType} from "../types";
 
 export type Q_FooResult = Pick<FooDocument,"type" | "config"> & {

@@ -11,7 +11,7 @@ named type and runs in both directions -- QLive registers its own for
 replaces one the same way.
 
 ```ts
-import {registerConverter, Temporal} from "@quinscape/qlive-ts";
+import {registerConverter, Temporal} from "@qlivedev/qlive-ts";
 
 registerConverter("MyScalar", {
     fromServer: (value, type) => ...,
@@ -43,7 +43,7 @@ view may already have read a value through the old one.
 **A converter is never called with `null` or `undefined`.** QLive handles
 those before dispatching, so a converter does not have to.
 
-**Import `Temporal` from `@quinscape/qlive-ts`, never from
+**Import `Temporal` from `@qlivedev/qlive-ts`, never from
 `temporal-polyfill` directly.** A second copy of the polyfill produces
 instants that do not typecheck against the first -- which is also why an
 application does not add `temporal-polyfill` to its own dependencies.

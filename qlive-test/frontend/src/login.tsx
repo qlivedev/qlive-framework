@@ -1,7 +1,7 @@
 import * as React from "react";
-import { noSchema, startup} from "@quinscape/qlive-ts";
+import { noSchema, startup} from "@qlivedev/qlive-ts";
 
-import "@quinscape/qlive-ts/styles.css";
+import "@qlivedev/qlive-ts/styles.css";
 import "./style.css"
 
 noSchema();

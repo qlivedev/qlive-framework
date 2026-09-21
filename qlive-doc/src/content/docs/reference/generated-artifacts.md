@@ -19,7 +19,7 @@ rules below are what makes that derivation possible.
 ## Rules a query has to follow
 
 ```ts {11-24} title="src/app/Q_Foo.ts"
-import {GraphQLQuery, QueryDocumentMethods} from "@quinscape/qlive-ts";
+import {GraphQLQuery, QueryDocumentMethods} from "@qlivedev/qlive-ts";
 import {AppUser, Foo, FooDocument} from "../types";
 
 // generated
@@ -99,7 +99,7 @@ and a diff after either is how you notice a query that no longer matches
 the schema.
 
 The plugin generates whenever `schema.graphql` is next to your
-`vite.config.ts` and `@quinscape/qlive-codegen` is installed. Point it
+`vite.config.ts` and `@qlivedev/qlive-codegen` is installed. Point it
 elsewhere, or turn it off, with the plugin's `queryTypes` option. The
 `indexes` option of babel-plugin-track-usage has to stay on (it is by
 default) -- without the source offsets there is nowhere to patch.
@@ -107,7 +107,7 @@ default) -- without the source offsets there is nowhere to patch.
 So a new query is written like this, and nothing else:
 
 ```ts title="src/app/Q_Bar.ts"
-import {GraphQLQuery} from "@quinscape/qlive-ts";
+import {GraphQLQuery} from "@qlivedev/qlive-ts";
 
 export const Q_Bar = new GraphQLQuery(
     // language=GraphQL

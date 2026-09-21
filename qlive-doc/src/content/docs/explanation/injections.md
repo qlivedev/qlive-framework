@@ -10,7 +10,7 @@ result arrives inside the HTML document. It is what makes a QLive page
 complete when it paints.
 
 ```tsx
-import {useInjection} from "@quinscape/qlive-ts";
+import {useInjection} from "@qlivedev/qlive-ts";
 import {Q_Foo} from "./Q_Foo";
 
 export default function Home() {
@@ -175,7 +175,7 @@ it per type rather than declaring the same type twice.
 ## Reading the raw injection
 
 ```ts
-import {data} from "@quinscape/qlive-ts";
+import {data} from "@qlivedev/qlive-ts";
 
 const {value, type, meta} = data("Q_Foo");
 ```

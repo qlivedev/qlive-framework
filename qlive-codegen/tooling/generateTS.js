@@ -209,7 +209,7 @@ function generateTypeDefinitions(schemaPath, output)
         /*
             Generated types. Do *not* edit. Run "pnpm generate" to update from schema.graphql
         */
-        `) + (names.length ? `import { ${ names.join(", ") } } from "@quinscape/qlive-ts"\n\n` : "")
+        `) + (names.length ? `import { ${ names.join(", ") } } from "@qlivedev/qlive-ts"\n\n` : "")
 
         fs.writeFileSync(output, header + typeDefinitions.trimEnd() + "\n", "utf8");
     })

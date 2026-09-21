@@ -1,5 +1,5 @@
 import { Baz, BazDocument } from "../../types";
-import { GraphQLQuery, QueryDocumentMethods } from "@quinscape/qlive-ts";
+import { GraphQLQuery, QueryDocumentMethods } from "@qlivedev/qlive-ts";
 
 /**
  * Everything a Bar could be associated with, which is what the association editor offers. A list to pick

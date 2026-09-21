@@ -68,7 +68,7 @@ No custom `provides`/`requires` fields: npm's own `dependencies` /
 `peerDependencies` already express compatibility ranges, so the manifest
 doesn't need to reinvent that.
 
-**`@quinscape/qlive-ts` is a `peerDependency` of every module, never a
+**`@qlivedev/qlive-ts` is a `peerDependency` of every module, never a
 `dependency`.** `config()` is a module-level singleton and the
 converters register into module-level state, so a second resolved copy
 is not a heavier install, it is a module talking to a framework the

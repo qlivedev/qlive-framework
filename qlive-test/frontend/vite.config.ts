@@ -1,7 +1,7 @@
 import {defineConfig} from "vitest/config";
 import react from "@vitejs/plugin-react";
 import {fileURLToPath} from "node:url";
-import {trackUsage} from "@quinscape/qlive-ts/vite";
+import {trackUsage} from "@qlivedev/qlive-ts/vite";
 
 const rootDir = fileURLToPath(new URL("../..", import.meta.url));
 const qliveTsDir = fileURLToPath(new URL("../../qlive-ts/", import.meta.url));
@@ -16,15 +16,15 @@ const qliveTsDir = fileURLToPath(new URL("../../qlive-ts/", import.meta.url));
 // (bad exports map, missing emitted file) surface at build time, not in dev.
 // `pnpm build` runs that build, so CI still catches them.
 //
-// The "@quinscape/qlive-ts/vite" import above is the exception: this file is loaded by Node
+// The "@qlivedev/qlive-ts/vite" import above is the exception: this file is loaded by Node
 // before any of these aliases exist, so it always comes from dist. Editing the plugin means
 // rebuilding qlive-ts, which is why the root `dev` script does that first.
 
 // Subpath entries first: a string alias matches on prefix, so the bare one would swallow them.
 const devAliases = {
-    "@quinscape/qlive-ts/styles.css": qliveTsDir + "src/styles/qlive.css",
-    "@quinscape/qlive-ts/filter": qliveTsDir + "src/filter.ts",
-    "@quinscape/qlive-ts": qliveTsDir + "src/index.ts",
+    "@qlivedev/qlive-ts/styles.css": qliveTsDir + "src/styles/qlive.css",
+    "@qlivedev/qlive-ts/filter": qliveTsDir + "src/filter.ts",
+    "@qlivedev/qlive-ts": qliveTsDir + "src/index.ts",
 };
 
 const backendOrigin = "http://localhost:8080";

@@ -1,6 +1,6 @@
 {
   "_comment": [
-    "Which public export of @quinscape/qlive-ts is looked up on which generated page,",
+    "Which public export of @qlivedev/qlive-ts is looked up on which generated page,",
     "and in which order it appears there. Read by tooling/generateApiDocs.mjs.",
     "",
     "Grouped by the subject a reader has in mind, not by source module: module",

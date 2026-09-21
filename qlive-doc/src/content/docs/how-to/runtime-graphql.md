@@ -26,7 +26,7 @@ source, [the same rules](/qlive-framework/reference/generated-artifacts/) --
 and call `execute()` on it:
 
 ```typescript
-import {field, value} from "@quinscape/qlive-ts/filter"
+import {field, value} from "@qlivedev/qlive-ts/filter"
 import Q_FooDetail from "./Q_FooDetail"
 
     // ... detailId is the id of the Foo you want to load in detail
@@ -56,7 +56,7 @@ For the cases that do not fit -- several top-level selections, or you want
 the wire format -- there is `graphql()`:
 
 ```ts
-import graphql, {firstValue} from "@quinscape/qlive-ts";
+import graphql, {firstValue} from "@qlivedev/qlive-ts";
 
 const data = await graphql(query, params);   // the whole "data" object
 ```

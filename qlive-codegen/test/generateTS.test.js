@@ -10,7 +10,7 @@ const schema = path.join(packageDir, "test", "schema.graphql")
 
 /*
  * Generated inside the package rather than in the system temp directory: the
- * output imports @quinscape/qlive-ts, and only a path under qlive-codegen has
+ * output imports @qlivedev/qlive-ts, and only a path under qlive-codegen has
  * the node_modules chain that resolves it.
  */
 const outDir = path.join(packageDir, "test", ".tmp")
@@ -68,7 +68,7 @@ describe("generated type definitions", () => {
         // DomainObject is absent on purpose: the file declares its own, as the
         // union of the schema's object types.
         expect(generated).toContain(
-            'import { FilterDSL, GenericScalar, QueryConfig, Temporal } from "@quinscape/qlive-ts"'
+            'import { FilterDSL, GenericScalar, QueryConfig, Temporal } from "@qlivedev/qlive-ts"'
         )
         expect(generated).toContain("export type DomainObject =")
     })

@@ -1,6 +1,6 @@
 /*
  * Generates the API reference pages of qlive-doc from the public declarations of
- * @quinscape/qlive-ts.
+ * @qlivedev/qlive-ts.
  *
  * The doc comments in the source are the reference text. Keeping a second copy of
  * them by hand means the copy is wrong the first time a signature changes and
@@ -20,7 +20,7 @@
  * prose fragment, qlive-doc/src/content/apiExtra/<symbol path>.md -- see
  * readExtras below.
  *
- * Reads the build output, so run `pnpm --filter @quinscape/qlive-ts build` first.
+ * Reads the build output, so run `pnpm --filter @qlivedev/qlive-ts build` first.
  *
  * Usage: node tooling/generateApiDocs.mjs [--check]
  *
@@ -767,7 +767,7 @@ const undocumented = [...exportedNames(dtsPath)].filter(name =>
 });
 if (undocumented.length > 0)
 {
-    console.error(`${undocumented.length} exports of @quinscape/qlive-ts are on no page:\n`);
+    console.error(`${undocumented.length} exports of @qlivedev/qlive-ts are on no page:\n`);
     for (const name of undocumented)
     {
         console.error("  " + name);

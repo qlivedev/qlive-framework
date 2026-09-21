@@ -1,4 +1,4 @@
-import { PubSubConnection, useDocumentWatch, useInjection } from "@quinscape/qlive-ts";
+import { PubSubConnection, useDocumentWatch, useInjection } from "@qlivedev/qlive-ts";
 import { useSyncExternalStore } from "react";
 import { Q_BarNames, Q_BarNamesResult } from "./Q_BarNames";
 

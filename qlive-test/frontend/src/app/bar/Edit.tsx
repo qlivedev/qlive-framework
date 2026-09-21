@@ -6,7 +6,7 @@ import {
     useMerge,
     useWorkingSet,
     WorkingSet
-} from "@quinscape/qlive-ts";
+} from "@qlivedev/qlive-ts";
 import { Q_Bar, Q_BarResult } from "./Q_Bar";
 import { Q_BazList, Q_BazListResult } from "./Q_BazList";
 

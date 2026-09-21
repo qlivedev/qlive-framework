@@ -14,10 +14,10 @@ page in `qlive-test` is the worked example.
 ## What the main one looks like
 
 ```tsx {9-13} title="main.tsx"
-import "@quinscape/qlive-ts/styles.css";
+import "@qlivedev/qlive-ts/styles.css";
 import "./style.css";
 
-import {startup} from "@quinscape/qlive-ts";
+import {startup} from "@qlivedev/qlive-ts";
 import Landing from "./component/Landing";
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -88,7 +88,7 @@ to create a separate admin area that is logically separated from the normal appl
 and is served from a `/admin/**` requiring ROLE_ADMIN or so.
 
 ```tsx title="src/another.tsx"
-import {startup} from "@quinscape/qlive-ts";
+import {startup} from "@qlivedev/qlive-ts";
 
 document.addEventListener("DOMContentLoaded", async () => {
     await startup({
@@ -117,7 +117,7 @@ Token to send to submit your forms or know which user is logged in with which ro
 See [noSchema() in the API reference](/qlive-framework/api/startup-and-config/#noschema) for details on the reduced bootstrap.
 
 ```tsx title="src/simplified.tsx"
-import {noSchema, startup} from "@quinscape/qlive-ts";
+import {noSchema, startup} from "@qlivedev/qlive-ts";
 
 noSchema();
 

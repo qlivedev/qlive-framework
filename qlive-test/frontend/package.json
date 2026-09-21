@@ -1,5 +1,5 @@
 {
-  "name": "@quinscape/qlive-test-frontend",
+  "name": "@qlivedev/qlive-test-frontend",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -12,12 +12,12 @@
     "generate:schema": "generate-schema http://localhost:8080 schema.graphql"
   },
   "dependencies": {
-    "@quinscape/qlive-ts": "workspace:*",
+    "@qlivedev/qlive-ts": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@quinscape/qlive-codegen": "workspace:*",
+    "@qlivedev/qlive-codegen": "workspace:*",
     "@types/node": "^26.4.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",

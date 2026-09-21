@@ -8,9 +8,9 @@
 
     Written by ExampleMetadataProvider on the Java side.
 */
-import "@quinscape/qlive-ts"
+import "@qlivedev/qlive-ts"
 
-declare module "@quinscape/qlive-ts" {
+declare module "@qlivedev/qlive-ts" {
 
     interface DomainQLMeta {
 

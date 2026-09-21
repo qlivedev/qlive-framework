@@ -71,5 +71,5 @@ The rest is grouped by what you came for:
   refreshing the schema after a domain change, adding an entry point.
 - **Reference** -- the application layout, and the artifacts the codegen
   writes. Meant to be looked up, not read.
-- **API** -- every export of `@quinscape/qlive-ts`, generated from the
+- **API** -- every export of `@qlivedev/qlive-ts`, generated from the
   declarations themselves.

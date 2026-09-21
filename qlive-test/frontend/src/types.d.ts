@@ -1,7 +1,7 @@
 /*
     Generated types. Do *not* edit. Run "pnpm generate" to update from schema.graphql
 */
-import { GenericScalar, QueryConfig, Temporal } from "@quinscape/qlive-ts"
+import { GenericScalar, QueryConfig, Temporal } from "@qlivedev/qlive-ts"
 
 /** How a merge ended.
 

@@ -95,10 +95,13 @@
       <version>3.19.30</version>
     </dependency>
 
+    <!-- build time only: reaches DomainObjectGeneratorStrategy for the jOOQ code
+         generator below. Nothing in qlive compiles against it -->
     <dependency>
       <groupId>org.jooq</groupId>
       <artifactId>jooq-codegen</artifactId>
       <version>3.19.30</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -183,9 +186,29 @@
             <phase>generate-resources</phase>
           </execution>
         </executions>
+        <!-- DocsExtractor's parser dependencies are optional in qlive-graphql, so they
+             ride on the plugin rather than on the module that is being built -->
+        <dependencies>
+          <dependency>
+            <groupId>com.github.javaparser</groupId>
+            <artifactId>javaparser-core</artifactId>
+            <version>3.28.2</version>
+          </dependency>
+          <dependency>
+            <groupId>com.beust</groupId>
+            <artifactId>jcommander</artifactId>
+            <version>1.75</version>
+          </dependency>
+          <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.7</version>
+          </dependency>
+        </dependencies>
         <configuration>
           <mainClass>io.github.qlivedev.graphql.docs.DocsExtractor</mainClass>
           <classpathScope>test</classpathScope>
+          <includePluginDependencies>true</includePluginDependencies>
           <arguments>
             <argument>--sourceRoot</argument>
             <argument>${project.basedir}/src/main/java</argument>

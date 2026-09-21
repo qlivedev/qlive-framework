@@ -11,7 +11,7 @@ import io.github.qlivedev.model.merge.MergeStatus;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.merge.MergeService;
 import io.github.qlivedev.runtime.merge.VersionHolder;
-import de.quinscape.domainql.generic.GenericScalar;
+import io.github.qlivedev.graphql.generic.GenericScalar;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.junit.jupiter.api.AfterEach;

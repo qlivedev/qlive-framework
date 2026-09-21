@@ -11,7 +11,7 @@ import io.github.qlivedev.runtime.push.ConnectionListener;
 import io.github.qlivedev.runtime.push.PushMessageHandler;
 import io.github.qlivedev.runtime.push.Recipient;
 import io.github.qlivedev.runtime.scalar.ConditionCoercing;
-import de.quinscape.domainql.DomainQL;
+import io.github.qlivedev.graphql.DomainQL;
 import graphql.GraphQLContext;
 
 import java.util.Locale;

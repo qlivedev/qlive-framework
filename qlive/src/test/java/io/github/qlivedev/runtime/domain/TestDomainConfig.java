@@ -1,10 +1,10 @@
 package io.github.qlivedev.runtime.domain;
 
 import io.github.qlivedev.runtime.meta.QueryConfigMetadataProvider;
-import de.quinscape.domainql.DomainQL;
-import de.quinscape.domainql.config.SourceField;
-import de.quinscape.domainql.config.TargetField;
-import de.quinscape.domainql.meta.MetadataProvider;
+import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.config.SourceField;
+import io.github.qlivedev.graphql.config.TargetField;
+import io.github.qlivedev.graphql.meta.MetadataProvider;
 import io.github.qlivedev.testdomain.Public;
 
 import java.util.Collection;

@@ -280,7 +280,7 @@ interface DomainQLMeta
 Domain meta information from DomainQL.
 
 Declared as an interface, not a type alias, so that an application can extend it. The server-side
-de.quinscape.domainql.meta.DomainQLMeta is an open map that every MetadataProvider bean adds its own addenda to,
+io.github.qlivedev.graphql.meta.DomainQLMeta is an open map that every MetadataProvider bean adds its own addenda to,
 and declaration merging is the client-side equivalent: name the addenda your providers write once and they are
 typed at every place the application reads config().meta.
 

@@ -58,9 +58,15 @@
     </dependency>
 
     <dependency>
-      <groupId>de.quinscape.domainql</groupId>
-      <artifactId>domainql</artifactId>
-      <version>0.3.1-SNAPSHOT</version>
+      <groupId>io.github.qlivedev</groupId>
+      <artifactId>qlive-api</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.github.qlivedev</groupId>
+      <artifactId>qlive-graphql</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
     </dependency>
 
     <dependency>
@@ -183,7 +189,7 @@
           </execution>
         </executions>
         <configuration>
-          <mainClass>de.quinscape.domainql.docs.DocsExtractor</mainClass>
+          <mainClass>io.github.qlivedev.graphql.docs.DocsExtractor</mainClass>
           <classpathScope>test</classpathScope>
           <arguments>
             <argument>--sourceRoot</argument>
@@ -274,7 +280,7 @@
             </generate>
             <strategy>
               <name>
-                de.quinscape.domainql.jooq.DomainObjectGeneratorStrategy
+                io.github.qlivedev.graphql.jooq.DomainObjectGeneratorStrategy
               </name>
             </strategy>
           </generator>

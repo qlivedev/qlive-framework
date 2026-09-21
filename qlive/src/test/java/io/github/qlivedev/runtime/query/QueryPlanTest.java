@@ -4,7 +4,7 @@ import io.github.qlivedev.model.QueryConfig;
 import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.domain.TestDomainConfig;
-import de.quinscape.domainql.DomainQL;
+import io.github.qlivedev.graphql.DomainQL;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;

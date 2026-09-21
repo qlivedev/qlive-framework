@@ -1,10 +1,10 @@
 package io.github.qlivedev.runtime.meta;
 
 import io.github.qlivedev.runtime.util.Util;
-import de.quinscape.domainql.DomainQL;
-import de.quinscape.domainql.GenericTypeReference;
-import de.quinscape.domainql.OutputType;
-import de.quinscape.domainql.meta.DomainQLTypeMeta;
+import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.GenericTypeReference;
+import io.github.qlivedev.graphql.OutputType;
+import io.github.qlivedev.graphql.meta.DomainQLTypeMeta;
 
 import java.util.Map;
 import java.util.Optional;

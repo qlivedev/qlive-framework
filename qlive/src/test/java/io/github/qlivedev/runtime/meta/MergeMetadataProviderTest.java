@@ -5,8 +5,8 @@ import io.github.qlivedev.runtime.domain.TestDomainConfig;
 import io.github.qlivedev.runtime.domain.TestLogic;
 import io.github.qlivedev.testdomain.tables.pojos.TestFoo;
 import io.github.qlivedev.testdomain.tables.pojos.TestUser;
-import de.quinscape.domainql.DomainQL;
-import de.quinscape.domainql.meta.MetadataProvider;
+import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.meta.MetadataProvider;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

@@ -2,7 +2,7 @@ package io.github.qlivedev.runtime.service;
 
 import io.github.qlivedev.model.QueryConfig;
 import io.github.qlivedev.runtime.meta.QueryConfigMeta;
-import de.quinscape.domainql.DomainQL;
+import io.github.qlivedev.graphql.DomainQL;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLTypeUtil;
 

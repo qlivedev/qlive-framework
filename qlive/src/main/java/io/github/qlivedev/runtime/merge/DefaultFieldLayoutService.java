@@ -2,7 +2,7 @@ package io.github.qlivedev.runtime.merge;
 
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.meta.MergeMeta;
-import de.quinscape.domainql.DomainQL;
+import io.github.qlivedev.graphql.DomainQL;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;

@@ -1,9 +1,9 @@
 package io.github.qlivedev.runtime.util;
 
 import io.github.qlivedev.runtime.QLiveException;
-import de.quinscape.domainql.DomainQL;
-import de.quinscape.domainql.GenericTypeReference;
-import de.quinscape.domainql.meta.DomainQLTypeMeta;
+import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.GenericTypeReference;
+import io.github.qlivedev.graphql.meta.DomainQLTypeMeta;
 import io.github.qlivedev.model.QueryDocument;
 import org.jooq.tools.StringUtils;
 
@@ -91,7 +91,7 @@ public class Util
     /// The meta data of the given type, or `null` where the domain has none for it.
     ///
     /// Answers rather than throws, which is the reason to go through this rather than through [
-    /// de.quinscape.domainql.meta.DomainQLMeta#getTypeMeta(String)]: that one raises on an unknown name, and
+    /// io.github.qlivedev.graphql.meta.DomainQLMeta#getTypeMeta(String)]: that one raises on an unknown name, and
     /// asking about a name that may be no type at all is what every reader of type meta data does.
     ///
     /// @param typeName  name of a GraphQL type, known or not

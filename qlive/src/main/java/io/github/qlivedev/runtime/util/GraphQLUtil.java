@@ -1,6 +1,6 @@
 package io.github.qlivedev.runtime.util;
 
-import de.quinscape.domainql.DomainQL;
+import io.github.qlivedev.graphql.DomainQL;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;

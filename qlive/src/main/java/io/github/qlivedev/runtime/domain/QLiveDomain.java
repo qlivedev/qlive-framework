@@ -1,16 +1,16 @@
 package io.github.qlivedev.runtime.domain;
 
-import de.quinscape.domainql.DomainQL;
-import de.quinscape.domainql.DomainQLBuilder;
-import de.quinscape.domainql.generic.DomainObject;
-import de.quinscape.domainql.generic.DomainObjectScalar;
-import de.quinscape.domainql.generic.GenericScalar;
-import de.quinscape.domainql.generic.GenericScalarType;
-import de.quinscape.domainql.jsonb.JSONB;
-import de.quinscape.domainql.jsonb.JSONBScalar;
-import de.quinscape.domainql.meta.MetadataProvider;
-import de.quinscape.domainql.scalar.BigDecimalScalar;
-import de.quinscape.domainql.scalar.BigIntegerScalar;
+import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.DomainQLBuilder;
+import io.github.qlivedev.graphql.generic.DomainObject;
+import io.github.qlivedev.graphql.generic.DomainObjectScalar;
+import io.github.qlivedev.graphql.generic.GenericScalar;
+import io.github.qlivedev.graphql.generic.GenericScalarType;
+import io.github.qlivedev.graphql.jsonb.JSONB;
+import io.github.qlivedev.graphql.jsonb.JSONBScalar;
+import io.github.qlivedev.graphql.meta.MetadataProvider;
+import io.github.qlivedev.graphql.scalar.BigDecimalScalar;
+import io.github.qlivedev.graphql.scalar.BigIntegerScalar;
 import io.github.qlivedev.model.QueryConfig;
 import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.runtime.scalar.ComputedValueCoercing;

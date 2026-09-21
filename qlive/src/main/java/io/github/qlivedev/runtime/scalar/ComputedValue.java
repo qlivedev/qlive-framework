@@ -1,6 +1,6 @@
 package io.github.qlivedev.runtime.scalar;
 
-import de.quinscape.domainql.generic.GenericScalar;
+import io.github.qlivedev.graphql.generic.GenericScalar;
 import org.svenson.JSONTypeHint;
 
 import java.util.Collections;

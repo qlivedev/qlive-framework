@@ -9,7 +9,7 @@ import io.github.qlivedev.model.condition.Value;
 import io.github.qlivedev.model.condition.Values;
 import io.github.qlivedev.runtime.domain.TestDomainConfig;
 import io.github.qlivedev.runtime.domain.TestLogic;
-import de.quinscape.domainql.DomainQL;
+import io.github.qlivedev.graphql.DomainQL;
 import graphql.GraphQLContext;
 import graphql.schema.Coercing;
 import graphql.schema.GraphQLScalarType;

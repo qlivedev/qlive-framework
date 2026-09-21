@@ -1,7 +1,7 @@
 package io.github.qlivedev.runtime.merge;
 
 import io.github.qlivedev.runtime.QLiveException;
-import de.quinscape.domainql.DomainQL;
+import io.github.qlivedev.graphql.DomainQL;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLObjectType;

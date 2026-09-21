@@ -2,7 +2,7 @@ package io.github.qlivedev.runtime.meta;
 
 import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.runtime.scalar.ConditionCoercing;
-import de.quinscape.domainql.DomainQL;
+import io.github.qlivedev.graphql.DomainQL;
 import graphql.GraphQLContext;
 
 import java.util.LinkedHashMap;

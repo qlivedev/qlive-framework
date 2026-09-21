@@ -1,6 +1,6 @@
 package io.github.qlivedev.model.bootstrap;
 
-import de.quinscape.domainql.meta.DomainQLMeta;
+import io.github.qlivedev.graphql.meta.DomainQLMeta;
 
 import java.util.Map;
 

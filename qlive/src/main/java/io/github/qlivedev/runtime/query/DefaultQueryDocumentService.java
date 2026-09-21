@@ -3,7 +3,7 @@ package io.github.qlivedev.runtime.query;
 import io.github.qlivedev.model.QueryConfig;
 import io.github.qlivedev.model.QueryDocument;
 import io.github.qlivedev.runtime.meta.QueryConfigMeta;
-import de.quinscape.domainql.DomainQL;
+import io.github.qlivedev.graphql.DomainQL;
 import graphql.GraphQL;
 import graphql.schema.DataFetchingEnvironment;
 import org.jooq.DSLContext;

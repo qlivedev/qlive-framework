@@ -16,7 +16,7 @@ package io.github.qlivedev.runtime.service;
 ///
 /// Types are matched by name and by nothing else, so {@link #handles(String)} is free to answer for a whole
 /// family of them: a processor for every query document of the domain asks
-/// {@link io.github.qlivedev.runtime.util.Util#isQueryDocumentType(de.quinscape.domainql.DomainQL, String)}
+/// {@link io.github.qlivedev.runtime.util.Util#isQueryDocumentType(io.github.qlivedev.graphql.DomainQL, String)}
 /// instead of naming any of them.
 public interface InjectionArgumentProcessor
 {

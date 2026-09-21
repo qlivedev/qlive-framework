@@ -1,6 +1,6 @@
 package io.github.qlivedev.runtime.merge;
 
-import de.quinscape.domainql.scalar.TimestampScalar;
+import io.github.qlivedev.graphql.scalar.TimestampScalar;
 import org.svenson.JSONProperty;
 
 import java.math.BigInteger;

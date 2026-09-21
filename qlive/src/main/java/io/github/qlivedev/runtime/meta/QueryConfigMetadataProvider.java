@@ -2,10 +2,10 @@ package io.github.qlivedev.runtime.meta;
 
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.util.Util;
-import de.quinscape.domainql.DomainQL;
-import de.quinscape.domainql.OutputType;
-import de.quinscape.domainql.meta.DomainQLMeta;
-import de.quinscape.domainql.meta.MetadataProvider;
+import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.OutputType;
+import io.github.qlivedev.graphql.meta.DomainQLMeta;
+import io.github.qlivedev.graphql.meta.MetadataProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

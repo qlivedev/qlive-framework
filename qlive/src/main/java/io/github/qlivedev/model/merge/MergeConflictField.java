@@ -1,6 +1,6 @@
 package io.github.qlivedev.model.merge;
 
-import de.quinscape.domainql.generic.GenericScalar;
+import io.github.qlivedev.graphql.generic.GenericScalar;
 import jakarta.validation.constraints.NotNull;
 
 /**

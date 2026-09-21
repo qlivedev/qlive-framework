@@ -6,7 +6,7 @@ import io.github.qlivedev.model.ts.TrackUsageData;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.QLivePaths;
 import io.github.qlivedev.runtime.util.GraphQLUtil;
-import de.quinscape.domainql.DomainQL;
+import io.github.qlivedev.graphql.DomainQL;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;

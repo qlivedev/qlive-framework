@@ -1,9 +1,9 @@
 package io.github.qlivedev.model.test;
 
-import de.quinscape.domainql.annotation.GraphQLField;
-import de.quinscape.domainql.generic.DomainObject;
-import de.quinscape.domainql.generic.GenericScalar;
-import de.quinscape.domainql.jsonb.JSONB;
+import io.github.qlivedev.graphql.annotation.GraphQLField;
+import io.github.qlivedev.graphql.generic.DomainObject;
+import io.github.qlivedev.graphql.generic.GenericScalar;
+import io.github.qlivedev.graphql.jsonb.JSONB;
 import io.github.qlivedev.model.QueryConfig;
 import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.runtime.scalar.ComputedValue;

@@ -24,7 +24,7 @@ import io.github.qlivedev.runtime.service.DefaultBootstrapService;
 import io.github.qlivedev.runtime.service.InjectionArgumentProcessor;
 import io.github.qlivedev.runtime.service.QueryConfigArgumentProcessor;
 import io.github.qlivedev.runtime.service.StaticAnalysisProvider;
-import de.quinscape.domainql.DomainQL;
+import io.github.qlivedev.graphql.DomainQL;
 import io.github.qlivedev.model.condition.ConditionParser;
 import graphql.GraphQL;
 import jakarta.servlet.ServletContext;

@@ -4,8 +4,8 @@ import io.github.qlivedev.model.merge.EntityChange;
 import io.github.qlivedev.model.merge.EntityDeletion;
 import io.github.qlivedev.model.merge.MergeConfig;
 import io.github.qlivedev.model.merge.MergeResult;
-import de.quinscape.domainql.annotation.GraphQLLogic;
-import de.quinscape.domainql.annotation.GraphQLMutation;
+import io.github.qlivedev.graphql.annotation.GraphQLLogic;
+import io.github.qlivedev.graphql.annotation.GraphQLMutation;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;

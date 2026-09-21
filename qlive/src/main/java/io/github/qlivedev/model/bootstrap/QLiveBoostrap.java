@@ -1,7 +1,7 @@
 package io.github.qlivedev.model.bootstrap;
 
 import io.github.qlivedev.runtime.auth.AppAuthentication;
-import de.quinscape.domainql.util.JSONHolder;
+import io.github.qlivedev.graphql.util.JSONHolder;
 import org.springframework.security.web.csrf.CsrfToken;
 
 import java.util.Map;

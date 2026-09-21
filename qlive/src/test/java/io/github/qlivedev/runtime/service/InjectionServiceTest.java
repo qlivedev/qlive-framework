@@ -7,7 +7,7 @@ import io.github.qlivedev.runtime.domain.TestDomainConfig;
 import io.github.qlivedev.runtime.domain.TestLogic;
 import io.github.qlivedev.runtime.meta.QueryConfigMetadataProvider;
 import io.github.qlivedev.testdomain.tables.pojos.TestFoo;
-import de.quinscape.domainql.DomainQL;
+import io.github.qlivedev.graphql.DomainQL;
 import io.github.qlivedev.runtime.util.JSONUtil;
 import graphql.GraphQL;
 import org.junit.jupiter.api.BeforeEach;

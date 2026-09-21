@@ -1,7 +1,7 @@
 package io.github.qlivedev.runtime.scalar;
 
-import de.quinscape.domainql.DomainQL;
-import de.quinscape.domainql.schema.DomainQLAware;
+import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.DomainQLAware;
 import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.model.condition.Field;
 import io.github.qlivedev.model.condition.Operation;

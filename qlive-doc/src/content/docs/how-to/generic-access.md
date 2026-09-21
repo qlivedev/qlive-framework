@@ -22,7 +22,7 @@ type GenericScalar = {
 The `type` contains the name of the actual scalar type and `value` an object matching that scalar type. 
 Note that the contained `value` is still validated against its normal validation rules.
                
-The java-side scala is `de.quinscape.domainql.generic.GenericScalar` which is defined as scalar in every
+The java-side scala is `io.github.qlivedev.graphql.generic.GenericScalar` which is defined as scalar in every
 QLive domain. So as soon as you use that type in any of your method objects, it will be picked up as scalar. 
 
 ## DomainObject
@@ -35,4 +35,4 @@ export type GenericDomainObject = {
   value: object
 }
 ```
-The java-side scalar is `de.quinscape.domainql.generic.DomainObject`
+The java-side scalar is `io.github.qlivedev.graphql.generic.DomainObject`

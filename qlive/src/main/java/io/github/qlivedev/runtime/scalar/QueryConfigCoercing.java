@@ -2,8 +2,8 @@ package io.github.qlivedev.runtime.scalar;
 
 import io.github.qlivedev.model.QueryConfig;
 import io.github.qlivedev.model.condition.CNode;
-import de.quinscape.domainql.DomainQL;
-import de.quinscape.domainql.schema.DomainQLAware;
+import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.DomainQLAware;
 import graphql.GraphQLContext;
 import graphql.execution.CoercedVariables;
 import graphql.language.Value;

@@ -2,7 +2,7 @@ package io.github.qlivedev.runtime.query;
 
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.query.condition.ExistsScope;
-import de.quinscape.domainql.config.RelationModel;
+import io.github.qlivedev.graphql.config.RelationModel;
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Record1;

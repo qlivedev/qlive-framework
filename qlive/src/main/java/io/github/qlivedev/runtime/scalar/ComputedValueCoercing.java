@@ -1,9 +1,9 @@
 package io.github.qlivedev.runtime.scalar;
 
-import de.quinscape.domainql.DomainQL;
-import de.quinscape.domainql.generic.GenericScalar;
-import de.quinscape.domainql.generic.GenericScalarCoercing;
-import de.quinscape.domainql.schema.DomainQLAware;
+import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.generic.GenericScalar;
+import io.github.qlivedev.graphql.generic.GenericScalarCoercing;
+import io.github.qlivedev.graphql.DomainQLAware;
 import graphql.schema.Coercing;
 import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;

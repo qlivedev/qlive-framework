@@ -13,7 +13,7 @@ import io.github.qlivedev.runtime.auth.AppAuthentication;
 import io.github.qlivedev.runtime.pubsub.EntityVersionPublisher;
 import io.github.qlivedev.runtime.pubsub.PubSubService;
 import io.github.qlivedev.runtime.push.Recipient;
-import de.quinscape.domainql.generic.GenericScalar;
+import io.github.qlivedev.graphql.generic.GenericScalar;
 import io.github.qlivedev.runtime.util.JSONUtil;
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.AfterEach;

@@ -4,7 +4,7 @@
 package io.github.qlivedev.qlivetest.domain.tables.pojos;
 
 
-import de.quinscape.domainql.jooq.GeneratedDomainObject;
+import io.github.qlivedev.graphql.jooq.GeneratedDomainObject;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

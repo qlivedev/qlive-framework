@@ -11,7 +11,7 @@
  *    is non-null exactly for the kinds whose Java class provides it, and null
  *    for all others.
  *  * which members are queried at all follows
- *    de.quinscape.domainql.util.IntrospectionUtil.INTROSPECTION_QUERY, which
+ *    io.github.qlivedev.graphql.util.IntrospectionUtil.INTROSPECTION_QUERY, which
  *    is what BootstrapService introspects with. It is narrower than the full
  *    introspection of the spec.
  */

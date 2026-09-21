@@ -1,8 +1,8 @@
 package io.github.qlivedev.runtime.domain;
 
-import de.quinscape.domainql.annotation.GraphQLLogic;
-import de.quinscape.domainql.annotation.GraphQLQuery;
-import de.quinscape.domainql.annotation.GraphQLTypeParam;
+import io.github.qlivedev.graphql.annotation.GraphQLLogic;
+import io.github.qlivedev.graphql.annotation.GraphQLQuery;
+import io.github.qlivedev.graphql.annotation.GraphQLTypeParam;
 import io.github.qlivedev.model.QueryConfig;
 import io.github.qlivedev.model.QueryDocument;
 import io.github.qlivedev.testdomain.tables.pojos.TestFoo;

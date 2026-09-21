@@ -46,15 +46,6 @@
       <version>3.0.2</version>
     </dependency>
 
-    <!--
-      One reference to spring-jsview's JSONUtil. It leaves when the facade moves down here and
-      the statics become real; see docs/design/dependency-consolidation.md.
-    -->
-    <dependency>
-      <groupId>de.quinscape</groupId>
-      <artifactId>spring-jsview</artifactId>
-      <version>1.2-SNAPSHOT</version>
-    </dependency>
   </dependencies>
 
   <build>

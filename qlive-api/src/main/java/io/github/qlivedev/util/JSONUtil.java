@@ -2,8 +2,10 @@ package io.github.qlivedev.util;
 
 import org.svenson.JSON;
 import org.svenson.JSONParser;
+import org.svenson.TypeAnalyzer;
 import org.svenson.info.JSONClassInfo;
 import org.svenson.info.JSONPropertyInfo;
+import org.svenson.info.JavaObjectPropertyInfo;
 import org.svenson.info.JavaObjectSupport;
 import org.svenson.util.JSONBeanUtil;
 
@@ -11,15 +13,14 @@ import java.lang.annotation.Annotation;
 
 /// QLive's entry point to svenson.
 ///
-/// Every member forwards to spring-jsview's `JSONUtil` rather than building its own, because exactly one
-/// [JavaObjectSupport] may exist in the process. `TypeAnalyzer.getClassInfo` caches by class alone --
-/// `holders.putIfAbsent(cls, holder)` -- and `ClassInfoHolder` analyzes lazily, so the second support to
-/// reach a class is not extra work but a support that is silently ignored for that class, with class
-/// loading order deciding which one answers. domainql resolves the spring-jsview class directly, so that
-/// is the instance everything here has to share.
+/// Exactly one [JavaObjectSupport] may exist in the process. `TypeAnalyzer.getClassInfo` caches by class
+/// alone -- `holders.putIfAbsent(cls, holder)` -- and `ClassInfoHolder` analyzes lazily, so a second
+/// support is not extra work but a support that is silently ignored for whichever classes the first one
+/// reached first, with class loading order deciding which answers. Everything that touches svenson goes
+/// through here for that reason, which is also why this lives in the lowest module.
 ///
-/// These become real implementations once domainql is vendored and its own references move here; see
-/// `docs/design/dependency-consolidation.md`.
+/// The generator is built on [#OBJECT_SUPPORT] rather than taken from `JSON.defaultJSON()`: that is
+/// svenson's process-wide singleton and it builds its own support, which would be a second one.
 public class JSONUtil
 {
     private JSONUtil()
@@ -27,29 +28,67 @@ public class JSONUtil
         // no instances
     }
 
-    public final static JavaObjectSupport OBJECT_SUPPORT = de.quinscape.spring.jsview.util.JSONUtil.OBJECT_SUPPORT;
+    public final static JavaObjectSupport OBJECT_SUPPORT = new JavaObjectSupport();
 
-    public final static JSON DEFAULT_GENERATOR = de.quinscape.spring.jsview.util.JSONUtil.DEFAULT_GENERATOR;
+    public final static JSON DEFAULT_GENERATOR;
 
-    public final static JSONParser DEFAULT_PARSER = de.quinscape.spring.jsview.util.JSONUtil.DEFAULT_PARSER;
+    public final static JSONParser DEFAULT_PARSER;
 
-    public final static JSONBeanUtil DEFAULT_UTIL = de.quinscape.spring.jsview.util.JSONUtil.DEFAULT_UTIL;
+    public final static JSONBeanUtil DEFAULT_UTIL;
+
+    static
+    {
+        final JSONParser parser = new JSONParser();
+        parser.setObjectSupport(OBJECT_SUPPORT);
+        DEFAULT_PARSER = parser;
+
+        final JSONBeanUtil util = new JSONBeanUtil();
+        util.setObjectSupport(OBJECT_SUPPORT);
+        DEFAULT_UTIL = util;
+
+        DEFAULT_GENERATOR = new JSON(OBJECT_SUPPORT, '"');
+    }
 
     /// Class info for the given type, analyzed through [#OBJECT_SUPPORT].
     public static JSONClassInfo getClassInfo(Class<?> cls)
     {
-        return de.quinscape.spring.jsview.util.JSONUtil.getClassInfo(cls);
+        return TypeAnalyzer.getClassInfo(OBJECT_SUPPORT, cls);
     }
 
     /// Pretty-prints the given JSON document.
     public static String formatJSON(String s)
     {
-        return de.quinscape.spring.jsview.util.JSONUtil.formatJSON(s);
+        return JSON.formatJSON(s);
     }
 
     /// Returns the annotation of the given type declared on the property's getter or setter, or `null`.
     public static <T extends Annotation> T findAnnotation(JSONPropertyInfo propertyInfo, Class<T> annoClass)
     {
-        return de.quinscape.spring.jsview.util.JSONUtil.findAnnotation(propertyInfo, annoClass);
+        if (!(propertyInfo instanceof JavaObjectPropertyInfo info))
+        {
+            throw new IllegalArgumentException(
+                "Invalid property info type: " + propertyInfo + ", must be " + JavaObjectPropertyInfo.class.getName()
+            );
+        }
+
+        if (info.isReadable())
+        {
+            final T getterAnno = info.getGetterMethod().getAnnotation(annoClass);
+            if (getterAnno != null)
+            {
+                return getterAnno;
+            }
+        }
+
+        if (info.isWriteable())
+        {
+            final T setterAnno = info.getSetterMethod().getAnnotation(annoClass);
+            if (setterAnno != null)
+            {
+                return setterAnno;
+            }
+        }
+
+        return null;
     }
 }

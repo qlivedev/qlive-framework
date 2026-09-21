@@ -86,11 +86,6 @@
       <version>3.0.2</version>
     </dependency>
 
-    <dependency>
-      <groupId>de.quinscape</groupId>
-      <artifactId>spring-jsview</artifactId>
-      <version>1.2-SNAPSHOT</version>
-    </dependency>
 
     <dependency>
       <groupId>org.jetbrains</groupId>

@@ -9,6 +9,16 @@
   <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
+  <inceptionYear>2026</inceptionYear>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
   <name>qlive-framework (parent)</name>
   <description>
     Maven reactor for the qlive framework developer monorepo. Builds qlive
@@ -41,6 +51,22 @@
   </dependencyManagement>
 
   <build>
+    <!-- LICENSE and NOTICE travel in every jar. Redeclaring src/main/resources is
+         what adding a second resource root to an inherited build costs -->
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <resource>
+        <directory>${maven.multiModuleProjectDirectory}</directory>
+        <targetPath>META-INF</targetPath>
+        <includes>
+          <include>LICENSE</include>
+          <include>NOTICE</include>
+        </includes>
+      </resource>
+    </resources>
+
     <pluginManagement>
       <plugins>
         <plugin>

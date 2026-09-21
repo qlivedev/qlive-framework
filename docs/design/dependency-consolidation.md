@@ -130,9 +130,27 @@ One dependency improvement falls out that the current boundary prevents:
 `docs/` splits. `TypeDoc`, `FieldDoc`, `ParamDoc` and the comparators are
 runtime -- `DomainQL` and `DomainQLBuilder` load typedocs to attach
 descriptions to the schema -- but only `DocsExtractor` touches javaparser,
-in one file. Move the extractor to the build tooling and `javaparser-core`
-leaves the runtime classpath, where it sits today only because domainql
-ships the extractor in the same jar.
+in one file. Separate the extractor from the runtime and `javaparser-core`
+leaves the classpath of every application, where it sits today only
+because domainql ships the extractor in the same jar.
+
+A module of its own was the obvious shape and turns out not to work. Both
+javaparser tests read Java sources through a path relative to the module
+being built, and `DomainQLTypeDocTest` needs the engine's jOOQ test schema
+as well as the extractor. A tools module above `qlive-graphql` cannot see
+either, and `qlive-graphql` cannot depend back on it. What does the job
+instead: `normalize` and its helpers -- pure list reshaping, and the only
+part `DomainQLBuilder` calls -- move to `TypeDocs`, and the parser
+dependencies become `<optional>`. The class stays in the jar for the build
+step that runs it, and nothing reaches an application.
+
+The same is true of `DomainObjectGeneratorStrategy`, which drags in
+`jooq-codegen` and `jooq-meta` for a class that only ever runs inside the
+jOOQ generator. Marking those optional as well takes about 3 MB off the
+runtime classpath between the two. The two modules that do run these steps
+carry the dependencies on the `exec` plugin under
+`includePluginDependencies`, which is also what an application should copy:
+a build-time tool belongs to the build, not to the dependency tree.
 
 **Do this as a move, not a rewrite.** Vendor the sources, repackage, prune
 the dead subsystem, keep behavior identical, get the tests green. Changing
@@ -219,10 +237,12 @@ narrows to a single line.
    with them. It has to follow step 3 rather than accompany it, so no
    commit in between has two supports. One line per static, because Step 1
    already moved every call site.
-5. Move `DocsExtractor` to the build tooling; drop `javaparser-core` from
-   the runtime classpath.
+5. Split `normalize` out of `DocsExtractor`; mark the parser and generator
+   dependencies optional so they stop reaching applications.
 6. Regenerate `qlive-typedocs.json` and repoint the jOOQ generator strategy
    in `qlive/pom.xml`.
+7. Add `LICENSE` and `NOTICE`, and the `package-info.java` notices where
+   the vendored tree begins.
 
 spring-jsview then disappears entirely -- a 46 KB jar reduced to one class
 we own -- and the unpublished SNAPSHOT dependencies go with it.

@@ -1,0 +1,48 @@
+QLive
+Copyright 2026 Sven Helmberger
+
+This product derived in parts from software developed at Quinscape GmbH.
+
+
+DomainQL
+--------
+
+The packages io.github.qlivedev.graphql.* in qlive-api and qlive-graphql
+are derived from DomainQL, Copyright 2018 Quinscape GmbH, licensed under
+the Apache License, Version 2.0.
+
+    https://github.com/quinscape/domainql
+
+Vendored from commit cea405177c684d16e68a3081f6efbd1dfbbd5204 of the
+branch fix/timestamp-scalar-utc, which descends from master at
+b90996a89bbca4e992ba6e35cdd0e90cec9cf0d2 and adds two fixes that were
+never published upstream: the timestamp scalar serializing as the UTC it
+claims, and a null jsonb column deserializing as null.
+
+Changed from that commit:
+
+  - repackaged from de.quinscape.domainql.* to io.github.qlivedev.graphql.*
+  - split across two Maven modules, qlive-api and qlive-graphql
+  - the DDL generation subsystem and its command line removed, along with
+    the model and schema packages that only served it
+  - the dependency on de.quinscape:spring-jsview replaced by QLive's own
+    io.github.qlivedev.util.JSONUtil
+  - built against graphql-java 25, jOOQ 3.19 and jakarta.servlet, where
+    the original used graphql-java 20, jOOQ 3.17 and javax.servlet
+  - GraphQL subscription support dropped; QLive pushes over its own
+    websocket connection
+  - tests migrated from JUnit 4 to JUnit Jupiter
+
+
+spring-jsview
+-------------
+
+io.github.qlivedev.util.JSONUtil in qlive-api is derived from the class of
+the same name in spring-jsview, Copyright Quinscape GmbH, licensed under
+the Apache License, Version 2.0.
+
+    https://github.com/quinscape/spring-jsview
+
+Changed: reduced to what QLive uses, and the single shared svenson
+JavaObjectSupport is constructed here rather than taken from svenson's
+process-wide default.

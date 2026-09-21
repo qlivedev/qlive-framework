@@ -13,6 +13,10 @@ import java.lang.annotation.Annotation;
 
 /// QLive's entry point to svenson.
 ///
+/// Derived from the class of the same name in spring-jsview, Copyright Quinscape
+/// GmbH, used under the Apache License, Version 2.0. See the NOTICE file at the
+/// root of this repository.
+///
 /// Exactly one [JavaObjectSupport] may exist in the process. `TypeAnalyzer.getClassInfo` caches by class
 /// alone -- `holders.putIfAbsent(cls, holder)` -- and `ClassInfoHolder` analyzes lazily, so a second
 /// support is not extra work but a support that is silently ignored for whichever classes the first one

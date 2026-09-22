@@ -173,7 +173,7 @@ public class DomainQL
         // we store the unmodifiable version in the field 
         this.relationModels = Collections.unmodifiableList(relationModels);
 
-        this.typeRegistry = new TypeRegistry(this, additionalScalarTypes);
+        this.typeRegistry = new TypeRegistry(additionalScalarTypes);
 
         this.jooqTables = jooqTables;
         this.jooqTablesRO = Collections.unmodifiableMap(jooqTables);
@@ -238,11 +238,6 @@ public class DomainQL
         }
     }
 
-
-    Map<String, Field<?>> getFieldLookup()
-    {
-        return dbFieldLookup;
-    }
 
 
     public Field<?> lookupField(String domainType, String property)
@@ -353,11 +348,6 @@ public class DomainQL
         }
     }
 
-
-    public Set<GraphQLDirective> getAdditionalDirectives()
-    {
-        return additionalDirectives;
-    }
 
 
     public static String getInputTypeName(Class<?> parameterType)
@@ -1999,17 +1989,6 @@ public class DomainQL
     }
 
 
-    public Options getOptions()
-    {
-        return options;
-    }
-
-
-    public Set<Object> getLogicBeans()
-    {
-        return logicBeans;
-    }
-
 
     public Table<?> getJooqTable(String domainType)
     {
@@ -2045,57 +2024,12 @@ public class DomainQL
     }
 
 
-    /**
-     * Returns the relation model with the given id.
-     *
-     * @param id id
-     *
-     * @return relation model with the given id
-     *
-     * @throws DomainQLException if there is no relation model with the given id.
-     */
-    public RelationModel getRelationModel(String id)
-    {
-        for (RelationModel relationModel : relationModels)
-        {
-            if (relationModel.getId().equals(id))
-            {
-                return relationModel;
-            }
-        }
-        throw new DomainQLException(
-            "Relation with id '" + id + "' not found. " +
-                "Valid relations are: " + relationModels.stream()
-                .map(r -> "'" + r.getId() + "'")
-                .collect(
-                    Collectors.joining(", ")
-                )
-        );
-    }
-
-
-    public Set<GraphQLFieldDefinition> getAdditionalQueries()
-    {
-        return additionalQueries;
-    }
-
-
-    public Set<GraphQLFieldDefinition> getAdditionalMutations()
-    {
-        return additionalMutations;
-    }
-
 
     public TypeRegistry getTypeRegistry()
     {
         return typeRegistry;
     }
 
-
-    public List<GenericTypeReference> getGenericTypes()
-    {
-        return genericTypes;
-    }
 
 
     void register(GraphQLSchema schema)

@@ -59,8 +59,6 @@ public class TypeRegistry
         JAVA_TYPE_TO_GRAPHQL = Collections.unmodifiableMap(map);
     }
 
-    private final DomainQL domainQL;
-
     private final Map<String, GraphQLScalarType> scalarTypeByName;
 
     private final Map<Class<?>, GraphQLScalarType> scalarTypeByClass;
@@ -72,11 +70,9 @@ public class TypeRegistry
 
 
     public TypeRegistry(
-        DomainQL domainQL, Map<Class<?>,
-        GraphQLScalarType> additionalScalarTypes
+        Map<Class<?>, GraphQLScalarType> additionalScalarTypes
     )
     {
-        this.domainQL = domainQL;
         final Map<Class<?>, GraphQLScalarType> scalarTypeByClass = new HashMap<>(JAVA_TYPE_TO_GRAPHQL);
         scalarTypeByClass.putAll(additionalScalarTypes);
 

@@ -231,67 +231,79 @@ writing even so -- silence reads as "nobody thought about it", and
 
 ## 10. Types that are not tables
 
-**What exists.** `DomainQLBuilder.objectType(Class)` registers a
-hand-written class as a domain type backed by something selectable that
-the code generator did not produce: a database view, a function returning
-rows, any shape a `SELECT` has. The class carries that shape in JPA
-annotations -- `@Table` for the table-like name and schema, `@Column` per
-property, `@NotNull` for the non-null ones -- and `SumPerMonth` in the
-`qlive-graphql` tests is the worked example.
+**What exists.** `DomainQLBuilder.objectType(Class)` stands a domain type
+up over something selectable that the code generator never saw: a
+database view, a function returning rows, anything with the shape of a
+`SELECT` result. There is no generated POJO and no jOOQ table behind it.
+The hand-written class carries the shape in JPA annotations -- `@Table`
+for the table-like name and schema, `@Column` per property, `@NotNull`
+for the non-null ones -- and `objectType()` builds the table reference
+from them with `DSL.table()`. `SumPerMonth` in the `qlive-graphql` tests
+is the worked example.
 
 What such a type does not have is foreign keys, so
-`configureRelation(TableField, ...)` has nothing to resolve and cannot
-describe its relations. `withRelation(RelationBuilder)` can:
+`configureRelation(TableField, ...)` has nothing to resolve. The extended
+relation builder is the answer:
 `withPojoFields(sourcePojo, sourceFields, targetPojo, targetFields)` names
-both sides by class and property instead, and is mutually exclusive with
-`withForeignKeyFields()`, which looks an actual jOOQ foreign key up.
-Everything the relation otherwise takes from a foreign key -- the source
+both sides by class and property, and is mutually exclusive with
+`withForeignKeyFields()`, which looks an actual foreign key up.
+Everything a relation otherwise takes from a foreign key -- the source
 and target field behavior, both object names, the id, the meta tags -- is
-settable on the builder.
+settable on the builder. A view with relations is the case this exists
+for.
 
 **What a reader cannot find.** Any of it. `objectType()` is named on no
 page, `RelationBuilder` is named on no page, and `withPojoFields()` is
-the only way a view-backed type gets a relation at all. The explanation
-quadrant does not have the distinction either: `unified-domain.md` says
-the schema comes from "the generated POJO types from the database, the
-handwritten POJOs, and the GraphQL methods in the logic beans", which
-covers both kinds of hand-written POJO in one phrase and separates
-neither from the other.
+the only way a view-backed type gets a relation at all.
 
 **The page.** `how-to/expose-a-database-view.md`, how-to order 14. The
 annotated class, where the `objectType()` call goes in the builder chain,
 and a relation declared with `withPojoFields()` for a type with no
-foreign key to offer. A task with a shape rather than something looked
-up, so how-to rather than reference.
+foreign key to offer.
 
-**Open question.** Whether the two kinds of hand-written POJO want
-naming apart in `explanation/unified-domain.md` as well. Replacing a
-generated type and standing a type up over a view are different jobs
-that both arrive as "a hand-written POJO", and a reader with only that
-page has one slot for two things.
+**Keep it apart from replacing a generated type.** That is a different
+feature (#11) about a table that does exist, and the two are easy to run
+together because both arrive as "a hand-written POJO". The explanation
+quadrant already runs them together: `unified-domain.md` names "the
+generated POJO types from the database, the handwritten POJOs, and the
+GraphQL methods in the logic beans", one phrase covering both. Whether
+that page should separate them is open.
 
-## 11. `replace-a-generated-type.md` names the wrong registration route
+## 11. `replace-a-generated-type.md` sends the reader to the view API
 
 Not a gap; an error on a page that exists, recorded here because nothing
-else tracks those yet.
+else tracks those.
 
-The page says to register the replacement "with `objectType()` after the
-schema's own types". `objectType()` requires a
-`jakarta.persistence.Table` annotation on the class it is handed, and
-that annotation is not `@Inherited`, so a class extending a generated
-POJO -- which is what the same page correctly requires -- does not carry
-it. The call throws unless the replacement redeclares `@Table` itself,
-which the page does not mention.
+**What the feature is.** The table is real and the generator produced a
+POJO for it. A hand-written subclass says the things the columns cannot:
+a `@GraphQLComputed` field, or a `@GraphQLField(type = ...)` naming the
+scalar for a Java type that is ambiguous about it -- the `long` that is
+a currency amount, which nothing in the column can tell the schema. The
+table, its relations and its foreign keys are untouched.
 
-What the framework's own test does instead is register the replacement
-as a logic bean return type: `OutputTypeOverrideLogic` returns
-`beans.SourceSeven`, and `updateTableLookups()` repoints the table lookup
-at it by simple name. That route needs no annotation and keeps the real
-jOOQ table rather than a `DSL.table()` rebuilt from the annotation.
+The class reaches the type registry as a logic bean return or parameter
+type, and `updateTableLookups()` then repoints the table lookup at it by
+simple name, keeping the generated jOOQ table.
+`OutputTypeOverrideLogic` returning `beans.SourceSeven` and
+`beans.TargetSeven` is the worked example, and its relation is still a
+real foreign key through `withForeignKeyFields(SOURCE_SEVEN.TARGET)`.
 
-Fixing the page means deciding which route is canonical first. Both
-appear to work if the annotation is redeclared, and they do not produce
-the same `TableLookup`.
+**What the page says instead.** To register the subclass "with
+`objectType()` after the schema's own types" -- which is #10's entry
+point, for types that have no table. It does not work here for a
+mechanical reason: `objectType()` requires `jakarta.persistence.Table`
+on the class it is handed, that annotation is not `@Inherited`, and the
+subclass the same page correctly requires does not carry it. The call
+throws.
+
+Redeclaring `@Table` on the subclass would get past the exception and is
+the wrong fix: `objectType()` would then rebuild the table as a
+`DSL.table()` from the annotation, discarding the generated table the
+type is supposed to keep.
+
+**The fix.** Say the registration route the feature actually has, and
+cover the scalar case beside the computed-field one the page already
+has. Both are small; neither needs a decision first.
 
 ## Build order
 
@@ -308,12 +320,12 @@ the same `TableLookup`.
 6. **Error handling** (7), **i18n** (8), **testing** (9). Smaller, and
    each is partly a code decision.
 
-Outside that order: **types that are not tables** (10) is not blocked by
-anything and does not block anything, so it goes in whenever the relation
-builder is fresh in mind. The `replace-a-generated-type.md` correction
-(11) wants doing sooner than any of them -- a reader following that page
-today hits an exception -- but it needs a decision rather than writing
-time.
+Outside that order: the `replace-a-generated-type.md` correction (11)
+goes first of everything here. It is small, it needs no decision, and a
+reader following that page today hits an exception. **Types that are not
+tables** (10) is blocked by nothing and blocks nothing, and is best
+written next to (11) so the two features get told apart on the page as
+well as here.
 
 ## Sidebar numbering
 

@@ -1,6 +1,33 @@
 # Consolidating dependencies and namespace
 
-Status: planned, not started. Written 2026-09-19.
+Status: done, 2026-09-21. Written 2026-09-19.
+
+Everything below is executed. The document stays as the reasoning behind
+a layout that is hard to read off the result: why there are three
+modules, why the scalar definitions sit where they do, why `NOTICE` and
+the two `package-info.java` notices exist. What it describes as present
+-- the `com.dataciders` packages, the `@quinscape` scope, the three
+external artifacts -- is what was there before.
+
+| step | landed as |
+| --- | --- |
+| 1, QLive's own `JSONUtil` | `9f40e92` |
+| 2, absorb domainql | `7625972`, `2d76f09`, `12c392a`, `9599b5b`, `5b1db94` |
+| 3, one namespace | `9841cef` Java, `67a71a5` npm |
+| 4, vendor babel-plugin-track-usage | `bf0ce25`, `d8adc09`, `2caa840` |
+
+Steps 3 and 2 landed in that order rather than the written one; nothing
+depended on the sequence. The `JSONUtil` facade holds real
+implementations rather than aliases, so the ordering constraint inside
+step 2 is spent. The repository move went with them: the remote is
+`qlivedev/qlive-framework` and `qlive-doc/astro.config.mjs` points at
+`qlivedev.github.io`.
+
+Two things the document leaves open are still open, and neither was part
+of the work: the api-level seam a user-registered scalar would need, and
+the domain question behind the groupId. `io.github.qlivedev` is set
+throughout the build; whether the namespace is verified with Sonatype is
+not something the repository records.
 
 ## Problem
 

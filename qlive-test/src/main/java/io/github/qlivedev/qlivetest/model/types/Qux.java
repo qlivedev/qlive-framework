@@ -3,16 +3,17 @@ package io.github.qlivedev.qlivetest.model.types;
 import io.github.qlivedev.graphql.annotation.GraphQLComputed;
 import io.github.qlivedev.graphql.annotation.GraphQLField;
 import jakarta.persistence.Column;
-import jakarta.persistence.Table;
 
 ///
 ///     Hand-written replacement for the generated Qux POJO, which is what a schema type looks like when its
 ///     columns alone do not say everything about it.
 ///
 ///
-///     DomainQL resolves a domain type by its simple name, so registering this one with
-///     `objectType()` after the schema's own types puts it in the generated type's place -- for the
-///     query document service as well, which materializes whatever the table lookup names. Extending the
+///     DomainQL resolves a domain type by its simple name, so naming this one in the document query's
+///     `@GraphQLTypeParam` puts it in the generated type's place -- for the query document service as
+///     well, which materializes whatever the table lookup names. The generated jOOQ table stays behind
+///     it with its columns and foreign keys, which is why `objectType()` is not the way in: that builds
+///     a table reference out of a `@Table` annotation and would replace the real one. Extending the
 ///     generated POJO is what keeps it able to hold a row: the columns, their JPA annotations and the
 ///     fetcher context all come along, and only what is written here is different.
 ///
@@ -31,7 +32,6 @@ import jakarta.persistence.Table;
 ///     generator owns `domain` outright and deletes anything in it that it did not write, so a
 ///     handwritten type could not live there even if the convention allowed it.
 ///
-@Table(name = "qux", schema = "public")
 public class Qux
     extends io.github.qlivedev.qlivetest.domain.tables.pojos.Qux
 {

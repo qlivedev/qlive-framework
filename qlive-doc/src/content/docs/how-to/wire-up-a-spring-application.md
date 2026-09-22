@@ -45,7 +45,7 @@ public DomainQL domainQL() throws IOException
 }
 ```
 
-`QLiveDomain.newDomain()` is a builder helper that standardises the QLive
+`QLiveDomain.newDomain()` is a builder helper that standardizes the QLive
 scalars (`QueryConfig`, `Condition`, `FieldExpression`, `ComputedValue` and
 the rest) into a DomainQL environment.
 

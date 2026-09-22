@@ -286,10 +286,11 @@ the high-level concept, and view support is the wrong altitude for it.
 The separation between the two kinds of hand-written POJO gets made on
 the new explanation page and in #11 instead.
 
-## 11. `replace-a-generated-type.md` sends the reader to the view API
+## 11. `replace-a-generated-type.md` sent the reader to the view API
 
-Not a gap; an error on a page that exists, recorded here because nothing
-else tracks those.
+Fixed 2026-09-22. Not a gap; an error on a page that existed, recorded
+here because nothing else tracks those. Kept after the fix because it is
+what the page's warning against `objectType()` argues from.
 
 **What the feature is.** The table is real and the generator produced a
 POJO for it. A hand-written subclass says the things the columns cannot:
@@ -318,9 +319,17 @@ the wrong fix: `objectType()` would then rebuild the table as a
 `DSL.table()` from the annotation, discarding the generated table the
 type is supposed to keep.
 
-**The fix.** Say the registration route the feature actually has, and
-cover the scalar case beside the computed-field one the page already
-has. Both are small; neither needs a decision first.
+**What was done.** The page now names the registration route the feature
+actually has -- the class in a logic bean's signature, usually the
+document query's `@GraphQLTypeParam` -- and says why `objectType()` is
+not it. A section on pinning a scalar joins the computed-field one, with
+the `long`/`Long` default mapping that makes the pin necessary in either
+direction.
+
+The worked example carried the same error in its Javadoc, and a
+redeclared `@Table` that nothing reads, so the `Qux` in `qlive-test`'s
+`model/types` was corrected with it. A template application should not
+hold the loaded gun the page warns about.
 
 ## Build order
 
@@ -337,12 +346,12 @@ has. Both are small; neither needs a decision first.
 6. **Error handling** (7), **i18n** (8), **testing** (9). Smaller, and
    each is partly a code decision.
 
-Outside that order: the `replace-a-generated-type.md` correction (11)
-goes first of everything here. It is small, it needs no decision, and a
-reader following that page today hits an exception. **Types that are not
-tables** (10) is blocked by nothing and blocks nothing, and is best
-written next to (11) so the two features get told apart on the pages as
-well as here. Its explanation page should land before its how-to, which
+Outside that order: **database views** (10) is blocked by nothing and
+blocks nothing. It is best written next while (11) is fresh, so the two
+features get told apart on the pages as well as here -- (11) now says
+what a hand-written POJO over a real table does, and (10) owes the
+reader the other case. Its explanation page should land before its
+how-to, which
 is the one ordering constraint inside it.
 
 ## Sidebar numbering

@@ -2,6 +2,8 @@ package io.github.qlivedev.graphql.logic;
 
 import com.esotericsoftware.reflectasm.MethodAccess;
 import io.github.qlivedev.graphql.QLiveDomain;
+
+import java.util.function.Supplier;
 import io.github.qlivedev.graphql.TypeContext;
 import io.github.qlivedev.graphql.param.ParameterProvider;
 import graphql.schema.DataFetcher;
@@ -30,7 +32,7 @@ public abstract class DomainQLMethod
 
     protected final List<ParameterProvider> parameterProviders;
 
-    protected final QLiveDomain domainQL;
+    protected final Supplier<QLiveDomain> domainQL;
 
     protected final Class<?> typeParam;
 
@@ -40,7 +42,7 @@ public abstract class DomainQLMethod
 
 
     public DomainQLMethod(
-        QLiveDomain domainQL,
+        Supplier<QLiveDomain> domainQL,
         String name,
         String description,
         Object logicBean,
@@ -111,7 +113,7 @@ public abstract class DomainQLMethod
     public Object get(DataFetchingEnvironment env)
     {
 
-        DomainQLDataFetchingEnvironment environment = new DomainQLDataFetchingEnvironment(domainQL, env, typeParam);
+        DomainQLDataFetchingEnvironment environment = new DomainQLDataFetchingEnvironment(domainQL.get(), env, typeParam);
 
         final Object[] paramValues = new Object[parameterProviders.size()];
 

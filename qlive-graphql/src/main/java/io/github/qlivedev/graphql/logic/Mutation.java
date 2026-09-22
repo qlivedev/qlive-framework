@@ -2,6 +2,8 @@ package io.github.qlivedev.graphql.logic;
 
 import com.esotericsoftware.reflectasm.MethodAccess;
 import io.github.qlivedev.graphql.QLiveDomain;
+
+import java.util.function.Supplier;
 import io.github.qlivedev.graphql.TypeContext;
 import io.github.qlivedev.graphql.param.ParameterProvider;
 import graphql.schema.GraphQLOutputType;
@@ -15,7 +17,7 @@ public class Mutation
     extends DomainQLMethod
 {
     public Mutation(
-        QLiveDomain domainQL,
+        Supplier<QLiveDomain> domainQL,
         String name,
         String description,
         Object logicBean,

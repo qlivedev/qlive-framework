@@ -39,6 +39,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Analyzes annotated LogicBeans and finds queries and mutations.
@@ -53,7 +54,7 @@ class LogicBeanAnalyzer
 
     private final Set<Mutation> mutations = new LinkedHashSet<>();
 
-    private final QLiveDomain domainQL;
+    private final Supplier<QLiveDomain> domainQL;
 
     private final Collection<ParameterProviderFactory> parameterProviderFactories;
 
@@ -62,7 +63,7 @@ class LogicBeanAnalyzer
     private final Map<String,Class<?>> outputTypeOverrides;
 
     LogicBeanAnalyzer(
-        QLiveDomain domainQL,
+        Supplier<QLiveDomain> domainQL,
         Collection<ParameterProviderFactory> parameterProviderFactories,
         Collection<Object> logicBeans,
         MutableTypeRegistry typeRegistry

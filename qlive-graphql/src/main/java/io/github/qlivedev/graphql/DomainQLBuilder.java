@@ -164,7 +164,7 @@ public class DomainQLBuilder
         effectiveMetadataProviders.add(new NameFieldProvider(nameFields, nameFieldsByName));
         effectiveMetadataProviders.add(new ComputedMetadataProvider());
 
-        final DomainQL domainQL = new DomainQL(
+        final DomainQL domainQL = new SchemaAssembler(
             dslContext,
             Collections.unmodifiableSet(logicBeans),
             Collections.unmodifiableMap(jooqTables),
@@ -181,7 +181,7 @@ public class DomainQLBuilder
             ),
             fieldLookup,
             Collections.unmodifiableSet(effectiveMetadataProviders)
-        );
+        ).assemble();
 
         validateNameFields(domainQL.getGraphQLSchema());
 

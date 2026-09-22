@@ -15,11 +15,11 @@ brings DomainQL and jOOQ with it. `qlive-test` is the reference wiring.
 | Bean | |
 |---|---|
 | `BootstrapService` | assembles the config, CSRF token and injections for a path |
-| `GraphQL` | built from the DomainQL schema |
+| `GraphQL` | built from the domain's schema |
 | `ConditionParser` | parses FilterDSL JSON into the condition model |
 
-It requires a `DomainQL` bean and a `StaticAnalysisProvider` bean from your
-application.
+It requires a `QLiveDomain` bean and a `StaticAnalysisProvider` bean from
+your application.
 
 The static analysis provider is **required, not optional**. Without one the
 bootstrap service could not tell which paths declare `noSchema()`, and a
@@ -32,7 +32,7 @@ pages that answer 503 forever.
 
 ```java
 @Bean
-public DomainQL domainQL() throws IOException
+public QLiveDomain domainQL() throws IOException
 {
     return QLiveDefaultDomain.newDomain(
             dslContext,
@@ -47,7 +47,13 @@ public DomainQL domainQL() throws IOException
 
 `QLiveDefaultDomain.newDomain()` is a builder helper that standardizes the QLive
 scalars (`QueryConfig`, `Condition`, `FieldExpression`, `ComputedValue` and
-the rest) into a DomainQL environment.
+the rest) into the domain.
+
+`QLiveDomain` is the whole of what the framework and your own code read the
+domain through: `getGraphQLSchema()`, `getTypeRegistry()` and
+`getMetaData()`. Declare the bean as that rather than as the `DomainQL` the
+builder returns -- the schema assembly behind it is not something an
+application has anything to say to.
 
 You can keep the domain definition separable from the bean wiring: nothing in it
 touches the `DSLContext` until a query executes, so a test can build the

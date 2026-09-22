@@ -6,10 +6,10 @@ sidebar:
 ---
 
 When a table's columns do not say everything about a type, replace the
-generated POJO with a handwritten class that **extends** it. DomainQL
+generated POJO with a handwritten class that **extends** it. QLive
 resolves a domain type by simple name, so yours takes the generated one's
 place -- including for the query document service, which materializes
-whatever the table lookup names.
+whatever the domain names for the type.
 
 Extending the generated POJO is what keeps it able to hold a row: the
 columns, their JPA annotations and the fetcher context all come along.
@@ -45,10 +45,15 @@ public <T> @NotNull QueryDocument<T> queryDocument(
 )
 ```
 
-Once the class is registered, DomainQL points the table lookup for `Qux` at
-it and keeps the generated jOOQ table behind it. The table, its columns and
+Once the class is registered, the domain's entry for `Qux` names your class
+and keeps the generated jOOQ table behind it. The table, its columns and
 its foreign keys are untouched, so relations configured on them go on
 working.
+
+**Extending is what makes it an override.** Two unrelated classes sharing a
+simple name are a clash, and QLive refuses to build the schema rather than
+silently declaring one of them for both -- it names both classes and asks
+for a rename.
 
 **Do not register it with `objectType()`.** That builder method is for a
 type with no table of its own, and it builds a table reference out of a

@@ -1,7 +1,10 @@
 # A facade for DomainQL
 
-Status: planned, step 0 landed. Written 2026-09-21, revised
-2026-09-22.
+Status: done through step 6; step 7 deferred by decision. Written
+2026-09-21, revised 2026-09-22.
+
+The analysis below is what the work was planned from and is left as it was
+written, in the present tense of that day. The step list says what landed.
 
 ## Problem
 
@@ -166,60 +169,72 @@ fact about the merge, not as a reason for it.
 
 ## Steps
 
-**Step 0 -- remove `@full`. Done.** Commit `5663d6f`. The directive let a
-query return its result outside GraphQL field selection, via a
+**Step 0 -- remove `@full`. Done,** `5663d6f`. The directive let a query
+return its result outside GraphQL field selection, via a
 `DomainQLExecutionContext` the caller retrieved afterwards. It was enabled
 in exactly one place in the tree, its own test, and the runtime never put
 such a context into the GraphQL context, so it would have thrown on
 execution in any application that declared it. 271 lines, and it took
 `isFullSupported()` off the facade's surface.
 
-**Step 1 -- delete what has no callers.** The seven unused accessors and
-`TypeRegistry`'s dead `domainQL` field. No design content; doing it first
-keeps it out of the later diffs.
+**Step 1 -- delete what has no callers. Done,** `cc8273e`. The seven unused
+accessors, `TypeRegistry`'s dead `domainQL` field, and the package-private
+`getFieldLookup()`, which turned out to have no live caller either. No
+design content; doing it first kept it out of the later diffs.
 
-**Step 2 -- narrow `LogicBeanAnalyzer`.** Point its four
-`domainQL.getTypeRegistry()` calls at its own field. `DomainQL` is then
-only passed through it, never dereferenced during construction.
+**Step 2 -- narrow `LogicBeanAnalyzer`. Done,** `aebdaea`. Its four
+`domainQL.getTypeRegistry()` calls point at its own field. `DomainQL` is
+now only passed through it, never dereferenced during construction.
 
-**Step 3 -- split `TypeRegistry`.** A read interface for what the 19 call
-sites use; the concrete class keeps the mutators and is what the build path
-holds.
+**Step 3 -- split `TypeRegistry`. Done,** `2df81d3`. `TypeRegistry` is the
+read interface and `MutableTypeRegistry` the concrete class the build path
+holds. `RelationModel.update()` took the registry instead of `DomainQL`
+along the way, which was the second `this`-escape. The
+`lookup(Class, TypeContext)` overload had no callers and went too.
 
-**Step 4 -- fold the domain mapping into the registry.** `jooqTables`,
-`dbFieldLookup` and `relationModels` move out of `DomainQL` and become the
-registry's, per the section above, with the two not-found conventions
-reconciled and relations indexed rather than scanned. `getPojoType()` and
-`updateTableLookups()` both go: one is a duplicate of
-`OutputType.getJavaType()` and the other is the pass that keeps it one.
-`TypeRegistry` is constructed inside `DomainQL`'s constructor today, so
-this is reachable without moving assembly first.
+**Step 4 -- fold the domain mapping into the registry. Done,** `ca3a7aa`
+and `2c2be83`. `jooqTables`, `dbFieldLookup` and `relationModels` are the
+registry's. `registerTable()` creates the table lookup out of the output
+type it just registered, so `updateTableLookups()` had nothing left to
+synchronize and `getPojoType()` was a duplicate; both are gone. Not-found
+is null everywhere, and the two callers that had relied on the throw say in
+their own words what they wanted the name for. Relations are indexed by the
+field reaching them, in a separate commit.
 
-**Step 5 -- extract the facade.** An interface carrying
+**Step 5 -- extract the facade. Done,** `db3302d`. `QLiveDomain` carries
 `getGraphQLSchema()`, `getTypeRegistry()` and `getMetaData()`, implemented
-by `DomainQL`. Repoint `MetadataProvider`, `DomainQLAware` and the six
-`QLiveConfiguration` beans at it. This is the step that changes what a
-framework user sees.
+by `DomainQL`. `MetadataProvider`, `DomainQLAware`, the `QLiveConfiguration`
+beans and everything they reach take it -- which turned out to be every
+reference to `DomainQL` in the runtime, because every call made on one was
+already one of the three. The builder still returns `DomainQL`: what
+assembles the schema has no reason to hold a narrower view of itself.
 
-It comes after the fold deliberately. Extracting first would mean a facade
-of eight methods that loses five of them a step later -- two signature
-changes where one will do.
+It came after the fold deliberately. Extracting first would have meant a
+facade of eight methods that lost five of them a step later -- two
+signature changes where one did.
 
-**Step 6 -- move assembly out of the constructor.** Once the SPIs take the
-narrow type, the ~1,800 lines of assembly move to a class that is not the
-runtime object, and what `build()` returns becomes a small immutable holder
-of schema, registry and metadata. The three `this`-escapes go away as a
-consequence rather than needing individual fixes.
+**Step 6 -- move assembly out of the constructor. Done,** `fb6adde`.
+`SchemaAssembler` holds the assembly; `DomainQL` is the immutable result,
+160 lines of which most is the static naming conventions the builder and
+the registry need before a domain exists.
+
+The third `this`-escape is where the design had to say something new. A
+query or mutation is built during assembly and reads the domain only at
+fetch time, so it takes a `DeferredDomain` -- a one-shot cell the assembler
+fills once there is a domain, and which refuses to answer before that. The
+alternative, putting the domain into the GraphQL context per execution,
+reaches across modules for a problem one cell states exactly. The
+`DomainQLAware` scalars moved to after assembly for the same reason: they
+were being handed a `DomainQL` whose `metaData` field was still null.
 
 **Step 7 -- rename.** `DomainQL`, `DomainQLBuilder`, `DomainQLAware`,
 `DomainQLException`. The facade means this costs one pass, not two: the
-interface takes the name QLive wants, and the implementation behind it can
+interface has the name QLive wants and the implementation behind it can
 keep the old one until the rename is convenient. Deferred by decision;
-listed here so the ordering is on record.
+listed here so the ordering is on record. `DomainQLMethod`'s `domainQL`
+parameters and the `setDomainQL` method name are part of it.
 
-Steps 1 through 3 are small and mechanical. Step 4 is the first with real
-design content in it. Each leaves the build green. Step 6 is the large one
-and should not start until 5 is in.
+Each step left the build green.
 
 ## Naming
 
@@ -289,79 +304,82 @@ change; see `module-distribution.md` for where that question belongs.
 
 ## Open items
 
-Both were examined on 2026-09-22.
+Both were examined on 2026-09-22 and both are closed by step 4.
 
 ### Two registered classes sharing a simple name
 
-Still open, and narrower and worse than first written. The mechanism is
-not map iteration order: `TypeContext.equals` and `hashCode` compare
-`typeName` alone (`TypeContext:206`, `:228`), so `outputTypes` is keyed
-by GraphQL name, and `register()` returns the incumbent when the name is
-taken. **The first registration wins and the second class is silently
-aliased to it**, in logic bean declaration order.
+**Closed.** The mechanism was not map iteration order: `TypeContext.equals`
+and `hashCode` compare `typeName` alone (`TypeContext:206`, `:228`), so
+`outputTypes` is keyed by GraphQL name, and `register()` returned the
+incumbent when the name was taken. The first registration won and the
+second class was silently aliased to it, in logic bean declaration order.
 
-The damage is not a coin toss over which type is exposed. Both queries
-get the winner's type. A probe registering `beans.SumPerMonth` and
+The damage was not a coin toss over which type gets exposed. Both queries
+got the winner's type. A probe registering `beans.SumPerMonth` and
 `beans.collision.SumPerMonth` built a schema without complaint in which
-`getCollidingSumPerMonth` is declared to return `SumPerMonth{month,
-year, sum}` while the bean returns an object whose only property is
-`total`. Reverse the bean order and the same is true of the other query.
-The schema states something the resolver cannot satisfy.
+`getCollidingSumPerMonth` was declared to return `SumPerMonth{month, year,
+sum}` while the bean returned an object whose only property is `total`.
+Reverse the bean order and the same was true of the other query. The schema
+stated something the resolver could not satisfy.
 
-`b51f6d6` closed this for names that reach `jooqTables`, which is where
-the legitimate override lives. What is left is two hand-written classes
+`b51f6d6` had closed this for names that reach `jooqTables`, which is where
+the legitimate override lives. What was left was two hand-written classes
 neither of which is table-backed -- no override to be, nothing to catch
 them.
 
-**The check belongs in `register()`**, beside the existing-entry return,
-and can carry the rule `b51f6d6` already states: a subclass relationship
-is an override, unrelated classes are a collision. It would fire on
-nothing that exists -- `register()` was instrumented to report every
-incumbent with a different `javaType` and the full reactor, 238 tests,
-produced not one. The override path never registers both classes,
-because `updateTableLookups()` repoints before `registerTypes()` runs.
+The check is now in `register()`, beside the existing-entry return, and it
+had to be: step 4 removed `updateTableLookups()`, which is where
+`b51f6d6`'s check lived. It carries a rule one step more general than that
+one stated -- a class takes over another's name by extending it, and
+unrelated classes are a collision -- because `register()` sees types with
+no table behind them, where "the overridden one is a generated POJO" has
+nothing to test. It fires on nothing that exists: the full reactor is
+green, and the two cases have tests.
+
+`registerInput()` has the same shape and no check. Input types are derived
+from the output types that already went through `register()`, so a clash
+that reaches only the input side has not been constructed; left as a known
+gap rather than a fix on speculation.
 
 ### The merged not-found convention
 
-The conventions are already split, and the split is not along a line
-worth keeping: `lookupField` returns null, while `lookupType`,
-`getPojoType` and `getJooqTable` throw `DomainQLException`. Everything
-on the registry side -- `lookup(String)`, `lookup(Class)`,
-`lookupInput`, `getOutputOverride` -- returns null.
+**Closed: null, and no `Optional`.** The conventions were already split,
+and not along a line worth keeping: `lookupField` returned null, while
+`lookupType`, `getPojoType` and `getJooqTable` threw `DomainQLException`.
+Everything on the registry side -- `lookup(String)`, `lookup(Class)`,
+`lookupInput`, `getOutputOverride` -- returned null.
 
-**Keep null, and do not reach for `Optional`.** What the call sites want
-is not a safer return type but their own message, and the merge already
-demonstrates it. `DefaultMergeService` wraps both lookups:
-`requireType` (`:841`) asks `getJooqTables().containsKey(typeName)` and
-`requireField` (`:855`) null-checks `lookupField`, each throwing a
-`QLiveException` that says what the merge needs in the merge's own
-words. `requireType` is the "is this type domain-backed" check stated
-explicitly, and it is why `lookupType`'s own throw is unreachable at
-both merge call sites.
+What the call sites want is not a safer return type but their own message,
+and the merge already demonstrated it. `DefaultMergeService` wraps both
+lookups: `requireType` asks `getJooqTables().containsKey(typeName)` and
+`requireField` null-checks `lookupField`, each throwing a `QLiveException`
+that says what the merge needs in the merge's own words.
 
-Null also carries a meaning an exception would destroy. At
-`QueryPlanBuilder:235` a null from `lookupField` is the normal case, not
-a failure: the property is a computed field that no `@Column` backs, and
-the planner leaves it to be fetched from the object. Only `@Column`
-properties enter `dbFieldLookup` (`DomainQLBuilder:227`), so "null means
-no column" is true by construction. The same method is strict at `:406`,
-where a filter path needs a column and null is an error with a message
-naming the path.
+Null also carries a meaning an exception would destroy. In
+`QueryPlanBuilder.column()` a null from `lookupField` is the normal case,
+not a failure: the property is a computed field that no `@Column` backs,
+and the planner leaves it to be fetched from the object. Only `@Column`
+properties enter `dbFieldLookup` (`DomainQLBuilder:227`), so "null means no
+column" is true by construction. The filter path is strict for the same
+reason, and says so.
 
-Two callers do not state what they assume:
+The two callers that had not stated what they assume now do:
 
-- **`QueryPlanBuilder:79`** calls `lookupType(domainType)` unguarded and
-  is the one place the throwing convention is load-bearing. The message
-  it produces is `Could not find domain type 'X'`, which does not say
-  that the query document named a type the domain does not expose.
-  Folding the method into the registry should give it the merge's
-  treatment rather than carry the throw along.
-- **`DomainObjectUtil.addFieldValues`** passed `lookupField`'s result
-  straight into `query.addValue(field, value)` with no null check, so a
-  `DomainObject` carrying a computed property reached jOOQ with a null
-  `Field`. jOOQ does not object: it renders the column as
-  `"unknown field 0"` and the statement fails only once a database sees
-  it. Fixed by skipping a property no column backs, which is what lets
-  an object be read and written back. The class is kept -- it is the
-  convenience path for a service with simple storage needs -- and now
-  has the test it never had.
+- **`QueryPlanBuilder`'s root type** produced `Could not find domain type
+  'X'`, which did not say that the query document named a type the domain
+  does not expose. It says that now, in the merge's phrasing.
+- **`DomainObjectUtil`** passed `lookupField`'s result straight into
+  `query.addValue(field, value)` with no null check, so a `DomainObject`
+  carrying a computed property reached jOOQ with a null `Field`. jOOQ does
+  not object: it renders the column as `"unknown field 0"` and the
+  statement fails only once a database sees it. Fixed in `788a6f9` by
+  skipping a property no column backs, which is what lets an object be read
+  and written back; the class is kept -- it is the convenience path for a
+  service with simple storage needs -- and now has the test it never had.
+  Its table lookups got a message of their own here.
+
+`getOutputOverride` did not survive the merge. It was `lookup(simpleName)`
+plus a `getJavaType()`, its two callers were `updateTableLookups()` and
+`RelationModel.update()`, and with the first gone the second does the
+lookup itself. One less method on the type an application reads the domain
+through.

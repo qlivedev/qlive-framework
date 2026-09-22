@@ -53,7 +53,7 @@ You can opt into even more protection in the meta configuration. Here we see the
 the `Bar` edit example.
 
 ```java title="DomainQLConfiguration.java"
-    final DomainQL domainQL = QLiveDefaultDomain.newDomain(dslContext, metadataProviders)
+    final QLiveDomain domainQL = QLiveDefaultDomain.newDomain(dslContext, metadataProviders)
         // ... rest of the domain configuration
         .withMetadataProviders(
             MergeMetadataProvider.newProvider()

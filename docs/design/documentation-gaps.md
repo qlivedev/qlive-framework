@@ -256,18 +256,35 @@ for.
 page, `RelationBuilder` is named on no page, and `withPojoFields()` is
 the only way a view-backed type gets a relation at all.
 
-**The page.** `how-to/expose-a-database-view.md`, how-to order 14. The
-annotated class, where the `objectType()` call goes in the builder chain,
-and a relation declared with `withPojoFields()` for a type with no
-foreign key to offer.
+**The pages.** Two, because the concept needs somewhere to live before
+the task makes sense.
 
-**Keep it apart from replacing a generated type.** That is a different
-feature (#11) about a table that does exist, and the two are easy to run
-together because both arrive as "a hand-written POJO". The explanation
-quadrant already runs them together: `unified-domain.md` names "the
-generated POJO types from the database, the handwritten POJOs, and the
-GraphQL methods in the logic beans", one phrase covering both. Whether
-that page should separate them is open.
+`explanation/database-views.md`, explanation order 4, after
+`the-java-half.md`: what backs a domain type, why some types have no
+generated POJO behind them, and why a relation that no foreign key
+describes has to be declared instead of discovered. Inserting at 4
+renumbers the five pages after it, which the sidebar section below
+already prices; appending at 10 is cheaper and reads worse, a
+domain-modeling concept sitting after push.
+
+`how-to/expose-a-database-view.md`, how-to order 14: the annotated
+class, where the `objectType()` call goes in the builder chain, and a
+relation declared with `withPojoFields()` for a type with no foreign key
+to offer.
+
+**Both pages say "database view", never a bare "view".** A view in this
+documentation is the component a URL renders --
+`explanation/views-and-routing.md` opens by saying so, and there is an
+API page of the same name. Spelled out, the term is unambiguous and is
+what a reader holding a view will search for; a broader title naming
+the abstraction instead would be accurate and findable by nobody. The
+other shapes the mechanism takes, a function returning rows or any other
+selectable, belong in the body of the explanation page.
+
+**`unified-domain.md` stays as it is.** Decided 2026-09-22. It explains
+the high-level concept, and view support is the wrong altitude for it.
+The separation between the two kinds of hand-written POJO gets made on
+the new explanation page and in #11 instead.
 
 ## 11. `replace-a-generated-type.md` sends the reader to the view API
 
@@ -324,8 +341,9 @@ Outside that order: the `replace-a-generated-type.md` correction (11)
 goes first of everything here. It is small, it needs no decision, and a
 reader following that page today hits an exception. **Types that are not
 tables** (10) is blocked by nothing and blocks nothing, and is best
-written next to (11) so the two features get told apart on the page as
-well as here.
+written next to (11) so the two features get told apart on the pages as
+well as here. Its explanation page should land before its how-to, which
+is the one ordering constraint inside it.
 
 ## Sidebar numbering
 

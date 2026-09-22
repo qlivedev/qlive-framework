@@ -247,7 +247,7 @@ dump; there is no migration tool. A module cannot create its own tables.
 Consequently a module also cannot reference generated jOOQ classes for
 them -- it reaches its tables by name through `DSL.table(DSL.name(...))`,
 the way `AppUserDetailsService` and `DefaultPersistentTokenRepository`
-already do, and reaches application tables through DomainQL's type
+already do, and reaches application tables through the domain's type
 registry, the way the query side already does. That pattern is the
 module contract for data access, and it exists because QLive needed it
 first.

@@ -57,7 +57,7 @@ class LogicBeanAnalyzer
 
     private final Collection<ParameterProviderFactory> parameterProviderFactories;
 
-    private final TypeRegistry typeRegistry;
+    private final MutableTypeRegistry typeRegistry;
 
     private final Map<String,Class<?>> outputTypeOverrides;
 
@@ -65,7 +65,7 @@ class LogicBeanAnalyzer
         DomainQL domainQL,
         Collection<ParameterProviderFactory> parameterProviderFactories,
         Collection<Object> logicBeans,
-        TypeRegistry typeRegistry
+        MutableTypeRegistry typeRegistry
     )
     {
         this.domainQL = domainQL;

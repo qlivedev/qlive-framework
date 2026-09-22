@@ -135,7 +135,7 @@ public class DomainQL
 
     private final List<TypeDoc> typeDocs;
 
-    private final TypeRegistry typeRegistry;
+    private final MutableTypeRegistry typeRegistry;
 
     private final GraphQLSchema graphQLSchema;
 
@@ -173,7 +173,7 @@ public class DomainQL
         // we store the unmodifiable version in the field 
         this.relationModels = Collections.unmodifiableList(relationModels);
 
-        this.typeRegistry = new TypeRegistry(additionalScalarTypes);
+        this.typeRegistry = new MutableTypeRegistry(additionalScalarTypes);
 
         this.jooqTables = jooqTables;
         this.jooqTablesRO = Collections.unmodifiableMap(jooqTables);
@@ -942,7 +942,7 @@ public class DomainQL
         for (int i = 0, relationModelsSize = relationModels.size(); i < relationModelsSize; i++)
         {
             RelationModel relationModel = relationModels.get(i);
-            final RelationModel updated = relationModel.update(this);
+            final RelationModel updated = relationModel.update(typeRegistry);
             if (updated != relationModel)
             {
                 relationModels.set(i, updated);

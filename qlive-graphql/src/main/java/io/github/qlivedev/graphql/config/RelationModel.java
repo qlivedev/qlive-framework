@@ -1,6 +1,5 @@
 package io.github.qlivedev.graphql.config;
 
-import io.github.qlivedev.graphql.DomainQL;
 import io.github.qlivedev.graphql.TypeRegistry;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -192,14 +191,12 @@ public class RelationModel
      * Updates the current relation model to contain the correct overloaded types in case type overloading happened for
      * either source or target POJO.
      *
-     * @param domainQL      DomainQL instance
+     * @param typeRegistry  type registry
      *
      * @return new relation model with updated type reference or the same relation model if no updates where necessary
      */
-    public RelationModel update(DomainQL domainQL)
+    public RelationModel update(TypeRegistry typeRegistry)
     {
-        final TypeRegistry typeRegistry = domainQL.getTypeRegistry();
-
         final Class<?> realSource = typeRegistry.getOutputOverride(sourcePojoClass);
         final Class<?> realTarget = typeRegistry.getOutputOverride(targetPojoClass);
 

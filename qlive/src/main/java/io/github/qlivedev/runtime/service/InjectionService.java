@@ -6,7 +6,7 @@ import io.github.qlivedev.model.ts.TrackUsageData;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.QLivePaths;
 import io.github.qlivedev.runtime.util.GraphQLUtil;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
@@ -77,7 +77,7 @@ public class InjectionService
 
 
     /// An injection service handling the argument types the framework itself brings, i.e. `QueryConfig`.
-    public InjectionService(GraphQL graphQL, DomainQL domainQL)
+    public InjectionService(GraphQL graphQL, QLiveDomain domainQL)
     {
         this(graphQL, domainQL, List.of(new QueryConfigArgumentProcessor(domainQL)));
     }
@@ -88,7 +88,7 @@ public class InjectionService
     ///                            a list left without a {@link QueryConfigArgumentProcessor} is one where
     ///                            query configs reach GraphQL as the partial deltas they were written as.
     public InjectionService(
-        GraphQL graphQL, DomainQL domainQL, List<InjectionArgumentProcessor> argumentProcessors
+        GraphQL graphQL, QLiveDomain domainQL, List<InjectionArgumentProcessor> argumentProcessors
     )
     {
         this.graphQL = graphQL;

@@ -1,6 +1,7 @@
 package io.github.qlivedev.runtime.domain;
 
 import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.DomainQLBuilder;
 import io.github.qlivedev.graphql.generic.DomainObject;
 import io.github.qlivedev.graphql.generic.DomainObjectScalar;

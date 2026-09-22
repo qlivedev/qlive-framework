@@ -1,7 +1,7 @@
 package io.github.qlivedev.runtime.meta;
 
 import io.github.qlivedev.runtime.util.Util;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.OutputType;
 import io.github.qlivedev.graphql.meta.DomainQLTypeMeta;
 import graphql.schema.GraphQLNamedType;
@@ -17,7 +17,7 @@ import java.util.Map;
 /// There are two levels to it and only the second one is written anywhere.
 ///
 /// **Whether a type takes part is derived, not declared.** A type with a `version` field is versioned, and
-/// that is the whole rule -- see {@link #isVersioned(DomainQL, String)}. Nothing registers a type and nothing
+/// that is the whole rule -- see {@link #isVersioned(QLiveDomain, String)}. Nothing registers a type and nothing
 /// can forget to: the server reads the field off the schema and the client reads it off the same schema in
 /// `config().typesByName`, so the two cannot disagree about who is in. Adding the column is how a type opts
 /// in, dropping it is how it opts out.
@@ -74,7 +74,7 @@ public final class MergeMeta
     /// last-write-wins through the same path, which is what not having the column means.
     ///
     /// @param typeName  name of a GraphQL type, known or not
-    public static boolean isVersioned(DomainQL domainQL, String typeName)
+    public static boolean isVersioned(QLiveDomain domainQL, String typeName)
     {
         final GraphQLNamedType type = domainQL.getGraphQLSchema().getTypeMap().get(typeName);
 
@@ -87,7 +87,7 @@ public final class MergeMeta
     /// rows of a POJO and which GraphQL type that is is the domain's to say.
     ///
     /// @param javaType  a Java type, exposed by the domain or not
-    public static boolean isVersioned(DomainQL domainQL, Class<?> javaType)
+    public static boolean isVersioned(QLiveDomain domainQL, Class<?> javaType)
     {
         final OutputType outputType = domainQL.getTypeRegistry().lookup(javaType);
 
@@ -97,7 +97,7 @@ public final class MergeMeta
 
     /// The names of every versioned type of the domain, alphabetically. Derived on every call rather than
     /// cached -- a domain is built once and this is asked at startup.
-    public static List<String> versionedTypes(DomainQL domainQL)
+    public static List<String> versionedTypes(QLiveDomain domainQL)
     {
         final List<String> names = new ArrayList<>();
 
@@ -119,7 +119,7 @@ public final class MergeMeta
     /// failing the write.
     ///
     /// @param typeName  name of a GraphQL type, known or not
-    public static boolean resolvesConflicts(DomainQL domainQL, String typeName)
+    public static boolean resolvesConflicts(QLiveDomain domainQL, String typeName)
     {
         return Boolean.TRUE.equals(merge(domainQL, typeName).get(RESOLVE));
     }
@@ -130,7 +130,7 @@ public final class MergeMeta
     /// exists to swallow.
     ///
     /// @param typeName  name of a GraphQL type, known or not
-    public static boolean isAutoMerge(DomainQL domainQL, String typeName)
+    public static boolean isAutoMerge(QLiveDomain domainQL, String typeName)
     {
         return !Boolean.FALSE.equals(merge(domainQL, typeName).get(AUTO_MERGE));
     }
@@ -141,7 +141,7 @@ public final class MergeMeta
     ///
     /// @param typeName  name of a GraphQL type, known or not
     @SuppressWarnings("unchecked")
-    public static List<String> ignoredFields(DomainQL domainQL, String typeName)
+    public static List<String> ignoredFields(QLiveDomain domainQL, String typeName)
     {
         final Object ignored = merge(domainQL, typeName).get(IGNORED_FIELDS);
 
@@ -153,7 +153,7 @@ public final class MergeMeta
     /// beyond the two foreign keys, since a link table of the plain shape is recognized by that shape.
     ///
     /// @param typeName  name of a GraphQL type, known or not
-    public static boolean isLinkType(DomainQL domainQL, String typeName)
+    public static boolean isLinkType(QLiveDomain domainQL, String typeName)
     {
         return Boolean.TRUE.equals(merge(domainQL, typeName).get(LINK_TYPE));
     }
@@ -163,7 +163,7 @@ public final class MergeMeta
     /// no type of the domain. Every reader above goes through this, so "declared nothing" and "unknown type"
     /// answer alike, which is what a caller asking about a type name off the wire needs.
     @SuppressWarnings("unchecked")
-    private static Map<String, Object> merge(DomainQL domainQL, String typeName)
+    private static Map<String, Object> merge(QLiveDomain domainQL, String typeName)
     {
         final DomainQLTypeMeta typeMeta = Util.typeMeta(domainQL, typeName);
 

@@ -13,12 +13,12 @@ import java.util.List;
 /// The framework's write mutation, and the only one an application needs in order to store anything.
 ///
 /// The four input types below are the framework's, not the application's forty. A change travels as field
-/// names and `GenericScalar` values, which DomainQL coerces to whatever Java type the field actually has, so
+/// names and `GenericScalar` values, which QLiveDomain coerces to whatever Java type the field actually has, so
 /// there is no `BarInput`, no `BazInput`, and no mutation per operation to keep in step with them.
 ///
 /// Declared as a bean in QLiveConfiguration rather than found: `@GraphQLLogic` is meta-annotated
 /// `@Component`, but an application's component scan covers the application's own packages and never the
-/// framework's. What picks this up is the same `getBeansWithAnnotation()` call the application's DomainQL
+/// framework's. What picks this up is the same `getBeansWithAnnotation()` call the application's QLiveDomain
 /// configuration already makes.
 @GraphQLLogic
 public class MergeLogic

@@ -1,17 +1,15 @@
 package io.github.qlivedev.graphql;
 
-import io.github.qlivedev.graphql.DomainQL;
-
 /**
- * Implemented by GraphQL scalar implementations that need to know about the GraphQL schema and the meta data contained
- * in the current DomainQL instance.
+ * Implemented by GraphQL scalar implementations that need to know about the GraphQL schema and the meta data of
+ * the domain they are part of.
  */
 public interface DomainQLAware
 {
     /**
-     * Provides the current DomainQL instance.
+     * Provides the domain the scalar is registered in.
      *
-     * @param domainQL DomainQL instance
+     * @param domainQL domain
      */
-    void setDomainQL(DomainQL domainQL);
+    void setDomainQL(QLiveDomain domainQL);
 }

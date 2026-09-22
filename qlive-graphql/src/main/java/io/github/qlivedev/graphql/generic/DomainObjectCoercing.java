@@ -2,6 +2,7 @@ package io.github.qlivedev.graphql.generic;
 
 import com.google.common.collect.Maps;
 import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.DomainQLException;
 import io.github.qlivedev.graphql.InputType;
 import io.github.qlivedev.graphql.DomainQLAware;
@@ -30,7 +31,7 @@ public final class DomainObjectCoercing
     private final static Logger log = LoggerFactory.getLogger(DomainObjectCoercing.class);
 
 
-    private DomainQL domainQL;
+    private QLiveDomain domainQL;
 
 
     public DomainObjectCoercing()
@@ -230,7 +231,7 @@ public final class DomainObjectCoercing
 
 
     @Override
-    public void setDomainQL(DomainQL domainQL)
+    public void setDomainQL(QLiveDomain domainQL)
     {
         this.domainQL = domainQL;
     }

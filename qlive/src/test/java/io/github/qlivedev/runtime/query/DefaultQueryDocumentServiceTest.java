@@ -5,7 +5,7 @@ import io.github.qlivedev.model.QueryDocument;
 import io.github.qlivedev.runtime.domain.TestDomainConfig;
 import io.github.qlivedev.runtime.meta.QueryConfigMetadataProvider;
 import io.github.qlivedev.testmodel.types.TestFoo;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
@@ -127,7 +127,7 @@ class DefaultQueryDocumentServiceTest
     {
         final QueryTestLogic logic = new QueryTestLogic();
 
-        final DomainQL domainQL = metadataProvider == null
+        final QLiveDomain domainQL = metadataProvider == null
             ? TestDomainConfig.domainQL(logic)
             : TestDomainConfig.domainQL(List.of(metadataProvider), logic);
 

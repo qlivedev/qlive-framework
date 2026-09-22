@@ -2,7 +2,7 @@ package io.github.qlivedev.runtime.scalar;
 
 import io.github.qlivedev.model.QueryConfig;
 import io.github.qlivedev.model.condition.CNode;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.DomainQLAware;
 import graphql.GraphQLContext;
 import graphql.execution.CoercedVariables;
@@ -28,10 +28,10 @@ public class QueryConfigCoercing
 
 
     /// Passed on to the coercings this one delegates to. They are instances of their own rather than the
-    /// ones registered for their scalars, so nothing else hands them the DomainQL they need to serialize a
+    /// ones registered for their scalars, so nothing else hands them the QLiveDomain they need to serialize a
     /// condition -- which is what a query config carries.
     @Override
-    public void setDomainQL(DomainQL domainQL)
+    public void setDomainQL(QLiveDomain domainQL)
     {
         conditionCoercing.setDomainQL(domainQL);
         fieldExpressionCoercing.setDomainQL(domainQL);

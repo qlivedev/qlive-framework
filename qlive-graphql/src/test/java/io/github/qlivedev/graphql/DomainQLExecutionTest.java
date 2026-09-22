@@ -903,7 +903,7 @@ public class DomainQLExecutionTest
     @Test
     public void testTypeParam()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new TypeParamLogic()))
             .build();
@@ -948,7 +948,7 @@ public class DomainQLExecutionTest
     @Test
     public void testTypeParam2()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new TypeParamLogic()))
             .build();
@@ -1082,7 +1082,7 @@ public class DomainQLExecutionTest
     @Test
     public void testTypeParamForMutation()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new TypeParamMutationLogic()))
             .build();
@@ -1237,7 +1237,7 @@ public class DomainQLExecutionTest
     @Test
     public void testNullForComplexValue()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new NullForComplexValueLogic()))
             .build();
@@ -1265,7 +1265,7 @@ public class DomainQLExecutionTest
     @Test
     public void testAccessDomainQLByEnv()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new AccessDomainQLLogic()))
             .build();
@@ -1527,7 +1527,7 @@ public class DomainQLExecutionTest
     @Test
     public void testDBView()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new SumPerMonthLogic()))
             .objectType(SumPerMonth.class)
@@ -1648,7 +1648,7 @@ public class DomainQLExecutionTest
     @Test
     public void testListOfDomainObjectScalarsInput()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new ListInputLogic()))
             .withAdditionalInputType(Foo.class)
@@ -1698,7 +1698,7 @@ public class DomainQLExecutionTest
     @Test
     public void testListOfDomainObjectsInput()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new ListInputLogic()))
             .withAdditionalInputType(Foo.class)
@@ -1741,7 +1741,7 @@ public class DomainQLExecutionTest
     @Test
     public void testListOfEnumsInput()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new ListInputLogic()))
             .withAdditionalInputType(Foo.class)
@@ -1777,7 +1777,7 @@ public class DomainQLExecutionTest
     @Test
     public void testNullableListOfScalarsInput()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new ListInputLogic()))
             .withAdditionalInputType(Foo.class)
@@ -1837,7 +1837,7 @@ public class DomainQLExecutionTest
     @Test
     public void testListOfGenericDomainObjects()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new GenericScalarLogic()))
             .withAdditionalScalar(GenericScalar.class, GenericScalarType.newGenericScalar())
@@ -1885,7 +1885,7 @@ public class DomainQLExecutionTest
     @Test
     public void testGenericScalarNull()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new GenericScalarLogic()))
             .withAdditionalScalar(GenericScalar.class, GenericScalarType.newGenericScalar())
@@ -1927,7 +1927,7 @@ public class DomainQLExecutionTest
     @Test
     public void testNullPropInDomainObject()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new NullPropInDomainObjectLogic()))
             .withAdditionalScalar(DomainObject.class, DomainObjectScalar.newDomainObjectScalar())
@@ -1963,7 +1963,7 @@ public class DomainQLExecutionTest
     @Test
     public void testNonNullViolationInDomainObject()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new NullPropInDomainObjectLogic()))
             .withAdditionalScalar(DomainObject.class, DomainObjectScalar.newDomainObjectScalar())
@@ -1994,7 +1994,7 @@ public class DomainQLExecutionTest
     @Test
     public void testBinaryData()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new BinaryDataLogic()))
             .build();
@@ -2033,7 +2033,7 @@ public class DomainQLExecutionTest
     @Test
     public void testBigNumericTypes()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new BigNumericLogic()))
             .withAdditionalScalar(BigDecimal.class, BigDecimalScalar.newScalar())

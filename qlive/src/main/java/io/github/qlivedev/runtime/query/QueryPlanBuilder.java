@@ -8,7 +8,7 @@ import io.github.qlivedev.runtime.query.condition.ExistsScope;
 import io.github.qlivedev.runtime.query.condition.FieldResolver;
 import io.github.qlivedev.runtime.query.condition.ResolvedField;
 import io.github.qlivedev.runtime.scalar.FilterDSL;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.TableLookup;
 import io.github.qlivedev.graphql.TypeRegistry;
 import io.github.qlivedev.graphql.config.RelationModel;
@@ -57,7 +57,7 @@ public class QueryPlanBuilder
     private final TypeRegistry types;
 
 
-    public QueryPlanBuilder(DomainQL domainQL)
+    public QueryPlanBuilder(QLiveDomain domainQL)
     {
         this.types = domainQL.getTypeRegistry();
     }
@@ -232,7 +232,7 @@ public class QueryPlanBuilder
     /// Selects one field of the GraphQL selection, if it is a column.
     ///
     /// A field that is not one is left where it is. A handwritten type replacing a generated one can add
-    /// fields the table has no column for, and DomainQL fetches those from the object itself -- there is
+    /// fields the table has no column for, and QLiveDomain fetches those from the object itself -- there is
     /// nothing for this to select and nothing to fail over, and GraphQL has already established that the
     /// field exists on the type. What such a field computes from, it computes from the columns the query
     /// selected, which is the query's business rather than the planner's.
@@ -441,7 +441,7 @@ public class QueryPlanBuilder
     // -----------------------------------------------------------------------------------------------------
 
     /// The POJO property a column belongs to, which is the name the FilterDSL and the GraphQL schema use
-    /// for it. Read from the same JPA annotations DomainQL builds its own field lookup from.
+    /// for it. Read from the same JPA annotations QLiveDomain builds its own field lookup from.
     static String propertyOf(Class<?> pojoType, String columnName)
     {
         for (JSONPropertyInfo info : JSONUtil.getClassInfo(pojoType).getPropertyInfos())

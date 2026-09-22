@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * DomainQL configuration for a single relation. The relation can be either be based on an actual database foreign
+ * Configuration for a single relation. The relation can be either be based on an actual database foreign
  * key or
  * on POJO fields (for database views).
  *

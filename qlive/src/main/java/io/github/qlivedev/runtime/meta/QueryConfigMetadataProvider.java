@@ -2,7 +2,7 @@ package io.github.qlivedev.runtime.meta;
 
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.util.Util;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.OutputType;
 import io.github.qlivedev.graphql.meta.DomainQLMeta;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
@@ -172,7 +172,7 @@ public class QueryConfigMetadataProvider
 
 
     @Override
-    public void provideMetaData(DomainQL domainQL, DomainQLMeta meta)
+    public void provideMetaData(QLiveDomain domainQL, DomainQLMeta meta)
     {
         final Set<Class<?>> queryDocumentRowTypes = Util.getQueryDocumentRowTypes(domainQL);
         if (allTypesConfigurer != null)
@@ -220,7 +220,7 @@ public class QueryConfigMetadataProvider
 
 
     /// The name the domain exposes the given Java type as.
-    private static String typeNameOf(DomainQL domainQL, Class<?> javaType)
+    private static String typeNameOf(QLiveDomain domainQL, Class<?> javaType)
     {
         final OutputType outputType = domainQL.getTypeRegistry().lookup(javaType);
         if (outputType == null)
@@ -235,7 +235,7 @@ public class QueryConfigMetadataProvider
     }
 
 
-    private static void write(DomainQL domainQL, DomainQLMeta meta, String typeName, QueryConfigTypeConfigurer delta)
+    private static void write(QLiveDomain domainQL, DomainQLMeta meta, String typeName, QueryConfigTypeConfigurer delta)
     {
         requireType(domainQL, typeName);
 
@@ -247,7 +247,7 @@ public class QueryConfigMetadataProvider
     }
 
 
-    private static void writeMax(DomainQL domainQL, DomainQLMeta meta, String typeName, int maxPageSize)
+    private static void writeMax(QLiveDomain domainQL, DomainQLMeta meta, String typeName, int maxPageSize)
     {
         requireType(domainQL, typeName);
 
@@ -257,13 +257,13 @@ public class QueryConfigMetadataProvider
     }
 
 
-    private static void requireType(DomainQL domainQL, String typeName)
+    private static void requireType(QLiveDomain domainQL, String typeName)
     {
         if (domainQL.getTypeRegistry().lookup(typeName) == null)
         {
-            // The type metadata only exists for the types DomainQL knows a Java type for, so this would
+            // The type metadata only exists for the types QLiveDomain knows a Java type for, so this would
             // otherwise be metadata written nowhere -- or, for a name that is no type at all, a failure
-            // phrased as DomainQL's rather than as the application's.
+            // phrased as the framework's rather than as the application's.
             throw new QLiveException(
                 "Query config metadata declared for type '" + typeName + "', which is no type of the domain."
             );

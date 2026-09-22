@@ -1,7 +1,7 @@
 package io.github.qlivedev.runtime.util;
 
 import io.github.qlivedev.runtime.QLiveException;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.GenericTypeReference;
 import io.github.qlivedev.graphql.meta.DomainQLTypeMeta;
 import io.github.qlivedev.model.QueryDocument;
@@ -53,13 +53,13 @@ public class Util
     }
 
 
-    public static boolean isQueryDocumentType(DomainQL domainQL, String name)
+    public static boolean isQueryDocumentType(QLiveDomain domainQL, String name)
     {
         return findQueryDocumentType(domainQL, name).isPresent();
     }
 
 
-    public static Set<Class<?>> getQueryDocumentRowTypes(DomainQL domainQL)
+    public static Set<Class<?>> getQueryDocumentRowTypes(QLiveDomain domainQL)
     {
         return domainQL.getMetaData().getGenericTypes()
             .stream()
@@ -72,7 +72,7 @@ public class Util
     }
 
 
-    public static Optional<GenericTypeReference> findQueryDocumentType(DomainQL domainQL, String name)
+    public static Optional<GenericTypeReference> findQueryDocumentType(QLiveDomain domainQL, String name)
     {
         final List<GenericTypeReference> genericTypes = domainQL.getMetaData().getGenericTypes();
 
@@ -83,7 +83,7 @@ public class Util
     }
 
 
-    /// Key the DomainQL meta data holds its type meta data under. Not a constant of DomainQLMeta's own,
+    /// Key the domain meta data holds its type meta data under. Not a constant of DomainQLMeta's own,
     /// which only names its addenda.
     private final static String TYPES = "types";
 
@@ -96,7 +96,7 @@ public class Util
     ///
     /// @param typeName  name of a GraphQL type, known or not
     @SuppressWarnings("unchecked")
-    public static DomainQLTypeMeta typeMeta(DomainQL domainQL, String typeName)
+    public static DomainQLTypeMeta typeMeta(QLiveDomain domainQL, String typeName)
     {
         final Map<String, DomainQLTypeMeta> types =
             (Map<String, DomainQLTypeMeta>) domainQL.getMetaData().getData().get(TYPES);

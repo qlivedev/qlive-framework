@@ -2,7 +2,7 @@ package io.github.qlivedev.runtime.service;
 
 import io.github.qlivedev.model.QueryConfig;
 import io.github.qlivedev.runtime.meta.QueryConfigMeta;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLTypeUtil;
 
@@ -35,11 +35,11 @@ public class QueryConfigArgumentProcessor
     /// registers it.
     public final static String QUERY_CONFIG_TYPE = "QueryConfig";
 
-    private final DomainQL domainQL;
+    private final QLiveDomain domainQL;
 
 
     /// @param domainQL  the domain, which is what carries the per-type deltas as meta data
-    public QueryConfigArgumentProcessor(DomainQL domainQL)
+    public QueryConfigArgumentProcessor(QLiveDomain domainQL)
     {
         this.domainQL = domainQL;
     }

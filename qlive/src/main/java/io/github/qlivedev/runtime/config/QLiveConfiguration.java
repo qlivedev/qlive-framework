@@ -24,7 +24,7 @@ import io.github.qlivedev.runtime.service.DefaultBootstrapService;
 import io.github.qlivedev.runtime.service.InjectionArgumentProcessor;
 import io.github.qlivedev.runtime.service.QueryConfigArgumentProcessor;
 import io.github.qlivedev.runtime.service.StaticAnalysisProvider;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.model.condition.ConditionParser;
 import graphql.GraphQL;
 import jakarta.servlet.ServletContext;
@@ -82,7 +82,7 @@ public class QLiveConfiguration
      */
     @Bean
     public BootstrapService bootstrapService(
-        DomainQL domainQL,
+        QLiveDomain domainQL,
         GraphQL graphQL,
         StaticAnalysisProvider staticAnalysis,
         List<InjectionArgumentProcessor> argumentProcessors
@@ -101,14 +101,14 @@ public class QLiveConfiguration
     /// framework knows nothing about.
     @Bean
     @Order(Ordered.LOWEST_PRECEDENCE)
-    public InjectionArgumentProcessor queryConfigArgumentProcessor(DomainQL domainQL)
+    public InjectionArgumentProcessor queryConfigArgumentProcessor(QLiveDomain domainQL)
     {
         return new QueryConfigArgumentProcessor(domainQL);
     }
 
 
     @Bean
-    public GraphQL graphQL(DomainQL domainQL)
+    public GraphQL graphQL(QLiveDomain domainQL)
     {
         return GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build();
     }
@@ -127,7 +127,7 @@ public class QLiveConfiguration
     /// below reaches past the interface.
     @Bean
     public MergeService mergeService(
-        DomainQL domainQL,
+        QLiveDomain domainQL,
         DSLContext dslContext,
         FieldLayoutService fieldLayoutService,
         VersionService versionService
@@ -140,7 +140,7 @@ public class QLiveConfiguration
     /// The field layouts masks are written against, and the startup check that no versioned type has more
     /// fields than a mask has bits.
     @Bean
-    public FieldLayoutService fieldLayoutService(DomainQL domainQL, DSLContext dslContext)
+    public FieldLayoutService fieldLayoutService(QLiveDomain domainQL, DSLContext dslContext)
     {
         return new DefaultFieldLayoutService(domainQL, dslContext);
     }
@@ -188,11 +188,11 @@ public class QLiveConfiguration
     ///
     /// `@GraphQLLogic` is meta-annotated `@Component`, which only means anything to a component scan -- and
     /// an application's scan covers the application's packages. Declared, this bean is picked up by the
-    /// `getBeansWithAnnotation()` call the application's DomainQL configuration already makes, which is all
+    /// `getBeansWithAnnotation()` call the application's QLiveDomain configuration already makes, which is all
     /// it takes and the only thing that works.
     ///
     /// The merge service is injected lazily because the domain is built out of the logic beans: asking for
-    /// the service here, eagerly, would ask for the {@link DomainQL} it needs while it is still being built.
+    /// the service here, eagerly, would ask for the {@link QLiveDomain} it needs while it is still being built.
     @Bean
     public MergeLogic mergeLogic(@Lazy MergeService mergeService)
     {
@@ -215,7 +215,7 @@ public class QLiveConfiguration
     /// Pub/sub's share of the push connection. One {@link PushMessageHandler} among however many an
     /// application wires, and the only one the framework itself contributes today.
     @Bean
-    public PubSubMessageHandler pubSubMessageHandler(PubSubService pubSubService, DomainQL domainQL)
+    public PubSubMessageHandler pubSubMessageHandler(PubSubService pubSubService, QLiveDomain domainQL)
     {
         return new PubSubMessageHandler(pubSubService, domainQL);
     }

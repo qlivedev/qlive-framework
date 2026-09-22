@@ -1,7 +1,7 @@
 package io.github.qlivedev.graphql.logic;
 
 import com.esotericsoftware.reflectasm.MethodAccess;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.TypeContext;
 import io.github.qlivedev.graphql.param.ParameterProvider;
 import graphql.schema.GraphQLOutputType;
@@ -15,7 +15,7 @@ public class Query
     extends DomainQLMethod
 {
     public Query(
-        DomainQL domainQL,
+        QLiveDomain domainQL,
         String name,
         String description,
         Object logicBean,

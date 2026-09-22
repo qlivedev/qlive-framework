@@ -909,7 +909,7 @@ public class AnotherDomainQLTest
     @Test
     public void testFieldLookup()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new MinimalLogic()))
             .build();
@@ -926,7 +926,7 @@ public class AnotherDomainQLTest
     @Test
     public void testTypeParameters()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new TypeParamLogic()))
             .build();
@@ -974,7 +974,7 @@ public class AnotherDomainQLTest
     @Test
     public void testTypeParametersForMutations()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new TypeParamMutationLogic()))
             .build();
@@ -1022,7 +1022,7 @@ public class AnotherDomainQLTest
     @Test
     public void testTypeParameterWithPattern()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new TypeParamWithNamePatternLogic()))
             .build();
@@ -1070,7 +1070,7 @@ public class AnotherDomainQLTest
     @Test
     public void testNotNullQuery()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new NotNullQueryLogic()))
             .build();
@@ -1114,7 +1114,7 @@ public class AnotherDomainQLTest
     @Test
     public void testIgnoredProps()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new IgnoredPropsLogic()))
             .build();
@@ -1163,7 +1163,7 @@ public class AnotherDomainQLTest
     @Test
     public void testDBView()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new SumPerMonthLogic()))
             .objectType(SumPerMonth.class)
@@ -1251,7 +1251,7 @@ public class AnotherDomainQLTest
     @Test
     public void testBinaryData()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new BinaryDataLogic()))
             .build();
@@ -1269,7 +1269,7 @@ public class AnotherDomainQLTest
     @Test
     public void testBigNumericTypes()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new BigNumericLogic()))
             .withAdditionalScalar(BigDecimal.class, BigDecimalScalar.newScalar())
@@ -1290,7 +1290,7 @@ public class AnotherDomainQLTest
     @Test
     public void testOutputTypeOverride()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new OutputTypeOverrideLogic()))
             .withRelation(
@@ -1333,7 +1333,7 @@ public class AnotherDomainQLTest
     public void testOutputTypeOverrideByParam()
     {
         // checks that output type overriding works via @GraphQLTypeParam, too
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new OutputTypeOverrideByParamLogic()))
             .withRelation(
@@ -1363,7 +1363,7 @@ public class AnotherDomainQLTest
     @Test
     public void testMetaTags()
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new TestLogic()))
 

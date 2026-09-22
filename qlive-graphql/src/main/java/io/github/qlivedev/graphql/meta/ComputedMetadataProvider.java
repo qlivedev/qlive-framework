@@ -1,6 +1,7 @@
 package io.github.qlivedev.graphql.meta;
 
 import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.OutputType;
 import io.github.qlivedev.graphql.annotation.GraphQLComputed;
 import io.github.qlivedev.util.JSONUtil;
@@ -17,7 +18,7 @@ public class ComputedMetadataProvider
     private static final String COMPUTED = "computed";
 
     @Override
-    public void provideMetaData(DomainQL domainQL, DomainQLMeta meta)
+    public void provideMetaData(QLiveDomain domainQL, DomainQLMeta meta)
     {
         final GraphQLSchema graphQLSchema = domainQL.getGraphQLSchema();
 

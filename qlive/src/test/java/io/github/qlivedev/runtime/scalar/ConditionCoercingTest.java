@@ -10,6 +10,7 @@ import io.github.qlivedev.model.condition.Values;
 import io.github.qlivedev.runtime.domain.TestDomainConfig;
 import io.github.qlivedev.runtime.domain.TestLogic;
 import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import graphql.GraphQLContext;
 import graphql.schema.Coercing;
 import graphql.schema.GraphQLScalarType;
@@ -34,7 +35,7 @@ class ConditionCoercingTest
 {
     private final static GraphQLContext CONTEXT = GraphQLContext.newContext().build();
 
-    private final DomainQL domainQL = TestDomainConfig.domainQL(new TestLogic());
+    private final QLiveDomain domainQL = TestDomainConfig.domainQL(new TestLogic());
 
     /// Built rather than taken from the schema, which is also how the query config's coercing comes by
     /// one: a condition only ever travels inside a query config, so the condition scalar is not itself

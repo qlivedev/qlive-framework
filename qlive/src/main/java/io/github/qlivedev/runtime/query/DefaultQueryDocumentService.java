@@ -3,7 +3,7 @@ package io.github.qlivedev.runtime.query;
 import io.github.qlivedev.model.QueryConfig;
 import io.github.qlivedev.model.QueryDocument;
 import io.github.qlivedev.runtime.meta.QueryConfigMeta;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import graphql.GraphQL;
 import graphql.schema.DataFetchingEnvironment;
 import org.jooq.DSLContext;
@@ -12,7 +12,7 @@ import org.jooq.DSLContext;
 public class DefaultQueryDocumentService
     implements QueryDocumentService
 {
-    private final DomainQL domainQL;
+    private final QLiveDomain domainQL;
 
     private final DSLContext dslContext;
 
@@ -21,7 +21,7 @@ public class DefaultQueryDocumentService
     private final QueryPlanBuilder planBuilder;
 
 
-    public DefaultQueryDocumentService(DomainQL domainQL, DSLContext dslContext, GraphQL graphQL)
+    public DefaultQueryDocumentService(QLiveDomain domainQL, DSLContext dslContext, GraphQL graphQL)
     {
         this.domainQL = domainQL;
         this.dslContext = dslContext;
@@ -84,7 +84,7 @@ public class DefaultQueryDocumentService
     }
 
 
-    public DomainQL getDomainQL()
+    public QLiveDomain getDomainQL()
     {
         return domainQL;
     }

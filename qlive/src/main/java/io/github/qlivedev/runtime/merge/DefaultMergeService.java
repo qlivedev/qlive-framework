@@ -11,7 +11,7 @@ import io.github.qlivedev.model.merge.MergeStatus;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.auth.AppAuthentication;
 import io.github.qlivedev.runtime.meta.MergeMeta;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.TableLookup;
 import io.github.qlivedev.graphql.TypeRegistry;
 import io.github.qlivedev.graphql.generic.GenericScalar;
@@ -73,7 +73,7 @@ public class DefaultMergeService
     /// SQL state of a row refused for being a duplicate. Standard, so no dialect has to be asked.
     private final static String UNIQUE_VIOLATION = "23505";
 
-    private final DomainQL domainQL;
+    private final QLiveDomain domainQL;
 
     private final TypeRegistry types;
 
@@ -95,7 +95,7 @@ public class DefaultMergeService
 
 
     public DefaultMergeService(
-        DomainQL domainQL,
+        QLiveDomain domainQL,
         DSLContext dslContext,
         FieldLayoutService fieldLayouts,
         VersionService versions

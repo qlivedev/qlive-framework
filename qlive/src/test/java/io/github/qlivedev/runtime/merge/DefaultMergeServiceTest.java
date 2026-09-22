@@ -8,7 +8,7 @@ import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.domain.TestDomainConfig;
 import io.github.qlivedev.runtime.domain.TestLogic;
 import io.github.qlivedev.testdomain.Tables;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.generic.GenericScalar;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,7 @@ class DefaultMergeServiceTest
     @BeforeAll
     static void buildService()
     {
-        final DomainQL domainQL = TestDomainConfig.domainQL(new TestLogic());
+        final QLiveDomain domainQL = TestDomainConfig.domainQL(new TestLogic());
 
         mergeService = new DefaultMergeService(domainQL, null, null, null);
     }

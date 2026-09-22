@@ -1,7 +1,7 @@
 package io.github.qlivedev.runtime.merge;
 
 import io.github.qlivedev.runtime.QLiveException;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLObjectType;
@@ -85,7 +85,7 @@ public final class FieldLayout
     /// Sorted here rather than taken in the order the schema happens to hand them over, because this is the
     /// order that assigns the bit indices and the order the hash is taken of. Those three have to be the
     /// same list or the hash certifies a layout nothing ever used.
-    public static FieldLayout of(DomainQL domainQL, String typeName)
+    public static FieldLayout of(QLiveDomain domainQL, String typeName)
     {
         final GraphQLNamedType type = domainQL.getGraphQLSchema().getTypeMap().get(typeName);
 

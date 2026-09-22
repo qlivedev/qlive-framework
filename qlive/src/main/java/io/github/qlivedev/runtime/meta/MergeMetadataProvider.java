@@ -1,7 +1,7 @@
 package io.github.qlivedev.runtime.meta;
 
 import io.github.qlivedev.runtime.QLiveException;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.OutputType;
 import io.github.qlivedev.graphql.meta.DomainQLMeta;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
@@ -77,11 +77,11 @@ public class MergeMetadataProvider
     }
 
 
-    /// Opts the type DomainQL exposes the given Java type as in to resolving conflicts in the view: a real
+    /// Opts the type QLiveDomain exposes the given Java type as in to resolving conflicts in the view: a real
     /// conflict comes back with both values per field for the form the user was editing to offer, instead of
     /// failing the write.
     ///
-    /// The way to say it where the application has the class: the GraphQL name of a domain type is DomainQL's
+    /// The way to say it where the application has the class: the GraphQL name of a domain type is QLiveDomain's
     /// to decide, and a class that turns out not to be in the schema is reported rather than written under a
     /// name nothing reads.
     public MergeMetadataProvider resolveConflicts(Class<?> javaType)
@@ -106,7 +106,7 @@ public class MergeMetadataProvider
     }
 
 
-    /// Declares the fields of the type DomainQL exposes the given Java type as whose change is neither
+    /// Declares the fields of the type QLiveDomain exposes the given Java type as whose change is neither
     /// recorded in a version record nor ever a conflict -- a last-accessed timestamp, a counter, anything
     /// two users cannot meaningfully disagree about.
     ///
@@ -137,7 +137,7 @@ public class MergeMetadataProvider
     }
 
 
-    /// Declares whether a concurrent change to the type DomainQL exposes the given Java type as that touched
+    /// Declares whether a concurrent change to the type QLiveDomain exposes the given Java type as that touched
     /// none of the fields we touched is merged silently.
     ///
     /// True is what happens anyway. Declaring it false says that a user should see even a change that does
@@ -166,7 +166,7 @@ public class MergeMetadataProvider
     }
 
 
-    /// Declares the type DomainQL exposes the given Java type as a link table, i.e. a row that exists to say
+    /// Declares the type QLiveDomain exposes the given Java type as a link table, i.e. a row that exists to say
     /// two entities are associated.
     ///
     /// Only needed for the link tables carrying fields beyond the two foreign keys: one of the plain shape is
@@ -246,7 +246,7 @@ public class MergeMetadataProvider
 
 
     @Override
-    public void provideMetaData(DomainQL domainQL, DomainQLMeta meta)
+    public void provideMetaData(QLiveDomain domainQL, DomainQLMeta meta)
     {
         // Java types first, then names, so that a type declared through both is reported as declared twice
         // rather than half-written. The order within each is the application's.
@@ -275,7 +275,7 @@ public class MergeMetadataProvider
 
 
     /// The name the domain exposes the given Java type as.
-    private static String typeNameOf(DomainQL domainQL, Class<?> javaType)
+    private static String typeNameOf(QLiveDomain domainQL, Class<?> javaType)
     {
         final OutputType outputType = domainQL.getTypeRegistry().lookup(javaType);
         if (outputType == null)
@@ -290,7 +290,7 @@ public class MergeMetadataProvider
     }
 
 
-    private static void write(DomainQL domainQL, DomainQLMeta meta, String typeName, Declaration declaration)
+    private static void write(QLiveDomain domainQL, DomainQLMeta meta, String typeName, Declaration declaration)
     {
         requireType(domainQL, typeName);
 
@@ -327,13 +327,13 @@ public class MergeMetadataProvider
     }
 
 
-    private static void requireType(DomainQL domainQL, String typeName)
+    private static void requireType(QLiveDomain domainQL, String typeName)
     {
         if (domainQL.getTypeRegistry().lookup(typeName) == null)
         {
-            // The type meta data only exists for the types DomainQL knows a Java type for, so this would
+            // The type meta data only exists for the types QLiveDomain knows a Java type for, so this would
             // otherwise be meta data written nowhere -- or, for a name that is no type at all, a failure
-            // phrased as DomainQL's rather than as the application's.
+            // phrased as the framework's rather than as the application's.
             throw new QLiveException(
                 "Merge meta data declared for type '" + typeName + "', which is no type of the domain."
             );
@@ -341,7 +341,7 @@ public class MergeMetadataProvider
     }
 
 
-    private static void requireVersioned(DomainQL domainQL, String typeName, String property)
+    private static void requireVersioned(QLiveDomain domainQL, String typeName, String property)
     {
         if (!MergeMeta.isVersioned(domainQL, typeName))
         {
@@ -354,7 +354,7 @@ public class MergeMetadataProvider
     }
 
 
-    private static void requireFields(DomainQL domainQL, String typeName, List<String> fields)
+    private static void requireFields(QLiveDomain domainQL, String typeName, List<String> fields)
     {
         final GraphQLObjectType type =
             (GraphQLObjectType) domainQL.getGraphQLSchema().getTypeMap().get(typeName);

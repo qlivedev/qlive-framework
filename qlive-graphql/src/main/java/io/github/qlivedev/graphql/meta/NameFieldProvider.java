@@ -1,6 +1,6 @@
 package io.github.qlivedev.graphql.meta;
 
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.OutputType;
 import io.github.qlivedev.graphql.meta.DomainQLMeta;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Adapter that write the internal name field configuration into the DomainQL meta data.
+ * Adapter that write the internal name field configuration into the domain meta data.
  */
 public class NameFieldProvider
     implements MetadataProvider
@@ -34,7 +34,7 @@ public class NameFieldProvider
 
 
     @Override
-    public void provideMetaData(DomainQL domainQL, DomainQLMeta meta)
+    public void provideMetaData(QLiveDomain domainQL, DomainQLMeta meta)
     {
 
         final GraphQLSchema schema = domainQL.getGraphQLSchema();

@@ -61,7 +61,7 @@ class ConditionParserTest
     ///
     /// Values arrive as the Java types JSON has, a number being a Long. This parser has no schema to ask
     /// what a node's scalarType means -- ConditionCoercing is the one that turns values into the types
-    /// they name, and it needs a DomainQL to do it.
+    /// they name, and it needs a QLiveDomain to do it.
     @Test
     void buildsThemAtEveryLevel()
     {

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * DomainQL meta data on the server-side. Basically a data map with named keys, "types" being special and containing the
+ * Schema meta data on the server-side. Basically a data map with named keys, "types" being special and containing the
  * type meta data.
  *
  * @see DomainQLTypeMeta

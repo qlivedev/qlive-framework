@@ -2,7 +2,7 @@ package io.github.qlivedev.runtime.merge;
 
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.meta.MergeMeta;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -55,7 +55,7 @@ public class DefaultFieldLayoutService
     private final Map<String, FieldLayout> byId = new ConcurrentHashMap<>();
 
 
-    public DefaultFieldLayoutService(DomainQL domainQL, DSLContext dslContext)
+    public DefaultFieldLayoutService(QLiveDomain domainQL, DSLContext dslContext)
     {
         this.dslContext = dslContext;
 

@@ -1,6 +1,6 @@
 package io.github.qlivedev.graphql.logic;
 
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import graphql.GraphQLContext;
 import graphql.execution.ExecutionContext;
 import graphql.execution.ExecutionId;
@@ -25,19 +25,19 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Wraps the the standard GraphQL DataFetchingEnvironment to add DomainQL specific members.
+ * Wraps the the standard GraphQL DataFetchingEnvironment to add QLiveDomain specific members.
  */
 public class DomainQLDataFetchingEnvironment
     implements DataFetchingEnvironment
 {
-    private final DomainQL domainQL;
+    private final QLiveDomain domainQL;
 
     private final DataFetchingEnvironment env;
 
     private final Class<?> typeParam;
 
     public DomainQLDataFetchingEnvironment(
-        DomainQL domainQL,
+        QLiveDomain domainQL,
         DataFetchingEnvironment env,
         Class<?> typeParam
     )
@@ -239,7 +239,7 @@ public class DomainQLDataFetchingEnvironment
     // DOMAINQL SPECIFIC METHODS
 
 
-    public DomainQL getDomainQL()
+    public QLiveDomain getDomainQL()
     {
         return domainQL;
     }

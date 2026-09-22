@@ -42,7 +42,7 @@ public class QueryTestLogic
             typeNamePattern = "*Document",
             types = {
                 // the handwritten TestFoo, which is what puts it in the generated one's place: a type
-                // reached from a logic bean is registered as an output type, and DomainQL resolves the
+                // reached from a logic bean is registered as an output type, and QLiveDomain resolves the
                 // simple name against those
                 io.github.qlivedev.testmodel.types.TestFoo.class,
                 TestUser.class

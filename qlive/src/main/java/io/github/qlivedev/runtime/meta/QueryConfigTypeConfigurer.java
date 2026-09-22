@@ -2,7 +2,7 @@ package io.github.qlivedev.runtime.meta;
 
 import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.runtime.scalar.ConditionCoercing;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import graphql.GraphQLContext;
 
 import java.util.LinkedHashMap;
@@ -32,7 +32,7 @@ import java.util.function.Consumer;
 /// begin the next.
 ///
 /// This is the declaring end of {@link QueryConfigMeta}. What ends up in the meta data is the map
-/// {@link #toMeta(DomainQL)} produces, which is the shape the client's QueryConfigDelta already is -- a
+/// {@link #toMeta(QLiveDomain)} produces, which is the shape the client's QueryConfigDelta already is -- a
 /// condition as FilterDSL JSON, sort fields as the names the client writes them as. Written as a builder
 /// rather than as that map so that an application says what it means and finds out about a mistake here
 /// instead of in a browser.
@@ -97,7 +97,7 @@ public final class QueryConfigTypeConfigurer
     /// This delta as the meta data holds it, i.e. as the JSON the client's QueryConfigDelta is.
     ///
     /// @param domainQL  the domain, which is what knows how to write the values inside a condition
-    public Map<String, Object> toMeta(DomainQL domainQL)
+    public Map<String, Object> toMeta(QLiveDomain domainQL)
     {
         final Map<String, Object> meta = new LinkedHashMap<>();
 
@@ -131,7 +131,7 @@ public final class QueryConfigTypeConfigurer
     /// query config, so the condition scalar is not referenced by any type and never lands in the schema.
     /// Being DomainQLAware is what makes an instance of it usable anyway -- which is also how the query
     /// config's own coercing comes by one.
-    private static Object serializeCondition(DomainQL domainQL, CNode condition)
+    private static Object serializeCondition(QLiveDomain domainQL, CNode condition)
     {
         final ConditionCoercing coercing = new ConditionCoercing();
         coercing.setDomainQL(domainQL);

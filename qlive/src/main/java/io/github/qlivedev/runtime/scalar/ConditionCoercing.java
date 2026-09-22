@@ -1,6 +1,6 @@
 package io.github.qlivedev.runtime.scalar;
 
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.DomainQLAware;
 import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.model.condition.Component;
@@ -38,7 +38,7 @@ public final class ConditionCoercing
 
     private final static Logger log = LoggerFactory.getLogger(ConditionCoercing.class);
 
-    private DomainQL domainQL;
+    private QLiveDomain domainQL;
 
 
     public ConditionCoercing()
@@ -429,7 +429,7 @@ public final class ConditionCoercing
     }
 
 
-    /// Converts one embedded value with the coercing DomainQL has registered for the scalar type the node
+    /// Converts one embedded value with the coercing QLiveDomain has registered for the scalar type the node
     /// names.
     ///
     /// A condition arrives as JSON, where a timestamp is a string and a BigDecimal may be one too. Reading
@@ -462,8 +462,8 @@ public final class ConditionCoercing
         if (domainQL == null)
         {
             throw new IllegalStateException(
-                "No DomainQL set on this " + getClass().getSimpleName() + ". It is DomainQLAware, which " +
-                    "means it has to be the instance registered for its scalar, or be given the DomainQL " +
+                "No QLiveDomain set on this " + getClass().getSimpleName() + ". It is DomainQLAware, which " +
+                    "means it has to be the instance registered for its scalar, or be given the QLiveDomain " +
                     "by whoever holds it."
             );
         }
@@ -479,7 +479,7 @@ public final class ConditionCoercing
 
 
     @Override
-    public void setDomainQL(DomainQL domainQL)
+    public void setDomainQL(QLiveDomain domainQL)
     {
         this.domainQL = domainQL;
     }

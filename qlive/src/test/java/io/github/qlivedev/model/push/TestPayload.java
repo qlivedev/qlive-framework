@@ -3,7 +3,7 @@ package io.github.qlivedev.model.push;
 import java.util.List;
 
 /// A channel payload, of the kind an application writes: an ordinary bean with ordinary properties, no
-/// DomainQL registration and no relation machinery anywhere in sight.
+/// QLiveDomain registration and no relation machinery anywhere in sight.
 public class TestPayload
 {
     private String name;

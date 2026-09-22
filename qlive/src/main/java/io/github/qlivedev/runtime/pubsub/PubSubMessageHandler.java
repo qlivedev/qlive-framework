@@ -11,7 +11,7 @@ import io.github.qlivedev.runtime.push.ConnectionListener;
 import io.github.qlivedev.runtime.push.PushMessageHandler;
 import io.github.qlivedev.runtime.push.Recipient;
 import io.github.qlivedev.runtime.scalar.ConditionCoercing;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import graphql.GraphQLContext;
 
 import java.util.Locale;
@@ -22,7 +22,7 @@ import java.util.Set;
 ///
 /// One handler among however many the application wires, which is the shape the message model always
 /// claimed and the transport now has. Everything channel-shaped is here -- the service, the condition
-/// coercion, the `DomainQL` that coercion needs -- and none of it is in
+/// coercion, the `QLiveDomain` that coercion needs -- and none of it is in
 /// {@link io.github.qlivedev.runtime.push.PushWebSocketHandler}.
 public class PubSubMessageHandler
     implements PushMessageHandler, ConnectionListener
@@ -37,7 +37,7 @@ public class PubSubMessageHandler
     private final ConditionCoercing coercing = new ConditionCoercing();
 
 
-    public PubSubMessageHandler(PubSubService pubSub, DomainQL domainQL)
+    public PubSubMessageHandler(PubSubService pubSub, QLiveDomain domainQL)
     {
         this.pubSub = pubSub;
         this.coercing.setDomainQL(domainQL);

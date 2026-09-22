@@ -53,7 +53,7 @@ class LogicBeanAnalyzer
 
     private final Set<Mutation> mutations = new LinkedHashSet<>();
 
-    private final DomainQL domainQL;
+    private final QLiveDomain domainQL;
 
     private final Collection<ParameterProviderFactory> parameterProviderFactories;
 
@@ -62,7 +62,7 @@ class LogicBeanAnalyzer
     private final Map<String,Class<?>> outputTypeOverrides;
 
     LogicBeanAnalyzer(
-        DomainQL domainQL,
+        QLiveDomain domainQL,
         Collection<ParameterProviderFactory> parameterProviderFactories,
         Collection<Object> logicBeans,
         MutableTypeRegistry typeRegistry

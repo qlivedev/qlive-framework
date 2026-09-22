@@ -4,7 +4,7 @@ import io.github.qlivedev.model.QueryConfig;
 import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.domain.TestDomainConfig;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
@@ -174,7 +174,7 @@ class QueryPlanTest
     }
 
 
-    /// A handwritten type can add fields the table has no column for. DomainQL fetches those from the
+    /// A handwritten type can add fields the table has no column for. QLiveDomain fetches those from the
     /// object, so the planner has nothing to select for them and says so by leaving them alone -- rather
     /// than refusing a query it has no reason to refuse.
     @Test
@@ -333,7 +333,7 @@ class QueryPlanTest
     private static QueryPlan plan(String query, QueryConfig config, boolean selectByFilter)
     {
         final QueryTestLogic logic = new QueryTestLogic();
-        final DomainQL domainQL = TestDomainConfig.domainQL(logic);
+        final QLiveDomain domainQL = TestDomainConfig.domainQL(logic);
 
         final ExecutionResult result = GraphQL.newGraphQL(domainQL.getGraphQLSchema())
             .build()

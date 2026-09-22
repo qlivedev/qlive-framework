@@ -1,7 +1,7 @@
 package io.github.qlivedev.graphql.config;
 
 /**
- * DomainQL behavior for the target side of a foreign key.
+ * Schema behavior for the target side of a foreign key.
  *
  */
 public enum TargetField

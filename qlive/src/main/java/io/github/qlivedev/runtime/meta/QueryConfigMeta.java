@@ -1,7 +1,7 @@
 package io.github.qlivedev.runtime.meta;
 
 import io.github.qlivedev.runtime.util.Util;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.GenericTypeReference;
 import io.github.qlivedev.graphql.OutputType;
 import io.github.qlivedev.graphql.meta.DomainQLTypeMeta;
@@ -23,7 +23,7 @@ import java.util.Optional;
 ///
 /// Beside it sits the maximum page size, which is the opposite kind of statement: not what a query starts
 /// out as but what it is held to, whoever asks and however the config got here. See
-/// {@link #maxPageSizeForType(DomainQL, Class)}.
+/// {@link #maxPageSizeForType(QLiveDomain, Class)}.
 ///
 /// Both are written with {@link QueryConfigMetadataProvider}, which an application registers as a bean if it
 /// wants any of this -- nothing here happens to an application that declares nothing. The delta is read on
@@ -51,7 +51,7 @@ public final class QueryConfigMeta
     /// @param documentTypeName  name of a degenerified QueryDocument type, e.g. "FooDocument"
     ///
     /// @return the delta, or `null` where that is no query document type or its row type declares none
-    public static Map<String, Object> deltaForDocumentType(DomainQL domainQL, String documentTypeName)
+    public static Map<String, Object> deltaForDocumentType(QLiveDomain domainQL, String documentTypeName)
     {
         final Optional<GenericTypeReference> documentType = Util.findQueryDocumentType(
             domainQL, documentTypeName
@@ -68,7 +68,7 @@ public final class QueryConfigMeta
     /// @param javaType  a Java type, exposed by the domain or not
     ///
     /// @return the delta, or `null` where the type is unknown or declares none
-    public static Map<String, Object> deltaForType(DomainQL domainQL, Class<?> javaType)
+    public static Map<String, Object> deltaForType(QLiveDomain domainQL, Class<?> javaType)
     {
         final DomainQLTypeMeta typeMeta = Util.typeMeta(domainQL, javaType.getSimpleName());
 
@@ -82,7 +82,7 @@ public final class QueryConfigMeta
     ///
     /// @return the maximum, or 0 where the type is unknown or declares none. 0 is also what a query config
     ///         says when it wants every row, so "no maximum" and "no limit" are the same number throughout.
-    public static int maxPageSizeForType(DomainQL domainQL, Class<?> javaType)
+    public static int maxPageSizeForType(QLiveDomain domainQL, Class<?> javaType)
     {
         final OutputType outputType = domainQL.getTypeRegistry().lookup(javaType);
         if (outputType == null)

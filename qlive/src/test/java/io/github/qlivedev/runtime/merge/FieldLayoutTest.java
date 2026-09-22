@@ -3,7 +3,7 @@ package io.github.qlivedev.runtime.merge;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.domain.TestDomainConfig;
 import io.github.qlivedev.runtime.domain.TestLogic;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /// What a field mask means, which is a question about a list of names and needs no database to answer.
 class FieldLayoutTest
 {
-    private static DomainQL domainQL;
+    private static QLiveDomain domainQL;
 
 
     @BeforeAll

@@ -1,6 +1,6 @@
 package io.github.qlivedev.graphql.util;
 
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.DomainQLException;
 import io.github.qlivedev.graphql.TableLookup;
 import io.github.qlivedev.graphql.generic.DomainObject;
@@ -15,7 +15,7 @@ import org.jooq.impl.DSL;
 import static org.jooq.impl.DSL.*;
 
 /**
- * Contains some JOOQ util methods for DomainQL domain objects.
+ * Contains some JOOQ util methods for QLiveDomain domain objects.
  */
 public final class DomainObjectUtil
 {
@@ -29,12 +29,12 @@ public final class DomainObjectUtil
      * Inserts the given domain object
      *
      * @param dslContext   DSL context
-     * @param domainQL     DomainQL instance
+     * @param domainQL     domain
      * @param domainObject domain object
      *
      * @return result count for insert statement
      */
-    public static int insert(DSLContext dslContext, DomainQL domainQL, DomainObject domainObject)
+    public static int insert(DSLContext dslContext, QLiveDomain domainQL, DomainObject domainObject)
     {
         final String domainType = domainObject.getDomainType();
         final Table<?> jooqTable = tableFor(domainQL, domainType);
@@ -65,12 +65,12 @@ public final class DomainObjectUtil
      * Updates the given domain object by id.
      *
      * @param dslContext   DSL context
-     * @param domainQL     DomainQL instance
+     * @param domainQL     domain
      * @param domainObject domain object with id
      *
      * @return result count for update statement
      */
-    public static int update(DSLContext dslContext, DomainQL domainQL, DomainObject domainObject)
+    public static int update(DSLContext dslContext, QLiveDomain domainQL, DomainObject domainObject)
     {
         final String domainType = domainObject.getDomainType();
         final Table<?> jooqTable = tableFor(domainQL, domainType);
@@ -105,12 +105,12 @@ public final class DomainObjectUtil
      * </p>
      *
      * @param dslContext   DSL context
-     * @param domainQL     DomainQL instance
+     * @param domainQL     domain
      * @param domainObject domain object with id
      *
      * @return result count for update statement
      */
-    public static int insertOrUpdate(DSLContext dslContext, DomainQL domainQL, DomainObject domainObject)
+    public static int insertOrUpdate(DSLContext dslContext, QLiveDomain domainQL, DomainObject domainObject)
     {
 
         final String domainType = domainObject.getDomainType();
@@ -145,7 +145,7 @@ public final class DomainObjectUtil
     }
 
 
-    public static int delete(DSLContext dslContext, DomainQL domainQL, DomainObject domainObject)
+    public static int delete(DSLContext dslContext, QLiveDomain domainQL, DomainObject domainObject)
     {
         final String domainType = domainObject.getDomainType();
         final String id = (String) domainObject.getProperty(DomainObject.ID);
@@ -154,7 +154,7 @@ public final class DomainObjectUtil
     }
 
 
-    public static int delete(DSLContext dslContext, DomainQL domainQL, String domainType, String id)
+    public static int delete(DSLContext dslContext, QLiveDomain domainQL, String domainType, String id)
     {
         final Table<?> jooqTable = tableFor(domainQL, domainType);
 
@@ -179,7 +179,7 @@ public final class DomainObjectUtil
      * @param domainObject domain object
      */
     private static void addFieldValues(
-        DomainQL domainQL,
+        QLiveDomain domainQL,
         StoreQuery<?> query,
         DomainObject domainObject
     )
@@ -211,14 +211,14 @@ public final class DomainObjectUtil
     /**
      * The table a domain object of the given type is stored in.
      *
-     * @param domainQL   DomainQL instance
+     * @param domainQL   domain
      * @param domainType domain type name
      *
      * @return jOOQ table
      *
      * @throws DomainQLException if the domain exposes no table under that name
      */
-    private static Table<?> tableFor(DomainQL domainQL, String domainType)
+    private static Table<?> tableFor(QLiveDomain domainQL, String domainType)
     {
         final TableLookup lookup = domainQL.getTypeRegistry().lookupType(domainType);
 

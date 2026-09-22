@@ -2,6 +2,7 @@ package io.github.qlivedev.runtime.util;
 
 import io.github.qlivedev.util.JSONUtil;
 import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;

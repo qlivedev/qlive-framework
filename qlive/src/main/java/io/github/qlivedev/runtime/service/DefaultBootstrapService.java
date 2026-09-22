@@ -9,7 +9,7 @@ import io.github.qlivedev.model.ts.ModuleFunctionReferences;
 import io.github.qlivedev.model.ts.TrackUsageData;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.QLivePaths;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.meta.DomainQLMeta;
 import io.github.qlivedev.graphql.util.IntrospectionUtil;
 import io.github.qlivedev.graphql.util.JSONHolder;
@@ -38,7 +38,7 @@ public class DefaultBootstrapService
 
     private final ServletContext servletContext;
 
-    private final DomainQL domainQL;
+    private final QLiveDomain domainQL;
 
     private final JSONHolder qlConfigJSON;
 
@@ -52,7 +52,7 @@ public class DefaultBootstrapService
 
     public DefaultBootstrapService(
         ServletContext servletContext,
-        @Lazy DomainQL domainQL,
+        @Lazy QLiveDomain domainQL,
         @Lazy GraphQL graphQL,
         StaticAnalysisProvider staticAnalysisProvider
     )
@@ -71,7 +71,7 @@ public class DefaultBootstrapService
     ///                            into GraphQL variables, see {@link InjectionArgumentProcessor}
     public DefaultBootstrapService(
         ServletContext servletContext,
-        @Lazy DomainQL domainQL,
+        @Lazy QLiveDomain domainQL,
         @Lazy GraphQL graphQL,
         StaticAnalysisProvider staticAnalysisProvider,
         List<InjectionArgumentProcessor> argumentProcessors
@@ -105,9 +105,9 @@ public class DefaultBootstrapService
     /// Creates a {@link QLiveConfig} bean hierarchy.
     ///
     /// @param reduced  if true, produce the reduced variant: the same config with an empty domain in place of
-    ///                 the introspected schema and the DomainQL meta data. See {@link #emptyMeta()} for what
+    ///                 the introspected schema and the domain meta data. See {@link #emptyMeta()} for what
     ///                 "empty" has to mean here.
-    private QLiveConfig createSystemConfig(ServletContext servletContext, DomainQL domainQL, boolean reduced)
+    private QLiveConfig createSystemConfig(ServletContext servletContext, QLiveDomain domainQL, boolean reduced)
     {
         QLiveConfig qlConfig = new QLiveConfig();
         qlConfig.setContextPath(servletContext.getContextPath());
@@ -139,7 +139,7 @@ public class DefaultBootstrapService
     }
 
 
-    /// DomainQL meta data with all three addenda present and empty.
+    /// domain meta data with all three addenda present and empty.
     ///
     /// Empty, not absent: the client dereferences `meta.types`, `meta.genericTypes` and `meta.relations`
     /// unconditionally while it initializes the derived config, so leaving any of them off the wire turns a

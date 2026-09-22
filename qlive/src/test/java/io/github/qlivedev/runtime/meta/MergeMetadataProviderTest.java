@@ -5,7 +5,7 @@ import io.github.qlivedev.runtime.domain.TestDomainConfig;
 import io.github.qlivedev.runtime.domain.TestLogic;
 import io.github.qlivedev.testdomain.tables.pojos.TestFoo;
 import io.github.qlivedev.testdomain.tables.pojos.TestUser;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +28,7 @@ class MergeMetadataProviderTest
     @Test
     void derivesWhichTypesTakePart()
     {
-        final DomainQL domainQL = TestDomainConfig.domainQL(new TestLogic());
+        final QLiveDomain domainQL = TestDomainConfig.domainQL(new TestLogic());
 
         assertThat(MergeMeta.isVersioned(domainQL, "TestFoo"), is(true));
         assertThat(MergeMeta.isVersioned(domainQL, "TestUser"), is(false));
@@ -46,7 +46,7 @@ class MergeMetadataProviderTest
     @Test
     void listsTheVersionedTypes()
     {
-        final DomainQL domainQL = TestDomainConfig.domainQL(new TestLogic());
+        final QLiveDomain domainQL = TestDomainConfig.domainQL(new TestLogic());
 
         assertThat(MergeMeta.versionedTypes(domainQL), hasItem("TestFoo"));
         assertThat(MergeMeta.versionedTypes(domainQL), not(hasItem("TestUser")));
@@ -61,7 +61,7 @@ class MergeMetadataProviderTest
     @Test
     void writesTheDeclarationOntoTheType()
     {
-        final DomainQL domainQL = domainWith(
+        final QLiveDomain domainQL = domainWith(
             MergeMetadataProvider.newProvider()
                 .resolveConflicts(TestFoo.class)
                 .ignoreFields(TestFoo.class, "num", "created")
@@ -80,7 +80,7 @@ class MergeMetadataProviderTest
     @Test
     void answersATypeThatDeclaredNothing()
     {
-        final DomainQL domainQL = TestDomainConfig.domainQL(new TestLogic());
+        final QLiveDomain domainQL = TestDomainConfig.domainQL(new TestLogic());
 
         assertThat(MergeMeta.resolvesConflicts(domainQL, "TestFoo"), is(false));
         assertThat(MergeMeta.ignoredFields(domainQL, "TestFoo"), is(List.of()));
@@ -101,7 +101,7 @@ class MergeMetadataProviderTest
     @Test
     void declaresByTypeName()
     {
-        final DomainQL domainQL = domainWith(
+        final QLiveDomain domainQL = domainWith(
             MergeMetadataProvider.newProvider().resolveConflicts("TestFoo")
         );
 
@@ -114,7 +114,7 @@ class MergeMetadataProviderTest
     @Test
     void declaresALinkTypeWithoutVersioning()
     {
-        final DomainQL domainQL = domainWith(
+        final QLiveDomain domainQL = domainWith(
             MergeMetadataProvider.newProvider().linkType(TestUser.class)
         );
 
@@ -187,7 +187,7 @@ class MergeMetadataProviderTest
 
 
     /// The same type reached both ways is the same mistake, and only the built domain can see it: which
-    /// GraphQL name a class ends up under is DomainQL's to decide.
+    /// GraphQL name a class ends up under is QLiveDomain's to decide.
     @Test
     void reportsATypeDeclaredByBothClassAndName()
     {
@@ -218,7 +218,7 @@ class MergeMetadataProviderTest
     }
 
 
-    private static DomainQL domainWith(MetadataProvider provider)
+    private static QLiveDomain domainWith(MetadataProvider provider)
     {
         return TestDomainConfig.domainQL(List.of(provider), new TestLogic());
     }

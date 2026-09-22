@@ -9,7 +9,7 @@ import io.github.qlivedev.runtime.domain.TestDomainConfig;
 import io.github.qlivedev.runtime.domain.TestLogic;
 import io.github.qlivedev.testdomain.tables.pojos.TestFoo;
 import io.github.qlivedev.testdomain.tables.pojos.TestUser;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +30,7 @@ class QueryConfigMetadataProviderTest
     @Test
     void writesTheDeclaredDeltaOntoTheType()
     {
-        final DomainQL domainQL = domainWith(
+        final QLiveDomain domainQL = domainWith(
             QueryConfigMetadataProvider.newProvider()
                 .forType(
                     TestFoo.class
@@ -55,7 +55,7 @@ class QueryConfigMetadataProviderTest
     {
         // What the injections have in hand is the type a query returns, and what the application declared on
         // is the type of its rows.
-        final DomainQL domainQL = domainWith(
+        final QLiveDomain domainQL = domainWith(
             QueryConfigMetadataProvider.newProvider()
                 .forType(TestFoo.class)
                     .pageSize(20)
@@ -85,7 +85,7 @@ class QueryConfigMetadataProviderTest
             )
         );
 
-        final DomainQL domainQL = domainWith(
+        final QLiveDomain domainQL = domainWith(
             QueryConfigMetadataProvider.newProvider()
                 .forType(TestFoo.class)
                 .condition(condition)
@@ -108,7 +108,7 @@ class QueryConfigMetadataProviderTest
     @Test
     void writesTheDeclaredMaximumPageSizeOntoTheType()
     {
-        final DomainQL domainQL = domainWith(
+        final QLiveDomain domainQL = domainWith(
             QueryConfigMetadataProvider.newProvider()
                 .forType(TestFoo.class)
                 .pageSize(20)
@@ -127,7 +127,7 @@ class QueryConfigMetadataProviderTest
     {
         // which is how a query has the type in hand: it returns rows of a POJO and never learns their
         // GraphQL name
-        final DomainQL domainQL = domainWith(
+        final QLiveDomain domainQL = domainWith(
             QueryConfigMetadataProvider.newProvider().forType(TestFoo.class).maxPageSize(100).build()
         );
 
@@ -139,7 +139,7 @@ class QueryConfigMetadataProviderTest
     @Test
     void answersATypeThatDeclaredNoMaximumPageSize()
     {
-        final DomainQL domainQL = domainWith(
+        final QLiveDomain domainQL = domainWith(
             QueryConfigMetadataProvider.newProvider()
                 .forType(TestFoo.class).pageSize(20).build()
         );
@@ -154,7 +154,7 @@ class QueryConfigMetadataProviderTest
     @Test
     void allowsDefiningAConfigForAllTypes()
     {
-        final DomainQL domainQL = domainWith(
+        final QLiveDomain domainQL = domainWith(
             QueryConfigMetadataProvider.newProvider()
                 .forAllTypes().pageSize(20).build()
         );
@@ -170,7 +170,7 @@ class QueryConfigMetadataProviderTest
     @Test
     void allTypesLosesToExplicit()
     {
-        final DomainQL domainQL = domainWith(
+        final QLiveDomain domainQL = domainWith(
             QueryConfigMetadataProvider.newProvider()
                 .forType(TestFoo.class).pageSize(30)
                 .andForAllTypes().pageSize(20)
@@ -201,7 +201,7 @@ class QueryConfigMetadataProviderTest
     @Test
     void chainsStatementsAcrossTypes()
     {
-        final DomainQL domainQL = domainWith(
+        final QLiveDomain domainQL = domainWith(
             QueryConfigMetadataProvider.newProvider()
                 .forAllTypes()
                     .pageSize(20)
@@ -260,7 +260,7 @@ class QueryConfigMetadataProviderTest
     @Test
     void answersATypeThatDeclaredNothing()
     {
-        final DomainQL domainQL = TestDomainConfig.domainQLNoMeta(new TestLogic());
+        final QLiveDomain domainQL = TestDomainConfig.domainQLNoMeta(new TestLogic());
 
         assertThat(QueryConfigMeta.deltaForType(domainQL, TestFoo.class), is(nullValue()));
 
@@ -286,7 +286,7 @@ class QueryConfigMetadataProviderTest
 
     }
 
-    private static DomainQL domainWith(MetadataProvider provider)
+    private static QLiveDomain domainWith(MetadataProvider provider)
     {
         return TestDomainConfig.domainQL(List.of(provider), new TestLogic());
     }

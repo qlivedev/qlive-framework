@@ -1,7 +1,7 @@
 package io.github.qlivedev.graphql.config;
 
 /**
- * DomainQL behaviour for the source / left-hand side of a foreign Key.
+ * Schema behavior for the source / left-hand side of a foreign key.
  *
  * What kind of field is generated on the side that contains the foreign key.
  */

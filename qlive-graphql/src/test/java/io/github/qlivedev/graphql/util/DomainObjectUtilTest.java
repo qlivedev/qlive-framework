@@ -1,6 +1,7 @@
 package io.github.qlivedev.graphql.util;
 
 import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.beans.SourceSeven;
 import io.github.qlivedev.graphql.logicimpl.OutputTypeOverrideLogic;
 import io.github.qlivedev.graphql.testdomain.Public;
@@ -37,7 +38,7 @@ public class DomainObjectUtilTest
 
     private final DSLContext dslContext = DSL.using(new MockConnection(provider), SQLDialect.POSTGRES);
 
-    private final DomainQL domainQL = DomainQL.newDomainQL(dslContext)
+    private final QLiveDomain domainQL = DomainQL.newDomainQL(dslContext)
         .objectTypes(Public.PUBLIC)
         .logicBeans(Collections.singleton(new OutputTypeOverrideLogic()))
         .build();

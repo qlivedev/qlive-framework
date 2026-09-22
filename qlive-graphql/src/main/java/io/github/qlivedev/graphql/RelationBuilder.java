@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Builds and configures a DomainQL relation configuration object.
+ * Builds and configures a relation configuration object.
  *
  * @see DomainQLBuilder#withRelation(RelationBuilder)
  */

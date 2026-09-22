@@ -36,7 +36,7 @@ import java.util.Set;
 /// own, keyed by the parents already fetched, because joining it would multiply the rows and take both the
 /// page and the count with it.
 ///
-/// What the rows end up carrying is a fetcher context per object, which is what stops DomainQL's own
+/// What the rows end up carrying is a fetcher context per object, which is what stops the schema's own
 /// relation fetchers from going back to the database for something this already has. That is also why a
 /// context is filled completely or not attached at all: a fetcher that finds a context asks it and nothing
 /// else, so a relation missing from one would silently resolve to null.
@@ -378,7 +378,7 @@ public class QueryExecution
 
 
     /// Builds one object and everything joined below it, and gives it the fetcher context that keeps
-    /// DomainQL from fetching any of it again.
+    /// QLiveDomain from fetching any of it again.
     private Object materialize(PlanNode node, Record record)
     {
         final Slice slice = slices.get(node);

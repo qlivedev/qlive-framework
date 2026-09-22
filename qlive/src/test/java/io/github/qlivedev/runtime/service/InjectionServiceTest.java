@@ -7,7 +7,7 @@ import io.github.qlivedev.runtime.domain.TestDomainConfig;
 import io.github.qlivedev.runtime.domain.TestLogic;
 import io.github.qlivedev.runtime.meta.QueryConfigMetadataProvider;
 import io.github.qlivedev.testdomain.tables.pojos.TestFoo;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.util.JSONUtil;
 import graphql.GraphQL;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,7 +87,7 @@ class InjectionServiceTest
     @BeforeEach
     void createInjectionService()
     {
-        final DomainQL domainQL = TestDomainConfig.domainQL(new TestLogic());
+        final QLiveDomain domainQL = TestDomainConfig.domainQL(new TestLogic());
 
         injectionService = new InjectionService(
             GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build(),
@@ -507,7 +507,7 @@ class InjectionServiceTest
         // What an application contributes as a bean, here handed over directly: a processor claiming a type
         // decides what the variables of that type are executed with, the framework's own understanding of
         // QueryConfig included.
-        final DomainQL domainQL = TestDomainConfig.domainQL(new TestLogic());
+        final QLiveDomain domainQL = TestDomainConfig.domainQL(new TestLogic());
 
         final InjectionService service = new InjectionService(
             GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build(),
@@ -525,7 +525,7 @@ class InjectionServiceTest
     @Test
     void reportsWhatTheApplicationsProcessorRejects()
     {
-        final DomainQL domainQL = TestDomainConfig.domainQL(new TestLogic());
+        final QLiveDomain domainQL = TestDomainConfig.domainQL(new TestLogic());
 
         final InjectionService service = new InjectionService(
             GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build(),
@@ -596,7 +596,7 @@ class InjectionServiceTest
      */
     private static Map<String, Injection> injectionsWithDeclaredDefaults(String config)
     {
-        final DomainQL domainQL = TestDomainConfig.domainQL(
+        final QLiveDomain domainQL = TestDomainConfig.domainQL(
             List.of(
                 QueryConfigMetadataProvider.newProvider()
                     .forType(TestFoo.class)

@@ -93,8 +93,11 @@ import static graphql.schema.GraphQLNonNull.*;
 
 /**
  * Annotation-based convention-over-configuration GraphQL Schema helper.
+ * <p>
+ * Assembles the schema and is the {@link QLiveDomain} an application reads it through afterwards.
  */
 public class DomainQL
+    implements QLiveDomain
 {
 
     private final static Logger log = LoggerFactory.getLogger(DomainQL.class);
@@ -1914,6 +1917,7 @@ public class DomainQL
 
 
 
+    @Override
     public TypeRegistry getTypeRegistry()
     {
         return typeRegistry;
@@ -1934,6 +1938,7 @@ public class DomainQL
     }
 
 
+    @Override
     public GraphQLSchema getGraphQLSchema()
     {
         return graphQLSchema;
@@ -1954,6 +1959,7 @@ public class DomainQL
     }
     
 
+    @Override
     public DomainQLMeta getMetaData()
     {
         return metaData;

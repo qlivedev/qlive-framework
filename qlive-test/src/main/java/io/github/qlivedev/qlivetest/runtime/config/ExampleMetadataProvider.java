@@ -1,6 +1,6 @@
 package io.github.qlivedev.qlivetest.runtime.config;
 
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.meta.DomainQLMeta;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
 import graphql.schema.GraphQLNamedType;
@@ -39,7 +39,7 @@ public class ExampleMetadataProvider
 
 
     @Override
-    public void provideMetaData(DomainQL domainQL, DomainQLMeta meta)
+    public void provideMetaData(QLiveDomain domainQL, DomainQLMeta meta)
     {
         final List<String> quickSearchTypes = new ArrayList<>();
 
@@ -52,7 +52,7 @@ public class ExampleMetadataProvider
 
             final String typeName = namedType.getName();
 
-            // the type meta data only exists for the types DomainQL knows a Java type for
+            // the type meta data only exists for the types QLiveDomain knows a Java type for
             if (domainQL.getTypeRegistry().lookup(typeName) == null)
             {
                 continue;

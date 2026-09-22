@@ -35,7 +35,7 @@ public class DomainQLTypeDocTest
     @Test
     public void testTypeDocSchema() throws IOException
     {
-        final DomainQL domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new DocumentedLogic()))
             .withTypeDocs(

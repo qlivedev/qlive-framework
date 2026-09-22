@@ -6,7 +6,7 @@ import io.github.qlivedev.qlivetest.domain.tables.pojos.Bar;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Baz;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Foo;
 import io.github.qlivedev.qlivetest.runtime.logic.QueryLogic;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +27,7 @@ import static org.hamcrest.Matchers.is;
 /// are where the merge design says they are.
 class MergeMetadataTest
 {
-    private static DomainQL domainQL;
+    private static QLiveDomain domainQL;
 
 
     @BeforeAll

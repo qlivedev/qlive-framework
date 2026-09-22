@@ -3,7 +3,7 @@ package io.github.qlivedev.graphql.config;
 import java.util.function.Function;
 
 /**
- * Miscellaneous options for DomainQL
+ * Miscellaneous options for the schema build
  */
 public class Options
 {
@@ -27,7 +27,7 @@ public class Options
 
 
     /**
-     * If <code>true</code>, DomainQL will use data base field names instead of java property names for the GraphQL fields.
+     * If <code>true</code>, the schema build will use data base field names instead of java property names for the GraphQL fields.
      *
      * @return  use database names?
      */

@@ -1,6 +1,6 @@
 package io.github.qlivedev.runtime.scalar;
 
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.generic.GenericScalar;
 import io.github.qlivedev.graphql.generic.GenericScalarCoercing;
 import io.github.qlivedev.graphql.DomainQLAware;
@@ -84,7 +84,7 @@ public class ComputedValueCoercing
 
 
     @Override
-    public void setDomainQL(DomainQL domainQL)
+    public void setDomainQL(QLiveDomain domainQL)
     {
         this.genericScalarCoercing = new GenericScalarCoercing();
         this.genericScalarCoercing.setDomainQL(domainQL);

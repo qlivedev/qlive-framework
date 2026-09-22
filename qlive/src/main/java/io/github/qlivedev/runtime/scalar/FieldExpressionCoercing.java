@@ -1,6 +1,6 @@
 package io.github.qlivedev.runtime.scalar;
 
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.DomainQLAware;
 import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.model.condition.Field;
@@ -25,7 +25,7 @@ public final class FieldExpressionCoercing
     private final static Logger log = LoggerFactory.getLogger(FieldExpressionCoercing.class);
 
 
-    private DomainQL domainQL;
+    private QLiveDomain domainQL;
 
 
     public FieldExpressionCoercing()
@@ -121,7 +121,7 @@ public final class FieldExpressionCoercing
 
 
     @Override
-    public void setDomainQL(DomainQL domainQL)
+    public void setDomainQL(QLiveDomain domainQL)
     {
         this.domainQL = domainQL;
     }

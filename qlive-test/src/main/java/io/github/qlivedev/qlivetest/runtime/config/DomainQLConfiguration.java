@@ -5,7 +5,7 @@ import io.github.qlivedev.qlivetest.domain.Public;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Bar;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Baz;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Foo;
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.annotation.GraphQLLogic;
 import io.github.qlivedev.graphql.config.SourceField;
 import io.github.qlivedev.graphql.config.TargetField;
@@ -66,7 +66,7 @@ public class DomainQLConfiguration
 
 
     @Bean
-    public DomainQL domainQL() throws IOException
+    public QLiveDomain domainQL() throws IOException
     {
         return newDomainQL(
             dslContext,
@@ -82,13 +82,13 @@ public class DomainQLConfiguration
      * enough to get at the schema and its meta data. The logic beans and metadata providers are what the schema
      * is built out of, so a test has to hand over the same ones to get the same schema.
      */
-    static DomainQL newDomainQL(
+    static QLiveDomain newDomainQL(
         DSLContext dslContext,
         Collection<Object> logicBeans,
         Collection<MetadataProvider> metadataProviders
     ) throws IOException
     {
-        final DomainQL domainQL = QLiveDefaultDomain.newDomain(dslContext, metadataProviders)
+        final QLiveDomain domainQL = QLiveDefaultDomain.newDomain(dslContext, metadataProviders)
             //.parameterProvider(new AutomatonConnectionProviderFactory(applicationContext))
             .logicBeans(logicBeans)
 
@@ -175,7 +175,7 @@ public class DomainQLConfiguration
 
     @Bean
     public QueryDocumentService queryDocumentService(
-        DomainQL domainQL,
+        QLiveDomain domainQL,
         GraphQL graphQL) throws Exception
     {
         return new DefaultQueryDocumentService(

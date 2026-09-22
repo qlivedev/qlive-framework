@@ -9,7 +9,7 @@ import jakarta.persistence.Column;
 ///     columns alone do not say everything about it.
 ///
 ///
-///     DomainQL resolves a domain type by its simple name, so naming this one in the document query's
+///     QLive resolves a domain type by its simple name, so naming this one in the document query's
 ///     `@GraphQLTypeParam` puts it in the generated type's place -- for the query document service as
 ///     well, which materializes whatever the table lookup names. The generated jOOQ table stays behind
 ///     it with its columns and foreign keys, which is why `objectType()` is not the way in: that builds
@@ -39,7 +39,7 @@ public class Qux
     ///
     ///     What it computes from are the columns of that row, so a query selecting this should select those
     ///     as well -- nothing fetches a column on its account. The query document service leaves a field
-    ///     like this alone: there is nothing for it to select, and DomainQL reads the property off the
+    ///     like this alone: there is nothing for it to select, and QLive reads the property off the
     ///     object.
     ///
     ///

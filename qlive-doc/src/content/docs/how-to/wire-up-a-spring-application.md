@@ -34,10 +34,10 @@ pages that answer 503 forever.
 @Bean
 public DomainQL domainQL() throws IOException
 {
-    return QLiveDomain.newDomainQL(
+    return QLiveDomain.newDomain(
             dslContext,
             applicationContext.getBeansOfType(MetadataProvider.class).values()
-        )   
+        )
         .logicBeans(applicationContext.getBeansWithAnnotation(GraphQLLogic.class).values())
         .objectTypes(Public.PUBLIC)
         // ...

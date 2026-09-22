@@ -12,7 +12,8 @@ import java.util.function.Supplier;
 final class DeferredDomain
     implements Supplier<QLiveDomain>
 {
-    private QLiveDomain domain;
+    /// Written once, at the end of the assembly, and read from whatever thread serves a request afterwards.
+    private volatile QLiveDomain domain;
 
 
     void provide(QLiveDomain domain)

@@ -118,12 +118,15 @@ The evidence that they are one thing:
 - Both are keyed on the domain type name. `TypeRegistry.lookup(String)`
   and `DomainQL.lookupType(String)` take the same key and are backed by
   two maps that are populated over the same set of types.
-- `TypeRegistry` already answers the Java side. `OutputType.getJavaType()`
-  returns a `Class<?>`, and `TableLookup.getPojoType()` returns a `Class<?>`
-  for the same type name out of a different map. For table-backed types
-  these are very likely the same class, which would make `getPojoType()`
-  redundant rather than merely relocatable -- to be confirmed before the
-  merge, not assumed.
+- `TypeRegistry` already answers the Java side, and the build forces the
+  two to agree. `getOutputOverride(pojoClass)` is
+  `lookup(pojoClass.getSimpleName()).getJavaType()`, and
+  `updateTableLookups()` writes that result back into the `TableLookup`.
+  `registerTypes()` then registers the rewritten `getPojoType()` into the
+  registry, and defines the GraphQL type from `OutputType.getJavaType()`.
+  The round trip closes: the registry is authoritative and the table
+  lookup is kept synchronized to it. `getPojoType()` is a duplicate, not a
+  method needing a new home.
 - `TableLookup.getDomainType()` is `pojoType.getSimpleName()`: a registry
   entry that already derives its own key.
 - `getRelationModels()` is a flat list, but its only main-code caller uses
@@ -136,6 +139,14 @@ So the last open question does not want a second interface. It wants
 the facade then carries three methods: `getGraphQLSchema()`,
 `getTypeRegistry()` and `getMetaData()`. That is the SPI surface plus
 metadata, and nothing else.
+
+That synchronization is itself a reason to merge. `updateTableLookups()`
+exists only to hold two maps in agreement about one fact, and it is where
+the handwritten-POJO override resolves: a logic bean returning a
+hand-written class registers an output type under that simple name, and
+the table lookup is then rewritten to it, so the handwritten class wins
+over the generated one. Given one map, the override is just what the
+registry holds, and the synchronization pass has nothing left to do.
 
 Two things the merge has to reconcile, neither a blocker:
 
@@ -177,9 +188,11 @@ holds.
 **Step 4 -- fold the domain mapping into the registry.** `jooqTables`,
 `dbFieldLookup` and `relationModels` move out of `DomainQL` and become the
 registry's, per the section above, with the two not-found conventions
-reconciled and relations indexed rather than scanned. `TypeRegistry` is
-constructed inside `DomainQL`'s constructor today, so this is reachable
-without moving assembly first.
+reconciled and relations indexed rather than scanned. `getPojoType()` and
+`updateTableLookups()` both go: one is a duplicate of
+`OutputType.getJavaType()` and the other is the pass that keeps it one.
+`TypeRegistry` is constructed inside `DomainQL`'s constructor today, so
+this is reachable without moving assembly first.
 
 **Step 5 -- extract the facade.** An interface carrying
 `getGraphQLSchema()`, `getTypeRegistry()` and `getMetaData()`, implemented
@@ -275,10 +288,11 @@ change; see `module-distribution.md` for where that question belongs.
 
 ## Open items
 
-- **Whether `getPojoType()` survives the fold at all.** If
-  `OutputType.getJavaType()` and `TableLookup.getPojoType()` agree for
-  every table-backed type, it is a duplicate rather than a method needing a
-  new home. Checking that is the first task of step 4.
+- **Which type wins when two registered classes share a simple name.**
+  `TypeRegistry.lookup(String)` scans and returns the first match, and the
+  override resolves through it, so the outcome depends on iteration order
+  over a map keyed by `TypeContext`. Pre-existing and not made worse by the
+  fold, but the fold is when it becomes visible.
 - **What the merged not-found convention is.** Null for absent and an
   exception for genuinely unknown is one answer; `Optional` is another.
   Decided in step 4, against the call sites rather than in the abstract.

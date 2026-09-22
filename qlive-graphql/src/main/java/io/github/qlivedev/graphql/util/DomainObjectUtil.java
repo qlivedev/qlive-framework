@@ -185,15 +185,23 @@ public final class DomainObjectUtil
 
         for (String propertyName : domainObject.propertyNames())
         {
-            final Object value = domainObject.getProperty(propertyName);
             final Field fieldForProp = domainQL.lookupField(
                 domainObject.getDomainType(),
                 propertyName
             );
-            
+
+            // A property that no column backs is a computed field, and a computed field has nothing to store:
+            // it is read off the row the query already selected. Skipping it is what lets an object be read
+            // and written back unchanged, which is what this class is for. Only properties carrying a JPA
+            // @Column reach the field lookup, so this is the whole of the distinction.
+            if (fieldForProp == null)
+            {
+                continue;
+            }
+
             query.addValue(
                 fieldForProp,
-                value
+                domainObject.getProperty(propertyName)
             );
         }
     }

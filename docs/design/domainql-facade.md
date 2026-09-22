@@ -356,9 +356,12 @@ Two callers do not state what they assume:
   that the query document named a type the domain does not expose.
   Folding the method into the registry should give it the merge's
   treatment rather than carry the throw along.
-- **`DomainObjectUtil.addFieldValues` (`:189`)** passes `lookupField`'s
-  result straight into `query.addValue(field, value)` with no null
-  check, so a `DomainObject` carrying a computed property hands jOOQ a
-  null `Field`. It is the one caller that would break on a convention it
-  never checked -- and it has no callers at all, in main or in test, so
-  deleting the class is the more likely answer than fixing it.
+- **`DomainObjectUtil.addFieldValues`** passed `lookupField`'s result
+  straight into `query.addValue(field, value)` with no null check, so a
+  `DomainObject` carrying a computed property reached jOOQ with a null
+  `Field`. jOOQ does not object: it renders the column as
+  `"unknown field 0"` and the statement fails only once a database sees
+  it. Fixed by skipping a property no column backs, which is what lets
+  an object be read and written back. The class is kept -- it is the
+  convenience path for a service with simple storage needs -- and now
+  has the test it never had.

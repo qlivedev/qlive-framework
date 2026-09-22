@@ -1,6 +1,7 @@
 # A facade for DomainQL
 
-Status: planned, step 0 landed. Written 2026-09-21, revised 2026-09-22.
+Status: planned, step 0 landed. Written 2026-09-21, revised
+2026-09-22.
 
 ## Problem
 
@@ -288,11 +289,76 @@ change; see `module-distribution.md` for where that question belongs.
 
 ## Open items
 
-- **Which type wins when two registered classes share a simple name.**
-  `TypeRegistry.lookup(String)` scans and returns the first match, and the
-  override resolves through it, so the outcome depends on iteration order
-  over a map keyed by `TypeContext`. Pre-existing and not made worse by the
-  fold, but the fold is when it becomes visible.
-- **What the merged not-found convention is.** Null for absent and an
-  exception for genuinely unknown is one answer; `Optional` is another.
-  Decided in step 4, against the call sites rather than in the abstract.
+Both were examined on 2026-09-22.
+
+### Two registered classes sharing a simple name
+
+Still open, and narrower and worse than first written. The mechanism is
+not map iteration order: `TypeContext.equals` and `hashCode` compare
+`typeName` alone (`TypeContext:206`, `:228`), so `outputTypes` is keyed
+by GraphQL name, and `register()` returns the incumbent when the name is
+taken. **The first registration wins and the second class is silently
+aliased to it**, in logic bean declaration order.
+
+The damage is not a coin toss over which type is exposed. Both queries
+get the winner's type. A probe registering `beans.SumPerMonth` and
+`beans.collision.SumPerMonth` built a schema without complaint in which
+`getCollidingSumPerMonth` is declared to return `SumPerMonth{month,
+year, sum}` while the bean returns an object whose only property is
+`total`. Reverse the bean order and the same is true of the other query.
+The schema states something the resolver cannot satisfy.
+
+`b51f6d6` closed this for names that reach `jooqTables`, which is where
+the legitimate override lives. What is left is two hand-written classes
+neither of which is table-backed -- no override to be, nothing to catch
+them.
+
+**The check belongs in `register()`**, beside the existing-entry return,
+and can carry the rule `b51f6d6` already states: a subclass relationship
+is an override, unrelated classes are a collision. It would fire on
+nothing that exists -- `register()` was instrumented to report every
+incumbent with a different `javaType` and the full reactor, 238 tests,
+produced not one. The override path never registers both classes,
+because `updateTableLookups()` repoints before `registerTypes()` runs.
+
+### The merged not-found convention
+
+The conventions are already split, and the split is not along a line
+worth keeping: `lookupField` returns null, while `lookupType`,
+`getPojoType` and `getJooqTable` throw `DomainQLException`. Everything
+on the registry side -- `lookup(String)`, `lookup(Class)`,
+`lookupInput`, `getOutputOverride` -- returns null.
+
+**Keep null, and do not reach for `Optional`.** What the call sites want
+is not a safer return type but their own message, and the merge already
+demonstrates it. `DefaultMergeService` wraps both lookups:
+`requireType` (`:841`) asks `getJooqTables().containsKey(typeName)` and
+`requireField` (`:855`) null-checks `lookupField`, each throwing a
+`QLiveException` that says what the merge needs in the merge's own
+words. `requireType` is the "is this type domain-backed" check stated
+explicitly, and it is why `lookupType`'s own throw is unreachable at
+both merge call sites.
+
+Null also carries a meaning an exception would destroy. At
+`QueryPlanBuilder:235` a null from `lookupField` is the normal case, not
+a failure: the property is a computed field that no `@Column` backs, and
+the planner leaves it to be fetched from the object. Only `@Column`
+properties enter `dbFieldLookup` (`DomainQLBuilder:227`), so "null means
+no column" is true by construction. The same method is strict at `:406`,
+where a filter path needs a column and null is an error with a message
+naming the path.
+
+Two callers do not state what they assume:
+
+- **`QueryPlanBuilder:79`** calls `lookupType(domainType)` unguarded and
+  is the one place the throwing convention is load-bearing. The message
+  it produces is `Could not find domain type 'X'`, which does not say
+  that the query document named a type the domain does not expose.
+  Folding the method into the registry should give it the merge's
+  treatment rather than carry the throw along.
+- **`DomainObjectUtil.addFieldValues` (`:189`)** passes `lookupField`'s
+  result straight into `query.addValue(field, value)` with no null
+  check, so a `DomainObject` carrying a computed property hands jOOQ a
+  null `Field`. It is the one caller that would break on a convention it
+  never checked -- and it has no callers at all, in main or in test, so
+  deleting the class is the more likely answer than fixing it.

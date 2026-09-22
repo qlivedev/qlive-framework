@@ -10,6 +10,7 @@ import io.github.qlivedev.runtime.query.condition.ResolvedField;
 import io.github.qlivedev.runtime.scalar.FilterDSL;
 import io.github.qlivedev.graphql.DomainQL;
 import io.github.qlivedev.graphql.TableLookup;
+import io.github.qlivedev.graphql.TypeRegistry;
 import io.github.qlivedev.graphql.config.RelationModel;
 import io.github.qlivedev.graphql.config.TargetField;
 import io.github.qlivedev.util.JSONUtil;
@@ -53,12 +54,12 @@ public class QueryPlanBuilder
     /// into one without anybody noticing.
     private final static int MAX_ALIAS_LENGTH = 63;
 
-    private final DomainQL domainQL;
+    private final TypeRegistry types;
 
 
     public QueryPlanBuilder(DomainQL domainQL)
     {
-        this.domainQL = domainQL;
+        this.types = domainQL.getTypeRegistry();
     }
 
 
@@ -76,7 +77,15 @@ public class QueryPlanBuilder
     )
     {
         final String domainType = type.getSimpleName();
-        final TableLookup lookup = domainQL.lookupType(domainType);
+        final TableLookup lookup = types.lookupType(domainType);
+
+        if (lookup == null)
+        {
+            throw new QLiveException(
+                "No type '" + domainType + "' in the domain. A query document queries a table the domain " +
+                    "exposes, under the name it exposes it under."
+            );
+        }
 
         final Set<String> aliases = new HashSet<>();
 
@@ -232,7 +241,7 @@ public class QueryPlanBuilder
     /// there is no way to put a Java property into a `WHERE` clause.
     private void column(PlanNode node, String property)
     {
-        final Field<?> field = domainQL.lookupField(node.getDomainType(), property);
+        final Field<?> field = types.lookupField(node.getDomainType(), property);
         if (field != null)
         {
             node.addColumn(field, true);
@@ -245,7 +254,7 @@ public class QueryPlanBuilder
     {
         final String domainType = parent.getDomainType();
 
-        for (RelationModel relation : domainQL.getRelationModels())
+        for (RelationModel relation : types.getRelationModels())
         {
             if (domainType.equals(relation.getSourceType()) && fieldName.equals(relation.getLeftSideObjectName()))
             {
@@ -403,7 +412,7 @@ public class QueryPlanBuilder
 
             final String property = parts[parts.length - 1];
 
-            final Field<?> field = domainQL.lookupField(node.getDomainType(), property);
+            final Field<?> field = types.lookupField(node.getDomainType(), property);
             if (field == null)
             {
                 throw new QLiveException(

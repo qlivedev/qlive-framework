@@ -1,6 +1,8 @@
 package io.github.qlivedev.graphql.util;
 
 import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.DomainQLException;
+import io.github.qlivedev.graphql.TableLookup;
 import io.github.qlivedev.graphql.generic.DomainObject;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -35,7 +37,7 @@ public final class DomainObjectUtil
     public static int insert(DSLContext dslContext, DomainQL domainQL, DomainObject domainObject)
     {
         final String domainType = domainObject.getDomainType();
-        final Table<?> jooqTable = domainQL.getJooqTable(domainType);
+        final Table<?> jooqTable = tableFor(domainQL, domainType);
 
         final String id = (String) domainObject.getProperty(DomainObject.ID);
 
@@ -71,7 +73,7 @@ public final class DomainObjectUtil
     public static int update(DSLContext dslContext, DomainQL domainQL, DomainObject domainObject)
     {
         final String domainType = domainObject.getDomainType();
-        final Table<?> jooqTable = domainQL.getJooqTable(domainType);
+        final Table<?> jooqTable = tableFor(domainQL, domainType);
 
         final String id = (String) domainObject.getProperty(DomainObject.ID);
 
@@ -113,7 +115,7 @@ public final class DomainObjectUtil
 
         final String domainType = domainObject.getDomainType();
 
-        final Table<?> jooqTable = domainQL.getJooqTable(domainType);
+        final Table<?> jooqTable = tableFor(domainQL, domainType);
 
 
         final String id = (String) domainObject.getProperty(DomainObject.ID);
@@ -154,7 +156,7 @@ public final class DomainObjectUtil
 
     public static int delete(DSLContext dslContext, DomainQL domainQL, String domainType, String id)
     {
-        final Table<?> jooqTable = domainQL.getJooqTable(domainType);
+        final Table<?> jooqTable = tableFor(domainQL, domainType);
 
         final int count = dslContext.deleteFrom(jooqTable).where(
             field(
@@ -185,7 +187,7 @@ public final class DomainObjectUtil
 
         for (String propertyName : domainObject.propertyNames())
         {
-            final Field fieldForProp = domainQL.lookupField(
+            final Field fieldForProp = domainQL.getTypeRegistry().lookupField(
                 domainObject.getDomainType(),
                 propertyName
             );
@@ -205,4 +207,30 @@ public final class DomainObjectUtil
             );
         }
     }
+
+    /**
+     * The table a domain object of the given type is stored in.
+     *
+     * @param domainQL   DomainQL instance
+     * @param domainType domain type name
+     *
+     * @return jOOQ table
+     *
+     * @throws DomainQLException if the domain exposes no table under that name
+     */
+    private static Table<?> tableFor(DomainQL domainQL, String domainType)
+    {
+        final TableLookup lookup = domainQL.getTypeRegistry().lookupType(domainType);
+
+        if (lookup == null)
+        {
+            throw new DomainQLException(
+                "No table for domain type '" + domainType + "'. This class stores a domain object by writing the " +
+                    "table behind its type, so a type the domain has no table for cannot go through it."
+            );
+        }
+
+        return lookup.getTable();
+    }
+
 }

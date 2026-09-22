@@ -918,8 +918,8 @@ public class AnotherDomainQLTest
 
         //log.info(domainQL.getFieldLookup().toString());
 
-        assertThat(domainQL.lookupField("SourceFour", DomainObject.ID).getName(), is("id"));
-        assertThat(domainQL.lookupField("SourceFour", "targetId").getName(), is("target_id"));
+        assertThat(domainQL.getTypeRegistry().lookupField("SourceFour", DomainObject.ID).getName(), is("id"));
+        assertThat(domainQL.getTypeRegistry().lookupField("SourceFour", "targetId").getName(), is("target_id"));
 
     }
 
@@ -1170,10 +1170,10 @@ public class AnotherDomainQLTest
             .build();
 
         assertThat(
-            domainQL.getJooqTable("SumPerMonth").getName(), is("sum_per_month")
+            domainQL.getTypeRegistry().lookupType("SumPerMonth").getTable().getName(), is("sum_per_month")
         );
         assertThat(
-            domainQL.lookupField("SumPerMonth", "month").getName(), is("month")
+            domainQL.getTypeRegistry().lookupField("SumPerMonth", "month").getName(), is("month")
         );
 
         final GraphQLSchema schema = domainQL.getGraphQLSchema();
@@ -1201,13 +1201,13 @@ public class AnotherDomainQLTest
 
 
     /**
-     * A hand-written class may take over the name of a generated POJO, which is what makes
-     * {@link io.github.qlivedev.graphql.beans.SourceSeven} work. Two hand-written classes sharing a simple name
-     * are not that: there is no generated type being overridden, and which one reached the registry first is not
-     * something the application said anything about.
+     * A hand-written class may take over the name of a generated POJO by extending it, which is what makes
+     * {@link io.github.qlivedev.graphql.beans.SourceSeven} work. Two unrelated classes sharing a simple name are
+     * not that: neither overrides the other, and which one reached the registry first is not something the
+     * application said anything about.
      */
     @Test
-    public void testNameClashBetweenTwoHandWrittenTypes()
+    public void testNameClashWithTableBackedType()
     {
         final DomainQLTypeException e = assertThrows(
             DomainQLTypeException.class,
@@ -1220,7 +1220,32 @@ public class AnotherDomainQLTest
 
         assertThat(e.getMessage(), containsString("io.github.qlivedev.graphql.beans.SumPerMonth"));
         assertThat(e.getMessage(), containsString("io.github.qlivedev.graphql.beans.collision.SumPerMonth"));
-        assertThat(e.getMessage(), containsString("GeneratedDomainObject"));
+    }
+
+
+    /**
+     * The same clash between two types neither of which has a table behind it. There is no table lookup to catch
+     * this one, so registration has to: the second class would otherwise be aliased to the first one's entry and
+     * both queries would be declared to return the winner's fields.
+     */
+    @Test
+    public void testNameClashBetweenTwoLogicBeanTypes()
+    {
+        final DomainQLTypeException e = assertThrows(
+            DomainQLTypeException.class,
+            () -> DomainQL.newDomainQL(null)
+                .objectTypes(Public.PUBLIC)
+                .logicBeans(
+                    List.of(
+                        new SumPerMonthLogic(),
+                        new CollidingSumPerMonthLogic()
+                    )
+                )
+                .build()
+        );
+
+        assertThat(e.getMessage(), containsString("io.github.qlivedev.graphql.beans.SumPerMonth"));
+        assertThat(e.getMessage(), containsString("io.github.qlivedev.graphql.beans.collision.SumPerMonth"));
     }
 
     @Test
@@ -1300,8 +1325,8 @@ public class AnotherDomainQLTest
         assertThat(domainQL.getMetaData().getTypeMeta("SourceSeven").getFieldMeta("concat", "computed"), is(Boolean.TRUE));
         assertThat(domainQL.getMetaData().getTypeMeta("SourceSeven").getFieldMeta("target", "computed"), is(nullValue()));
 
-        assertThat(domainQL.lookupType("SourceSeven").getPojoType().getName(), is(SourceSeven.class.getName()));
-        assertThat(domainQL.lookupType("TargetSeven").getPojoType().getName(), is(TargetSeven.class.getName()));
+        assertThat(domainQL.getTypeRegistry().lookupType("SourceSeven").getPojoType().getName(), is(SourceSeven.class.getName()));
+        assertThat(domainQL.getTypeRegistry().lookupType("TargetSeven").getPojoType().getName(), is(TargetSeven.class.getName()));
     }
 
     @Test

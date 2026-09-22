@@ -1,5 +1,6 @@
 package io.github.qlivedev.graphql.config;
 
+import io.github.qlivedev.graphql.OutputType;
 import io.github.qlivedev.graphql.TypeRegistry;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -197,13 +198,10 @@ public class RelationModel
      */
     public RelationModel update(TypeRegistry typeRegistry)
     {
-        final Class<?> realSource = typeRegistry.getOutputOverride(sourcePojoClass);
-        final Class<?> realTarget = typeRegistry.getOutputOverride(targetPojoClass);
+        final Class<?> realSource = registered(typeRegistry, sourcePojoClass);
+        final Class<?> realTarget = registered(typeRegistry, targetPojoClass);
 
-        if (
-            sourcePojoClass.getName().equals(realSource.getName()) &&
-            targetPojoClass.getName().equals(realTarget.getName())
-        )
+        if (realSource == sourcePojoClass && realTarget == targetPojoClass)
         {
             return this;
         }
@@ -254,4 +252,15 @@ public class RelationModel
             + ", sourceType = '" + sourceType + '\''
             ;
     }
+
+    /**
+     * The class the registry exposes the given POJO's domain type as, which is the POJO itself unless a hand-written
+     * class overrides it.
+     */
+    private static Class<?> registered(TypeRegistry typeRegistry, Class<?> pojoClass)
+    {
+        final OutputType outputType = typeRegistry.lookup(pojoClass.getSimpleName());
+        return outputType != null ? outputType.getJavaType() : pojoClass;
+    }
+
 }

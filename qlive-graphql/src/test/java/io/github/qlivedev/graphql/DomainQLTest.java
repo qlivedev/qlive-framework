@@ -337,7 +337,7 @@ public class DomainQLTest
     @Test
     public void testRelationModels()
     {
-        final List<RelationModel> relationModels = domainQL.getRelationModels();
+        final List<RelationModel> relationModels = domainQL.getTypeRegistry().getRelationModels();
         //log.info(JSONUtil.formatJSON(JSONUtil.DEFAULT_GENERATOR.forValue(relationModels)));
 
         assertThat(relationModels.get(0).getId(), is("SourceTwo-target"));

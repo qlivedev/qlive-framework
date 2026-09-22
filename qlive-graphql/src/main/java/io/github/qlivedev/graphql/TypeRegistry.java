@@ -1,15 +1,22 @@
 package io.github.qlivedev.graphql;
 
 import io.github.qlivedev.graphql.annotation.GraphQLField;
+import io.github.qlivedev.graphql.config.RelationModel;
 import graphql.schema.GraphQLScalarType;
+import org.jooq.Field;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
- * What the domain knows about its types, as everything outside the schema build sees it.
+ * What the domain knows about its types, as everything outside the schema build sees it: the GraphQL type, the Java
+ * class behind it, and -- where the type is one of the application's tables -- the jOOQ table, its columns and the
+ * relations it takes part in.
  * <p>
- * All lookups answer with <code>null</code> when they find nothing. Callers that need an error say so in their own
- * words rather than relying on the registry to throw.
+ * All lookups answer with <code>null</code> when they find nothing, including the ones about tables and columns: a
+ * registered type need not be table-backed, and a property need not be a column. Callers that need an error say so
+ * in their own words rather than relying on the registry to throw.
  */
 public interface TypeRegistry
 {
@@ -89,11 +96,39 @@ public interface TypeRegistry
 
 
     /**
-     * Checks a given POJO type for override by resolving its simple name again.
+     * Looks up the jOOQ table backing the given domain type, together with the POJO class the schema exposes it as.
      *
-     * @param pojoClass POJO type to check
+     * @param domainType domain type name
      *
-     * @return overriding type, the identical type, or <code>null</code> if the name is not registered
+     * @return table lookup, or <code>null</code> where the type has no table behind it -- a logic bean's return
+     * type, an input type or an enum
      */
-    Class<?> getOutputOverride(Class<?> pojoClass);
+    TableLookup lookupType(String domainType);
+
+
+    /**
+     * Returns every table-backed domain type by name.
+     *
+     * @return read-only map of domain type names to table lookups
+     */
+    Map<String, TableLookup> getJooqTables();
+
+
+    /**
+     * Looks up the database column backing the given property of the given domain type.
+     *
+     * @param domainType domain type name
+     * @param property   JSON property name
+     *
+     * @return column, or <code>null</code> where no column backs the property -- which is what a computed field is
+     */
+    Field<?> lookupField(String domainType, String property);
+
+
+    /**
+     * Returns all relations of the domain.
+     *
+     * @return relations
+     */
+    List<RelationModel> getRelationModels();
 }

@@ -2,6 +2,7 @@ package io.github.qlivedev.graphql;
 
 import io.github.qlivedev.graphql.annotation.GraphQLComputed;
 import io.github.qlivedev.graphql.annotation.GraphQLField;
+import io.github.qlivedev.graphql.config.RelationModel;
 import io.github.qlivedev.graphql.scalar.ByteScalar;
 import io.github.qlivedev.graphql.scalar.DateScalar;
 import io.github.qlivedev.graphql.scalar.TimestampScalar;
@@ -10,6 +11,8 @@ import io.github.qlivedev.graphql.util.DegenerificationUtil;
 import io.github.qlivedev.util.JSONUtil;
 import graphql.Scalars;
 import graphql.schema.GraphQLScalarType;
+import org.jooq.Field;
+import org.jooq.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.svenson.info.JSONClassInfo;
@@ -19,6 +22,7 @@ import org.svenson.info.JavaObjectPropertyInfo;
 import java.lang.reflect.Method;
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -68,15 +72,26 @@ public class MutableTypeRegistry
     private final Map<Class<?>, GraphQLScalarType> scalarTypeByClass;
 
 
-    private Map<TypeContext, InputType> inputTypes = new HashMap<>();
+    private final Map<TypeContext, InputType> inputTypes = new HashMap<>();
 
-    private Map<TypeContext, OutputType> outputTypes = new HashMap<>();
+    private final Map<TypeContext, OutputType> outputTypes = new HashMap<>();
+
+    private final Map<String, TableLookup> jooqTables = new HashMap<>();
+
+    private final Map<String, TableLookup> jooqTablesRO = Collections.unmodifiableMap(jooqTables);
+
+    private final Map<String, Field<?>> dbFieldLookup;
+
+    private List<RelationModel> relationModels = Collections.emptyList();
 
 
     public MutableTypeRegistry(
-        Map<Class<?>, GraphQLScalarType> additionalScalarTypes
+        Map<Class<?>, GraphQLScalarType> additionalScalarTypes,
+        Map<String, Field<?>> dbFieldLookup
     )
     {
+        this.dbFieldLookup = dbFieldLookup;
+
         final Map<Class<?>, GraphQLScalarType> scalarTypeByClass = new HashMap<>(JAVA_TYPE_TO_GRAPHQL);
         scalarTypeByClass.putAll(additionalScalarTypes);
 
@@ -176,6 +191,7 @@ public class MutableTypeRegistry
         final OutputType existing = outputTypes.get(ctx);
         if (existing != null)
         {
+            ensureOverride(existing, javaType);
             return existing;
         }
 
@@ -204,6 +220,109 @@ public class MutableTypeRegistry
         );
 
         return newType;
+    }
+
+
+    /**
+     * Two classes share a domain type name only as an override: a hand-written class extending the generated POJO
+     * whose name it takes, which is how an application adds computed fields to a generated type.
+     * <p>
+     * Unrelated classes of the same simple name are a collision instead. Entries are keyed by GraphQL type name, so
+     * the second registration would return the first one's entry and the schema would declare the winner's fields
+     * for a query whose resolver returns the loser -- something no caller can satisfy. Naming both classes is the
+     * only useful thing to do with that.
+     *
+     * @param existing entry already registered under the name
+     * @param javaType class being registered under it now
+     */
+    private void ensureOverride(OutputType existing, Class<?> javaType)
+    {
+        final Class<?> registered = existing.getJavaType();
+
+        if (
+            registered.equals(javaType) ||
+            registered.isAssignableFrom(javaType) ||
+            javaType.isAssignableFrom(registered)
+        )
+        {
+            return;
+        }
+
+        throw new DomainQLTypeException(
+            "Domain type '" + existing.getName() + "' is claimed by both " + registered.getName() + " and " +
+                javaType.getName() + ". A class takes over another's name only by extending it, which is how a " +
+                "hand-written class overrides a generated POJO. Rename one of the two."
+        );
+    }
+
+
+    /**
+     * Registers a table-backed domain type: the POJO the jOOQ generator produced for it, and the table itself.
+     * <p>
+     * The entry names whatever class holds the type name once registration is done, which is the hand-written class
+     * where one overrides the generated POJO. There is no second map to keep in agreement about that.
+     *
+     * @param pojoType generated POJO for the table
+     * @param table    jOOQ table
+     *
+     * @return output type registered for the domain type
+     */
+    public OutputType registerTable(Class<?> pojoType, Table<?> table)
+    {
+        final OutputType outputType = register(new TypeContext(null, pojoType));
+
+        jooqTables.put(
+            outputType.getName(),
+            new TableLookup(outputType.getJavaType(), table)
+        );
+
+        return outputType;
+    }
+
+
+    /**
+     * Takes over the domain's relations, resolving each against the types registered so far.
+     *
+     * @param relations relations as configured
+     */
+    public void registerRelations(List<RelationModel> relations)
+    {
+        final List<RelationModel> updated = new ArrayList<>(relations.size());
+
+        for (RelationModel relation : relations)
+        {
+            updated.add(relation.update(this));
+        }
+
+        this.relationModels = Collections.unmodifiableList(updated);
+    }
+
+
+    @Override
+    public TableLookup lookupType(String domainType)
+    {
+        return jooqTables.get(domainType);
+    }
+
+
+    @Override
+    public Map<String, TableLookup> getJooqTables()
+    {
+        return jooqTablesRO;
+    }
+
+
+    @Override
+    public Field<?> lookupField(String domainType, String property)
+    {
+        return dbFieldLookup.get(DomainQLBuilder.fieldLookupKey(domainType, property));
+    }
+
+
+    @Override
+    public List<RelationModel> getRelationModels()
+    {
+        return relationModels;
     }
 
 
@@ -367,17 +486,4 @@ public class MutableTypeRegistry
     }
 
 
-    /**
-     * Checks a given POJO type for override by resolving its simple name again.
-     *
-     * @param pojoClass     POJO type to check
-     *
-     * @return overriding type or identical type
-     */
-    @Override
-    public Class<?> getOutputOverride(Class<?> pojoClass)
-    {
-        final OutputType outputType = lookup(pojoClass.getSimpleName());
-        return outputType != null ? outputType.getJavaType() : null;
-    }
 }

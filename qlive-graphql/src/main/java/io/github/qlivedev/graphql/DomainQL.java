@@ -17,7 +17,6 @@ import io.github.qlivedev.graphql.fetcher.BackReferenceFetcher;
 import io.github.qlivedev.graphql.fetcher.FieldFetcher;
 import io.github.qlivedev.graphql.fetcher.MethodFetcher;
 import io.github.qlivedev.graphql.fetcher.ReferenceFetcher;
-import io.github.qlivedev.graphql.jooq.GeneratedDomainObject;
 import io.github.qlivedev.graphql.logic.DomainQLMethod;
 import io.github.qlivedev.graphql.logic.GraphQLValueProvider;
 import io.github.qlivedev.graphql.logic.Mutation;
@@ -117,14 +116,6 @@ public class DomainQL
 
     private final Set<Object> logicBeans;
 
-    private final Map<String, TableLookup> jooqTables;
-
-    private final Map<String, TableLookup> jooqTablesRO;
-
-    private final Map<String, Field<?>> dbFieldLookup;
-
-    private final List<RelationModel> relationModels;
-
     private final Set<GraphQLFieldDefinition> additionalQueries;
 
     private final Set<GraphQLFieldDefinition> additionalMutations;
@@ -170,18 +161,11 @@ public class DomainQL
         this.parameterProviderFactories = parameterProviderFactories;
         this.options = options;
 
-        // we store the unmodifiable version in the field 
-        this.relationModels = Collections.unmodifiableList(relationModels);
-
-        this.typeRegistry = new MutableTypeRegistry(additionalScalarTypes);
-
-        this.jooqTables = jooqTables;
-        this.jooqTablesRO = Collections.unmodifiableMap(jooqTables);
-        this.dbFieldLookup = dbFieldLookup;
+        this.typeRegistry = new MutableTypeRegistry(additionalScalarTypes, dbFieldLookup);
 
         genericTypes = new ArrayList<>();
 
-        graphQLSchema = this.buildGraphQLSchema(relationModels);
+        graphQLSchema = this.buildGraphQLSchema(jooqTables, relationModels);
 
         final Map<String, DomainQLTypeMeta> types = new HashMap<>();
 
@@ -201,7 +185,7 @@ public class DomainQL
         metaData = new DomainQLMeta(types);
 
         metaData.addAddendum(DomainQLMeta.GENERIC_TYPES, Collections.unmodifiableList(genericTypes));
-        metaData.addAddendum(DomainQLMeta.RELATIONS, this.relationModels);
+        metaData.addAddendum(DomainQLMeta.RELATIONS, typeRegistry.getRelationModels());
 
         metadataProviders.forEach(
             p -> p.provideMetaData(this, metaData)
@@ -240,19 +224,16 @@ public class DomainQL
 
 
 
-    public Field<?> lookupField(String domainType, String property)
-    {
-        return dbFieldLookup.get(DomainQLBuilder.fieldLookupKey(domainType, property));
-    }
-
-
     /**
      * Builds a graphql schema instance from the given DomainQL configuration.
      *
+     * @param jooqTables      tables the builder collected, by domain type name
+     * @param relationModels  relations as configured
+     *
      * @return GraphQL schema
-     * @param relationModels
      */
     private GraphQLSchema buildGraphQLSchema(
+        Map<String, TableLookup> jooqTables,
         List<RelationModel> relationModels
     )
     {
@@ -268,9 +249,7 @@ public class DomainQL
             typeRegistry
         );
 
-        updateTableLookups();
-
-        registerTypes(builder, codeRegistryBuilder, typesForJooqDomain, relationModels);
+        registerTypes(builder, codeRegistryBuilder, typesForJooqDomain, jooqTables, relationModels);
 
         defineEnumTypes(builder);
 
@@ -301,53 +280,6 @@ public class DomainQL
 
         return schema;
     }
-
-
-    /**
-     * Makes sure that all POJO references in the table lookup correctly reference overridden output types.
-     */
-    /**
-     * Points the table lookups at the classes that claimed their domain type names.
-     * <p>
-     * A logic bean returning a class named like a generated POJO overrides it: the hand-written class is what
-     * the schema exposes, and the table lookup names it from here on while keeping the JOOQ table.
-     * <p>
-     * Only a generated POJO can be overridden that way. Two hand-written classes sharing a simple name are a
-     * collision rather than an override, and the winner would be whichever the registry happened to scan first.
-     */
-    private void updateTableLookups()
-    {
-        for (String name : jooqTables.keySet())
-        {
-            final TableLookup tableLookup = jooqTables.get(name);
-            final Class<?> pojoType = tableLookup.getPojoType();
-
-            final Class<?> override = typeRegistry.getOutputOverride(pojoType);
-            if (override == null || override == pojoType)
-            {
-                continue;
-            }
-
-            if (!GeneratedDomainObject.class.isAssignableFrom(pojoType))
-            {
-                throw new DomainQLTypeException(
-                    "Domain type '" + name + "' is claimed by both " + pojoType.getName() + " and " +
-                        override.getName() + ". Only a generated POJO can be overridden by a hand-written " +
-                        "class of the same simple name, and " + pojoType.getSimpleName() + " does not extend " +
-                        GeneratedDomainObject.class.getSimpleName() + ". Rename one of the two."
-                );
-            }
-
-            jooqTables.put(
-                name,
-                new TableLookup(
-                    override,
-                    tableLookup.getTable()
-                )
-            );
-        }
-    }
-
 
 
     public static String getInputTypeName(Class<?> parameterType)
@@ -409,7 +341,7 @@ public class DomainQL
     {
         Set<String> set = new HashSet<>();
 
-        for (RelationModel relationModel : relationModels)
+        for (RelationModel relationModel : typeRegistry.getRelationModels())
         {
             if (relationModel.getSourceTable().equals(table))
             {
@@ -460,7 +392,7 @@ public class DomainQL
     private Set<RelationModel> findBackReferences(Class<?> pojoClass)
     {
         Set<RelationModel> set = new LinkedHashSet<>();
-        for (RelationModel relationConfig : relationModels)
+        for (RelationModel relationConfig : typeRegistry.getRelationModels())
         {
             if (
                 relationConfig.getTargetPojoClass().getSimpleName().equals(pojoClass.getSimpleName()) &&
@@ -922,32 +854,23 @@ public class DomainQL
         GraphQLSchema.Builder builder,
         GraphQLCodeRegistry.Builder codeRegistryBuilder,
         Set<String> typesForJooqDomain,
+        Map<String, TableLookup> jooqTables,
         List<RelationModel> relationModels
     )
     {
-        final Set<OutputTypeAndTable> outputTypes = jooqTables.values().stream().map(table -> {
-            final Class<?> pojoType = table.getPojoType();
-            return new OutputTypeAndTable(
-                typeRegistry.register(new TypeContext(null, pojoType)),
+        final Set<OutputTypeAndTable> outputTypes = jooqTables.values().stream().map(
+            table -> new OutputTypeAndTable(
+                typeRegistry.registerTable(table.getPojoType(), table.getTable()),
                 table.getTable()
-            );
-
-        }).collect(Collectors.toSet());
+            )
+        ).collect(Collectors.toSet());
 
         for (Class<?> inputType : additionalInputTypes)
         {
             typeRegistry.registerInput(new TypeContext(null, inputType));
         }
 
-        for (int i = 0, relationModelsSize = relationModels.size(); i < relationModelsSize; i++)
-        {
-            RelationModel relationModel = relationModels.get(i);
-            final RelationModel updated = relationModel.update(typeRegistry);
-            if (updated != relationModel)
-            {
-                relationModels.set(i, updated);
-            }
-        }
+        typeRegistry.registerRelations(relationModels);
 
         for (OutputTypeAndTable e : outputTypes)
         {
@@ -1421,7 +1344,7 @@ public class DomainQL
         Set<String> fieldsGenerated
     )
     {
-        for (RelationModel relationModel : relationModels)
+        for (RelationModel relationModel : typeRegistry.getRelationModels())
         {
             if (table.equals(relationModel.getSourceTable()))
             {
@@ -1990,40 +1913,6 @@ public class DomainQL
 
 
 
-    public Table<?> getJooqTable(String domainType)
-    {
-        return lookupType(domainType).getTable();
-    }
-
-
-    public TableLookup lookupType(String domainType)
-    {
-        final TableLookup lookup = jooqTables.get(domainType);
-        if (lookup == null)
-        {
-            throw new DomainQLException("Could not find domain type '" + domainType + "'");
-        }
-        return lookup;
-    }
-
-
-    public Class<?> getPojoType(String domainType)
-    {
-        return lookupType(domainType).getPojoType();
-    }
-
-
-    /**
-     * Returns all relation models.
-     *
-     * @return
-     */
-    public List<RelationModel> getRelationModels()
-    {
-        return relationModels;
-    }
-
-
 
     public TypeRegistry getTypeRegistry()
     {
@@ -2064,18 +1953,6 @@ public class DomainQL
         return new DomainQLBuilder(dslContext);
     }
     
-
-    /**
-     * Provides access to the lookup table for database types. The map maps type names to a TableLookup which provides
-     * both the JOOQ table as well as the POJO corresponding to it.
-     *
-     * @return read-only map of type names to table lookups
-     */
-    public Map<String, TableLookup> getJooqTables()
-    {
-        return jooqTablesRO;
-    }
-
 
     public DomainQLMeta getMetaData()
     {

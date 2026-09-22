@@ -57,7 +57,7 @@ public class DomainObjectUtilTest
         sourceSeven.setTarget("target-1");
 
         assertThat(sourceSeven.propertyNames().contains("concat"), is(true));
-        assertThat(domainQL.lookupField("SourceSeven", "concat"), is(nullValue()));
+        assertThat(domainQL.getTypeRegistry().lookupField("SourceSeven", "concat"), is(nullValue()));
 
         final int count = DomainObjectUtil.insert(dslContext, domainQL, sourceSeven);
 

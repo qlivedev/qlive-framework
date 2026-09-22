@@ -13,6 +13,7 @@ import io.github.qlivedev.runtime.auth.AppAuthentication;
 import io.github.qlivedev.runtime.meta.MergeMeta;
 import io.github.qlivedev.graphql.DomainQL;
 import io.github.qlivedev.graphql.TableLookup;
+import io.github.qlivedev.graphql.TypeRegistry;
 import io.github.qlivedev.graphql.generic.GenericScalar;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLScalarType;
@@ -74,6 +75,8 @@ public class DefaultMergeService
 
     private final DomainQL domainQL;
 
+    private final TypeRegistry types;
+
     private final DSLContext dslContext;
 
     private final FieldLayoutService fieldLayouts;
@@ -99,12 +102,13 @@ public class DefaultMergeService
     )
     {
         this.domainQL = domainQL;
+        this.types = domainQL.getTypeRegistry();
         this.dslContext = dslContext;
         this.fieldLayouts = fieldLayouts;
         this.versions = versions;
 
         final Map<Name, String> byTable = new HashMap<>();
-        for (Map.Entry<String, TableLookup> entry : domainQL.getJooqTables().entrySet())
+        for (Map.Entry<String, TableLookup> entry : this.types.getJooqTables().entrySet())
         {
             byTable.put(entry.getValue().getTable().getQualifiedName(), entry.getKey());
         }
@@ -257,7 +261,7 @@ public class DefaultMergeService
     private PreparedChange prepare(EntityChange change)
     {
         final String typeName = requireType(change.getType(), change);
-        final Table<?> table = domainQL.lookupType(typeName).getTable();
+        final Table<?> table = types.lookupType(typeName).getTable();
         final Field<?> idField = idField(typeName, table);
         final Field<?> versionField = versionField(typeName);
 
@@ -689,7 +693,7 @@ public class DefaultMergeService
             for (String name : theirs)
             {
                 final Field<?> column =
-                    change.conflictFields.containsKey(name) ? null : domainQL.lookupField(change.typeName, name);
+                    change.conflictFields.containsKey(name) ? null : types.lookupField(change.typeName, name);
 
                 if (column == null)
                 {
@@ -777,7 +781,7 @@ public class DefaultMergeService
     private MergeConflict delete(EntityDeletion deletion)
     {
         final String typeName = requireType(deletion.getType(), deletion);
-        final Table<?> table = domainQL.lookupType(typeName).getTable();
+        final Table<?> table = types.lookupType(typeName).getTable();
         final Field<?> idField = idField(typeName, table);
         final Field<?> versionField = versionField(typeName);
 
@@ -840,7 +844,7 @@ public class DefaultMergeService
 
     private String requireType(String typeName, Object of)
     {
-        if (typeName == null || !domainQL.getJooqTables().containsKey(typeName))
+        if (typeName == null || !types.getJooqTables().containsKey(typeName))
         {
             throw new QLiveException(
                 "No type '" + typeName + "' in " + of + ". The merge writes the tables the domain exposes, " +
@@ -854,7 +858,7 @@ public class DefaultMergeService
 
     private Field<?> requireField(String typeName, String fieldName, Object of)
     {
-        final Field<?> field = fieldName == null ? null : domainQL.lookupField(typeName, fieldName);
+        final Field<?> field = fieldName == null ? null : types.lookupField(typeName, fieldName);
 
         if (field == null)
         {
@@ -892,7 +896,7 @@ public class DefaultMergeService
     private Field<?> versionField(String typeName)
     {
         return MergeMeta.isVersioned(domainQL, typeName)
-            ? domainQL.lookupField(typeName, MergeMeta.VERSION)
+            ? types.lookupField(typeName, MergeMeta.VERSION)
             : null;
     }
 

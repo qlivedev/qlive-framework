@@ -131,4 +131,26 @@ public interface TypeRegistry
      * @return relations
      */
     List<RelationModel> getRelationModels();
+
+
+    /**
+     * Looks up the relation reached from its source type through the given field.
+     *
+     * @param sourceType domain type the relation starts at
+     * @param fieldName  name of the object field on that type
+     *
+     * @return relation, or <code>null</code> if that field is not a relation
+     */
+    RelationModel lookupRelation(String sourceType, String fieldName);
+
+
+    /**
+     * Looks up the relation reached backwards from its target type through the given field.
+     *
+     * @param targetType domain type the relation points at
+     * @param fieldName  name of the back-reference field on that type
+     *
+     * @return relation, or <code>null</code> if that field is not a back reference
+     */
+    RelationModel lookupBackReference(String targetType, String fieldName);
 }

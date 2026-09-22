@@ -254,37 +254,36 @@ public class QueryPlanBuilder
     {
         final String domainType = parent.getDomainType();
 
-        for (RelationModel relation : types.getRelationModels())
+        final RelationModel forward = types.lookupRelation(domainType, fieldName);
+        if (forward != null)
         {
-            if (domainType.equals(relation.getSourceType()) && fieldName.equals(relation.getLeftSideObjectName()))
-            {
-                return add(
-                    parent,
-                    fieldName,
-                    relation,
-                    relation.getTargetType(),
-                    relation.getTargetPojoClass(),
-                    relation.getTargetTable(),
-                    false,
-                    false,
-                    aliases
-                );
-            }
+            return add(
+                parent,
+                fieldName,
+                forward,
+                forward.getTargetType(),
+                forward.getTargetPojoClass(),
+                forward.getTargetTable(),
+                false,
+                false,
+                aliases
+            );
+        }
 
-            if (domainType.equals(relation.getTargetType()) && fieldName.equals(relation.getRightSideObjectName()))
-            {
-                return add(
-                    parent,
-                    fieldName,
-                    relation,
-                    relation.getSourceType(),
-                    relation.getSourcePojoClass(),
-                    relation.getSourceTable(),
-                    true,
-                    relation.getTargetField() == TargetField.MANY,
-                    aliases
-                );
-            }
+        final RelationModel backward = types.lookupBackReference(domainType, fieldName);
+        if (backward != null)
+        {
+            return add(
+                parent,
+                fieldName,
+                backward,
+                backward.getSourceType(),
+                backward.getSourcePojoClass(),
+                backward.getSourceTable(),
+                true,
+                backward.getTargetField() == TargetField.MANY,
+                aliases
+            );
         }
 
         throw new QLiveException(

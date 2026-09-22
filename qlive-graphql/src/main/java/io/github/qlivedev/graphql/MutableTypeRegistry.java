@@ -84,6 +84,10 @@ public class MutableTypeRegistry
 
     private List<RelationModel> relationModels = Collections.emptyList();
 
+    private Map<String, RelationModel> relationsBySourceField = Collections.emptyMap();
+
+    private Map<String, RelationModel> relationsByTargetField = Collections.emptyMap();
+
 
     public MutableTypeRegistry(
         Map<Class<?>, GraphQLScalarType> additionalScalarTypes,
@@ -281,20 +285,47 @@ public class MutableTypeRegistry
 
 
     /**
-     * Takes over the domain's relations, resolving each against the types registered so far.
+     * Takes over the domain's relations, resolving each against the types registered so far and indexing them by the
+     * field they are reached through.
      *
      * @param relations relations as configured
      */
     public void registerRelations(List<RelationModel> relations)
     {
         final List<RelationModel> updated = new ArrayList<>(relations.size());
+        final Map<String, RelationModel> bySourceField = new HashMap<>();
+        final Map<String, RelationModel> byTargetField = new HashMap<>();
 
         for (RelationModel relation : relations)
         {
-            updated.add(relation.update(this));
+            final RelationModel resolved = relation.update(this);
+            updated.add(resolved);
+
+            if (resolved.getLeftSideObjectName() != null)
+            {
+                bySourceField.put(
+                    relationKey(resolved.getSourceType(), resolved.getLeftSideObjectName()),
+                    resolved
+                );
+            }
+            if (resolved.getRightSideObjectName() != null)
+            {
+                byTargetField.put(
+                    relationKey(resolved.getTargetType(), resolved.getRightSideObjectName()),
+                    resolved
+                );
+            }
         }
 
         this.relationModels = Collections.unmodifiableList(updated);
+        this.relationsBySourceField = Collections.unmodifiableMap(bySourceField);
+        this.relationsByTargetField = Collections.unmodifiableMap(byTargetField);
+    }
+
+
+    private static String relationKey(String domainType, String fieldName)
+    {
+        return domainType + ":" + fieldName;
     }
 
 
@@ -323,6 +354,20 @@ public class MutableTypeRegistry
     public List<RelationModel> getRelationModels()
     {
         return relationModels;
+    }
+
+
+    @Override
+    public RelationModel lookupRelation(String sourceType, String fieldName)
+    {
+        return relationsBySourceField.get(relationKey(sourceType, fieldName));
+    }
+
+
+    @Override
+    public RelationModel lookupBackReference(String targetType, String fieldName)
+    {
+        return relationsByTargetField.get(relationKey(targetType, fieldName));
     }
 
 

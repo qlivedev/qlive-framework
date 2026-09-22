@@ -229,6 +229,70 @@ directly, and that there is no view-level harness yet. It is worth
 writing even so -- silence reads as "nobody thought about it", and
 `qlive-test` doubles as the structural template applications copy.
 
+## 10. Types that are not tables
+
+**What exists.** `DomainQLBuilder.objectType(Class)` registers a
+hand-written class as a domain type backed by something selectable that
+the code generator did not produce: a database view, a function returning
+rows, any shape a `SELECT` has. The class carries that shape in JPA
+annotations -- `@Table` for the table-like name and schema, `@Column` per
+property, `@NotNull` for the non-null ones -- and `SumPerMonth` in the
+`qlive-graphql` tests is the worked example.
+
+What such a type does not have is foreign keys, so
+`configureRelation(TableField, ...)` has nothing to resolve and cannot
+describe its relations. `withRelation(RelationBuilder)` can:
+`withPojoFields(sourcePojo, sourceFields, targetPojo, targetFields)` names
+both sides by class and property instead, and is mutually exclusive with
+`withForeignKeyFields()`, which looks an actual jOOQ foreign key up.
+Everything the relation otherwise takes from a foreign key -- the source
+and target field behavior, both object names, the id, the meta tags -- is
+settable on the builder.
+
+**What a reader cannot find.** Any of it. `objectType()` is named on no
+page, `RelationBuilder` is named on no page, and `withPojoFields()` is
+the only way a view-backed type gets a relation at all. The explanation
+quadrant does not have the distinction either: `unified-domain.md` says
+the schema comes from "the generated POJO types from the database, the
+handwritten POJOs, and the GraphQL methods in the logic beans", which
+covers both kinds of hand-written POJO in one phrase and separates
+neither from the other.
+
+**The page.** `how-to/expose-a-database-view.md`, how-to order 14. The
+annotated class, where the `objectType()` call goes in the builder chain,
+and a relation declared with `withPojoFields()` for a type with no
+foreign key to offer. A task with a shape rather than something looked
+up, so how-to rather than reference.
+
+**Open question.** Whether the two kinds of hand-written POJO want
+naming apart in `explanation/unified-domain.md` as well. Replacing a
+generated type and standing a type up over a view are different jobs
+that both arrive as "a hand-written POJO", and a reader with only that
+page has one slot for two things.
+
+## 11. `replace-a-generated-type.md` names the wrong registration route
+
+Not a gap; an error on a page that exists, recorded here because nothing
+else tracks those yet.
+
+The page says to register the replacement "with `objectType()` after the
+schema's own types". `objectType()` requires a
+`jakarta.persistence.Table` annotation on the class it is handed, and
+that annotation is not `@Inherited`, so a class extending a generated
+POJO -- which is what the same page correctly requires -- does not carry
+it. The call throws unless the replacement redeclares `@Table` itself,
+which the page does not mention.
+
+What the framework's own test does instead is register the replacement
+as a logic bean return type: `OutputTypeOverrideLogic` returns
+`beans.SourceSeven`, and `updateTableLookups()` repoints the table lookup
+at it by simple name. That route needs no annotation and keeps the real
+jOOQ table rather than a `DSL.table()` rebuilt from the annotation.
+
+Fixing the page means deciding which route is canonical first. Both
+appear to work if the annotation is redeclared, and they do not produce
+the same `TableLookup`.
+
 ## Build order
 
 1. **Framework tables** (1). Blocks running the software at all, and
@@ -243,6 +307,13 @@ writing even so -- silence reads as "nobody thought about it", and
    waits until the templating decision is closer.
 6. **Error handling** (7), **i18n** (8), **testing** (9). Smaller, and
    each is partly a code decision.
+
+Outside that order: **types that are not tables** (10) is not blocked by
+anything and does not block anything, so it goes in whenever the relation
+builder is fresh in mind. The `replace-a-generated-type.md` correction
+(11) wants doing sooner than any of them -- a reader following that page
+today hits an exception -- but it needs a decision rather than writing
+time.
 
 ## Sidebar numbering
 

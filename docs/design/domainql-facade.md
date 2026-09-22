@@ -225,24 +225,24 @@ and should not start until 5 is in.
 
 **The facade is `QLiveDomain`.** Decided 2026-09-21.
 
-That name is currently held by a helper in
-`io.github.qlivedev.runtime.domain`, which is a single static method with
-no state: it pre-registers the eight QLive scalars and forwards metadata
-providers to `DomainQL.newDomainQL()`. An application that wants a
-different set replaces it rather than customizing it, and it has two call
-sites in code. That is a weak claim on the name against the type every
-application's SPI implementations and bean signatures will mention.
+That name was held by a helper in `io.github.qlivedev.runtime.domain`,
+which is a single static method with no state: it pre-registers the eight
+QLive scalars and forwards metadata providers to `DomainQL.newDomainQL()`.
+An application that wants a different set replaces it rather than
+customizing it, and it had two call sites in code. That is a weak claim on
+the name against the type every application's SPI implementations and bean
+signatures will mention.
 
-So it becomes `QLiveDefaultDomain`, which also says more accurately what
-it is -- a default set of registrations, not the domain itself.
+So it is now `QLiveDefaultDomain`, which also says more accurately what it
+is -- a default set of registrations, not the domain itself.
 
 The rejected alternative was `QLiveSchema`, which overlaps `GraphQLSchema`
 -- a thing the facade exposes rather than a thing it is.
 
-The rename is a precondition for step 4 and independent of steps 1 to 3,
-so it can land at any point before then. One knock-on: the
-`QLiveDomainCustomizer` bean proposed in `module-distribution.md` is named
-after the helper, and wants rereading once the name means the facade.
+The knock-on went with it: the bean proposed in `module-distribution.md`
+is a `Consumer<DomainQLBuilder>` and was named after the helper, so it is
+`QLiveDomainBuilderCustomizer` there now -- it customizes the builder, not
+the facade.
 
 ## jOOQ stays in the signatures
 

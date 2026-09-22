@@ -28,11 +28,13 @@ import java.math.BigInteger;
 import java.util.Collection;
 
 /**
- * Builder helper to help standardize QLive GraphQL environments
+ * The default set of scalar registrations a QLive application starts from.
+ *
+ * An application that wants a different set replaces this class rather than customizing it.
  */
-public class QLiveDomain
+public class QLiveDefaultDomain
 {
-    private final static Logger log = LoggerFactory.getLogger(QLiveDomain.class);
+    private final static Logger log = LoggerFactory.getLogger(QLiveDefaultDomain.class);
 
     public static DomainQLBuilder newDomain(
         DSLContext dslContext,

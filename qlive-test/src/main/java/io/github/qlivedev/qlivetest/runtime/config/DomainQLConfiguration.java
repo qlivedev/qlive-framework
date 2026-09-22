@@ -10,7 +10,7 @@ import io.github.qlivedev.graphql.annotation.GraphQLLogic;
 import io.github.qlivedev.graphql.config.SourceField;
 import io.github.qlivedev.graphql.config.TargetField;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
-import io.github.qlivedev.runtime.domain.QLiveDomain;
+import io.github.qlivedev.runtime.domain.QLiveDefaultDomain;
 import io.github.qlivedev.runtime.meta.MergeMetadataProvider;
 import io.github.qlivedev.runtime.query.DefaultQueryDocumentService;
 import io.github.qlivedev.runtime.query.QueryDocumentService;
@@ -88,7 +88,7 @@ public class DomainQLConfiguration
         Collection<MetadataProvider> metadataProviders
     ) throws IOException
     {
-        final DomainQL domainQL = QLiveDomain.newDomain(dslContext, metadataProviders)
+        final DomainQL domainQL = QLiveDefaultDomain.newDomain(dslContext, metadataProviders)
             //.parameterProvider(new AutomatonConnectionProviderFactory(applicationContext))
             .logicBeans(logicBeans)
 

@@ -57,7 +57,7 @@ differently from a version control merge:
 
 ## What already exists, and why it decides the design
 
-**`GenericScalar` is already registered.** `QLiveDomain.newDomain()`
+**`GenericScalar` is already registered.** `QLiveDefaultDomain.newDomain()`
 registers `GenericScalar`, `DomainObject` and the rest. A change can
 therefore travel as `{ field, value: { type, value } }` and
 DomainQL coerces the value to the Java type the field actually has. That

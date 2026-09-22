@@ -31,7 +31,7 @@ import java.util.Map;
 public class QueryConfigArgumentProcessor
     implements InjectionArgumentProcessor
 {
-    /// GraphQL name of the query config scalar, as {@link io.github.qlivedev.runtime.domain.QLiveDomain}
+    /// GraphQL name of the query config scalar, as {@link io.github.qlivedev.runtime.domain.QLiveDefaultDomain}
     /// registers it.
     public final static String QUERY_CONFIG_TYPE = "QueryConfig";
 

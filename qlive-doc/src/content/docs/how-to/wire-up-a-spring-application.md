@@ -34,7 +34,7 @@ pages that answer 503 forever.
 @Bean
 public DomainQL domainQL() throws IOException
 {
-    return QLiveDomain.newDomain(
+    return QLiveDefaultDomain.newDomain(
             dslContext,
             applicationContext.getBeansOfType(MetadataProvider.class).values()
         )
@@ -45,7 +45,7 @@ public DomainQL domainQL() throws IOException
 }
 ```
 
-`QLiveDomain.newDomain()` is a builder helper that standardizes the QLive
+`QLiveDefaultDomain.newDomain()` is a builder helper that standardizes the QLive
 scalars (`QueryConfig`, `Condition`, `FieldExpression`, `ComputedValue` and
 the rest) into a DomainQL environment.
 

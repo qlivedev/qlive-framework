@@ -36,7 +36,7 @@ public class TestDomainConfig
      */
     public static DomainQL domainQL(Collection<MetadataProvider> metadataProviders, Object... logicBeans)
     {
-        return QLiveDomain.newDomain(null, metadataProviders)
+        return QLiveDefaultDomain.newDomain(null, metadataProviders)
             //.parameterProvider(new AutomatonConnectionProviderFactory(applicationContext))
 
             .logicBeans(logicBeans)

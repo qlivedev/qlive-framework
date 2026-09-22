@@ -226,7 +226,7 @@ reach directly.
 
 Three things, and only the first is cheap to fix.
 
-**The DomainQL builder.** `QLiveDomain.newDomain()` hands a builder back
+**The DomainQL builder.** `QLiveDefaultDomain.newDomain()` hands a builder back
 to the application, which finishes it. Everything said there is closed to
 a module: `withAdditionalScalar`, `configureRelation`,
 `configureNameField`, `objectTypes` and `withTypeDocsFrom` -- note that
@@ -237,7 +237,7 @@ same line added by hand.
 This matters beyond the individual calls: the more that copied
 `DomainQLConfiguration` does, the less modular the framework is, because
 every decision living in it is one a module can only reach by asking the
-application's author to edit it. An ordered `QLiveDomainCustomizer` bean
+application's author to edit it. An ordered `QLiveDomainBuilderCustomizer` bean
 (a `Consumer<DomainQLBuilder>`) moves those out of the template and is
 the seam that decides how much a module can say about the schema.
 
@@ -291,7 +291,7 @@ small, and most land inside work already planned.
    document and the change stays invisible. Making `notify()` public
    would be the wrong fix -- it lets a caller render an inconsistent
    document. One narrow entry per store, same vocabulary in both.
-4. **`QLiveDomainCustomizer`**, per the previous section.
+4. **`QLiveDomainBuilderCustomizer`**, per the previous section.
 
 ## Tooling
 

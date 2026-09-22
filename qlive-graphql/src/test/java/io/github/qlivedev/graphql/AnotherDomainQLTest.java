@@ -36,6 +36,7 @@ import io.github.qlivedev.graphql.logicimpl.MinimalLogic;
 import io.github.qlivedev.graphql.logicimpl.NoMirrorLogic;
 import io.github.qlivedev.graphql.logicimpl.NotNullQueryLogic;
 import io.github.qlivedev.graphql.logicimpl.OutputTypeOverrideByParamLogic;
+import io.github.qlivedev.graphql.logicimpl.CollidingSumPerMonthLogic;
 import io.github.qlivedev.graphql.logicimpl.SumPerMonthLogic;
 import io.github.qlivedev.graphql.logicimpl.TestLogic;
 import io.github.qlivedev.graphql.logicimpl.OutputTypeOverrideLogic;
@@ -1196,6 +1197,30 @@ public class AnotherDomainQLTest
 
         //log.info(new SchemaPrinter().print(schema));
 
+    }
+
+
+    /**
+     * A hand-written class may take over the name of a generated POJO, which is what makes
+     * {@link io.github.qlivedev.graphql.beans.SourceSeven} work. Two hand-written classes sharing a simple name
+     * are not that: there is no generated type being overridden, and which one reached the registry first is not
+     * something the application said anything about.
+     */
+    @Test
+    public void testNameClashBetweenTwoHandWrittenTypes()
+    {
+        final DomainQLTypeException e = assertThrows(
+            DomainQLTypeException.class,
+            () -> DomainQL.newDomainQL(null)
+                .objectTypes(Public.PUBLIC)
+                .logicBeans(Collections.singleton(new CollidingSumPerMonthLogic()))
+                .objectType(SumPerMonth.class)
+                .build()
+        );
+
+        assertThat(e.getMessage(), containsString("io.github.qlivedev.graphql.beans.SumPerMonth"));
+        assertThat(e.getMessage(), containsString("io.github.qlivedev.graphql.beans.collision.SumPerMonth"));
+        assertThat(e.getMessage(), containsString("GeneratedDomainObject"));
     }
 
     @Test

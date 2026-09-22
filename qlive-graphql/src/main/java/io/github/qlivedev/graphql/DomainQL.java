@@ -17,6 +17,7 @@ import io.github.qlivedev.graphql.fetcher.BackReferenceFetcher;
 import io.github.qlivedev.graphql.fetcher.FieldFetcher;
 import io.github.qlivedev.graphql.fetcher.MethodFetcher;
 import io.github.qlivedev.graphql.fetcher.ReferenceFetcher;
+import io.github.qlivedev.graphql.jooq.GeneratedDomainObject;
 import io.github.qlivedev.graphql.logic.DomainQLMethod;
 import io.github.qlivedev.graphql.logic.GraphQLValueProvider;
 import io.github.qlivedev.graphql.logic.Mutation;
@@ -310,25 +311,45 @@ public class DomainQL
     /**
      * Makes sure that all POJO references in the table lookup correctly reference overridden output types.
      */
+    /**
+     * Points the table lookups at the classes that claimed their domain type names.
+     * <p>
+     * A logic bean returning a class named like a generated POJO overrides it: the hand-written class is what
+     * the schema exposes, and the table lookup names it from here on while keeping the JOOQ table.
+     * <p>
+     * Only a generated POJO can be overridden that way. Two hand-written classes sharing a simple name are a
+     * collision rather than an override, and the winner would be whichever the registry happened to scan first.
+     */
     private void updateTableLookups()
     {
         for (String name : jooqTables.keySet())
         {
             final TableLookup tableLookup = jooqTables.get(name);
+            final Class<?> pojoType = tableLookup.getPojoType();
 
-            TableLookup newLookup;
-
-            // if we find a class with the name of JOOQ type at this point, it must be a GraphQL method override
-            final Class<?> override = typeRegistry.getOutputOverride(tableLookup.getPojoType());
-            if (override != null)
+            final Class<?> override = typeRegistry.getOutputOverride(pojoType);
+            if (override == null || override == pojoType)
             {
-                // so we update the lookup
-                newLookup = new TableLookup(
+                continue;
+            }
+
+            if (!GeneratedDomainObject.class.isAssignableFrom(pojoType))
+            {
+                throw new DomainQLTypeException(
+                    "Domain type '" + name + "' is claimed by both " + pojoType.getName() + " and " +
+                        override.getName() + ". Only a generated POJO can be overridden by a hand-written " +
+                        "class of the same simple name, and " + pojoType.getSimpleName() + " does not extend " +
+                        GeneratedDomainObject.class.getSimpleName() + ". Rename one of the two."
+                );
+            }
+
+            jooqTables.put(
+                name,
+                new TableLookup(
                     override,
                     tableLookup.getTable()
-                );
-                jooqTables.put(name, newLookup);
-            }
+                )
+            );
         }
     }
 

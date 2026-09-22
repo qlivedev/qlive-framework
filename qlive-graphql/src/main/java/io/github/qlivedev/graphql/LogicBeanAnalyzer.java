@@ -420,7 +420,7 @@ class LogicBeanAnalyzer
                 throw new DomainQLException(locationInfo + ": Return values can't have names");
             }
 
-            final GraphQLScalarType scalarType = domainQL.getTypeRegistry().getGraphQLScalarFor(returnType, fieldAnno);
+            final GraphQLScalarType scalarType = typeRegistry.getGraphQLScalarFor(returnType, fieldAnno);
             if (scalarType != null)
             {
                 return scalarType;
@@ -436,7 +436,7 @@ class LogicBeanAnalyzer
 
 
                 final Class<?> elementClass = ctx.getFirstActualType();
-                final GraphQLScalarType scalar = domainQL.getTypeRegistry().getGraphQLScalarFor(elementClass, fieldAnno);
+                final GraphQLScalarType scalar = typeRegistry.getGraphQLScalarFor(elementClass, fieldAnno);
                 if (scalar != null)
                 {
                     resultType = new GraphQLList(scalar);
@@ -557,7 +557,7 @@ class LogicBeanAnalyzer
             genericTypeAnno
         );
 
-        GraphQLInputType inputType = domainQL.getTypeRegistry().getGraphQLScalarFor(parameterType, argAnno);
+        GraphQLInputType inputType = typeRegistry.getGraphQLScalarFor(parameterType, argAnno);
         if (inputType == null)
         {
             if (List.class.isAssignableFrom(parameterType))
@@ -572,7 +572,7 @@ class LogicBeanAnalyzer
                     .getActualTypeArguments()[0];
 
 
-                final GraphQLScalarType scalar = domainQL.getTypeRegistry().getGraphQLScalarFor(elementClass, argAnno);
+                final GraphQLScalarType scalar = typeRegistry.getGraphQLScalarFor(elementClass, argAnno);
                 if (scalar != null)
                 {
                     inputType = new GraphQLList(scalar);

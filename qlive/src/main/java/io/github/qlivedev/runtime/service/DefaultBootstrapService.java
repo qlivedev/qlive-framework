@@ -18,7 +18,6 @@ import graphql.GraphQL;
 import jakarta.servlet.ServletContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.svenson.util.JSONPathUtil;
 
@@ -52,8 +51,8 @@ public class DefaultBootstrapService
 
     public DefaultBootstrapService(
         ServletContext servletContext,
-        @Lazy QLiveDomain domainQL,
-        @Lazy GraphQL graphQL,
+        QLiveDomain domainQL,
+        GraphQL graphQL,
         StaticAnalysisProvider staticAnalysisProvider
     )
     {
@@ -71,8 +70,8 @@ public class DefaultBootstrapService
     ///                            into GraphQL variables, see {@link InjectionArgumentProcessor}
     public DefaultBootstrapService(
         ServletContext servletContext,
-        @Lazy QLiveDomain domainQL,
-        @Lazy GraphQL graphQL,
+        QLiveDomain domainQL,
+        GraphQL graphQL,
         StaticAnalysisProvider staticAnalysisProvider,
         List<InjectionArgumentProcessor> argumentProcessors
     )

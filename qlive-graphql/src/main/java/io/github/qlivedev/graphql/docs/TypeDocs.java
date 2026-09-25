@@ -1,5 +1,6 @@
 package io.github.qlivedev.graphql.docs;
 
+import io.github.qlivedev.graphql.SchemaNames;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -25,7 +26,7 @@ public final class TypeDocs
 
 
     /**
-     * Joins all {@link TypeDoc#QUERY_TYPE} and {@link TypeDoc#MUTATION_TYPE} into a single type each.
+     * Joins all {@link SchemaNames#QUERY_TYPE} and {@link SchemaNames#MUTATION_TYPE} into a single type each.
      * <p>
      * Ensures that type names and field names within the query / mutation types are unique
      * <p>
@@ -37,19 +38,19 @@ public final class TypeDocs
      */
     public static List<TypeDoc> normalize(List<TypeDoc> typeDocs)
     {
-        TypeDoc queryDoc = new TypeDoc(TypeDoc.QUERY_TYPE);
-        TypeDoc mutationDoc = new TypeDoc(TypeDoc.MUTATION_TYPE);
+        TypeDoc queryDoc = new TypeDoc(SchemaNames.QUERY_TYPE);
+        TypeDoc mutationDoc = new TypeDoc(SchemaNames.MUTATION_TYPE);
 
         for (Iterator<TypeDoc> iterator = typeDocs.iterator(); iterator.hasNext(); )
         {
             TypeDoc typeDoc = iterator.next();
 
-            if (typeDoc.getName().equals(TypeDoc.QUERY_TYPE))
+            if (typeDoc.getName().equals(SchemaNames.QUERY_TYPE))
             {
                 queryDoc.getFieldDocs().addAll(typeDoc.getFieldDocs());
                 iterator.remove();
             }
-            else if (typeDoc.getName().equals(TypeDoc.MUTATION_TYPE))
+            else if (typeDoc.getName().equals(SchemaNames.MUTATION_TYPE))
             {
                 mutationDoc.getFieldDocs().addAll(typeDoc.getFieldDocs());
                 iterator.remove();

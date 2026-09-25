@@ -13,20 +13,11 @@ import org.svenson.info.JavaObjectPropertyInfo;
  * The domain a configured {@link DomainQLBuilder} produced: the GraphQL schema, what is known about the types in
  * it, and the schema metadata.
  * <p>
- * Immutable, and holds nothing of the assembly that produced it -- see {@link SchemaAssembler} for that. The
- * naming conventions the assembly follows are static here, because the builder and the registry need them before
- * there is a domain.
+ * Immutable, and holds nothing of the assembly that produced it -- see {@link SchemaAssembler} for that.
  */
 public class DomainQL
     implements QLiveDomain
 {
-    public static final String INPUT_SUFFIX = "Input";
-
-    public static final String QUERY_TYPE = "QueryType";
-
-    public static final String MUTATION_TYPE = "MutationType";
-
-
     private final GraphQLSchema graphQLSchema;
 
     private final TypeRegistry typeRegistry;
@@ -74,31 +65,6 @@ public class DomainQL
     public static DomainQLBuilder newDomainQL(DSLContext dslContext)
     {
         return new DomainQLBuilder(dslContext);
-    }
-
-
-    public static String getInputTypeName(Class<?> parameterType)
-    {
-        if (Enum.class.isAssignableFrom(parameterType))
-        {
-            return parameterType.getSimpleName();
-        }
-
-        final String nameFromType = parameterType.getSimpleName();
-        return getInputTypeName(nameFromType);
-    }
-
-
-    public static String getInputTypeName(String outputTypeName)
-    {
-        if (outputTypeName.endsWith(INPUT_SUFFIX))
-        {
-            return outputTypeName;
-        }
-        else
-        {
-            return outputTypeName + INPUT_SUFFIX;
-        }
     }
 
 

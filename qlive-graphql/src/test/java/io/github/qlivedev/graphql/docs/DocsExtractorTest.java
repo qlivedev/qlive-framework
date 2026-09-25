@@ -1,5 +1,6 @@
 package io.github.qlivedev.graphql.docs;
 
+import io.github.qlivedev.graphql.SchemaNames;
 import com.github.javaparser.utils.SourceRoot;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -30,8 +31,8 @@ public class DocsExtractorTest
 
         assertThat(docs.size(), is(2));
 
-        final TypeDoc qDoc = docs.stream().filter( doc -> doc.getName().equals(TypeDoc.QUERY_TYPE)).findFirst().get();
-        final TypeDoc mDoc = docs.stream().filter( doc -> doc.getName().equals(TypeDoc.MUTATION_TYPE)).findFirst().get();
+        final TypeDoc qDoc = docs.stream().filter( doc -> doc.getName().equals(SchemaNames.QUERY_TYPE)).findFirst().get();
+        final TypeDoc mDoc = docs.stream().filter( doc -> doc.getName().equals(SchemaNames.MUTATION_TYPE)).findFirst().get();
 
 
         final List<FieldDoc> queryFields = qDoc.getFieldDocs();
@@ -159,8 +160,8 @@ public class DocsExtractorTest
 
         assertThat(docs.size(), is(2));
 
-        final TypeDoc qDoc = docs.stream().filter( doc -> doc.getName().equals(TypeDoc.QUERY_TYPE)).findFirst().get();
-        final TypeDoc mDoc = docs.stream().filter( doc -> doc.getName().equals(TypeDoc.MUTATION_TYPE)).findFirst().get();
+        final TypeDoc qDoc = docs.stream().filter( doc -> doc.getName().equals(SchemaNames.QUERY_TYPE)).findFirst().get();
+        final TypeDoc mDoc = docs.stream().filter( doc -> doc.getName().equals(SchemaNames.MUTATION_TYPE)).findFirst().get();
 
         final List<FieldDoc> queryFields = qDoc.getFieldDocs();
         assertThat(queryFields.size(), is(2));

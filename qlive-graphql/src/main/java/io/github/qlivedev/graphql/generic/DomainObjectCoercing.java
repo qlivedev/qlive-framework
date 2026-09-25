@@ -1,5 +1,6 @@
 package io.github.qlivedev.graphql.generic;
 
+import io.github.qlivedev.graphql.SchemaNames;
 import com.google.common.collect.Maps;
 import io.github.qlivedev.graphql.DomainQL;
 import io.github.qlivedev.graphql.QLiveDomain;
@@ -172,7 +173,7 @@ public final class DomainObjectCoercing
         final Map<String, Object> map = (Map<String, Object>) input;
 
         final String domainType = (String) map.get(DomainObject.DOMAIN_TYPE_PROPERTY);
-        final String inputTypeName = DomainQL.getInputTypeName(domainType);
+        final String inputTypeName = SchemaNames.getInputTypeName(domainType);
 
         final GraphQLSchema schema = domainQL.getGraphQLSchema();
         final GraphQLType gqlType = schema.getType(inputTypeName);

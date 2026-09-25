@@ -1,5 +1,6 @@
 package io.github.qlivedev.graphql.docs;
 
+import io.github.qlivedev.graphql.SchemaNames;
 import com.beust.jcommander.JCommander;
 import com.github.javaparser.ParseResult;
 import com.github.javaparser.ast.CompilationUnit;
@@ -246,8 +247,8 @@ public class DocsExtractor
 
     private List<TypeDoc> extractLogicClassDocumentation(TypeDeclaration<?> typeDecl)
     {
-        final TypeDoc queryType = new TypeDoc(TypeDoc.QUERY_TYPE);
-        final TypeDoc mutationType = new TypeDoc(TypeDoc.MUTATION_TYPE);
+        final TypeDoc queryType = new TypeDoc(SchemaNames.QUERY_TYPE);
+        final TypeDoc mutationType = new TypeDoc(SchemaNames.MUTATION_TYPE);
 
         List<TypeDoc> typeDocs = new ArrayList<>();
 

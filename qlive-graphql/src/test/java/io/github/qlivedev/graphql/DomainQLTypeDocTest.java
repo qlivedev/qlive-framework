@@ -49,7 +49,7 @@ public class DomainQLTypeDocTest
 
         //log.info(new SchemaPrinter().print(graphQLSchema));
 
-        final GraphQLObjectType queryType = (GraphQLObjectType) graphQLSchema.getType(TypeDoc.QUERY_TYPE);
+        final GraphQLObjectType queryType = (GraphQLObjectType) graphQLSchema.getType(SchemaNames.QUERY_TYPE);
         final GraphQLFieldDefinition queryField = queryType.getFieldDefinition("query");
         assertThat(queryField.getDescription(), is("A minimal GraphQL query"));
         final GraphQLFieldDefinition queryField2 = queryType.getFieldDefinition("anotherQuery");
@@ -57,7 +57,7 @@ public class DomainQLTypeDocTest
         final GraphQLFieldDefinition queryField3 = queryType.getFieldDefinition("genericPagedFoo");
         assertThat(queryField3.getDescription(), is("Paginated result of type Foo"));
 
-        final GraphQLObjectType mutationType = (GraphQLObjectType) graphQLSchema.getType(TypeDoc.MUTATION_TYPE);
+        final GraphQLObjectType mutationType = (GraphQLObjectType) graphQLSchema.getType(SchemaNames.MUTATION_TYPE);
 
         final GraphQLFieldDefinition mutationField = mutationType.getFieldDefinition("mutation");
         assertThat(mutationField.getDescription(), is("A GraphQL mutation"));

@@ -8,10 +8,6 @@ import java.util.List;
 public class TypeDoc
     implements Cloneable
 {
-    public final static String QUERY_TYPE = "QueryType";
-
-    public final static String MUTATION_TYPE = "MutationType";
-
     private String name;
 
     private String description;

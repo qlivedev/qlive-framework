@@ -1,5 +1,6 @@
 package io.github.qlivedev.graphql.docs;
 
+import io.github.qlivedev.graphql.SchemaNames;
 import java.util.Comparator;
 
 /**
@@ -27,11 +28,11 @@ public class TypeDocComparator
 
     private String replace(String name)
     {
-        if (name.equals(TypeDoc.QUERY_TYPE))
+        if (name.equals(SchemaNames.QUERY_TYPE))
         {
             return "@0";
         }
-        else if (name.equals(TypeDoc.MUTATION_TYPE))
+        else if (name.equals(SchemaNames.MUTATION_TYPE))
         {
             return "@1";
         }

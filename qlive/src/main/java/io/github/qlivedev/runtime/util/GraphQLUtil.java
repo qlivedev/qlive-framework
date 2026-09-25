@@ -1,5 +1,6 @@
 package io.github.qlivedev.runtime.util;
 
+import io.github.qlivedev.graphql.SchemaNames;
 import io.github.qlivedev.util.JSONUtil;
 import io.github.qlivedev.graphql.DomainQL;
 import io.github.qlivedev.graphql.QLiveDomain;
@@ -72,9 +73,9 @@ public final class GraphQLUtil
 
     public static String getOutputTypeName(String inputTypeName)
     {
-        if (inputTypeName.endsWith(DomainQL.INPUT_SUFFIX))
+        if (inputTypeName.endsWith(SchemaNames.INPUT_SUFFIX))
         {
-            return inputTypeName.substring(0, inputTypeName.length() - DomainQL.INPUT_SUFFIX.length());
+            return inputTypeName.substring(0, inputTypeName.length() - SchemaNames.INPUT_SUFFIX.length());
         }
         else
         {

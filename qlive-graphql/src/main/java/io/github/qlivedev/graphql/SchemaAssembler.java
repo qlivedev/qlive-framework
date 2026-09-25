@@ -567,10 +567,10 @@ class SchemaAssembler
             .collect(Collectors.joining(", "));
 
         final GraphQLObjectType.Builder queryTypeBuilder = GraphQLObjectType.newObject()
-            .name(DomainQL.QUERY_TYPE)
+            .name(SchemaNames.QUERY_TYPE)
             .description("Auto-generated from " + logicBeanList);
 
-        final TypeDoc queryTypeDoc = findTypeDoc(TypeDoc.QUERY_TYPE);
+        final TypeDoc queryTypeDoc = findTypeDoc(SchemaNames.QUERY_TYPE);
 
         for (Query query : queries)
         {
@@ -587,7 +587,7 @@ class SchemaAssembler
 
             codeRegistryBuilder
                 .dataFetcher(
-                    FieldCoordinates.coordinates(DomainQL.QUERY_TYPE, query.getName()),
+                    FieldCoordinates.coordinates(SchemaNames.QUERY_TYPE, query.getName()),
                     query
                 );
         }
@@ -602,16 +602,16 @@ class SchemaAssembler
 
             codeRegistryBuilder
                 .dataFetcher(
-                    FieldCoordinates.coordinates(DomainQL.QUERY_TYPE, "qDummy"),
+                    FieldCoordinates.coordinates(SchemaNames.QUERY_TYPE, "qDummy"),
                     new DummyFetcher<Boolean>()
                 );
         }
 
         final GraphQLObjectType.Builder mutationTypeBuilder = GraphQLObjectType.newObject()
-            .name(DomainQL.MUTATION_TYPE)
+            .name(SchemaNames.MUTATION_TYPE)
             .description("Auto-generated from " + logicBeanList);
 
-        final TypeDoc mutationTypeDoc = findTypeDoc(TypeDoc.MUTATION_TYPE);
+        final TypeDoc mutationTypeDoc = findTypeDoc(SchemaNames.MUTATION_TYPE);
         for (Mutation mutation : mutations)
         {
             List<GraphQLArgument> arguments = getGraphQLArguments(mutation, graphQlInputTypes);
@@ -627,7 +627,7 @@ class SchemaAssembler
 
             codeRegistryBuilder
                 .dataFetcher(
-                    FieldCoordinates.coordinates(DomainQL.MUTATION_TYPE, mutation.getName()),
+                    FieldCoordinates.coordinates(SchemaNames.MUTATION_TYPE, mutation.getName()),
                     mutation
                 );
 
@@ -901,9 +901,9 @@ class SchemaAssembler
         final String typeName = inputType.getName();
 
         TypeDoc typeDoc = findTypeDoc(typeName);
-        if (typeDoc == null && typeName.endsWith(DomainQL.INPUT_SUFFIX))
+        if (typeDoc == null && typeName.endsWith(SchemaNames.INPUT_SUFFIX))
         {
-            typeDoc = findTypeDoc(typeName.substring(0, typeName.length() - DomainQL.INPUT_SUFFIX.length()));
+            typeDoc = findTypeDoc(typeName.substring(0, typeName.length() - SchemaNames.INPUT_SUFFIX.length()));
         }
 
         final GraphQLInputObjectType.Builder inputBuilder = GraphQLInputObjectType.newInputObject()
@@ -1039,7 +1039,7 @@ class SchemaAssembler
         }
         else
         {
-            return GraphQLTypeReference.typeRef(DomainQL.getInputTypeName(propertyType));
+            return GraphQLTypeReference.typeRef(SchemaNames.getInputTypeName(propertyType));
         }
     }
 

@@ -147,7 +147,7 @@ public class MutableTypeRegistry
             return enumType;
         }
 
-        final String inputTypeName = getInputTypeName(typeContext.getTypeName());
+        final String inputTypeName = SchemaNames.getInputTypeName(typeContext.getTypeName());
 
         final InputType newType = new InputType(inputTypeName, typeContext);
 
@@ -166,25 +166,6 @@ public class MutableTypeRegistry
 
         return newType;
     }
-
-    public static String getInputTypeName(String outputClassName)
-    {
-        if (outputClassName == null)
-        {
-            throw new IllegalArgumentException("outputClassName can't be null");
-        }
-
-
-        if (outputClassName.endsWith(DomainQL.INPUT_SUFFIX))
-        {
-            return outputClassName;
-        }
-        else
-        {
-            return outputClassName + DomainQL.INPUT_SUFFIX;
-        }
-    }
-
 
     public OutputType register(TypeContext ctx)
     {

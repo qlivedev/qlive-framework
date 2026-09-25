@@ -172,9 +172,9 @@ public class QueryConfigMetadataProvider
 
 
     @Override
-    public void provideMetaData(QLiveDomain domainQL, DomainMeta meta)
+    public void provideMetaData(QLiveDomain domain, DomainMeta meta)
     {
-        final Set<Class<?>> queryDocumentRowTypes = Util.getQueryDocumentRowTypes(domainQL);
+        final Set<Class<?>> queryDocumentRowTypes = Util.getQueryDocumentRowTypes(domain);
         if (allTypesConfigurer != null)
         {
             queryDocumentRowTypes.forEach(cls -> {
@@ -197,9 +197,9 @@ public class QueryConfigMetadataProvider
             }
 
             write(
-                domainQL,
+                domain,
                 meta,
-                typeNameOf(domainQL, cls),
+                typeNameOf(domain, cls),
                 configurer
             );
         }
@@ -210,9 +210,9 @@ public class QueryConfigMetadataProvider
             final Integer maxPageSize = e.getValue();
             
             writeMax(
-                domainQL,
+                domain,
                 meta,
-                typeNameOf(domainQL, cls),
+                typeNameOf(domain, cls),
                 maxPageSize
             );
         }
@@ -220,9 +220,9 @@ public class QueryConfigMetadataProvider
 
 
     /// The name the domain exposes the given Java type as.
-    private static String typeNameOf(QLiveDomain domainQL, Class<?> javaType)
+    private static String typeNameOf(QLiveDomain domain, Class<?> javaType)
     {
-        final OutputType outputType = domainQL.getTypeRegistry().lookup(javaType);
+        final OutputType outputType = domain.getTypeRegistry().lookup(javaType);
         if (outputType == null)
         {
             throw new QLiveException(
@@ -235,11 +235,11 @@ public class QueryConfigMetadataProvider
     }
 
 
-    private static void write(QLiveDomain domainQL, DomainMeta meta, String typeName, QueryConfigTypeConfigurer delta)
+    private static void write(QLiveDomain domain, DomainMeta meta, String typeName, QueryConfigTypeConfigurer delta)
     {
-        requireType(domainQL, typeName);
+        requireType(domain, typeName);
 
-        final Map<String, Object> written = delta.toMeta(domainQL);
+        final Map<String, Object> written = delta.toMeta(domain);
 
         log.debug("Query config metadata of type {}: {}", typeName, written);
 
@@ -247,9 +247,9 @@ public class QueryConfigMetadataProvider
     }
 
 
-    private static void writeMax(QLiveDomain domainQL, DomainMeta meta, String typeName, int maxPageSize)
+    private static void writeMax(QLiveDomain domain, DomainMeta meta, String typeName, int maxPageSize)
     {
-        requireType(domainQL, typeName);
+        requireType(domain, typeName);
 
         log.debug("Maximum page size of type {}: {}", typeName, maxPageSize);
 
@@ -257,9 +257,9 @@ public class QueryConfigMetadataProvider
     }
 
 
-    private static void requireType(QLiveDomain domainQL, String typeName)
+    private static void requireType(QLiveDomain domain, String typeName)
     {
-        if (domainQL.getTypeRegistry().lookup(typeName) == null)
+        if (domain.getTypeRegistry().lookup(typeName) == null)
         {
             // The type metadata only exists for the types QLiveDomain knows a Java type for, so this would
             // otherwise be metadata written nowhere -- or, for a name that is no type at all, a failure

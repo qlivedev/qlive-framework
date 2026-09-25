@@ -34,7 +34,7 @@ class ConditionCoercingTest
 {
     private final static GraphQLContext CONTEXT = GraphQLContext.newContext().build();
 
-    private final QLiveDomain domainQL = TestDomainConfig.domainQL(new TestLogic());
+    private final QLiveDomain domain = TestDomainConfig.domain(new TestLogic());
 
     /// Built rather than taken from the schema, which is also how the query config's coercing comes by
     /// one: a condition only ever travels inside a query config, so the condition scalar is not itself
@@ -46,7 +46,7 @@ class ConditionCoercingTest
     private ConditionCoercing conditionCoercing()
     {
         final ConditionCoercing conditionCoercing = new ConditionCoercing();
-        conditionCoercing.setDomain(domainQL);
+        conditionCoercing.setDomain(domain);
         return conditionCoercing;
     }
 
@@ -173,7 +173,7 @@ class ConditionCoercingTest
     {
         @SuppressWarnings("unchecked")
         final Coercing<QueryConfig, Map<String, Object>> configCoercing =
-            (Coercing<QueryConfig, Map<String, Object>>) ((GraphQLScalarType) domainQL.getGraphQLSchema()
+            (Coercing<QueryConfig, Map<String, Object>>) ((GraphQLScalarType) domain.getGraphQLSchema()
                 .getType("QueryConfig")).getCoercing();
 
         final Map<String, Object> condition = comparison(

@@ -55,13 +55,13 @@ public class DefaultFieldLayoutService
     private final Map<String, FieldLayout> byId = new ConcurrentHashMap<>();
 
 
-    public DefaultFieldLayoutService(QLiveDomain domainQL, DSLContext dslContext)
+    public DefaultFieldLayoutService(QLiveDomain domain, DSLContext dslContext)
     {
         this.dslContext = dslContext;
 
-        for (String typeName : MergeMeta.versionedTypes(domainQL))
+        for (String typeName : MergeMeta.versionedTypes(domain))
         {
-            final FieldLayout layout = FieldLayout.of(domainQL, typeName);
+            final FieldLayout layout = FieldLayout.of(domain, typeName);
 
             current.put(typeName, layout);
             byId.put(layout.getId(), layout);

@@ -37,7 +37,7 @@ public class DomainQLTest
     final LogicWithMirrorInput logic2 = new LogicWithMirrorInput();
 
 
-    final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+    final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
         .objectTypes(Public.PUBLIC)
         .logicBeans(Collections.singleton(logic))
 
@@ -111,7 +111,7 @@ public class DomainQLTest
         )
         .build();
 
-    final GraphQLSchema schema = domainQL.getGraphQLSchema();
+    final GraphQLSchema schema = domain.getGraphQLSchema();
 
     @Test
     public void testQueries()
@@ -337,7 +337,7 @@ public class DomainQLTest
     @Test
     public void testRelationModels()
     {
-        final List<RelationModel> relationModels = domainQL.getTypeRegistry().getRelationModels();
+        final List<RelationModel> relationModels = domain.getTypeRegistry().getRelationModels();
         //log.info(JSONUtil.formatJSON(JSONUtil.DEFAULT_GENERATOR.forValue(relationModels)));
 
         assertThat(relationModels.get(0).getId(), is("SourceTwo-target"));

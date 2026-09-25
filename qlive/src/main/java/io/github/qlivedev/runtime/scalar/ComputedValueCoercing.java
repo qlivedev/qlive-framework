@@ -84,9 +84,9 @@ public class ComputedValueCoercing
 
 
     @Override
-    public void setDomain(QLiveDomain domainQL)
+    public void setDomain(QLiveDomain domain)
     {
         this.genericScalarCoercing = new GenericScalarCoercing();
-        this.genericScalarCoercing.setDomain(domainQL);
+        this.genericScalarCoercing.setDomain(domain);
     }
 }

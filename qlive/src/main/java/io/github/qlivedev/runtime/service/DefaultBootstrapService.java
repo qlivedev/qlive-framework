@@ -37,7 +37,7 @@ public class DefaultBootstrapService
 
     private final ServletContext servletContext;
 
-    private final QLiveDomain domainQL;
+    private final QLiveDomain domain;
 
     private final JSONHolder qlConfigJSON;
 
@@ -51,17 +51,17 @@ public class DefaultBootstrapService
 
     public DefaultBootstrapService(
         ServletContext servletContext,
-        QLiveDomain domainQL,
+        QLiveDomain domain,
         GraphQL graphQL,
         StaticAnalysisProvider staticAnalysisProvider
     )
     {
         this(
             servletContext,
-            domainQL,
+            domain,
             graphQL,
             staticAnalysisProvider,
-            List.of(new QueryConfigArgumentProcessor(domainQL))
+            List.of(new QueryConfigArgumentProcessor(domain))
         );
     }
 
@@ -70,16 +70,16 @@ public class DefaultBootstrapService
     ///                            into GraphQL variables, see {@link InjectionArgumentProcessor}
     public DefaultBootstrapService(
         ServletContext servletContext,
-        QLiveDomain domainQL,
+        QLiveDomain domain,
         GraphQL graphQL,
         StaticAnalysisProvider staticAnalysisProvider,
         List<InjectionArgumentProcessor> argumentProcessors
     )
     {
         this.servletContext = servletContext;
-        this.domainQL = domainQL;
+        this.domain = domain;
         this.staticAnalysisProvider = staticAnalysisProvider;
-        this.injectionService = new InjectionService(graphQL, domainQL, argumentProcessors);
+        this.injectionService = new InjectionService(graphQL, domain, argumentProcessors);
 
         // the whole model just exists to be sent to the client. We only need it in JSON string form,
         // over and over for every full page load forever. The JSONHolder allows us to only generate it once and then
@@ -88,10 +88,10 @@ public class DefaultBootstrapService
         // Both variants are built here rather than on first use: the reduced one costs nothing to produce, and
         // building both up front keeps this constructor the only place that touches the schema.
         qlConfigJSON = new JSONHolder(
-            createSystemConfig(servletContext, domainQL, false)
+            createSystemConfig(servletContext, domain, false)
         );
         reducedConfigJSON = new JSONHolder(
-            createSystemConfig(servletContext, domainQL, true)
+            createSystemConfig(servletContext, domain, true)
         );
 
         log.info(
@@ -106,7 +106,7 @@ public class DefaultBootstrapService
     /// @param reduced  if true, produce the reduced variant: the same config with an empty domain in place of
     ///                 the introspected schema and the domain meta data. See {@link #emptyMeta()} for what
     ///                 "empty" has to mean here.
-    private QLiveConfig createSystemConfig(ServletContext servletContext, QLiveDomain domainQL, boolean reduced)
+    private QLiveConfig createSystemConfig(ServletContext servletContext, QLiveDomain domain, boolean reduced)
     {
         QLiveConfig qlConfig = new QLiveConfig();
         qlConfig.setContextPath(servletContext.getContextPath());
@@ -119,7 +119,7 @@ public class DefaultBootstrapService
             return qlConfig;
         }
 
-        final Map<String, Object> raw = IntrospectionUtil.introspect(domainQL.getGraphQLSchema());
+        final Map<String, Object> raw = IntrospectionUtil.introspect(domain.getGraphQLSchema());
 
         final Map<String, Object> schema = (Map<String, Object>) pathUtil.getPropertyPath(raw, "data.__schema");
         final Map<String, Object> cleaned = new HashMap<>(schema);
@@ -131,7 +131,7 @@ public class DefaultBootstrapService
             log.debug("Raw schema is {}",  JSONUtil.formatJSON(JSONUtil.DEFAULT_GENERATOR.forValue(cleaned)));
         }
 
-        qlConfig.setMeta(domainQL.getMetaData());
+        qlConfig.setMeta(domain.getMetaData());
         qlConfig.setSchema(cleaned);
 
         return qlConfig;

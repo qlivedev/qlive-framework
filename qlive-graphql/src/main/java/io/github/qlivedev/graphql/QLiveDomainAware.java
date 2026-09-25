@@ -9,7 +9,7 @@ public interface QLiveDomainAware
     /**
      * Provides the domain the scalar is registered in.
      *
-     * @param domainQL domain
+     * @param domain the assembled domain
      */
-    void setDomain(QLiveDomain domainQL);
+    void setDomain(QLiveDomain domain);
 }

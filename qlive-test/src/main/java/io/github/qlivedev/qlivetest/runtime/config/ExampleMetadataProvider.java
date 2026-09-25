@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Exemplary application-level metadata provider.
  * <p>
- * Every MetadataProvider bean is picked up automatically (see GraphQLConfiguration#domainQL) and can write into the
+ * Every MetadataProvider bean is picked up automatically (see GraphQLConfiguration#domain) and can write into the
  * DomainMeta the server embeds in the page. This one marks the types the application offers in a quick search,
  * writing on both levels the mechanism has: an addendum next to "types", "genericTypes" and "relations", and field
  * meta data on the field the search matches against.
@@ -39,11 +39,11 @@ public class ExampleMetadataProvider
 
 
     @Override
-    public void provideMetaData(QLiveDomain domainQL, DomainMeta meta)
+    public void provideMetaData(QLiveDomain domain, DomainMeta meta)
     {
         final List<String> quickSearchTypes = new ArrayList<>();
 
-        for (GraphQLNamedType namedType : domainQL.getGraphQLSchema().getTypeMap().values())
+        for (GraphQLNamedType namedType : domain.getGraphQLSchema().getTypeMap().values())
         {
             if (!(namedType instanceof GraphQLObjectType))
             {
@@ -53,7 +53,7 @@ public class ExampleMetadataProvider
             final String typeName = namedType.getName();
 
             // the type meta data only exists for the types QLiveDomain knows a Java type for
-            if (domainQL.getTypeRegistry().lookup(typeName) == null)
+            if (domain.getTypeRegistry().lookup(typeName) == null)
             {
                 continue;
             }

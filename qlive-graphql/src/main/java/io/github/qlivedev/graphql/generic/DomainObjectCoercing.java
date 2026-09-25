@@ -31,7 +31,7 @@ public final class DomainObjectCoercing
     private final static Logger log = LoggerFactory.getLogger(DomainObjectCoercing.class);
 
 
-    private QLiveDomain domainQL;
+    private QLiveDomain domain;
 
 
     public DomainObjectCoercing()
@@ -95,7 +95,7 @@ public final class DomainObjectCoercing
 
         final String domainType = domainObject.getDomainType();
 
-        final GraphQLSchema schema = domainQL.getGraphQLSchema();
+        final GraphQLSchema schema = domain.getGraphQLSchema();
         final GraphQLType type = schema.getType(domainType);
         if (!(type instanceof GraphQLObjectType))
         {
@@ -174,14 +174,14 @@ public final class DomainObjectCoercing
         final String domainType = (String) map.get(DomainObject.DOMAIN_TYPE_PROPERTY);
         final String inputTypeName = SchemaNames.getInputTypeName(domainType);
 
-        final GraphQLSchema schema = domainQL.getGraphQLSchema();
+        final GraphQLSchema schema = domain.getGraphQLSchema();
         final GraphQLType gqlType = schema.getType(inputTypeName);
         if (!(gqlType instanceof GraphQLInputObjectType))
         {
             throw new IllegalStateException("Expected '" + inputTypeName + "' to be an object type, but it is: " + gqlType);
         }
 
-        final InputType inputType = domainQL.getTypeRegistry().lookupInput(inputTypeName);
+        final InputType inputType = domain.getTypeRegistry().lookupInput(inputTypeName);
         if (inputType == null)
         {
             throw new IllegalStateException("Invalid input type '" + inputTypeName + "'");
@@ -231,8 +231,8 @@ public final class DomainObjectCoercing
 
 
     @Override
-    public void setDomain(QLiveDomain domainQL)
+    public void setDomain(QLiveDomain domain)
     {
-        this.domainQL = domainQL;
+        this.domain = domain;
     }
 }

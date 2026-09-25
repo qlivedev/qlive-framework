@@ -74,9 +74,9 @@ public final class MergeMeta
     /// last-write-wins through the same path, which is what not having the column means.
     ///
     /// @param typeName  name of a GraphQL type, known or not
-    public static boolean isVersioned(QLiveDomain domainQL, String typeName)
+    public static boolean isVersioned(QLiveDomain domain, String typeName)
     {
-        final GraphQLNamedType type = domainQL.getGraphQLSchema().getTypeMap().get(typeName);
+        final GraphQLNamedType type = domain.getGraphQLSchema().getTypeMap().get(typeName);
 
         return type instanceof GraphQLObjectType objectType &&
             objectType.getFieldDefinition(VERSION) != null;
@@ -87,23 +87,23 @@ public final class MergeMeta
     /// rows of a POJO and which GraphQL type that is is the domain's to say.
     ///
     /// @param javaType  a Java type, exposed by the domain or not
-    public static boolean isVersioned(QLiveDomain domainQL, Class<?> javaType)
+    public static boolean isVersioned(QLiveDomain domain, Class<?> javaType)
     {
-        final OutputType outputType = domainQL.getTypeRegistry().lookup(javaType);
+        final OutputType outputType = domain.getTypeRegistry().lookup(javaType);
 
-        return outputType != null && isVersioned(domainQL, outputType.getName());
+        return outputType != null && isVersioned(domain, outputType.getName());
     }
 
 
     /// The names of every versioned type of the domain, alphabetically. Derived on every call rather than
     /// cached -- a domain is built once and this is asked at startup.
-    public static List<String> versionedTypes(QLiveDomain domainQL)
+    public static List<String> versionedTypes(QLiveDomain domain)
     {
         final List<String> names = new ArrayList<>();
 
-        for (GraphQLNamedType type : domainQL.getGraphQLSchema().getTypeMap().values())
+        for (GraphQLNamedType type : domain.getGraphQLSchema().getTypeMap().values())
         {
-            if (isVersioned(domainQL, type.getName()))
+            if (isVersioned(domain, type.getName()))
             {
                 names.add(type.getName());
             }
@@ -119,9 +119,9 @@ public final class MergeMeta
     /// failing the write.
     ///
     /// @param typeName  name of a GraphQL type, known or not
-    public static boolean resolvesConflicts(QLiveDomain domainQL, String typeName)
+    public static boolean resolvesConflicts(QLiveDomain domain, String typeName)
     {
-        return Boolean.TRUE.equals(merge(domainQL, typeName).get(RESOLVE));
+        return Boolean.TRUE.equals(merge(domain, typeName).get(RESOLVE));
     }
 
 
@@ -130,9 +130,9 @@ public final class MergeMeta
     /// exists to swallow.
     ///
     /// @param typeName  name of a GraphQL type, known or not
-    public static boolean isAutoMerge(QLiveDomain domainQL, String typeName)
+    public static boolean isAutoMerge(QLiveDomain domain, String typeName)
     {
-        return !Boolean.FALSE.equals(merge(domainQL, typeName).get(AUTO_MERGE));
+        return !Boolean.FALSE.equals(merge(domain, typeName).get(AUTO_MERGE));
     }
 
 
@@ -141,9 +141,9 @@ public final class MergeMeta
     ///
     /// @param typeName  name of a GraphQL type, known or not
     @SuppressWarnings("unchecked")
-    public static List<String> ignoredFields(QLiveDomain domainQL, String typeName)
+    public static List<String> ignoredFields(QLiveDomain domain, String typeName)
     {
-        final Object ignored = merge(domainQL, typeName).get(IGNORED_FIELDS);
+        final Object ignored = merge(domain, typeName).get(IGNORED_FIELDS);
 
         return ignored == null ? List.of() : List.copyOf((List<String>) ignored);
     }
@@ -153,9 +153,9 @@ public final class MergeMeta
     /// beyond the two foreign keys, since a link table of the plain shape is recognized by that shape.
     ///
     /// @param typeName  name of a GraphQL type, known or not
-    public static boolean isLinkType(QLiveDomain domainQL, String typeName)
+    public static boolean isLinkType(QLiveDomain domain, String typeName)
     {
-        return Boolean.TRUE.equals(merge(domainQL, typeName).get(LINK_TYPE));
+        return Boolean.TRUE.equals(merge(domain, typeName).get(LINK_TYPE));
     }
 
 
@@ -163,9 +163,9 @@ public final class MergeMeta
     /// no type of the domain. Every reader above goes through this, so "declared nothing" and "unknown type"
     /// answer alike, which is what a caller asking about a type name off the wire needs.
     @SuppressWarnings("unchecked")
-    private static Map<String, Object> merge(QLiveDomain domainQL, String typeName)
+    private static Map<String, Object> merge(QLiveDomain domain, String typeName)
     {
-        final DomainTypeMeta typeMeta = Util.typeMeta(domainQL, typeName);
+        final DomainTypeMeta typeMeta = Util.typeMeta(domain, typeName);
 
         final Map<String, Object> declared = typeMeta == null ? null : typeMeta.getMeta(MERGE);
 

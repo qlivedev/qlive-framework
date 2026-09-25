@@ -53,28 +53,28 @@ public class Util
     }
 
 
-    public static boolean isQueryDocumentType(QLiveDomain domainQL, String name)
+    public static boolean isQueryDocumentType(QLiveDomain domain, String name)
     {
-        return findQueryDocumentType(domainQL, name).isPresent();
+        return findQueryDocumentType(domain, name).isPresent();
     }
 
 
-    public static Set<Class<?>> getQueryDocumentRowTypes(QLiveDomain domainQL)
+    public static Set<Class<?>> getQueryDocumentRowTypes(QLiveDomain domain)
     {
-        return domainQL.getMetaData().getGenericTypes()
+        return domain.getMetaData().getGenericTypes()
             .stream()
             .filter(
                 gt -> gt.getGenericType().equals(QueryDocument.class.getName())
             ).map(
-                gt -> domainQL.getTypeRegistry().lookup(gt.getTypeParameters().getFirst()).getJavaType()
+                gt -> domain.getTypeRegistry().lookup(gt.getTypeParameters().getFirst()).getJavaType()
             )
             .collect(Collectors.toUnmodifiableSet());
     }
 
 
-    public static Optional<GenericTypeReference> findQueryDocumentType(QLiveDomain domainQL, String name)
+    public static Optional<GenericTypeReference> findQueryDocumentType(QLiveDomain domain, String name)
     {
-        final List<GenericTypeReference> genericTypes = domainQL.getMetaData().getGenericTypes();
+        final List<GenericTypeReference> genericTypes = domain.getMetaData().getGenericTypes();
 
         return genericTypes.stream().filter(
             r -> r.getGenericType().equals(QueryDocument.class.getName()) &&
@@ -96,10 +96,10 @@ public class Util
     ///
     /// @param typeName  name of a GraphQL type, known or not
     @SuppressWarnings("unchecked")
-    public static DomainTypeMeta typeMeta(QLiveDomain domainQL, String typeName)
+    public static DomainTypeMeta typeMeta(QLiveDomain domain, String typeName)
     {
         final Map<String, DomainTypeMeta> types =
-            (Map<String, DomainTypeMeta>) domainQL.getMetaData().getData().get(TYPES);
+            (Map<String, DomainTypeMeta>) domain.getMetaData().getData().get(TYPES);
 
         return types.get(typeName);
     }

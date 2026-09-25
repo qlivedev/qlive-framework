@@ -54,7 +54,7 @@ class LogicBeanAnalyzer
 
     private final Set<Mutation> mutations = new LinkedHashSet<>();
 
-    private final Supplier<QLiveDomain> domainQL;
+    private final Supplier<QLiveDomain> domain;
 
     private final Collection<ParameterProviderFactory> parameterProviderFactories;
 
@@ -63,13 +63,13 @@ class LogicBeanAnalyzer
     private final Map<String,Class<?>> outputTypeOverrides;
 
     LogicBeanAnalyzer(
-        Supplier<QLiveDomain> domainQL,
+        Supplier<QLiveDomain> domain,
         Collection<ParameterProviderFactory> parameterProviderFactories,
         Collection<Object> logicBeans,
         MutableTypeRegistry typeRegistry
     )
     {
-        this.domainQL = domainQL;
+        this.domain = domain;
         this.parameterProviderFactories = parameterProviderFactories;
         this.typeRegistry = typeRegistry;
         this.outputTypeOverrides = new HashMap<>();
@@ -218,7 +218,7 @@ class LogicBeanAnalyzer
                 }
                 list.add(
                     new Query(
-                        domainQL,
+                        domain,
                         namePattern.replace(NAME_PATTERN_WILDCARD, typeParam.getSimpleName()),
                         queryAnno.description(),
                         logicBean,
@@ -243,7 +243,7 @@ class LogicBeanAnalyzer
 
             return Collections.singletonList(
                 new Query(
-                    domainQL,
+                    domain,
                     name,
                     queryAnno.description(),
                     logicBean,
@@ -346,7 +346,7 @@ class LogicBeanAnalyzer
                 }
                 list.add(
                     new Mutation(
-                        domainQL,
+                        domain,
                         queryNamePattern.replace(NAME_PATTERN_WILDCARD, typeParam.getSimpleName()),
                         mutationAnno.description(),
                         logicBean,
@@ -373,7 +373,7 @@ class LogicBeanAnalyzer
 
             return Collections.singletonList(
                 new Mutation(
-                    domainQL,
+                    domain,
                     name,
                     mutationAnno.description(),
                     logicBean,

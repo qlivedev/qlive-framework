@@ -77,9 +77,9 @@ public class InjectionService
 
 
     /// An injection service handling the argument types the framework itself brings, i.e. `QueryConfig`.
-    public InjectionService(GraphQL graphQL, QLiveDomain domainQL)
+    public InjectionService(GraphQL graphQL, QLiveDomain domain)
     {
-        this(graphQL, domainQL, List.of(new QueryConfigArgumentProcessor(domainQL)));
+        this(graphQL, domain, List.of(new QueryConfigArgumentProcessor(domain)));
     }
 
 
@@ -88,11 +88,11 @@ public class InjectionService
     ///                            a list left without a {@link QueryConfigArgumentProcessor} is one where
     ///                            query configs reach GraphQL as the partial deltas they were written as.
     public InjectionService(
-        GraphQL graphQL, QLiveDomain domainQL, List<InjectionArgumentProcessor> argumentProcessors
+        GraphQL graphQL, QLiveDomain domain, List<InjectionArgumentProcessor> argumentProcessors
     )
     {
         this.graphQL = graphQL;
-        this.schema = domainQL.getGraphQLSchema();
+        this.schema = domain.getGraphQLSchema();
         this.argumentProcessors = List.copyOf(argumentProcessors);
     }
 

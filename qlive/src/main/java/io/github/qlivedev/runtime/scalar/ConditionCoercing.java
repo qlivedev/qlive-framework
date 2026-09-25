@@ -38,7 +38,7 @@ public final class ConditionCoercing
 
     private final static Logger log = LoggerFactory.getLogger(ConditionCoercing.class);
 
-    private QLiveDomain domainQL;
+    private QLiveDomain domain;
 
 
     public ConditionCoercing()
@@ -459,7 +459,7 @@ public final class ConditionCoercing
 
     protected GraphQLScalarType getScalarType(String scalarTypeName)
     {
-        if (domainQL == null)
+        if (domain == null)
         {
             throw new IllegalStateException(
                 "No QLiveDomain set on this " + getClass().getSimpleName() + ". It is QLiveDomainAware, which " +
@@ -468,7 +468,7 @@ public final class ConditionCoercing
             );
         }
 
-        final GraphQLType type = domainQL.getGraphQLSchema().getType(scalarTypeName);
+        final GraphQLType type = domain.getGraphQLSchema().getType(scalarTypeName);
 
         if (!(type instanceof GraphQLScalarType))
         {
@@ -479,9 +479,9 @@ public final class ConditionCoercing
 
 
     @Override
-    public void setDomain(QLiveDomain domainQL)
+    public void setDomain(QLiveDomain domain)
     {
-        this.domainQL = domainQL;
+        this.domain = domain;
     }
 }
 

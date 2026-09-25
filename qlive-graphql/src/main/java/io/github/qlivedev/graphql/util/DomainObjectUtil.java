@@ -29,15 +29,15 @@ public final class DomainObjectUtil
      * Inserts the given domain object
      *
      * @param dslContext   DSL context
-     * @param domainQL     domain
+     * @param domain     the assembled domain
      * @param domainObject domain object
      *
      * @return result count for insert statement
      */
-    public static int insert(DSLContext dslContext, QLiveDomain domainQL, DomainObject domainObject)
+    public static int insert(DSLContext dslContext, QLiveDomain domain, DomainObject domainObject)
     {
         final String domainType = domainObject.getDomainType();
-        final Table<?> jooqTable = tableFor(domainQL, domainType);
+        final Table<?> jooqTable = tableFor(domain, domainType);
 
         final String id = (String) domainObject.getProperty(DomainObject.ID);
 
@@ -55,7 +55,7 @@ public final class DomainObjectUtil
                 )
         );
 
-        addFieldValues(domainQL, insertQuery, domainObject);
+        addFieldValues(domain, insertQuery, domainObject);
 
         return insertQuery.execute();
     }
@@ -65,15 +65,15 @@ public final class DomainObjectUtil
      * Updates the given domain object by id.
      *
      * @param dslContext   DSL context
-     * @param domainQL     domain
+     * @param domain     the assembled domain
      * @param domainObject domain object with id
      *
      * @return result count for update statement
      */
-    public static int update(DSLContext dslContext, QLiveDomain domainQL, DomainObject domainObject)
+    public static int update(DSLContext dslContext, QLiveDomain domain, DomainObject domainObject)
     {
         final String domainType = domainObject.getDomainType();
-        final Table<?> jooqTable = tableFor(domainQL, domainType);
+        final Table<?> jooqTable = tableFor(domain, domainType);
 
         final String id = (String) domainObject.getProperty(DomainObject.ID);
 
@@ -91,7 +91,7 @@ public final class DomainObjectUtil
                 )
         );
 
-        addFieldValues(domainQL, updateQuery, domainObject);
+        addFieldValues(domain, updateQuery, domainObject);
 
         return updateQuery.execute();
     }
@@ -105,17 +105,17 @@ public final class DomainObjectUtil
      * </p>
      *
      * @param dslContext   DSL context
-     * @param domainQL     domain
+     * @param domain     the assembled domain
      * @param domainObject domain object with id
      *
      * @return result count for update statement
      */
-    public static int insertOrUpdate(DSLContext dslContext, QLiveDomain domainQL, DomainObject domainObject)
+    public static int insertOrUpdate(DSLContext dslContext, QLiveDomain domain, DomainObject domainObject)
     {
 
         final String domainType = domainObject.getDomainType();
 
-        final Table<?> jooqTable = tableFor(domainQL, domainType);
+        final Table<?> jooqTable = tableFor(domain, domainType);
 
 
         final String id = (String) domainObject.getProperty(DomainObject.ID);
@@ -136,27 +136,27 @@ public final class DomainObjectUtil
         final StoreQuery<?> query;
         if (exists)
         {
-            return update(dslContext, domainQL, domainObject);
+            return update(dslContext, domain, domainObject);
         }
         else
         {
-            return insert(dslContext, domainQL, domainObject);
+            return insert(dslContext, domain, domainObject);
         }
     }
 
 
-    public static int delete(DSLContext dslContext, QLiveDomain domainQL, DomainObject domainObject)
+    public static int delete(DSLContext dslContext, QLiveDomain domain, DomainObject domainObject)
     {
         final String domainType = domainObject.getDomainType();
         final String id = (String) domainObject.getProperty(DomainObject.ID);
 
-        return delete(dslContext, domainQL, domainType, id);
+        return delete(dslContext, domain, domainType, id);
     }
 
 
-    public static int delete(DSLContext dslContext, QLiveDomain domainQL, String domainType, String id)
+    public static int delete(DSLContext dslContext, QLiveDomain domain, String domainType, String id)
     {
-        final Table<?> jooqTable = tableFor(domainQL, domainType);
+        final Table<?> jooqTable = tableFor(domain, domainType);
 
         final int count = dslContext.deleteFrom(jooqTable).where(
             field(
@@ -174,12 +174,12 @@ public final class DomainObjectUtil
     /**
      * Sets all domain object values in a JOOQ query.
      *
-     * @param domainQL
+     * @param domain       the assembled domain
      * @param query        insert or update query
      * @param domainObject domain object
      */
     private static void addFieldValues(
-        QLiveDomain domainQL,
+        QLiveDomain domain,
         StoreQuery<?> query,
         DomainObject domainObject
     )
@@ -187,7 +187,7 @@ public final class DomainObjectUtil
 
         for (String propertyName : domainObject.propertyNames())
         {
-            final Field fieldForProp = domainQL.getTypeRegistry().lookupField(
+            final Field fieldForProp = domain.getTypeRegistry().lookupField(
                 domainObject.getDomainType(),
                 propertyName
             );
@@ -211,16 +211,16 @@ public final class DomainObjectUtil
     /**
      * The table a domain object of the given type is stored in.
      *
-     * @param domainQL   domain
+     * @param domain   the assembled domain
      * @param domainType domain type name
      *
      * @return jOOQ table
      *
      * @throws QLiveDomainException if the domain exposes no table under that name
      */
-    private static Table<?> tableFor(QLiveDomain domainQL, String domainType)
+    private static Table<?> tableFor(QLiveDomain domain, String domainType)
     {
-        final TableLookup lookup = domainQL.getTypeRegistry().lookupType(domainType);
+        final TableLookup lookup = domain.getTypeRegistry().lookupType(domainType);
 
         if (lookup == null)
         {

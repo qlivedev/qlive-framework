@@ -24,7 +24,7 @@ public final class GenericScalarCoercing
     private final static Logger log = LoggerFactory.getLogger(GenericScalarCoercing.class);
 
 
-    private QLiveDomain domainQL;
+    private QLiveDomain domain;
 
 
     public GenericScalarCoercing()
@@ -110,7 +110,7 @@ public final class GenericScalarCoercing
 
     private GraphQLType getScalarInternal(String genericScalarType)
     {
-        final GraphQLType type = domainQL.getGraphQLSchema().getType(genericScalarType);
+        final GraphQLType type = domain.getGraphQLSchema().getType(genericScalarType);
 
         if (!(type instanceof GraphQLScalarType))
         {
@@ -191,8 +191,8 @@ public final class GenericScalarCoercing
 
 
     @Override
-    public void setDomain(QLiveDomain domainQL)
+    public void setDomain(QLiveDomain domain)
     {
-        this.domainQL = domainQL;
+        this.domain = domain;
     }
 }

@@ -35,7 +35,7 @@ public class DomainQLTypeDocTest
     @Test
     public void testTypeDocSchema() throws IOException
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new DocumentedLogic()))
             .withTypeDocs(
@@ -45,7 +45,7 @@ public class DomainQLTypeDocTest
 
 
 
-        final GraphQLSchema graphQLSchema = domainQL.getGraphQLSchema();
+        final GraphQLSchema graphQLSchema = domain.getGraphQLSchema();
 
         //log.info(new SchemaPrinter().print(graphQLSchema));
 

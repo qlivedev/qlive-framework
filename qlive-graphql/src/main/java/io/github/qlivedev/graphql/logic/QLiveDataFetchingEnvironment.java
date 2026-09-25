@@ -30,19 +30,19 @@ import java.util.Map;
 public class QLiveDataFetchingEnvironment
     implements DataFetchingEnvironment
 {
-    private final QLiveDomain domainQL;
+    private final QLiveDomain domain;
 
     private final DataFetchingEnvironment env;
 
     private final Class<?> typeParam;
 
     public QLiveDataFetchingEnvironment(
-        QLiveDomain domainQL,
+        QLiveDomain domain,
         DataFetchingEnvironment env,
         Class<?> typeParam
     )
     {
-        this.domainQL = domainQL;
+        this.domain = domain;
         this.env = env;
         this.typeParam = typeParam;
     }
@@ -241,7 +241,7 @@ public class QLiveDataFetchingEnvironment
 
     public QLiveDomain getDomain()
     {
-        return domainQL;
+        return domain;
     }
 
 

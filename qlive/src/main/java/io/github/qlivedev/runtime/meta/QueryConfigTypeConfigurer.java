@@ -96,8 +96,8 @@ public final class QueryConfigTypeConfigurer
 
     /// This delta as the meta data holds it, i.e. as the JSON the client's QueryConfigDelta is.
     ///
-    /// @param domainQL  the domain, which is what knows how to write the values inside a condition
-    public Map<String, Object> toMeta(QLiveDomain domainQL)
+    /// @param domain  the domain, which is what knows how to write the values inside a condition
+    public Map<String, Object> toMeta(QLiveDomain domain)
     {
         final Map<String, Object> meta = new LinkedHashMap<>();
 
@@ -118,7 +118,7 @@ public final class QueryConfigTypeConfigurer
 
         if (condition != null)
         {
-            meta.put("condition", serializeCondition(domainQL, condition));
+            meta.put("condition", serializeCondition(domain, condition));
         }
 
         return meta;
@@ -131,10 +131,10 @@ public final class QueryConfigTypeConfigurer
     /// query config, so the condition scalar is not referenced by any type and never lands in the schema.
     /// Being QLiveDomainAware is what makes an instance of it usable anyway -- which is also how the query
     /// config's own coercing comes by one.
-    private static Object serializeCondition(QLiveDomain domainQL, CNode condition)
+    private static Object serializeCondition(QLiveDomain domain, CNode condition)
     {
         final ConditionCoercing coercing = new ConditionCoercing();
-        coercing.setDomain(domainQL);
+        coercing.setDomain(domain);
 
         return coercing.serialize(condition, GraphQLContext.getDefault(), Locale.ROOT);
     }

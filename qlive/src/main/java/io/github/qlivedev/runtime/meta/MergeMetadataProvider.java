@@ -246,7 +246,7 @@ public class MergeMetadataProvider
 
 
     @Override
-    public void provideMetaData(QLiveDomain domainQL, DomainMeta meta)
+    public void provideMetaData(QLiveDomain domain, DomainMeta meta)
     {
         // Java types first, then names, so that a type declared through both is reported as declared twice
         // rather than half-written. The order within each is the application's.
@@ -254,7 +254,7 @@ public class MergeMetadataProvider
 
         for (Map.Entry<Class<?>, Declaration> declared : byJavaType.entrySet())
         {
-            byName.put(typeNameOf(domainQL, declared.getKey()), declared.getValue());
+            byName.put(typeNameOf(domain, declared.getKey()), declared.getValue());
         }
 
         for (Map.Entry<String, Declaration> declared : byTypeName.entrySet())
@@ -269,15 +269,15 @@ public class MergeMetadataProvider
 
         for (Map.Entry<String, Declaration> declared : byName.entrySet())
         {
-            write(domainQL, meta, declared.getKey(), declared.getValue());
+            write(domain, meta, declared.getKey(), declared.getValue());
         }
     }
 
 
     /// The name the domain exposes the given Java type as.
-    private static String typeNameOf(QLiveDomain domainQL, Class<?> javaType)
+    private static String typeNameOf(QLiveDomain domain, Class<?> javaType)
     {
-        final OutputType outputType = domainQL.getTypeRegistry().lookup(javaType);
+        final OutputType outputType = domain.getTypeRegistry().lookup(javaType);
         if (outputType == null)
         {
             throw new QLiveException(
@@ -290,29 +290,29 @@ public class MergeMetadataProvider
     }
 
 
-    private static void write(QLiveDomain domainQL, DomainMeta meta, String typeName, Declaration declaration)
+    private static void write(QLiveDomain domain, DomainMeta meta, String typeName, Declaration declaration)
     {
-        requireType(domainQL, typeName);
+        requireType(domain, typeName);
 
         // Sorted, so that the written meta data reads the same however the application ordered its calls.
         final Map<String, Object> written = new TreeMap<>();
 
         if (declaration.resolve != null)
         {
-            requireVersioned(domainQL, typeName, MergeMeta.RESOLVE);
+            requireVersioned(domain, typeName, MergeMeta.RESOLVE);
             written.put(MergeMeta.RESOLVE, declaration.resolve);
         }
 
         if (declaration.autoMerge != null)
         {
-            requireVersioned(domainQL, typeName, MergeMeta.AUTO_MERGE);
+            requireVersioned(domain, typeName, MergeMeta.AUTO_MERGE);
             written.put(MergeMeta.AUTO_MERGE, declaration.autoMerge);
         }
 
         if (declaration.ignoredFields != null)
         {
-            requireVersioned(domainQL, typeName, MergeMeta.IGNORED_FIELDS);
-            requireFields(domainQL, typeName, declaration.ignoredFields);
+            requireVersioned(domain, typeName, MergeMeta.IGNORED_FIELDS);
+            requireFields(domain, typeName, declaration.ignoredFields);
             written.put(MergeMeta.IGNORED_FIELDS, declaration.ignoredFields);
         }
 
@@ -327,9 +327,9 @@ public class MergeMetadataProvider
     }
 
 
-    private static void requireType(QLiveDomain domainQL, String typeName)
+    private static void requireType(QLiveDomain domain, String typeName)
     {
-        if (domainQL.getTypeRegistry().lookup(typeName) == null)
+        if (domain.getTypeRegistry().lookup(typeName) == null)
         {
             // The type meta data only exists for the types QLiveDomain knows a Java type for, so this would
             // otherwise be meta data written nowhere -- or, for a name that is no type at all, a failure
@@ -341,9 +341,9 @@ public class MergeMetadataProvider
     }
 
 
-    private static void requireVersioned(QLiveDomain domainQL, String typeName, String property)
+    private static void requireVersioned(QLiveDomain domain, String typeName, String property)
     {
-        if (!MergeMeta.isVersioned(domainQL, typeName))
+        if (!MergeMeta.isVersioned(domain, typeName))
         {
             throw new QLiveException(
                 "Merge meta data '" + property + "' declared for type '" + typeName + "', which has no '" +
@@ -354,10 +354,10 @@ public class MergeMetadataProvider
     }
 
 
-    private static void requireFields(QLiveDomain domainQL, String typeName, List<String> fields)
+    private static void requireFields(QLiveDomain domain, String typeName, List<String> fields)
     {
         final GraphQLObjectType type =
-            (GraphQLObjectType) domainQL.getGraphQLSchema().getTypeMap().get(typeName);
+            (GraphQLObjectType) domain.getGraphQLSchema().getTypeMap().get(typeName);
 
         for (String field : fields)
         {

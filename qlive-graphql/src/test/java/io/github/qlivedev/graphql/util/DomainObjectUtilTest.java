@@ -38,7 +38,7 @@ public class DomainObjectUtilTest
 
     private final DSLContext dslContext = DSL.using(new MockConnection(provider), SQLDialect.POSTGRES);
 
-    private final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(dslContext)
+    private final QLiveDomain domain = QLiveDomainBuilder.newDomain(dslContext)
         .objectTypes(Public.PUBLIC)
         .logicBeans(Collections.singleton(new OutputTypeOverrideLogic()))
         .build();
@@ -58,9 +58,9 @@ public class DomainObjectUtilTest
         sourceSeven.setTarget("target-1");
 
         assertThat(sourceSeven.propertyNames().contains("concat"), is(true));
-        assertThat(domainQL.getTypeRegistry().lookupField("SourceSeven", "concat"), is(nullValue()));
+        assertThat(domain.getTypeRegistry().lookupField("SourceSeven", "concat"), is(nullValue()));
 
-        final int count = DomainObjectUtil.insert(dslContext, domainQL, sourceSeven);
+        final int count = DomainObjectUtil.insert(dslContext, domain, sourceSeven);
 
         assertThat(count, is(1));
         assertThat(statements.size(), is(1));

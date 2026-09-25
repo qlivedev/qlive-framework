@@ -55,7 +55,7 @@ public class DomainQLConfiguration
     
     /**
      * The application's own metadata provider. Declared rather than found by a component scan; what picks it
-     * up is {@link #domainQL()} asking the context for every {@link MetadataProvider}, which is the same
+     * up is {@link #domain()} asking the context for every {@link MetadataProvider}, which is the same
      * route a module's provider takes.
      */
     @Bean
@@ -66,7 +66,7 @@ public class DomainQLConfiguration
 
 
     @Bean
-    public QLiveDomain domainQL() throws IOException
+    public QLiveDomain domain() throws IOException
     {
         return newDomainQL(
             dslContext,
@@ -88,7 +88,7 @@ public class DomainQLConfiguration
         Collection<MetadataProvider> metadataProviders
     ) throws IOException
     {
-        final QLiveDomain domainQL = QLiveDefaultDomain.newDomain(dslContext, metadataProviders)
+        final QLiveDomain domain = QLiveDefaultDomain.newDomain(dslContext, metadataProviders)
             //.parameterProvider(new AutomatonConnectionProviderFactory(applicationContext))
             .logicBeans(logicBeans)
 
@@ -169,17 +169,17 @@ public class DomainQLConfiguration
 
             .build();
 
-        return domainQL;
+        return domain;
     }
 
 
     @Bean
     public QueryDocumentService queryDocumentService(
-        QLiveDomain domainQL,
+        QLiveDomain domain,
         GraphQL graphQL) throws Exception
     {
         return new DefaultQueryDocumentService(
-            domainQL,
+            domain,
             dslContext,
             graphQL
         );

@@ -17,7 +17,7 @@ public class Mutation
     extends QLiveDomainMethod
 {
     public Mutation(
-        Supplier<QLiveDomain> domainQL,
+        Supplier<QLiveDomain> domain,
         String name,
         String description,
         Object logicBean,
@@ -29,7 +29,7 @@ public class Mutation
         String genericMethodName
     )
     {
-        super(domainQL, name, description, logicBean, methodAccess, methodIndex, parameterProviders, resultType, typeParam, genericMethodName);
+        super(domain, name, description, logicBean, methodAccess, methodIndex, parameterProviders, resultType, typeParam, genericMethodName);
 
     }
 

@@ -15,9 +15,9 @@ import static io.github.qlivedev.testdomain.Tables.*;
 
 public class TestDomainConfig
 {
-    public static QLiveDomain domainQL(Object... logicBeans)
+    public static QLiveDomain domain(Object... logicBeans)
     {
-        return domainQL(List.of(
+        return domain(List.of(
             QueryConfigMetadataProvider.newProvider()
                 .forAllTypes()
                 .pageSize(5)
@@ -27,14 +27,14 @@ public class TestDomainConfig
 
     public static QLiveDomain domainNoMeta(Object... logicBeans)
     {
-        return domainQL(Collections.emptyList(), logicBeans);
+        return domain(Collections.emptyList(), logicBeans);
     }
 
 
     /**
      * The same domain with meta data providers, for the tests that read what a provider wrote.
      */
-    public static QLiveDomain domainQL(Collection<MetadataProvider> metadataProviders, Object... logicBeans)
+    public static QLiveDomain domain(Collection<MetadataProvider> metadataProviders, Object... logicBeans)
     {
         return QLiveDefaultDomain.newDomain(null, metadataProviders)
             //.parameterProvider(new AutomatonConnectionProviderFactory(applicationContext))

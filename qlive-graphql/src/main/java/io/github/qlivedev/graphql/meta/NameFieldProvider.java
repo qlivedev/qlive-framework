@@ -34,10 +34,10 @@ public class NameFieldProvider
 
 
     @Override
-    public void provideMetaData(QLiveDomain domainQL, DomainMeta meta)
+    public void provideMetaData(QLiveDomain domain, DomainMeta meta)
     {
 
-        final GraphQLSchema schema = domainQL.getGraphQLSchema();
+        final GraphQLSchema schema = domain.getGraphQLSchema();
 
         for (GraphQLNamedType value : schema.getTypeMap().values())
         {
@@ -52,7 +52,7 @@ public class NameFieldProvider
                     {
                         if (!nameFields.containsKey(typeName))
                         {
-                            final OutputType outputType = domainQL.getTypeRegistry().lookup(typeName);
+                            final OutputType outputType = domain.getTypeRegistry().lookup(typeName);
                             if (outputType == null)
                             {
                                 throw new IllegalStateException("Could find find type '" + typeName + "'");

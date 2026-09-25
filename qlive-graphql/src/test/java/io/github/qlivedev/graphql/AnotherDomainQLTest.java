@@ -909,31 +909,31 @@ public class AnotherDomainQLTest
     @Test
     public void testFieldLookup()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new MinimalLogic()))
             .build();
-        final GraphQLSchema schema = domainQL
+        final GraphQLSchema schema = domain
             .getGraphQLSchema();
 
-        //log.info(domainQL.getFieldLookup().toString());
+        //log.info(domain.getFieldLookup().toString());
 
-        assertThat(domainQL.getTypeRegistry().lookupField("SourceFour", DomainObject.ID).getName(), is("id"));
-        assertThat(domainQL.getTypeRegistry().lookupField("SourceFour", "targetId").getName(), is("target_id"));
+        assertThat(domain.getTypeRegistry().lookupField("SourceFour", DomainObject.ID).getName(), is("id"));
+        assertThat(domain.getTypeRegistry().lookupField("SourceFour", "targetId").getName(), is("target_id"));
 
     }
 
     @Test
     public void testTypeParameters()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new TypeParamLogic()))
             .build();
-        final GraphQLSchema schema = domainQL
+        final GraphQLSchema schema = domain
             .getGraphQLSchema();
 
-        //log.info(domainQL.getFieldLookup().toString());
+        //log.info(domain.getFieldLookup().toString());
 
         final GraphQLObjectType queryType = schema.getQueryType();
 
@@ -974,14 +974,14 @@ public class AnotherDomainQLTest
     @Test
     public void testTypeParametersForMutations()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new TypeParamMutationLogic()))
             .build();
-        final GraphQLSchema schema = domainQL
+        final GraphQLSchema schema = domain
             .getGraphQLSchema();
 
-        //log.info(domainQL.getFieldLookup().toString());
+        //log.info(domain.getFieldLookup().toString());
 
         final GraphQLObjectType mutationType = schema.getMutationType();
 
@@ -1022,11 +1022,11 @@ public class AnotherDomainQLTest
     @Test
     public void testTypeParameterWithPattern()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new TypeParamWithNamePatternLogic()))
             .build();
-        final GraphQLSchema schema = domainQL
+        final GraphQLSchema schema = domain
             .getGraphQLSchema();
 
         //log.info(new SchemaPrinter().print(schema));
@@ -1070,11 +1070,11 @@ public class AnotherDomainQLTest
     @Test
     public void testNotNullQuery()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new NotNullQueryLogic()))
             .build();
-        final GraphQLSchema schema = domainQL
+        final GraphQLSchema schema = domain
             .getGraphQLSchema();
 
         log.info(new SchemaPrinter().print(schema));
@@ -1114,14 +1114,14 @@ public class AnotherDomainQLTest
     @Test
     public void testIgnoredProps()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new IgnoredPropsLogic()))
             .build();
-        final GraphQLSchema schema = domainQL
+        final GraphQLSchema schema = domain
             .getGraphQLSchema();
 
-        //log.info(domainQL.getFieldLookup().toString());
+        //log.info(domain.getFieldLookup().toString());
 
         final GraphQLObjectType queryType = schema.getQueryType();
 
@@ -1163,20 +1163,20 @@ public class AnotherDomainQLTest
     @Test
     public void testDBView()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new SumPerMonthLogic()))
             .objectType(SumPerMonth.class)
             .build();
 
         assertThat(
-            domainQL.getTypeRegistry().lookupType("SumPerMonth").getTable().getName(), is("sum_per_month")
+            domain.getTypeRegistry().lookupType("SumPerMonth").getTable().getName(), is("sum_per_month")
         );
         assertThat(
-            domainQL.getTypeRegistry().lookupField("SumPerMonth", "month").getName(), is("month")
+            domain.getTypeRegistry().lookupField("SumPerMonth", "month").getName(), is("month")
         );
 
-        final GraphQLSchema schema = domainQL.getGraphQLSchema();
+        final GraphQLSchema schema = domain.getGraphQLSchema();
         final GraphQLObjectType objType = (GraphQLObjectType) schema.getType("SumPerMonth");
 
         final GraphQLOutputType monthFieldType = objType.getFieldDefinition("month").getType();
@@ -1251,14 +1251,14 @@ public class AnotherDomainQLTest
     @Test
     public void testBinaryData()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new BinaryDataLogic()))
             .build();
 
-        //log.info(new SchemaPrinter().print(domainQL.getGraphQLSchema()));
+        //log.info(new SchemaPrinter().print(domain.getGraphQLSchema()));
 
-        final GraphQLObjectType binaryBean = (GraphQLObjectType) domainQL.getGraphQLSchema().getType("BinaryBean");
+        final GraphQLObjectType binaryBean = (GraphQLObjectType) domain.getGraphQLSchema().getType("BinaryBean");
 
         final GraphQLOutputType type = binaryBean.getFieldDefinition("data").getType();
         assertThat(type, is( instanceOf(GraphQLList.class)));
@@ -1269,20 +1269,20 @@ public class AnotherDomainQLTest
     @Test
     public void testBigNumericTypes()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new BigNumericLogic()))
             .withAdditionalScalar(BigDecimal.class, BigDecimalScalar.newScalar())
             .withAdditionalScalar(BigInteger.class, BigIntegerScalar.newScalar())
             .build();
 
-        //log.info(new SchemaPrinter().print(domainQL.getGraphQLSchema()));
+        //log.info(new SchemaPrinter().print(domain.getGraphQLSchema()));
 
-        final GraphQLObjectType bdContainerType = (GraphQLObjectType) domainQL.getGraphQLSchema().getType("BDContainer");
+        final GraphQLObjectType bdContainerType = (GraphQLObjectType) domain.getGraphQLSchema().getType("BDContainer");
         final GraphQLOutputType bdValueType = bdContainerType.getFieldDefinition("value").getType();
         assertThat(((GraphQLNamedType)bdValueType).getName(), is( "BigDecimal"));
 
-        final GraphQLObjectType biContainerType = (GraphQLObjectType) domainQL.getGraphQLSchema().getType("BIContainer");
+        final GraphQLObjectType biContainerType = (GraphQLObjectType) domain.getGraphQLSchema().getType("BIContainer");
         final GraphQLOutputType biValueType = biContainerType.getFieldDefinition("value").getType();
         assertThat(((GraphQLNamedType)biValueType).getName(), is( "BigInteger"));
     }
@@ -1290,7 +1290,7 @@ public class AnotherDomainQLTest
     @Test
     public void testOutputTypeOverride()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new OutputTypeOverrideLogic()))
             .withRelation(
@@ -1302,10 +1302,10 @@ public class AnotherDomainQLTest
                     .withLeftSideObjectName("targetObj")
             )
             .build();
-        final GraphQLSchema schema = domainQL.getGraphQLSchema();
+        final GraphQLSchema schema = domain.getGraphQLSchema();
 
 
-        final OutputType ot = domainQL.getTypeRegistry().lookup("TargetSeven");
+        final OutputType ot = domain.getTypeRegistry().lookup("TargetSeven");
         assertThat(ot.getJavaType().getName(), is(TargetSeven.class.getName()));
 
         final GraphQLObjectType gqlType = (GraphQLObjectType) schema.getType("TargetSeven");
@@ -1319,21 +1319,21 @@ public class AnotherDomainQLTest
         final GraphQLInputObjectField concat = inputType.getFieldDefinition("concat");
         assertThat(concat, is( nullValue()));
 
-        assertThat(domainQL.getMetaData().getRelationModels().get(0).getSourcePojoClass().getName(), is(SourceSeven.class.getName()));
-        assertThat(domainQL.getMetaData().getRelationModels().get(0).getTargetPojoClass().getName(), is(TargetSeven.class.getName()));
+        assertThat(domain.getMetaData().getRelationModels().get(0).getSourcePojoClass().getName(), is(SourceSeven.class.getName()));
+        assertThat(domain.getMetaData().getRelationModels().get(0).getTargetPojoClass().getName(), is(TargetSeven.class.getName()));
 
-        assertThat(domainQL.getMetaData().getTypeMeta("SourceSeven").getFieldMeta("concat", "computed"), is(Boolean.TRUE));
-        assertThat(domainQL.getMetaData().getTypeMeta("SourceSeven").getFieldMeta("target", "computed"), is(nullValue()));
+        assertThat(domain.getMetaData().getTypeMeta("SourceSeven").getFieldMeta("concat", "computed"), is(Boolean.TRUE));
+        assertThat(domain.getMetaData().getTypeMeta("SourceSeven").getFieldMeta("target", "computed"), is(nullValue()));
 
-        assertThat(domainQL.getTypeRegistry().lookupType("SourceSeven").getPojoType().getName(), is(SourceSeven.class.getName()));
-        assertThat(domainQL.getTypeRegistry().lookupType("TargetSeven").getPojoType().getName(), is(TargetSeven.class.getName()));
+        assertThat(domain.getTypeRegistry().lookupType("SourceSeven").getPojoType().getName(), is(SourceSeven.class.getName()));
+        assertThat(domain.getTypeRegistry().lookupType("TargetSeven").getPojoType().getName(), is(TargetSeven.class.getName()));
     }
 
     @Test
     public void testOutputTypeOverrideByParam()
     {
         // checks that output type overriding works via @GraphQLTypeParam, too
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new OutputTypeOverrideByParamLogic()))
             .withRelation(
@@ -1345,10 +1345,10 @@ public class AnotherDomainQLTest
                     .withLeftSideObjectName("targetObj")
             )
             .build();
-        final GraphQLSchema schema = domainQL.getGraphQLSchema();
+        final GraphQLSchema schema = domain.getGraphQLSchema();
 
 
-        final OutputType ot = domainQL.getTypeRegistry().lookup("TargetSeven");
+        final OutputType ot = domain.getTypeRegistry().lookup("TargetSeven");
         assertThat(ot.getJavaType().getName(), is(TargetSeven.class.getName()));
 
         final GraphQLObjectType gqlType = (GraphQLObjectType) schema.getType("TargetSeven");
@@ -1363,7 +1363,7 @@ public class AnotherDomainQLTest
     @Test
     public void testMetaTags()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new TestLogic()))
 
@@ -1379,11 +1379,11 @@ public class AnotherDomainQLTest
 
             .build();
 
-        final RelationModel relationModel = domainQL.getMetaData().getRelationModels().get(0);
+        final RelationModel relationModel = domain.getMetaData().getRelationModels().get(0);
         assertThat(relationModel.getId(), is("SourceOne-target"));
         assertThat(relationModel.getMetaTags(), is(Arrays.asList("foo", "bar")));
 
-        final RelationModel relationModel2 = domainQL.getMetaData().getRelationModels().get(1);
+        final RelationModel relationModel2 = domain.getMetaData().getRelationModels().get(1);
         assertThat(relationModel2.getId(), is("SourceTwo-target"));
         assertThat(relationModel2.getMetaTags(), is(Collections.singletonList("baz")));
     }

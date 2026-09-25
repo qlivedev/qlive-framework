@@ -82,7 +82,7 @@ public class QLiveConfiguration
      */
     @Bean
     public BootstrapService bootstrapService(
-        QLiveDomain domainQL,
+        QLiveDomain domain,
         GraphQL graphQL,
         StaticAnalysisProvider staticAnalysis,
         List<InjectionArgumentProcessor> argumentProcessors
@@ -90,7 +90,7 @@ public class QLiveConfiguration
         throws IOException
     {
         return new DefaultBootstrapService(
-            servletContext, domainQL, graphQL, staticAnalysis, argumentProcessors
+            servletContext, domain, graphQL, staticAnalysis, argumentProcessors
         );
     }
 
@@ -101,16 +101,16 @@ public class QLiveConfiguration
     /// framework knows nothing about.
     @Bean
     @Order(Ordered.LOWEST_PRECEDENCE)
-    public InjectionArgumentProcessor queryConfigArgumentProcessor(QLiveDomain domainQL)
+    public InjectionArgumentProcessor queryConfigArgumentProcessor(QLiveDomain domain)
     {
-        return new QueryConfigArgumentProcessor(domainQL);
+        return new QueryConfigArgumentProcessor(domain);
     }
 
 
     @Bean
-    public GraphQL graphQL(QLiveDomain domainQL)
+    public GraphQL graphQL(QLiveDomain domain)
     {
-        return GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build();
+        return GraphQL.newGraphQL(domain.getGraphQLSchema()).build();
     }
 
 
@@ -127,22 +127,22 @@ public class QLiveConfiguration
     /// below reaches past the interface.
     @Bean
     public MergeService mergeService(
-        QLiveDomain domainQL,
+        QLiveDomain domain,
         DSLContext dslContext,
         FieldLayoutService fieldLayoutService,
         VersionService versionService
     )
     {
-        return new DefaultMergeService(domainQL, dslContext, fieldLayoutService, versionService);
+        return new DefaultMergeService(domain, dslContext, fieldLayoutService, versionService);
     }
 
 
     /// The field layouts masks are written against, and the startup check that no versioned type has more
     /// fields than a mask has bits.
     @Bean
-    public FieldLayoutService fieldLayoutService(QLiveDomain domainQL, DSLContext dslContext)
+    public FieldLayoutService fieldLayoutService(QLiveDomain domain, DSLContext dslContext)
     {
-        return new DefaultFieldLayoutService(domainQL, dslContext);
+        return new DefaultFieldLayoutService(domain, dslContext);
     }
 
 
@@ -215,9 +215,9 @@ public class QLiveConfiguration
     /// Pub/sub's share of the push connection. One {@link PushMessageHandler} among however many an
     /// application wires, and the only one the framework itself contributes today.
     @Bean
-    public PubSubMessageHandler pubSubMessageHandler(PubSubService pubSubService, QLiveDomain domainQL)
+    public PubSubMessageHandler pubSubMessageHandler(PubSubService pubSubService, QLiveDomain domain)
     {
-        return new PubSubMessageHandler(pubSubService, domainQL);
+        return new PubSubMessageHandler(pubSubService, domain);
     }
 
 

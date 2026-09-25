@@ -27,7 +27,7 @@ import static org.hamcrest.Matchers.is;
 /// are where the merge design says they are.
 class MergeMetadataTest
 {
-    private static QLiveDomain domainQL;
+    private static QLiveDomain domain;
 
 
     @BeforeAll
@@ -36,7 +36,7 @@ class MergeMetadataTest
         // QueryLogic carries the type list that puts the handwritten Qux in the generated POJO's place, so
         // leaving it out would build a schema the application never runs. Nothing calls into it here, which
         // is why it can be handed a null service.
-        domainQL = DomainQLConfiguration.newDomainQL(
+        domain = DomainQLConfiguration.newDomainQL(
             null,
             List.of(new QueryLogic(null)),
             List.of(
@@ -60,20 +60,20 @@ class MergeMetadataTest
     @Test
     void derivesWhichTypesTakePart()
     {
-        assertThat(MergeMeta.versionedTypes(domainQL), contains("Bar", "BarLink", "Baz", "Foo"));
+        assertThat(MergeMeta.versionedTypes(domain), contains("Bar", "BarLink", "Baz", "Foo"));
 
         // left out on purpose, so that writing an unversioned type has a subject here
-        assertThat(MergeMeta.isVersioned(domainQL, "Qux"), is(false));
-        assertThat(MergeMeta.isVersioned(domainQL, "FooType"), is(false));
+        assertThat(MergeMeta.isVersioned(domain, "Qux"), is(false));
+        assertThat(MergeMeta.isVersioned(domain, "FooType"), is(false));
     }
 
 
     @Test
     void declaresWhatTheApplicationDecides()
     {
-        assertThat(MergeMeta.resolvesConflicts(domainQL, "Bar"), is(true));
-        assertThat(MergeMeta.resolvesConflicts(domainQL, "Baz"), is(true));
-        assertThat(MergeMeta.ignoredFields(domainQL, "Foo"), contains("created"));
+        assertThat(MergeMeta.resolvesConflicts(domain, "Bar"), is(true));
+        assertThat(MergeMeta.resolvesConflicts(domain, "Baz"), is(true));
+        assertThat(MergeMeta.ignoredFields(domain, "Foo"), contains("created"));
     }
 
 
@@ -82,9 +82,9 @@ class MergeMetadataTest
     @Test
     void leavesTheRestAtWhatTheFrameworkDoesAnyway()
     {
-        assertThat(MergeMeta.resolvesConflicts(domainQL, "Foo"), is(false));
-        assertThat(MergeMeta.isAutoMerge(domainQL, "Foo"), is(true));
-        assertThat(MergeMeta.ignoredFields(domainQL, "Bar"), is(List.of()));
+        assertThat(MergeMeta.resolvesConflicts(domain, "Foo"), is(false));
+        assertThat(MergeMeta.isAutoMerge(domain, "Foo"), is(true));
+        assertThat(MergeMeta.ignoredFields(domain, "Bar"), is(List.of()));
     }
 
 
@@ -93,6 +93,6 @@ class MergeMetadataTest
     @Test
     void declaresNoLinkType()
     {
-        assertThat(MergeMeta.isLinkType(domainQL, "BarLink"), is(false));
+        assertThat(MergeMeta.isLinkType(domain, "BarLink"), is(false));
     }
 }

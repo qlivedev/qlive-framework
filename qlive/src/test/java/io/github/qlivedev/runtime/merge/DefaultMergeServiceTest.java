@@ -33,9 +33,9 @@ class DefaultMergeServiceTest
     @BeforeAll
     static void buildService()
     {
-        final QLiveDomain domainQL = TestDomainConfig.domainQL(new TestLogic());
+        final QLiveDomain domain = TestDomainConfig.domain(new TestLogic());
 
-        mergeService = new DefaultMergeService(domainQL, null, null, null);
+        mergeService = new DefaultMergeService(domain, null, null, null);
     }
 
 

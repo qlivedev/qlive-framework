@@ -30,7 +30,7 @@ class QueryConfigMetadataProviderTest
     @Test
     void writesTheDeclaredDeltaOntoTheType()
     {
-        final QLiveDomain domainQL = domainWith(
+        final QLiveDomain domain = domainWith(
             QueryConfigMetadataProvider.newProvider()
                 .forType(
                     TestFoo.class
@@ -41,7 +41,7 @@ class QueryConfigMetadataProviderTest
 
         );
 
-        final Map<String, Object> delta = QueryConfigMeta.deltaForType(domainQL, TestFoo.class);
+        final Map<String, Object> delta = QueryConfigMeta.deltaForType(domain, TestFoo.class);
 
         // only what the delta named, so everything else stays at what a query config says anyway
         assertThat(delta.keySet(), contains("pageSize", "sortFields"));
@@ -55,7 +55,7 @@ class QueryConfigMetadataProviderTest
     {
         // What the injections have in hand is the type a query returns, and what the application declared on
         // is the type of its rows.
-        final QLiveDomain domainQL = domainWith(
+        final QLiveDomain domain = domainWith(
             QueryConfigMetadataProvider.newProvider()
                 .forType(TestFoo.class)
                     .pageSize(20)
@@ -63,13 +63,13 @@ class QueryConfigMetadataProviderTest
         );
 
         assertThat(
-            QueryConfigMeta.deltaForDocumentType(domainQL, "TestFooDocument").get("pageSize"),
+            QueryConfigMeta.deltaForDocumentType(domain, "TestFooDocument").get("pageSize"),
             is(20)
         );
 
         // a document type over rows that declare nothing, and something that is no document type at all
-        assertThat(QueryConfigMeta.deltaForDocumentType(domainQL, "TestUserDocument"), is(nullValue()));
-        assertThat(QueryConfigMeta.deltaForDocumentType(domainQL, "TestFoo"), is(nullValue()));
+        assertThat(QueryConfigMeta.deltaForDocumentType(domain, "TestUserDocument"), is(nullValue()));
+        assertThat(QueryConfigMeta.deltaForDocumentType(domain, "TestFoo"), is(nullValue()));
     }
 
 
@@ -85,7 +85,7 @@ class QueryConfigMetadataProviderTest
             )
         );
 
-        final QLiveDomain domainQL = domainWith(
+        final QLiveDomain domain = domainWith(
             QueryConfigMetadataProvider.newProvider()
                 .forType(TestFoo.class)
                 .condition(condition)
@@ -93,7 +93,7 @@ class QueryConfigMetadataProviderTest
         );
 
         final Map<String, Object> written =
-            (Map<String, Object>) QueryConfigMeta.deltaForType(domainQL, TestFoo.class).get("condition");
+            (Map<String, Object>) QueryConfigMeta.deltaForType(domain, TestFoo.class).get("condition");
 
         // the shape the query config scalar reads back, i.e. the one the client would have sent
         assertThat(written.get("type"), is("Condition"));
@@ -108,7 +108,7 @@ class QueryConfigMetadataProviderTest
     @Test
     void writesTheDeclaredMaximumPageSizeOntoTheType()
     {
-        final QLiveDomain domainQL = domainWith(
+        final QLiveDomain domain = domainWith(
             QueryConfigMetadataProvider.newProvider()
                 .forType(TestFoo.class)
                 .pageSize(20)
@@ -117,8 +117,8 @@ class QueryConfigMetadataProviderTest
         );
 
         // beside the delta, not inside it: the delta is where a query starts, the maximum is how far it goes
-        assertThat(QueryConfigMeta.deltaForType(domainQL, TestFoo.class).keySet(), contains("pageSize"));
-        assertThat(QueryConfigMeta.maxPageSizeForType(domainQL, TestFoo.class), is(100));
+        assertThat(QueryConfigMeta.deltaForType(domain, TestFoo.class).keySet(), contains("pageSize"));
+        assertThat(QueryConfigMeta.maxPageSizeForType(domain, TestFoo.class), is(100));
     }
 
 
@@ -127,50 +127,50 @@ class QueryConfigMetadataProviderTest
     {
         // which is how a query has the type in hand: it returns rows of a POJO and never learns their
         // GraphQL name
-        final QLiveDomain domainQL = domainWith(
+        final QLiveDomain domain = domainWith(
             QueryConfigMetadataProvider.newProvider().forType(TestFoo.class).maxPageSize(100).build()
         );
 
-        assertThat(QueryConfigMeta.maxPageSizeForType(domainQL, TestFoo.class), is(100));
-        assertThat(QueryConfigMeta.maxPageSizeForType(domainQL, Object.class), is(0));
+        assertThat(QueryConfigMeta.maxPageSizeForType(domain, TestFoo.class), is(100));
+        assertThat(QueryConfigMeta.maxPageSizeForType(domain, Object.class), is(0));
     }
 
 
     @Test
     void answersATypeThatDeclaredNoMaximumPageSize()
     {
-        final QLiveDomain domainQL = domainWith(
+        final QLiveDomain domain = domainWith(
             QueryConfigMetadataProvider.newProvider()
                 .forType(TestFoo.class).pageSize(20).build()
         );
 
         // 0 is what a query config says when it wants every row, so a type that limits nothing and a query
         // that limits nothing are the same number
-        assertThat(QueryConfigMeta.maxPageSizeForType(domainQL, TestFoo.class), is(0));
-        assertThat(QueryConfigMeta.maxPageSizeForType(domainQL, QLiveConfig.class), is(0));
+        assertThat(QueryConfigMeta.maxPageSizeForType(domain, TestFoo.class), is(0));
+        assertThat(QueryConfigMeta.maxPageSizeForType(domain, QLiveConfig.class), is(0));
     }
 
 
     @Test
     void allowsDefiningAConfigForAllTypes()
     {
-        final QLiveDomain domainQL = domainWith(
+        final QLiveDomain domain = domainWith(
             QueryConfigMetadataProvider.newProvider()
                 .forAllTypes().pageSize(20).build()
         );
 
         // 0 is what a query config says when it wants every row, so a type that limits nothing and a query
         // that limits nothing are the same number
-        assertThat(QueryConfigMeta.deltaForType(domainQL, TestFoo.class).get("pageSize"), is(20));
-        assertThat(QueryConfigMeta.deltaForType(domainQL, TestUser.class).get("pageSize"), is(20));
-        assertThat(QueryConfigMeta.deltaForType(domainQL, QLiveConfig.class), is(nullValue()));
+        assertThat(QueryConfigMeta.deltaForType(domain, TestFoo.class).get("pageSize"), is(20));
+        assertThat(QueryConfigMeta.deltaForType(domain, TestUser.class).get("pageSize"), is(20));
+        assertThat(QueryConfigMeta.deltaForType(domain, QLiveConfig.class), is(nullValue()));
     }
 
 
     @Test
     void allTypesLosesToExplicit()
     {
-        final QLiveDomain domainQL = domainWith(
+        final QLiveDomain domain = domainWith(
             QueryConfigMetadataProvider.newProvider()
                 .forType(TestFoo.class).pageSize(30)
                 .andForAllTypes().pageSize(20)
@@ -179,9 +179,9 @@ class QueryConfigMetadataProviderTest
 
         // 0 is what a query config says when it wants every row, so a type that limits nothing and a query
         // that limits nothing are the same number
-        assertThat(QueryConfigMeta.deltaForType(domainQL, TestFoo.class).get("pageSize"), is(30));
-        assertThat(QueryConfigMeta.deltaForType(domainQL, TestUser.class).get("pageSize"), is(20));
-        assertThat(QueryConfigMeta.deltaForType(domainQL, QLiveConfig.class), is(nullValue()));
+        assertThat(QueryConfigMeta.deltaForType(domain, TestFoo.class).get("pageSize"), is(30));
+        assertThat(QueryConfigMeta.deltaForType(domain, TestUser.class).get("pageSize"), is(20));
+        assertThat(QueryConfigMeta.deltaForType(domain, QLiveConfig.class), is(nullValue()));
     }
 
 
@@ -201,7 +201,7 @@ class QueryConfigMetadataProviderTest
     @Test
     void chainsStatementsAcrossTypes()
     {
-        final QLiveDomain domainQL = domainWith(
+        final QLiveDomain domain = domainWith(
             QueryConfigMetadataProvider.newProvider()
                 .forAllTypes()
                     .pageSize(20)
@@ -214,17 +214,17 @@ class QueryConfigMetadataProviderTest
                     .build()
         );
 
-        assertThat(QueryConfigMeta.deltaForType(domainQL, TestFoo.class).get("pageSize"), is(30));
-        assertThat(QueryConfigMeta.maxPageSizeForType(domainQL, TestFoo.class), is(100));
+        assertThat(QueryConfigMeta.deltaForType(domain, TestFoo.class).get("pageSize"), is(30));
+        assertThat(QueryConfigMeta.maxPageSizeForType(domain, TestFoo.class), is(100));
 
         // named by a statement of its own, so its delta is that statement whole -- and the all-types page
         // size is not merged into it
-        assertThat(QueryConfigMeta.deltaForType(domainQL, TestUser.class).get("sortFields"), is(List.of("login")));
-        assertThat(QueryConfigMeta.deltaForType(domainQL, TestUser.class).get("pageSize"), is(nullValue()));
+        assertThat(QueryConfigMeta.deltaForType(domain, TestUser.class).get("sortFields"), is(List.of("login")));
+        assertThat(QueryConfigMeta.deltaForType(domain, TestUser.class).get("pageSize"), is(nullValue()));
 
         // the maximum is a ceiling rather than a fallback, so a type that named none is held to the
         // all-types one even where it declared a delta of its own
-        assertThat(QueryConfigMeta.maxPageSizeForType(domainQL, TestUser.class), is(500));
+        assertThat(QueryConfigMeta.maxPageSizeForType(domain, TestUser.class), is(500));
     }
 
 
@@ -260,12 +260,12 @@ class QueryConfigMetadataProviderTest
     @Test
     void answersATypeThatDeclaredNothing()
     {
-        final QLiveDomain domainQL = TestDomainConfig.domainNoMeta(new TestLogic());
+        final QLiveDomain domain = TestDomainConfig.domainNoMeta(new TestLogic());
 
-        assertThat(QueryConfigMeta.deltaForType(domainQL, TestFoo.class), is(nullValue()));
+        assertThat(QueryConfigMeta.deltaForType(domain, TestFoo.class), is(nullValue()));
 
         // and a name that is no type of the domain, which is what an injection asks about all the time
-        assertThat(QueryConfigMeta.deltaForType(domainQL, QLiveConfig.class), is(nullValue()));
+        assertThat(QueryConfigMeta.deltaForType(domain, QLiveConfig.class), is(nullValue()));
     }
 
 
@@ -288,6 +288,6 @@ class QueryConfigMetadataProviderTest
 
     private static QLiveDomain domainWith(MetadataProvider provider)
     {
-        return TestDomainConfig.domainQL(List.of(provider), new TestLogic());
+        return TestDomainConfig.domain(List.of(provider), new TestLogic());
     }
 }

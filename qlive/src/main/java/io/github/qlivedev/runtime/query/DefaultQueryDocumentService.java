@@ -12,7 +12,7 @@ import org.jooq.DSLContext;
 public class DefaultQueryDocumentService
     implements QueryDocumentService
 {
-    private final QLiveDomain domainQL;
+    private final QLiveDomain domain;
 
     private final DSLContext dslContext;
 
@@ -21,12 +21,12 @@ public class DefaultQueryDocumentService
     private final QueryPlanBuilder planBuilder;
 
 
-    public DefaultQueryDocumentService(QLiveDomain domainQL, DSLContext dslContext, GraphQL graphQL)
+    public DefaultQueryDocumentService(QLiveDomain domain, DSLContext dslContext, GraphQL graphQL)
     {
-        this.domainQL = domainQL;
+        this.domain = domain;
         this.dslContext = dslContext;
         this.graphQL = graphQL;
-        this.planBuilder = new QueryPlanBuilder(domainQL);
+        this.planBuilder = new QueryPlanBuilder(domain);
     }
 
 
@@ -65,7 +65,7 @@ public class DefaultQueryDocumentService
     /// the last page of a short table.
     private QueryConfig limitPage(Class<?> type, QueryConfig config)
     {
-        final int maxPageSize = QueryConfigMeta.maxPageSizeForType(domainQL, type);
+        final int maxPageSize = QueryConfigMeta.maxPageSizeForType(domain, type);
 
         if (maxPageSize == 0 || (config.getPageSize() > 0 && config.getPageSize() <= maxPageSize))
         {
@@ -86,7 +86,7 @@ public class DefaultQueryDocumentService
 
     public QLiveDomain getDomain()
     {
-        return domainQL;
+        return domain;
     }
 
 

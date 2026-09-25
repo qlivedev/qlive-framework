@@ -51,14 +51,14 @@ public final class QueryConfigMeta
     /// @param documentTypeName  name of a degenerified QueryDocument type, e.g. "FooDocument"
     ///
     /// @return the delta, or `null` where that is no query document type or its row type declares none
-    public static Map<String, Object> deltaForDocumentType(QLiveDomain domainQL, String documentTypeName)
+    public static Map<String, Object> deltaForDocumentType(QLiveDomain domain, String documentTypeName)
     {
         final Optional<GenericTypeReference> documentType = Util.findQueryDocumentType(
-            domainQL, documentTypeName
+            domain, documentTypeName
         );
 
         return documentType
-            .map(reference -> deltaForType(domainQL, domainQL.getTypeRegistry().lookup(reference.getTypeParameters().getFirst()).getJavaType()))
+            .map(reference -> deltaForType(domain, domain.getTypeRegistry().lookup(reference.getTypeParameters().getFirst()).getJavaType()))
             .orElse(null);
     }
 
@@ -68,9 +68,9 @@ public final class QueryConfigMeta
     /// @param javaType  a Java type, exposed by the domain or not
     ///
     /// @return the delta, or `null` where the type is unknown or declares none
-    public static Map<String, Object> deltaForType(QLiveDomain domainQL, Class<?> javaType)
+    public static Map<String, Object> deltaForType(QLiveDomain domain, Class<?> javaType)
     {
-        final DomainTypeMeta typeMeta = Util.typeMeta(domainQL, javaType.getSimpleName());
+        final DomainTypeMeta typeMeta = Util.typeMeta(domain, javaType.getSimpleName());
 
         return typeMeta == null ? null : typeMeta.getMeta(QUERY_CONFIG);
     }
@@ -82,9 +82,9 @@ public final class QueryConfigMeta
     ///
     /// @return the maximum, or 0 where the type is unknown or declares none. 0 is also what a query config
     ///         says when it wants every row, so "no maximum" and "no limit" are the same number throughout.
-    public static int maxPageSizeForType(QLiveDomain domainQL, Class<?> javaType)
+    public static int maxPageSizeForType(QLiveDomain domain, Class<?> javaType)
     {
-        final OutputType outputType = domainQL.getTypeRegistry().lookup(javaType);
+        final OutputType outputType = domain.getTypeRegistry().lookup(javaType);
         if (outputType == null)
         {
             return 0;
@@ -92,7 +92,7 @@ public final class QueryConfigMeta
         else
         {
             final String typeName = outputType.getName();
-            final DomainTypeMeta typeMeta = Util.typeMeta(domainQL, typeName);
+            final DomainTypeMeta typeMeta = Util.typeMeta(domain, typeName);
 
             final Object maxPageSize = typeMeta == null ? null : typeMeta.getMeta(MAX_PAGE_SIZE);
 

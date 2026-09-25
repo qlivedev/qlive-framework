@@ -132,7 +132,7 @@ class SchemaAssembler
 
     /// What a query or mutation reads the domain through at fetch time. Filled by {@link #assemble()}, which is
     /// the first moment there is a domain to fill it with.
-    private final DeferredDomain domain;
+    private final DeferredDomain deferredDomain;
 
     SchemaAssembler(
         DSLContext dslContext,
@@ -166,7 +166,7 @@ class SchemaAssembler
 
         this.typeRegistry = new MutableTypeRegistry(additionalScalarTypes, dbFieldLookup);
         this.genericTypes = new ArrayList<>();
-        this.domain = new DeferredDomain();
+        this.deferredDomain = new DeferredDomain();
     }
 
 
@@ -181,19 +181,19 @@ class SchemaAssembler
 
         final DomainMeta metaData = buildMetaData(graphQLSchema);
 
-        final QLiveDomainImpl domainQL = new QLiveDomainImpl(graphQLSchema, typeRegistry, metaData);
+        final QLiveDomainImpl domain = new QLiveDomainImpl(graphQLSchema, typeRegistry, metaData);
 
         // from here on the domain is whole, and everything that was waiting for it can have it
-        domain.provide(domainQL);
-        provideToScalars(domainQL);
+        deferredDomain.provide(domain);
+        provideToScalars(domain);
 
         metadataProviders.forEach(
-            p -> p.provideMetaData(domainQL, metaData)
+            p -> p.provideMetaData(domain, metaData)
         );
 
         logTypeReport();
 
-        return domainQL;
+        return domain;
     }
 
 
@@ -276,7 +276,7 @@ class SchemaAssembler
         Set<String> typesForJooqDomain = new HashSet<>();
 
         final LogicBeanAnalyzer analyzer = new LogicBeanAnalyzer(
-            domain,
+            deferredDomain,
             parameterProviderFactories,
             logicBeans,
             typeRegistry
@@ -1865,16 +1865,16 @@ class SchemaAssembler
     /**
      * Hands the assembled domain to every scalar that asked for it.
      *
-     * @param domainQL assembled domain
+     * @param domain assembled domain
      */
-    private void provideToScalars(QLiveDomain domainQL)
+    private void provideToScalars(QLiveDomain domain)
     {
         for (GraphQLScalarType scalarType : typeRegistry.getScalarTypes())
         {
             final Coercing coercing = scalarType.getCoercing();
             if (coercing instanceof QLiveDomainAware)
             {
-                ((QLiveDomainAware) coercing).setDomain(domainQL);
+                ((QLiveDomainAware) coercing).setDomain(domain);
             }
         }
     }

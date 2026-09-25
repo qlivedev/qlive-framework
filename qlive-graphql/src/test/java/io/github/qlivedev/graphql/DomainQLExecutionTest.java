@@ -903,11 +903,11 @@ public class DomainQLExecutionTest
     @Test
     public void testTypeParam()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new TypeParamLogic()))
             .build();
-        final GraphQLSchema schema = domainQL
+        final GraphQLSchema schema = domain
             .getGraphQLSchema();
 
         final GraphQLObjectType typeA = (GraphQLObjectType) schema.getType("TypeA");
@@ -948,11 +948,11 @@ public class DomainQLExecutionTest
     @Test
     public void testTypeParam2()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new TypeParamLogic()))
             .build();
-        final GraphQLSchema schema = domainQL
+        final GraphQLSchema schema = domain
             .getGraphQLSchema();
 
         final GraphQLObjectType typeA = (GraphQLObjectType) schema.getType("TypeA");
@@ -1082,11 +1082,11 @@ public class DomainQLExecutionTest
     @Test
     public void testTypeParamForMutation()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new TypeParamMutationLogic()))
             .build();
-        final GraphQLSchema schema = domainQL
+        final GraphQLSchema schema = domain
             .getGraphQLSchema();
 
         final GraphQLObjectType typeA = (GraphQLObjectType) schema.getType("TypeA");
@@ -1237,16 +1237,16 @@ public class DomainQLExecutionTest
     @Test
     public void testNullForComplexValue()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new NullForComplexValueLogic()))
             .build();
-        final GraphQLSchema schema = domainQL
+        final GraphQLSchema schema = domain
             .getGraphQLSchema();
 
         GraphQL graphQL = GraphQL.newGraphQL(schema).build();
 
-        //log.info(domainQL.getFieldLookup().toString());
+        //log.info(domain.getFieldLookup().toString());
         ExecutionInput executionInput = ExecutionInput.newExecutionInput()
             .query(
                 // language=GraphQL
@@ -1265,16 +1265,16 @@ public class DomainQLExecutionTest
     @Test
     public void testAccessDomainQLByEnv()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new AccessDomainQLLogic()))
             .build();
-        final GraphQLSchema schema = domainQL
+        final GraphQLSchema schema = domain
             .getGraphQLSchema();
 
         GraphQL graphQL = GraphQL.newGraphQL(schema).build();
 
-        //log.info(domainQL.getFieldLookup().toString());
+        //log.info(domain.getFieldLookup().toString());
         ExecutionInput executionInput = ExecutionInput.newExecutionInput()
             .query(
                 // language=GraphQL
@@ -1527,13 +1527,13 @@ public class DomainQLExecutionTest
     @Test
     public void testDBView()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new SumPerMonthLogic()))
             .objectType(SumPerMonth.class)
             .build();
 
-        GraphQL graphQL = GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build();
+        GraphQL graphQL = GraphQL.newGraphQL(domain.getGraphQLSchema()).build();
 
         ExecutionInput executionInput = ExecutionInput.newExecutionInput()
             // language=GraphQL
@@ -1648,16 +1648,16 @@ public class DomainQLExecutionTest
     @Test
     public void testListOfDomainObjectScalarsInput()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new ListInputLogic()))
             .withAdditionalInputType(Foo.class)
             .withAdditionalScalar(DomainObject.class, DomainObjectScalar.newDomainObjectScalar())
             .build();
 
-        //log.info(new SchemaPrinter().print(domainQL.getGraphQLSchema()));
+        //log.info(new SchemaPrinter().print(domain.getGraphQLSchema()));
 
-        GraphQL graphQL = GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build();
+        GraphQL graphQL = GraphQL.newGraphQL(domain.getGraphQLSchema()).build();
 
         List<Object> listOfDomainObjects = JSONUtil.DEFAULT_PARSER.parse(List.class, "[{\n" +
             "    \"_type\" : \"Foo\",\n" +
@@ -1698,16 +1698,16 @@ public class DomainQLExecutionTest
     @Test
     public void testListOfDomainObjectsInput()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new ListInputLogic()))
             .withAdditionalInputType(Foo.class)
             .withAdditionalScalar(DomainObject.class, DomainObjectScalar.newDomainObjectScalar())
             .build();
 
-        //log.info(new SchemaPrinter().print(domainQL.getGraphQLSchema()));
+        //log.info(new SchemaPrinter().print(domain.getGraphQLSchema()));
 
-        GraphQL graphQL = GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build();
+        GraphQL graphQL = GraphQL.newGraphQL(domain.getGraphQLSchema()).build();
 
         List<Object> listOfDomainObjects = JSONUtil.DEFAULT_PARSER.parse(List.class, "[{\n" +
             "    \"value\" : \"Complex A\",\n" +
@@ -1741,16 +1741,16 @@ public class DomainQLExecutionTest
     @Test
     public void testListOfEnumsInput()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new ListInputLogic()))
             .withAdditionalInputType(Foo.class)
             .withAdditionalScalar(DomainObject.class, DomainObjectScalar.newDomainObjectScalar())
             .build();
 
-        //log.info(new SchemaPrinter().print(domainQL.getGraphQLSchema()));
+        //log.info(new SchemaPrinter().print(domain.getGraphQLSchema()));
 
-        GraphQL graphQL = GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build();
+        GraphQL graphQL = GraphQL.newGraphQL(domain.getGraphQLSchema()).build();
 
         List<Object> listOfDomainObjects = JSONUtil.DEFAULT_PARSER.parse(List.class, "[\"B\",\"C\",\"A\"]");
 
@@ -1777,16 +1777,16 @@ public class DomainQLExecutionTest
     @Test
     public void testNullableListOfScalarsInput()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new ListInputLogic()))
             .withAdditionalInputType(Foo.class)
             .withAdditionalScalar(DomainObject.class, DomainObjectScalar.newDomainObjectScalar())
             .build();
 
-        //log.info(new SchemaPrinter().print(domainQL.getGraphQLSchema()));
+        //log.info(new SchemaPrinter().print(domain.getGraphQLSchema()));
 
-        GraphQL graphQL = GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build();
+        GraphQL graphQL = GraphQL.newGraphQL(domain.getGraphQLSchema()).build();
 
         {
             List<Object> listOfStrings = JSONUtil.DEFAULT_PARSER.parse(List.class, "[\"AA\", \"BBB\", \"CCCC\"]");
@@ -1837,16 +1837,16 @@ public class DomainQLExecutionTest
     @Test
     public void testListOfGenericDomainObjects()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new GenericScalarLogic()))
             .withAdditionalScalar(GenericScalar.class, GenericScalarType.newGenericScalar())
             .withAdditionalScalar(DomainObject.class, DomainObjectScalar.newDomainObjectScalar())
             .build();
 
-        log.info("TYPES = {}", domainQL.getGraphQLSchema().getType("DomainObject"));
+        log.info("TYPES = {}", domain.getGraphQLSchema().getType("DomainObject"));
 
-        GraphQL graphQL = GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build();
+        GraphQL graphQL = GraphQL.newGraphQL(domain.getGraphQLSchema()).build();
 
         {
             final String now = "2020-04-29T16:14:53.173Z";
@@ -1885,16 +1885,16 @@ public class DomainQLExecutionTest
     @Test
     public void testGenericScalarNull()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new GenericScalarLogic()))
             .withAdditionalScalar(GenericScalar.class, GenericScalarType.newGenericScalar())
             .withAdditionalScalar(DomainObject.class, DomainObjectScalar.newDomainObjectScalar())
             .build();
 
-        log.info("TYPES = {}", domainQL.getGraphQLSchema().getType("DomainObject"));
+        log.info("TYPES = {}", domain.getGraphQLSchema().getType("DomainObject"));
 
-        GraphQL graphQL = GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build();
+        GraphQL graphQL = GraphQL.newGraphQL(domain.getGraphQLSchema()).build();
 
         {
             final HashMap<String, Object> variables = new HashMap<>();
@@ -1927,13 +1927,13 @@ public class DomainQLExecutionTest
     @Test
     public void testNullPropInDomainObject()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new NullPropInDomainObjectLogic()))
             .withAdditionalScalar(DomainObject.class, DomainObjectScalar.newDomainObjectScalar())
             .build();
 
-        GraphQL graphQL = GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build();
+        GraphQL graphQL = GraphQL.newGraphQL(domain.getGraphQLSchema()).build();
 
         {
             final String now = "2020-04-29T16:14:53.173Z";
@@ -1963,13 +1963,13 @@ public class DomainQLExecutionTest
     @Test
     public void testNonNullViolationInDomainObject()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new NullPropInDomainObjectLogic()))
             .withAdditionalScalar(DomainObject.class, DomainObjectScalar.newDomainObjectScalar())
             .build();
 
-        GraphQL graphQL = GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build();
+        GraphQL graphQL = GraphQL.newGraphQL(domain.getGraphQLSchema()).build();
 
         {
             final String now = "2020-04-29T16:14:53.173Z";
@@ -1994,12 +1994,12 @@ public class DomainQLExecutionTest
     @Test
     public void testBinaryData()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new BinaryDataLogic()))
             .build();
 
-        GraphQL graphQL = GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build();
+        GraphQL graphQL = GraphQL.newGraphQL(domain.getGraphQLSchema()).build();
 
         {
             ExecutionInput executionInput = ExecutionInput.newExecutionInput()
@@ -2033,16 +2033,16 @@ public class DomainQLExecutionTest
     @Test
     public void testBigNumericTypes()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new BigNumericLogic()))
             .withAdditionalScalar(BigDecimal.class, BigDecimalScalar.newScalar())
             .withAdditionalScalar(BigInteger.class, BigIntegerScalar.newScalar())
             .build();
 
-        //log.info(new SchemaPrinter().print(domainQL.getGraphQLSchema()));
+        //log.info(new SchemaPrinter().print(domain.getGraphQLSchema()));
 
-        GraphQL graphQL = GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build();
+        GraphQL graphQL = GraphQL.newGraphQL(domain.getGraphQLSchema()).build();
 
         {
             Map<String, Object> input = new HashMap<>();

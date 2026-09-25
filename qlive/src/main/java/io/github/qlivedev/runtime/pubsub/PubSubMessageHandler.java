@@ -37,10 +37,10 @@ public class PubSubMessageHandler
     private final ConditionCoercing coercing = new ConditionCoercing();
 
 
-    public PubSubMessageHandler(PubSubService pubSub, QLiveDomain domainQL)
+    public PubSubMessageHandler(PubSubService pubSub, QLiveDomain domain)
     {
         this.pubSub = pubSub;
-        this.coercing.setDomain(domainQL);
+        this.coercing.setDomain(domain);
     }
 
 

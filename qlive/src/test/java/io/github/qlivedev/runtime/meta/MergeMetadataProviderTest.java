@@ -28,31 +28,31 @@ class MergeMetadataProviderTest
     @Test
     void derivesWhichTypesTakePart()
     {
-        final QLiveDomain domainQL = TestDomainConfig.domainQL(new TestLogic());
+        final QLiveDomain domain = TestDomainConfig.domain(new TestLogic());
 
-        assertThat(MergeMeta.isVersioned(domainQL, "TestFoo"), is(true));
-        assertThat(MergeMeta.isVersioned(domainQL, "TestUser"), is(false));
+        assertThat(MergeMeta.isVersioned(domain, "TestFoo"), is(true));
+        assertThat(MergeMeta.isVersioned(domain, "TestUser"), is(false));
 
         // by Java type, which is how a service writing rows of a POJO has the type in hand
-        assertThat(MergeMeta.isVersioned(domainQL, TestFoo.class), is(true));
-        assertThat(MergeMeta.isVersioned(domainQL, TestUser.class), is(false));
+        assertThat(MergeMeta.isVersioned(domain, TestFoo.class), is(true));
+        assertThat(MergeMeta.isVersioned(domain, TestUser.class), is(false));
 
         // and a name that is no type of the domain, which is what a type name off the wire may be
-        assertThat(MergeMeta.isVersioned(domainQL, "NoSuchType"), is(false));
-        assertThat(MergeMeta.isVersioned(domainQL, Object.class), is(false));
+        assertThat(MergeMeta.isVersioned(domain, "NoSuchType"), is(false));
+        assertThat(MergeMeta.isVersioned(domain, Object.class), is(false));
     }
 
 
     @Test
     void listsTheVersionedTypes()
     {
-        final QLiveDomain domainQL = TestDomainConfig.domainQL(new TestLogic());
+        final QLiveDomain domain = TestDomainConfig.domain(new TestLogic());
 
-        assertThat(MergeMeta.versionedTypes(domainQL), hasItem("TestFoo"));
-        assertThat(MergeMeta.versionedTypes(domainQL), not(hasItem("TestUser")));
+        assertThat(MergeMeta.versionedTypes(domain), hasItem("TestFoo"));
+        assertThat(MergeMeta.versionedTypes(domain), not(hasItem("TestUser")));
 
         // a query document is no entity, whatever its rows are
-        assertThat(MergeMeta.versionedTypes(domainQL), not(hasItem("TestFooDocument")));
+        assertThat(MergeMeta.versionedTypes(domain), not(hasItem("TestFooDocument")));
     }
 
 
@@ -61,17 +61,17 @@ class MergeMetadataProviderTest
     @Test
     void writesTheDeclarationOntoTheType()
     {
-        final QLiveDomain domainQL = domainWith(
+        final QLiveDomain domain = domainWith(
             MergeMetadataProvider.newProvider()
                 .resolveConflicts(TestFoo.class)
                 .ignoreFields(TestFoo.class, "num", "created")
                 .autoMerge(TestFoo.class, false)
         );
 
-        assertThat(MergeMeta.resolvesConflicts(domainQL, "TestFoo"), is(true));
-        assertThat(MergeMeta.isAutoMerge(domainQL, "TestFoo"), is(false));
-        assertThat(MergeMeta.ignoredFields(domainQL, "TestFoo"), contains("created", "num"));
-        assertThat(MergeMeta.isLinkType(domainQL, "TestFoo"), is(false));
+        assertThat(MergeMeta.resolvesConflicts(domain, "TestFoo"), is(true));
+        assertThat(MergeMeta.isAutoMerge(domain, "TestFoo"), is(false));
+        assertThat(MergeMeta.ignoredFields(domain, "TestFoo"), contains("created", "num"));
+        assertThat(MergeMeta.isLinkType(domain, "TestFoo"), is(false));
     }
 
 
@@ -80,19 +80,19 @@ class MergeMetadataProviderTest
     @Test
     void answersATypeThatDeclaredNothing()
     {
-        final QLiveDomain domainQL = TestDomainConfig.domainQL(new TestLogic());
+        final QLiveDomain domain = TestDomainConfig.domain(new TestLogic());
 
-        assertThat(MergeMeta.resolvesConflicts(domainQL, "TestFoo"), is(false));
-        assertThat(MergeMeta.ignoredFields(domainQL, "TestFoo"), is(List.of()));
-        assertThat(MergeMeta.isLinkType(domainQL, "TestFoo"), is(false));
+        assertThat(MergeMeta.resolvesConflicts(domain, "TestFoo"), is(false));
+        assertThat(MergeMeta.ignoredFields(domain, "TestFoo"), is(List.of()));
+        assertThat(MergeMeta.isLinkType(domain, "TestFoo"), is(false));
 
         // the one default that is not "off": a change that does not overlap ours is merged unless the type
         // asked to see it, because that case is what the mechanism is for
-        assertThat(MergeMeta.isAutoMerge(domainQL, "TestFoo"), is(true));
+        assertThat(MergeMeta.isAutoMerge(domain, "TestFoo"), is(true));
 
         // and a name that is no type of the domain answers the same, rather than raising
-        assertThat(MergeMeta.resolvesConflicts(domainQL, "NoSuchType"), is(false));
-        assertThat(MergeMeta.isAutoMerge(domainQL, "NoSuchType"), is(true));
+        assertThat(MergeMeta.resolvesConflicts(domain, "NoSuchType"), is(false));
+        assertThat(MergeMeta.isAutoMerge(domain, "NoSuchType"), is(true));
     }
 
 
@@ -101,11 +101,11 @@ class MergeMetadataProviderTest
     @Test
     void declaresByTypeName()
     {
-        final QLiveDomain domainQL = domainWith(
+        final QLiveDomain domain = domainWith(
             MergeMetadataProvider.newProvider().resolveConflicts("TestFoo")
         );
 
-        assertThat(MergeMeta.resolvesConflicts(domainQL, "TestFoo"), is(true));
+        assertThat(MergeMeta.resolvesConflicts(domain, "TestFoo"), is(true));
     }
 
 
@@ -114,11 +114,11 @@ class MergeMetadataProviderTest
     @Test
     void declaresALinkTypeWithoutVersioning()
     {
-        final QLiveDomain domainQL = domainWith(
+        final QLiveDomain domain = domainWith(
             MergeMetadataProvider.newProvider().linkType(TestUser.class)
         );
 
-        assertThat(MergeMeta.isLinkType(domainQL, "TestUser"), is(true));
+        assertThat(MergeMeta.isLinkType(domain, "TestUser"), is(true));
     }
 
 
@@ -220,6 +220,6 @@ class MergeMetadataProviderTest
 
     private static QLiveDomain domainWith(MetadataProvider provider)
     {
-        return TestDomainConfig.domainQL(List.of(provider), new TestLogic());
+        return TestDomainConfig.domain(List.of(provider), new TestLogic());
     }
 }

@@ -21,13 +21,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /// What a field mask means, which is a question about a list of names and needs no database to answer.
 class FieldLayoutTest
 {
-    private static QLiveDomain domainQL;
+    private static QLiveDomain domain;
 
 
     @BeforeAll
     static void buildDomain()
     {
-        domainQL = TestDomainConfig.domainQL(new TestLogic());
+        domain = TestDomainConfig.domain(new TestLogic());
     }
 
 
@@ -38,7 +38,7 @@ class FieldLayoutTest
     void numbersEveryFieldOfTheTypeAlphabetically()
     {
         assertThat(
-            FieldLayout.of(domainQL, "TestFoo").getFields(),
+            FieldLayout.of(domain, "TestFoo").getFields(),
             contains(
                 "created", "description", "flag", "fooType", "id", "name", "num", "owner", "ownerId",
                 "type", "version"
@@ -52,7 +52,7 @@ class FieldLayoutTest
     @Test
     void turnsNamesIntoBitsAndBack()
     {
-        final FieldLayout layout = FieldLayout.of(domainQL, "TestFoo");
+        final FieldLayout layout = FieldLayout.of(domain, "TestFoo");
 
         final BigInteger mask = layout.mask(List.of("name", "num"));
 
@@ -106,8 +106,8 @@ class FieldLayoutTest
     void isTheSameLayoutWhereverItIsComputed()
     {
         assertThat(
-            FieldLayout.of(domainQL, "TestFoo").getId(),
-            is(FieldLayout.of("TestFoo", FieldLayout.of(domainQL, "TestFoo").getFields()).getId())
+            FieldLayout.of(domain, "TestFoo").getId(),
+            is(FieldLayout.of("TestFoo", FieldLayout.of(domain, "TestFoo").getFields()).getId())
         );
     }
 

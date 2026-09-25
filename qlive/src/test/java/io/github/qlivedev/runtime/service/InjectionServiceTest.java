@@ -87,11 +87,11 @@ class InjectionServiceTest
     @BeforeEach
     void createInjectionService()
     {
-        final QLiveDomain domainQL = TestDomainConfig.domainQL(new TestLogic());
+        final QLiveDomain domain = TestDomainConfig.domain(new TestLogic());
 
         injectionService = new InjectionService(
-            GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build(),
-            domainQL
+            GraphQL.newGraphQL(domain.getGraphQLSchema()).build(),
+            domain
         );
     }
 
@@ -507,11 +507,11 @@ class InjectionServiceTest
         // What an application contributes as a bean, here handed over directly: a processor claiming a type
         // decides what the variables of that type are executed with, the framework's own understanding of
         // QueryConfig included.
-        final QLiveDomain domainQL = TestDomainConfig.domainQL(new TestLogic());
+        final QLiveDomain domain = TestDomainConfig.domain(new TestLogic());
 
         final InjectionService service = new InjectionService(
-            GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build(),
-            domainQL,
+            GraphQL.newGraphQL(domain.getGraphQLSchema()).build(),
+            domain,
             List.of(new FixedPageSize(42))
         );
 
@@ -525,11 +525,11 @@ class InjectionServiceTest
     @Test
     void reportsWhatTheApplicationsProcessorRejects()
     {
-        final QLiveDomain domainQL = TestDomainConfig.domainQL(new TestLogic());
+        final QLiveDomain domain = TestDomainConfig.domain(new TestLogic());
 
         final InjectionService service = new InjectionService(
-            GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build(),
-            domainQL,
+            GraphQL.newGraphQL(domain.getGraphQLSchema()).build(),
+            domain,
             List.of(new InjectionArgumentProcessor()
             {
                 @Override
@@ -596,7 +596,7 @@ class InjectionServiceTest
      */
     private static Map<String, Injection> injectionsWithDeclaredDefaults(String config)
     {
-        final QLiveDomain domainQL = TestDomainConfig.domainQL(
+        final QLiveDomain domain = TestDomainConfig.domain(
             List.of(
                 QueryConfigMetadataProvider.newProvider()
                     .forType(TestFoo.class)
@@ -608,8 +608,8 @@ class InjectionServiceTest
         );
 
         final InjectionService service = new InjectionService(
-            GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build(),
-            domainQL
+            GraphQL.newGraphQL(domain.getGraphQLSchema()).build(),
+            domain
         );
 
         return service.provideInjections(

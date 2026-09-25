@@ -35,13 +35,13 @@ public class QueryConfigArgumentProcessor
     /// registers it.
     public final static String QUERY_CONFIG_TYPE = "QueryConfig";
 
-    private final QLiveDomain domainQL;
+    private final QLiveDomain domain;
 
 
-    /// @param domainQL  the domain, which is what carries the per-type deltas as meta data
-    public QueryConfigArgumentProcessor(QLiveDomain domainQL)
+    /// @param domain  the domain, which is what carries the per-type deltas as meta data
+    public QueryConfigArgumentProcessor(QLiveDomain domain)
     {
-        this.domainQL = domainQL;
+        this.domain = domain;
     }
 
 
@@ -102,7 +102,7 @@ public class QueryConfigArgumentProcessor
         for (GraphQLFieldDefinition field : argument.usedAt())
         {
             final Map<String, Object> delta = QueryConfigMeta.deltaForDocumentType(
-                domainQL,
+                domain,
                 GraphQLTypeUtil.unwrapAll(field.getType()).getName()
             );
 

@@ -32,7 +32,7 @@ public abstract class QLiveDomainMethod
 
     protected final List<ParameterProvider> parameterProviders;
 
-    protected final Supplier<QLiveDomain> domainQL;
+    protected final Supplier<QLiveDomain> domain;
 
     protected final Class<?> typeParam;
 
@@ -42,7 +42,7 @@ public abstract class QLiveDomainMethod
 
 
     public QLiveDomainMethod(
-        Supplier<QLiveDomain> domainQL,
+        Supplier<QLiveDomain> domain,
         String name,
         String description,
         Object logicBean,
@@ -54,7 +54,7 @@ public abstract class QLiveDomainMethod
         String genericMethodName
     )
     {
-        this.domainQL = domainQL;
+        this.domain = domain;
         this.typeContext = typeContext;
         this.typeParam = typeContext != null ? typeContext.getFirstActualType() : null;
         this.genericMethodName = genericMethodName;
@@ -113,7 +113,7 @@ public abstract class QLiveDomainMethod
     public Object get(DataFetchingEnvironment env)
     {
 
-        QLiveDataFetchingEnvironment environment = new QLiveDataFetchingEnvironment(domainQL.get(), env, typeParam);
+        QLiveDataFetchingEnvironment environment = new QLiveDataFetchingEnvironment(domain.get(), env, typeParam);
 
         final Object[] paramValues = new Object[parameterProviders.size()];
 

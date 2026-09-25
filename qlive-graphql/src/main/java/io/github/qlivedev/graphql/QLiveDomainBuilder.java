@@ -179,7 +179,7 @@ public class QLiveDomainBuilder
         effectiveMetadataProviders.add(new NameFieldProvider(nameFields, nameFieldsByName));
         effectiveMetadataProviders.add(new ComputedMetadataProvider());
 
-        final QLiveDomainImpl domainQL = new SchemaAssembler(
+        final QLiveDomainImpl domain = new SchemaAssembler(
             dslContext,
             Collections.unmodifiableSet(logicBeans),
             Collections.unmodifiableMap(jooqTables),
@@ -198,9 +198,9 @@ public class QLiveDomainBuilder
             Collections.unmodifiableSet(effectiveMetadataProviders)
         ).assemble();
 
-        validateNameFields(domainQL.getGraphQLSchema());
+        validateNameFields(domain.getGraphQLSchema());
 
-        return domainQL;
+        return domain;
     }
 
 

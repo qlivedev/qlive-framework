@@ -73,7 +73,7 @@ public class DefaultMergeService
     /// SQL state of a row refused for being a duplicate. Standard, so no dialect has to be asked.
     private final static String UNIQUE_VIOLATION = "23505";
 
-    private final QLiveDomain domainQL;
+    private final QLiveDomain domain;
 
     private final TypeRegistry types;
 
@@ -95,14 +95,14 @@ public class DefaultMergeService
 
 
     public DefaultMergeService(
-        QLiveDomain domainQL,
+        QLiveDomain domain,
         DSLContext dslContext,
         FieldLayoutService fieldLayouts,
         VersionService versions
     )
     {
-        this.domainQL = domainQL;
-        this.types = domainQL.getTypeRegistry();
+        this.domain = domain;
+        this.types = domain.getTypeRegistry();
         this.dslContext = dslContext;
         this.fieldLayouts = fieldLayouts;
         this.versions = versions;
@@ -201,7 +201,7 @@ public class DefaultMergeService
     {
         final String typeName = typeNamesByTable.get(table.getQualifiedName());
 
-        if (typeName != null && MergeMeta.isVersioned(domainQL, typeName))
+        if (typeName != null && MergeMeta.isVersioned(domain, typeName))
         {
             throw new QLiveException(
                 "Table " + table.getQualifiedName() + " backs the versioned type '" + typeName + "' and " +
@@ -281,7 +281,7 @@ public class DefaultMergeService
         }
 
         final PreparedChange prepared = new PreparedChange(change, typeName, table, idField, versionField);
-        final List<String> ignored = MergeMeta.ignoredFields(domainQL, typeName);
+        final List<String> ignored = MergeMeta.ignoredFields(domain, typeName);
 
         for (FieldChange fieldChange : nullSafe(change.getChanges()))
         {
@@ -541,7 +541,7 @@ public class DefaultMergeService
 
         final boolean disjoint = theirs != null && Collections.disjoint(theirs, change.conflictFields.keySet());
 
-        if (disjoint && !change.change.isNew() && MergeMeta.isAutoMerge(domainQL, change.typeName) &&
+        if (disjoint && !change.change.isNew() && MergeMeta.isAutoMerge(domain, change.typeName) &&
             update(change, values, storedVersion) != 0)
         {
             log.debug(
@@ -661,7 +661,7 @@ public class DefaultMergeService
 
         final boolean withValues =
             config != null && config.isConflictValues() &&
-                MergeMeta.resolvesConflicts(domainQL, change.typeName);
+                MergeMeta.resolvesConflicts(domain, change.typeName);
 
         final List<MergeConflictField> fields = new ArrayList<>();
 
@@ -723,7 +723,7 @@ public class DefaultMergeService
     /// and there is therefore nothing to name it by.
     private GenericScalar storedValue(String typeName, String fieldName, Field<?> column, Record stored)
     {
-        final GraphQLObjectType type = (GraphQLObjectType) domainQL.getGraphQLSchema().getType(typeName);
+        final GraphQLObjectType type = (GraphQLObjectType) domain.getGraphQLSchema().getType(typeName);
         final GraphQLType fieldType =
             GraphQLTypeUtil.unwrapNonNull(type.getFieldDefinition(fieldName).getType());
 
@@ -895,7 +895,7 @@ public class DefaultMergeService
     /// the field is what taking part means.
     private Field<?> versionField(String typeName)
     {
-        return MergeMeta.isVersioned(domainQL, typeName)
+        return MergeMeta.isVersioned(domain, typeName)
             ? types.lookupField(typeName, MergeMeta.VERSION)
             : null;
     }

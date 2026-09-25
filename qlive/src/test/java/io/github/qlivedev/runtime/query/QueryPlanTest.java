@@ -333,9 +333,9 @@ class QueryPlanTest
     private static QueryPlan plan(String query, QueryConfig config, boolean selectByFilter)
     {
         final QueryTestLogic logic = new QueryTestLogic();
-        final QLiveDomain domainQL = TestDomainConfig.domainQL(logic);
+        final QLiveDomain domain = TestDomainConfig.domain(logic);
 
-        final ExecutionResult result = GraphQL.newGraphQL(domainQL.getGraphQLSchema())
+        final ExecutionResult result = GraphQL.newGraphQL(domain.getGraphQLSchema())
             .build()
             .execute(
                 ExecutionInput.newExecutionInput(query)
@@ -347,6 +347,6 @@ class QueryPlanTest
 
         final QueryTestLogic.Capture capture = logic.getCaptures().get(0);
 
-        return new QueryPlanBuilder(domainQL).build(capture.type(), capture.env(), config, selectByFilter);
+        return new QueryPlanBuilder(domain).build(capture.type(), capture.env(), config, selectByFilter);
     }
 }

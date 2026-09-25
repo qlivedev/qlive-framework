@@ -31,10 +31,10 @@ public class QueryConfigCoercing
     /// ones registered for their scalars, so nothing else hands them the QLiveDomain they need to serialize a
     /// condition -- which is what a query config carries.
     @Override
-    public void setDomain(QLiveDomain domainQL)
+    public void setDomain(QLiveDomain domain)
     {
-        conditionCoercing.setDomain(domainQL);
-        fieldExpressionCoercing.setDomain(domainQL);
+        conditionCoercing.setDomain(domain);
+        fieldExpressionCoercing.setDomain(domain);
     }
 
     @Override

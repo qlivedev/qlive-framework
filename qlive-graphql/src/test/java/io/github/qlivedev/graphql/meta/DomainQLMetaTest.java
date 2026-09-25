@@ -41,7 +41,7 @@ public class DomainQLMetaTest
     public void testMetadataGeneration()
     {
         // checks that output type overriding works via @GraphQLTypeParam, too
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
 
             .withRelation(
@@ -56,9 +56,9 @@ public class DomainQLMetaTest
 
             .logicBeans(Collections.singleton(new OutputTypeOverrideByParamLogic()))
             .build();
-        final GraphQLSchema schema = domainQL.getGraphQLSchema();
+        final GraphQLSchema schema = domain.getGraphQLSchema();
 
-        final List<RelationModel> relations = (List<RelationModel>) domainQL.getMetaData().getData().get("relations");
+        final List<RelationModel> relations = (List<RelationModel>) domain.getMetaData().getData().get("relations");
 
         assertThat(relations.size(), is(1));
 
@@ -66,14 +66,14 @@ public class DomainQLMetaTest
 
         log.info("{}", relationModel);
 
-        //log.info(new SchemaPrinter().print(domainQL.getGraphQLSchema()));
+        //log.info(new SchemaPrinter().print(domain.getGraphQLSchema()));
 
     }
 
     @Test
     public void testNameFields()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
 
             .configureRelation(BAR.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
@@ -84,10 +84,10 @@ public class DomainQLMetaTest
             .build();
 
 
-        final DomainTypeMeta barMeta = domainQL.getMetaData().getTypeMeta("Bar");
-        final DomainTypeMeta barOwnerMeta = domainQL.getMetaData().getTypeMeta("BarOwner");
-        final DomainTypeMeta barOrgMeta = domainQL.getMetaData().getTypeMeta("BarOrg");
-        final DomainTypeMeta fooMeta = domainQL.getMetaData().getTypeMeta("Foo");
+        final DomainTypeMeta barMeta = domain.getMetaData().getTypeMeta("Bar");
+        final DomainTypeMeta barOwnerMeta = domain.getMetaData().getTypeMeta("BarOwner");
+        final DomainTypeMeta barOrgMeta = domain.getMetaData().getTypeMeta("BarOrg");
+        final DomainTypeMeta fooMeta = domain.getMetaData().getTypeMeta("Foo");
 
         assertThat( barMeta.getMeta(DomainMeta.NAME_FIELDS), is(Arrays.asList("name", "owner.name", "owner.org.name")) );
         assertThat( barOwnerMeta.getMeta(DomainMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
@@ -99,7 +99,7 @@ public class DomainQLMetaTest
     public void testNamingFieldsManyToMany()
     {
         assertThrows(QLiveDomainTypeException.class, () -> {
-                final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+                final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
                     .objectTypes(Public.PUBLIC)
 
                     .configureRelation(BAR.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY)
@@ -119,7 +119,7 @@ public class DomainQLMetaTest
     public void testNamingFieldsError()
     {
         assertThrows(QLiveDomainTypeException.class, () -> {
-                final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+                final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
                     .objectTypes(Public.PUBLIC)
 
                     .configureRelation(BAR.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
@@ -134,7 +134,7 @@ public class DomainQLMetaTest
     @Test
     public void testNameFieldConfiguringByName()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
 
             .configureRelation(BAR.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
@@ -144,10 +144,10 @@ public class DomainQLMetaTest
             .configureNameFields(Bar.class,"name", "owner.name", "owner.org.name")
             .build();
 
-        final DomainTypeMeta barMeta = domainQL.getMetaData().getTypeMeta("Bar");
-        final DomainTypeMeta barOwnerMeta = domainQL.getMetaData().getTypeMeta("BarOwner");
-        final DomainTypeMeta barOrgMeta = domainQL.getMetaData().getTypeMeta("BarOrg");
-        final DomainTypeMeta fooMeta = domainQL.getMetaData().getTypeMeta("Foo");
+        final DomainTypeMeta barMeta = domain.getMetaData().getTypeMeta("Bar");
+        final DomainTypeMeta barOwnerMeta = domain.getMetaData().getTypeMeta("BarOwner");
+        final DomainTypeMeta barOrgMeta = domain.getMetaData().getTypeMeta("BarOrg");
+        final DomainTypeMeta fooMeta = domain.getMetaData().getTypeMeta("Foo");
 
         assertThat( barMeta.getMeta(DomainMeta.NAME_FIELDS), is(Arrays.asList("name", "owner.name", "owner.org.name")) );
         assertThat( barOwnerMeta.getMeta(DomainMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
@@ -159,7 +159,7 @@ public class DomainQLMetaTest
     @Test
     public void testNameFieldConfiguringNonDBByName()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .logicBeans(new ConfigureNonDBByNameLogic())
             .objectTypes(Public.PUBLIC)
 
@@ -171,7 +171,7 @@ public class DomainQLMetaTest
             .build();
 
 
-        final DomainTypeMeta fullResponseMeta = domainQL.getMetaData().getTypeMeta("FullResponse");
+        final DomainTypeMeta fullResponseMeta = domain.getMetaData().getTypeMeta("FullResponse");
 
         assertThat( fullResponseMeta.getMeta(DomainMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
     }
@@ -180,7 +180,7 @@ public class DomainQLMetaTest
     @Test
     public void testRelationModelMetadata()
     {
-        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new TestLogic()))
 
@@ -254,7 +254,7 @@ public class DomainQLMetaTest
             )
             .build();
 
-        final List<RelationModel> relationModels = (List<RelationModel>) domainQL.getMetaData().getData().get("relations");
+        final List<RelationModel> relationModels = (List<RelationModel>) domain.getMetaData().getData().get("relations");
 
 
         assertThat(relationModels.get(0).getId(), is("SourceTwo-target"));

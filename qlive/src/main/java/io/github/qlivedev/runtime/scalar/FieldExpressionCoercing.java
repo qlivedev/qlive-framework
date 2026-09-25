@@ -25,7 +25,7 @@ public final class FieldExpressionCoercing
     private final static Logger log = LoggerFactory.getLogger(FieldExpressionCoercing.class);
 
 
-    private QLiveDomain domainQL;
+    private QLiveDomain domain;
 
 
     public FieldExpressionCoercing()
@@ -73,7 +73,7 @@ public final class FieldExpressionCoercing
 
         try
         {
-            final GraphQLScalarType type = (GraphQLScalarType) domainQL.getGraphQLSchema().getType("Condition");
+            final GraphQLScalarType type = (GraphQLScalarType) domain.getGraphQLSchema().getType("Condition");
             return type.getCoercing().serialize(input, graphQLContext, locale);
         }
         catch (RuntimeException e)
@@ -102,7 +102,7 @@ public final class FieldExpressionCoercing
 
         try
         {
-            final GraphQLScalarType type = (GraphQLScalarType) domainQL.getGraphQLSchema().getType("Condition");
+            final GraphQLScalarType type = (GraphQLScalarType) domain.getGraphQLSchema().getType("Condition");
             return (CNode) type.getCoercing().parseValue(input, graphQLContext, locale);
         }
         catch (RuntimeException e)
@@ -121,9 +121,9 @@ public final class FieldExpressionCoercing
 
 
     @Override
-    public void setDomain(QLiveDomain domainQL)
+    public void setDomain(QLiveDomain domain)
     {
-        this.domainQL = domainQL;
+        this.domain = domain;
     }
 
 

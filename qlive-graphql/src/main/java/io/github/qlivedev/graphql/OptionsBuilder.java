@@ -11,12 +11,12 @@ import java.util.function.Function;
 public class OptionsBuilder
 {
 
-    private QLiveDomainBuilder domainQLBuilder;
+    private QLiveDomainBuilder domainBuilder;
 
 
-    OptionsBuilder(QLiveDomainBuilder domainQLBuilder)
+    OptionsBuilder(QLiveDomainBuilder domainBuilder)
     {
-        this.domainQLBuilder = domainQLBuilder;
+        this.domainBuilder = domainBuilder;
 
     }
 
@@ -108,6 +108,6 @@ public class OptionsBuilder
 
     private QLiveDomainBuilder endOptions()
     {
-        return domainQLBuilder;
+        return domainBuilder;
     }
 }

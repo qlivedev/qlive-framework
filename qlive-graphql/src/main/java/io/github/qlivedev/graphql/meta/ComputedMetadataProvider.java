@@ -18,16 +18,16 @@ public class ComputedMetadataProvider
     private static final String COMPUTED = "computed";
 
     @Override
-    public void provideMetaData(QLiveDomain domainQL, DomainMeta meta)
+    public void provideMetaData(QLiveDomain domain, DomainMeta meta)
     {
-        final GraphQLSchema graphQLSchema = domainQL.getGraphQLSchema();
+        final GraphQLSchema graphQLSchema = domain.getGraphQLSchema();
 
         for (GraphQLNamedType namedType : graphQLSchema.getTypeMap().values())
         {
             if (namedType instanceof GraphQLObjectType)
             {
                 final String typeName = namedType.getName();
-                final OutputType outputType = domainQL.getTypeRegistry().lookup(typeName);
+                final OutputType outputType = domain.getTypeRegistry().lookup(typeName);
 
                 if (outputType != null)
                 {

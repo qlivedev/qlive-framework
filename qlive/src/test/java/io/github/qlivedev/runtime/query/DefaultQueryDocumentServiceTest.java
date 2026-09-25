@@ -127,11 +127,11 @@ class DefaultQueryDocumentServiceTest
     {
         final QueryTestLogic logic = new QueryTestLogic();
 
-        final QLiveDomain domainQL = metadataProvider == null
-            ? TestDomainConfig.domainQL(logic)
-            : TestDomainConfig.domainQL(List.of(metadataProvider), logic);
+        final QLiveDomain domain = metadataProvider == null
+            ? TestDomainConfig.domain(logic)
+            : TestDomainConfig.domain(List.of(metadataProvider), logic);
 
-        final GraphQL graphQL = GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build();
+        final GraphQL graphQL = GraphQL.newGraphQL(domain.getGraphQLSchema()).build();
 
         final ExecutionResult result = graphQL.execute(
             ExecutionInput.newExecutionInput(FOO)
@@ -145,7 +145,7 @@ class DefaultQueryDocumentServiceTest
 
         final List<String> sql = new ArrayList<>();
 
-        final QueryDocument<?> document = new DefaultQueryDocumentService(domainQL, mockContext(sql), graphQL)
+        final QueryDocument<?> document = new DefaultQueryDocumentService(domain, mockContext(sql), graphQL)
             .buildQuery(capture.type(), capture.env(), config)
             .execute();
 

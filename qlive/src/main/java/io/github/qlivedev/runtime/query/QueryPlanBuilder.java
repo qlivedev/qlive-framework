@@ -57,9 +57,9 @@ public class QueryPlanBuilder
     private final TypeRegistry types;
 
 
-    public QueryPlanBuilder(QLiveDomain domainQL)
+    public QueryPlanBuilder(QLiveDomain domain)
     {
-        this.types = domainQL.getTypeRegistry();
+        this.types = domain.getTypeRegistry();
     }
 
 

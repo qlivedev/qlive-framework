@@ -6,10 +6,10 @@ import io.github.qlivedev.graphql.logic.QLiveDataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironment;
 
 @GraphQLLogic
-public class AccessDomainQLLogic
+public class AccessDomainLogic
 {
     @GraphQLQuery
-    public boolean accessDomainQLLogic(
+    public boolean accessDomainLogic(
         QLiveDataFetchingEnvironment environment
     )
     {

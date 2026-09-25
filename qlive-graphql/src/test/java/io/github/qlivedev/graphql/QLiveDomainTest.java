@@ -29,9 +29,9 @@ import static io.github.qlivedev.graphql.testdomain.Tables.*;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
-public class DomainQLTest
+public class QLiveDomainTest
 {
-    private final static Logger log = LoggerFactory.getLogger(DomainQLTest.class);
+    private final static Logger log = LoggerFactory.getLogger(QLiveDomainTest.class);
 
     final TestLogic logic = new TestLogic();
     final LogicWithMirrorInput logic2 = new LogicWithMirrorInput();

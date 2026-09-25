@@ -11,7 +11,7 @@ import io.github.qlivedev.graphql.generic.DomainObject;
 import io.github.qlivedev.graphql.generic.DomainObjectScalar;
 import io.github.qlivedev.graphql.generic.GenericScalar;
 import io.github.qlivedev.graphql.generic.GenericScalarType;
-import io.github.qlivedev.graphql.logicimpl.AccessDomainQLLogic;
+import io.github.qlivedev.graphql.logicimpl.AccessDomainLogic;
 import io.github.qlivedev.graphql.logicimpl.BigNumericLogic;
 import io.github.qlivedev.graphql.logicimpl.BinaryDataLogic;
 import io.github.qlivedev.graphql.logicimpl.CustomFetcherLogic;
@@ -82,9 +82,9 @@ import static org.hamcrest.Matchers.*;
 /**
  * Execution with the test schema against a mock connection
  */
-public class DomainQLExecutionTest
+public class QLiveDomainExecutionTest
 {
-    private final static Logger log = LoggerFactory.getLogger(DomainQLExecutionTest.class);
+    private final static Logger log = LoggerFactory.getLogger(QLiveDomainExecutionTest.class);
 
     @BeforeEach
     public void init()
@@ -1263,11 +1263,11 @@ public class DomainQLExecutionTest
     }
 
     @Test
-    public void testAccessDomainQLByEnv()
+    public void testAccessDomainByEnv()
     {
         final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
-            .logicBeans(Collections.singleton(new AccessDomainQLLogic()))
+            .logicBeans(Collections.singleton(new AccessDomainLogic()))
             .build();
         final GraphQLSchema schema = domain
             .getGraphQLSchema();
@@ -1279,7 +1279,7 @@ public class DomainQLExecutionTest
             .query(
                 // language=GraphQL
                 "{\n" +
-                "    accessDomainQLLogic\n" +
+                "    accessDomainLogic\n" +
                 "}")
             .build();
 
@@ -1288,7 +1288,7 @@ public class DomainQLExecutionTest
         assertThat(executionResult.getErrors(), is(Collections.emptyList()));
 
         Map<String,Object> data = executionResult.getData();
-        assertThat(data.get("accessDomainQLLogic"), is(true));
+        assertThat(data.get("accessDomainLogic"), is(true));
 
     }
 

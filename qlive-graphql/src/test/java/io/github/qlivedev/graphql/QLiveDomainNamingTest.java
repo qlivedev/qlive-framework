@@ -20,6 +20,6 @@ import static io.github.qlivedev.graphql.testdomain.Tables.*;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
-public class DomainQLNamingTest
+public class QLiveDomainNamingTest
 {
 }

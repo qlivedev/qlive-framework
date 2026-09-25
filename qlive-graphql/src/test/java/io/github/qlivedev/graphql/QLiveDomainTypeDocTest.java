@@ -28,9 +28,9 @@ import java.util.Set;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
-public class DomainQLTypeDocTest
+public class QLiveDomainTypeDocTest
 {
-    private final static Logger log = LoggerFactory.getLogger(DomainQLTypeDocTest.class);
+    private final static Logger log = LoggerFactory.getLogger(QLiveDomainTypeDocTest.class);
 
     @Test
     public void testTypeDocSchema() throws IOException

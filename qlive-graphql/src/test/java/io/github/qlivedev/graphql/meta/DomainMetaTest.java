@@ -32,9 +32,9 @@ import static io.github.qlivedev.graphql.testdomain.Tables.*;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
-public class DomainQLMetaTest
+public class DomainMetaTest
 {
-    private final static Logger log = LoggerFactory.getLogger(DomainQLMetaTest.class);
+    private final static Logger log = LoggerFactory.getLogger(DomainMetaTest.class);
 
 
     @Test

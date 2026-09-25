@@ -25,7 +25,7 @@ import io.github.qlivedev.graphql.meta.DomainTypeMeta;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
 import io.github.qlivedev.graphql.param.ParameterProvider;
 import io.github.qlivedev.graphql.param.ParameterProviderFactory;
-import io.github.qlivedev.graphql.DomainQLAware;
+import io.github.qlivedev.graphql.QLiveDomainAware;
 import io.github.qlivedev.graphql.util.DegenerificationUtil;
 import io.github.qlivedev.util.JSONUtil;
 import graphql.schema.Coercing;
@@ -1872,9 +1872,9 @@ class SchemaAssembler
         for (GraphQLScalarType scalarType : typeRegistry.getScalarTypes())
         {
             final Coercing coercing = scalarType.getCoercing();
-            if (coercing instanceof DomainQLAware)
+            if (coercing instanceof QLiveDomainAware)
             {
-                ((DomainQLAware) coercing).setDomainQL(domainQL);
+                ((QLiveDomainAware) coercing).setDomain(domainQL);
             }
         }
     }

@@ -38,7 +38,7 @@ class ConditionCoercingTest
 
     /// Built rather than taken from the schema, which is also how the query config's coercing comes by
     /// one: a condition only ever travels inside a query config, so the condition scalar is not itself
-    /// referenced by any type and never lands in the schema. Being DomainQLAware is what makes an instance
+    /// referenced by any type and never lands in the schema. Being QLiveDomainAware is what makes an instance
     /// of it usable anyway.
     private final ConditionCoercing coercing = conditionCoercing();
 
@@ -46,7 +46,7 @@ class ConditionCoercingTest
     private ConditionCoercing conditionCoercing()
     {
         final ConditionCoercing conditionCoercing = new ConditionCoercing();
-        conditionCoercing.setDomainQL(domainQL);
+        conditionCoercing.setDomain(domainQL);
         return conditionCoercing;
     }
 

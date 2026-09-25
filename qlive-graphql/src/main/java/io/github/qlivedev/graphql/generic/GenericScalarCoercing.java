@@ -2,7 +2,7 @@ package io.github.qlivedev.graphql.generic;
 
 import com.google.common.collect.Maps;
 import io.github.qlivedev.graphql.QLiveDomain;
-import io.github.qlivedev.graphql.DomainQLAware;
+import io.github.qlivedev.graphql.QLiveDomainAware;
 import graphql.schema.Coercing;
 import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 public final class GenericScalarCoercing
-    implements Coercing<GenericScalar, Map<String, Object>>, DomainQLAware
+    implements Coercing<GenericScalar, Map<String, Object>>, QLiveDomainAware
 {
     private final static Logger log = LoggerFactory.getLogger(GenericScalarCoercing.class);
 
@@ -191,7 +191,7 @@ public final class GenericScalarCoercing
 
 
     @Override
-    public void setDomainQL(QLiveDomain domainQL)
+    public void setDomain(QLiveDomain domainQL)
     {
         this.domainQL = domainQL;
     }

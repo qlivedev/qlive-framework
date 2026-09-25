@@ -5,7 +5,7 @@ import com.google.common.collect.Maps;
 import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.QLiveDomainException;
 import io.github.qlivedev.graphql.InputType;
-import io.github.qlivedev.graphql.DomainQLAware;
+import io.github.qlivedev.graphql.QLiveDomainAware;
 import graphql.schema.Coercing;
 import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;
@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 public final class DomainObjectCoercing
-    implements Coercing<DomainObject, Map<String, Object>>, DomainQLAware
+    implements Coercing<DomainObject, Map<String, Object>>, QLiveDomainAware
 {
     private final static Logger log = LoggerFactory.getLogger(DomainObjectCoercing.class);
 
@@ -231,7 +231,7 @@ public final class DomainObjectCoercing
 
 
     @Override
-    public void setDomainQL(QLiveDomain domainQL)
+    public void setDomain(QLiveDomain domainQL)
     {
         this.domainQL = domainQL;
     }

@@ -239,7 +239,7 @@ public class DomainQLDataFetchingEnvironment
     // DOMAINQL SPECIFIC METHODS
 
 
-    public QLiveDomain getDomainQL()
+    public QLiveDomain getDomain()
     {
         return domainQL;
     }

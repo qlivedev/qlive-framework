@@ -84,7 +84,7 @@ public class DefaultQueryDocumentService
     }
 
 
-    public QLiveDomain getDomainQL()
+    public QLiveDomain getDomain()
     {
         return domainQL;
     }

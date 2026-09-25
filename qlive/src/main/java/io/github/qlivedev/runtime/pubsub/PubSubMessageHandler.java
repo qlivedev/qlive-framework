@@ -40,7 +40,7 @@ public class PubSubMessageHandler
     public PubSubMessageHandler(PubSubService pubSub, QLiveDomain domainQL)
     {
         this.pubSub = pubSub;
-        this.coercing.setDomainQL(domainQL);
+        this.coercing.setDomain(domainQL);
     }
 
 

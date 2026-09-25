@@ -3,7 +3,7 @@ package io.github.qlivedev.runtime.scalar;
 import io.github.qlivedev.model.QueryConfig;
 import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.graphql.QLiveDomain;
-import io.github.qlivedev.graphql.DomainQLAware;
+import io.github.qlivedev.graphql.QLiveDomainAware;
 import graphql.GraphQLContext;
 import graphql.execution.CoercedVariables;
 import graphql.language.Value;
@@ -21,7 +21,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public class QueryConfigCoercing
-    implements Coercing<QueryConfig, Map<String, Object>>, DomainQLAware
+    implements Coercing<QueryConfig, Map<String, Object>>, QLiveDomainAware
 {
     final ConditionCoercing conditionCoercing = new ConditionCoercing();
     final FieldExpressionCoercing fieldExpressionCoercing = new FieldExpressionCoercing();
@@ -31,10 +31,10 @@ public class QueryConfigCoercing
     /// ones registered for their scalars, so nothing else hands them the QLiveDomain they need to serialize a
     /// condition -- which is what a query config carries.
     @Override
-    public void setDomainQL(QLiveDomain domainQL)
+    public void setDomain(QLiveDomain domainQL)
     {
-        conditionCoercing.setDomainQL(domainQL);
-        fieldExpressionCoercing.setDomainQL(domainQL);
+        conditionCoercing.setDomain(domainQL);
+        fieldExpressionCoercing.setDomain(domainQL);
     }
 
     @Override

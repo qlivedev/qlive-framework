@@ -1,7 +1,7 @@
 package io.github.qlivedev.runtime.scalar;
 
 import io.github.qlivedev.graphql.QLiveDomain;
-import io.github.qlivedev.graphql.DomainQLAware;
+import io.github.qlivedev.graphql.QLiveDomainAware;
 import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.model.condition.Component;
 import io.github.qlivedev.model.condition.Condition;
@@ -32,7 +32,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public final class ConditionCoercing
-    implements graphql.schema.Coercing<CNode, Map<String, Object>>, DomainQLAware
+    implements graphql.schema.Coercing<CNode, Map<String, Object>>, QLiveDomainAware
 {
 
 
@@ -433,7 +433,7 @@ public final class ConditionCoercing
     /// names.
     ///
     /// A condition arrives as JSON, where a timestamp is a string and a BigDecimal may be one too. Reading
-    /// those is the business of the scalar that owns them, and being DomainQLAware is what lets this ask.
+    /// those is the business of the scalar that owns them, and being QLiveDomainAware is what lets this ask.
     /// Every value in the hierarchy goes through here, however deeply the parse recursed to reach it, so
     /// what comes out of a parse is a condition whose values are Java objects throughout.
     private Object parseScalar(
@@ -462,7 +462,7 @@ public final class ConditionCoercing
         if (domainQL == null)
         {
             throw new IllegalStateException(
-                "No QLiveDomain set on this " + getClass().getSimpleName() + ". It is DomainQLAware, which " +
+                "No QLiveDomain set on this " + getClass().getSimpleName() + ". It is QLiveDomainAware, which " +
                     "means it has to be the instance registered for its scalar, or be given the QLiveDomain " +
                     "by whoever holds it."
             );
@@ -479,7 +479,7 @@ public final class ConditionCoercing
 
 
     @Override
-    public void setDomainQL(QLiveDomain domainQL)
+    public void setDomain(QLiveDomain domainQL)
     {
         this.domainQL = domainQL;
     }

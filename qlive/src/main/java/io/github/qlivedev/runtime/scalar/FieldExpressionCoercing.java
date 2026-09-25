@@ -1,7 +1,7 @@
 package io.github.qlivedev.runtime.scalar;
 
 import io.github.qlivedev.graphql.QLiveDomain;
-import io.github.qlivedev.graphql.DomainQLAware;
+import io.github.qlivedev.graphql.QLiveDomainAware;
 import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.model.condition.Field;
 import io.github.qlivedev.model.condition.Operation;
@@ -20,7 +20,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public final class FieldExpressionCoercing
-    implements Coercing<CNode, Object>, DomainQLAware
+    implements Coercing<CNode, Object>, QLiveDomainAware
 {
     private final static Logger log = LoggerFactory.getLogger(FieldExpressionCoercing.class);
 
@@ -121,7 +121,7 @@ public final class FieldExpressionCoercing
 
 
     @Override
-    public void setDomainQL(QLiveDomain domainQL)
+    public void setDomain(QLiveDomain domainQL)
     {
         this.domainQL = domainQL;
     }

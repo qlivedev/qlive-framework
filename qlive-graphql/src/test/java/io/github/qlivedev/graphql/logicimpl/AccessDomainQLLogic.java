@@ -13,6 +13,6 @@ public class AccessDomainQLLogic
         DomainQLDataFetchingEnvironment environment
     )
     {
-        return environment.getDomainQL() != null;
+        return environment.getDomain() != null;
     }
 }

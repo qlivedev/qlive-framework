@@ -3,7 +3,7 @@ package io.github.qlivedev.runtime.scalar;
 import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.generic.GenericScalar;
 import io.github.qlivedev.graphql.generic.GenericScalarCoercing;
-import io.github.qlivedev.graphql.DomainQLAware;
+import io.github.qlivedev.graphql.QLiveDomainAware;
 import graphql.schema.Coercing;
 import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * Coerces {@link ComputedValue} to map, its JSON form, and back.
  */
 public class ComputedValueCoercing
-    implements Coercing<ComputedValue, Map<String, Object>>, DomainQLAware
+    implements Coercing<ComputedValue, Map<String, Object>>, QLiveDomainAware
 {
 
     private GenericScalarCoercing genericScalarCoercing = null;
@@ -84,9 +84,9 @@ public class ComputedValueCoercing
 
 
     @Override
-    public void setDomainQL(QLiveDomain domainQL)
+    public void setDomain(QLiveDomain domainQL)
     {
         this.genericScalarCoercing = new GenericScalarCoercing();
-        this.genericScalarCoercing.setDomainQL(domainQL);
+        this.genericScalarCoercing.setDomain(domainQL);
     }
 }

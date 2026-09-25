@@ -66,12 +66,12 @@ public class RelationBuilder
     {
         if (sourcePojo != null)
         {
-            throw new DomainQLBuilderException("Cannot set foreign key: .withPojoFields() already called");
+            throw new QLiveDomainBuilderException("Cannot set foreign key: .withPojoFields() already called");
         }
 
         if (foreignKeyFieldsArray == null || foreignKeyFieldsArray.length == 0)
         {
-            throw new DomainQLBuilderException("Foreign key fields can't be null or empty");
+            throw new QLiveDomainBuilderException("Foreign key fields can't be null or empty");
         }
 
         final List<TableField<?, ?>> foreignKeyFields = Arrays.asList(foreignKeyFieldsArray);
@@ -82,7 +82,7 @@ public class RelationBuilder
             final Table<?> otherTable = foreignKeyFields.get(i).getTable();
             if (!table.equals(otherTable))
             {
-                throw new DomainQLBuilderException(
+                throw new QLiveDomainBuilderException(
                     "All foreign key fields must belong to the same table: Encountered " +
                         table +
                         " and " +
@@ -105,7 +105,7 @@ public class RelationBuilder
 
         if (foreignKey == null)
         {
-            throw new DomainQLBuilderException("Could not find foreign key for fields: " + foreignKeyFields);
+            throw new QLiveDomainBuilderException("Could not find foreign key for fields: " + foreignKeyFields);
         }
 
 //            final String javaTableName = table.getName().toUpperCase();
@@ -126,7 +126,7 @@ public class RelationBuilder
     {
         if (foreignKey != null)
         {
-            throw new DomainQLBuilderException("Cannot set pojo fields: .withForeignKeyFields() already called");
+            throw new QLiveDomainBuilderException("Cannot set pojo fields: .withForeignKeyFields() already called");
         }
 
         this.sourcePojo = sourcePojo;
@@ -228,7 +228,7 @@ public class RelationBuilder
         // the case of both being set is already prevented in the "wither" methods
         if (foreignKey == null && this.sourcePojo == null)
         {
-            throw new DomainQLBuilderException("Configuration needs either a foreign key or pojo-based fields");
+            throw new QLiveDomainBuilderException("Configuration needs either a foreign key or pojo-based fields");
         }
 
         if (foreignKey != null)
@@ -241,12 +241,12 @@ public class RelationBuilder
             final TableLookup sourceLookup = jooqTables.get(sourceTableName);
             if (sourceLookup == null)
             {
-                throw new DomainQLBuilderException("Error looking up pojo class for domain type '" + sourceTableName + "'");
+                throw new QLiveDomainBuilderException("Error looking up pojo class for domain type '" + sourceTableName + "'");
             }
             final TableLookup targetLookup = jooqTables.get(targetTableName);
             if (targetLookup == null)
             {
-                throw new DomainQLBuilderException("Error looking up pojo class for domain type '" + sourceTableName + "'");
+                throw new QLiveDomainBuilderException("Error looking up pojo class for domain type '" + sourceTableName + "'");
             }
 
             final Class<?> sourcePojo = sourceLookup.getPojoType();
@@ -385,7 +385,7 @@ public class RelationBuilder
         {
             if (usedRelationIds.contains(id))
             {
-                throw new DomainQLBuilderException("Relation id '" + id + "' is already used.");
+                throw new QLiveDomainBuilderException("Relation id '" + id + "' is already used.");
             }
         }
         else
@@ -409,7 +409,7 @@ public class RelationBuilder
         final JSONClassInfo classInfo = JSONUtil.getClassInfo(sourcePojo);
         if (classInfo == null)
         {
-            throw new DomainQLBuilderException("Cannot find class info for " + sourcePojo);
+            throw new QLiveDomainBuilderException("Cannot find class info for " + sourcePojo);
         }
 
         final List<JSONPropertyInfo> propertyInfos = classInfo.getPropertyInfos();
@@ -455,7 +455,7 @@ public class RelationBuilder
 
             if (field == null)
             {
-                throw new DomainQLBuilderException("Cannot resolve field '" + key + "': Valid keys for " + sourceDomainType + " are " + getKeysOfTable(fieldLookup, sourceDomainType) );
+                throw new QLiveDomainBuilderException("Cannot resolve field '" + key + "': Valid keys for " + sourceDomainType + " are " + getKeysOfTable(fieldLookup, sourceDomainType) );
             }
 
             list.add(

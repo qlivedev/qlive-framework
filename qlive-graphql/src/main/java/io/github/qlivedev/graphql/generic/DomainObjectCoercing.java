@@ -3,7 +3,7 @@ package io.github.qlivedev.graphql.generic;
 import io.github.qlivedev.graphql.SchemaNames;
 import com.google.common.collect.Maps;
 import io.github.qlivedev.graphql.QLiveDomain;
-import io.github.qlivedev.graphql.DomainQLException;
+import io.github.qlivedev.graphql.QLiveDomainException;
 import io.github.qlivedev.graphql.InputType;
 import io.github.qlivedev.graphql.DomainQLAware;
 import graphql.schema.Coercing;
@@ -218,7 +218,7 @@ public final class DomainObjectCoercing
         }
         catch (InstantiationException | IllegalAccessException e)
         {
-            throw new DomainQLException(e);
+            throw new QLiveDomainException(e);
         }
     }
 

@@ -1,7 +1,7 @@
 package io.github.qlivedev.graphql.util;
 
 import io.github.qlivedev.graphql.ComplexType;
-import io.github.qlivedev.graphql.DomainQLException;
+import io.github.qlivedev.graphql.QLiveDomainException;
 import io.github.qlivedev.graphql.TypeContext;
 import io.github.qlivedev.graphql.annotation.ResolvedGenericType;
 import org.slf4j.Logger;
@@ -28,7 +28,7 @@ public final class DegenerificationUtil
 
         if (!(genericReturnType instanceof ParameterizedType))
         {
-            throw new DomainQLException(getterMethod+ ": Property getter type must be parametrized.");
+            throw new QLiveDomainException(getterMethod+ ": Property getter type must be parametrized.");
         }
 
         Class<?> nextType;
@@ -43,12 +43,12 @@ public final class DegenerificationUtil
             nextType = complexType.getTypeContext().resolveType(name);
             if (nextType == null)
             {
-                throw new DomainQLException("Could not resolve generic type from context " + complexType);
+                throw new QLiveDomainException("Could not resolve generic type from context " + complexType);
             }
         }
         else
         {
-            throw new DomainQLException("Error getting generic type for" + actualType + " / " + getterMethod);
+            throw new QLiveDomainException("Error getting generic type for" + actualType + " / " + getterMethod);
         }
 
         return nextType;
@@ -71,7 +71,7 @@ public final class DegenerificationUtil
             nextType = complexType.getTypeContext().resolveType(name);
             if (nextType == null)
             {
-                throw new DomainQLException("Could not resolve generic type from context " + complexType);
+                throw new QLiveDomainException("Could not resolve generic type from context " + complexType);
             }
             return new TypeContext(parentContext, nextType);
         }

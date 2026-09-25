@@ -249,7 +249,7 @@ public class AnotherDomainQLTest
     @Test
     public void testFieldConflict()
     {
-        assertThrows(DomainQLTypeException.class, () -> {
+        assertThrows(QLiveDomainTypeException.class, () -> {
                 final GraphQLSchema schema = QLiveDomainBuilder.newDomain(null)
                     .objectTypes(Public.PUBLIC)
                     .logicBeans(Collections.singleton(new TestLogic()))
@@ -366,7 +366,7 @@ public class AnotherDomainQLTest
     @Test
     public void testWrongTypeAsQueryInput()
     {
-        assertThrows(DomainQLTypeException.class, () -> {
+        assertThrows(QLiveDomainTypeException.class, () -> {
                 final GraphQLSchema schema = QLiveDomainBuilder.newDomain(null)
                     .objectTypes(Public.PUBLIC)
                     .logicBeans(Collections.singleton(new LogicWithWrongInjection()))
@@ -384,7 +384,7 @@ public class AnotherDomainQLTest
     @Test
     public void testRecordAsQueryInput()
     {
-        assertThrows(DomainQLTypeException.class, () -> {
+        assertThrows(QLiveDomainTypeException.class, () -> {
                 final GraphQLSchema schema = QLiveDomainBuilder.newDomain(null)
                     .objectTypes(Public.PUBLIC)
                     .logicBeans(Collections.singleton(new LogicWithWrongInjection2()))
@@ -467,7 +467,7 @@ public class AnotherDomainQLTest
     @Test
     public void testPojoAndObjNameConflict()
     {
-        assertThrows(DomainQLTypeException.class, () -> {
+        assertThrows(QLiveDomainTypeException.class, () -> {
                 final GraphQLSchema schema = QLiveDomainBuilder.newDomain(null)
                     .objectTypes(Public.PUBLIC)
                     .logicBeans(Collections.singleton(new TypeRepeatLogic()))
@@ -486,7 +486,7 @@ public class AnotherDomainQLTest
     @Test
     public void testPojoAndBackObjNameConflict()
     {
-        assertThrows(DomainQLTypeException.class, () -> {
+        assertThrows(QLiveDomainTypeException.class, () -> {
                 final GraphQLSchema schema = QLiveDomainBuilder.newDomain(null)
                     .objectTypes(SOURCE_SEVEN, TARGET_SEVEN)
                     .logicBeans(Collections.singleton(new TypeRepeatLogic()))
@@ -879,7 +879,7 @@ public class AnotherDomainQLTest
     @Test
     public void testGenericDomainObjectWithoutScalar()
     {
-        assertThrows(DomainQLException.class, () -> {
+        assertThrows(QLiveDomainException.class, () -> {
                 final GraphQLSchema schema = QLiveDomainBuilder.newDomain(null)
                     .objectTypes(Public.PUBLIC)
                     .logicBeans(Collections.singleton(new GenericDomainLogic()))
@@ -1209,8 +1209,8 @@ public class AnotherDomainQLTest
     @Test
     public void testNameClashWithTableBackedType()
     {
-        final DomainQLTypeException e = assertThrows(
-            DomainQLTypeException.class,
+        final QLiveDomainTypeException e = assertThrows(
+            QLiveDomainTypeException.class,
             () -> QLiveDomainBuilder.newDomain(null)
                 .objectTypes(Public.PUBLIC)
                 .logicBeans(Collections.singleton(new CollidingSumPerMonthLogic()))
@@ -1231,8 +1231,8 @@ public class AnotherDomainQLTest
     @Test
     public void testNameClashBetweenTwoLogicBeanTypes()
     {
-        final DomainQLTypeException e = assertThrows(
-            DomainQLTypeException.class,
+        final QLiveDomainTypeException e = assertThrows(
+            QLiveDomainTypeException.class,
             () -> QLiveDomainBuilder.newDomain(null)
                 .objectTypes(Public.PUBLIC)
                 .logicBeans(

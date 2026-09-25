@@ -411,14 +411,14 @@ class LogicBeanAnalyzer
         final GraphQLOutputType resultType;
         if (returnType == null || returnType.equals(Void.TYPE))
         {
-            throw new DomainQLException(locationInfo + ": Logic methods must return an output type");
+            throw new QLiveDomainException(locationInfo + ": Logic methods must return an output type");
         }
         else
         {
 
             if (fieldAnno != null && fieldAnno.value().length() > 0)
             {
-                throw new DomainQLException(locationInfo + ": Return values can't have names");
+                throw new QLiveDomainException(locationInfo + ": Return values can't have names");
             }
 
             final GraphQLScalarType scalarType = typeRegistry.getGraphQLScalarFor(returnType, fieldAnno);
@@ -459,7 +459,7 @@ class LogicBeanAnalyzer
             {
                 if (returnType.isInterface())
                 {
-                    throw new DomainQLException("Cannot handle " + returnType);
+                    throw new QLiveDomainException("Cannot handle " + returnType);
                 }
 
                 final OutputType outputType = typeRegistry.register(ctx);
@@ -493,7 +493,7 @@ class LogicBeanAnalyzer
 //        }
 //        catch (Exception e)
 //        {
-//            throw new DomainQLException(e);
+//            throw new QLiveDomainException(e);
 //        }
     }
 
@@ -566,7 +566,7 @@ class LogicBeanAnalyzer
                 final Type genericReturnType = parameter.getParameterizedType();
                 if (!(genericReturnType instanceof ParameterizedType))
                 {
-                    throw new DomainQLException(parameter + ": List parameter type must be parametrized.");
+                    throw new QLiveDomainException(parameter + ": List parameter type must be parametrized.");
                 }
 
                 final Class<?> elementClass = (Class<?>) ((ParameterizedType) genericReturnType)
@@ -591,7 +591,7 @@ class LogicBeanAnalyzer
             {
                 if (parameterType.isInterface())
                 {
-                    throw new DomainQLException("Cannot handle " + parameterType);
+                    throw new QLiveDomainException("Cannot handle " + parameterType);
                 }
 
 
@@ -608,7 +608,7 @@ class LogicBeanAnalyzer
 
         if (jpaNotNull && fieldAnnoPresent && !argAnno.notNull())
         {
-            throw new DomainQLException(name +
+            throw new QLiveDomainException(name +
                 ": Required field disagreement between @NotNull and @GraphQLField required value");
         }
 
@@ -659,7 +659,7 @@ class LogicBeanAnalyzer
         }
         catch (Exception e)
         {
-            throw new DomainQLException(e);
+            throw new QLiveDomainException(e);
         }
     }
 }

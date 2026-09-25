@@ -484,7 +484,7 @@ public class QLiveDomainBuilder
         final jakarta.persistence.Table anno = cls.getAnnotation(jakarta.persistence.Table.class);
         if (anno == null)
         {
-            throw new DomainQLTypeException(
+            throw new QLiveDomainTypeException(
                 "Custom SQL based type must have a @javax.persistence.Table annotation defining the name of the " +
                     "table-like"
             );
@@ -804,7 +804,7 @@ public class QLiveDomainBuilder
             final GraphQLType type = graphQLSchema.getType(typeName);
             if (!(type instanceof GraphQLObjectType))
             {
-                throw new DomainQLTypeException("Could find named type " + typeName);
+                throw new QLiveDomainTypeException("Could find named type " + typeName);
             }
 
             for (String path : fields)
@@ -826,7 +826,7 @@ public class QLiveDomainBuilder
                             i));
                         if (fieldDef == null)
                         {
-                            throw new DomainQLTypeException("Could not find name object field '" + path + "' for type" +
+                            throw new QLiveDomainTypeException("Could not find name object field '" + path + "' for type" +
                                 " " + typeName);
                         }
 
@@ -834,13 +834,13 @@ public class QLiveDomainBuilder
 
                         if (GraphQLTypeUtil.unwrapNonNull(fieldType) instanceof GraphQLList)
                         {
-                            throw new DomainQLTypeException("The naming field mechanism does not allow following many-to-many relations");
+                            throw new QLiveDomainTypeException("The naming field mechanism does not allow following many-to-many relations");
                         }
 
                         final GraphQLUnmodifiedType newType = GraphQLTypeUtil.unwrapAll(fieldType);
                         if (!(newType instanceof GraphQLObjectType))
                         {
-                            throw new DomainQLTypeException("Could not find name object field '" + path + "' for " +
+                            throw new QLiveDomainTypeException("Could not find name object field '" + path + "' for " +
                                 "type" +
                                 " " + typeName);
                         }
@@ -854,7 +854,7 @@ public class QLiveDomainBuilder
                     numberOfParts - 1));
                 if (fieldDef == null || !(GraphQLTypeUtil.unwrapNonNull(fieldDef.getType()) instanceof GraphQLScalarType))
                 {
-                    throw new DomainQLTypeException("Could not find name scalar field '" + path + "' for type " + typeName);
+                    throw new QLiveDomainTypeException("Could not find name scalar field '" + path + "' for type " + typeName);
                 }
             }
         }

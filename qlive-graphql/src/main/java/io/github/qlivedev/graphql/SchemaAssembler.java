@@ -383,7 +383,7 @@ class SchemaAssembler
                 return info;
             }
         }
-        throw new DomainQLException("Cannot find property info for field " + tableField.getName() + " in " + pojoType.getName());
+        throw new QLiveDomainException("Cannot find property info for field " + tableField.getName() + " in " + pojoType.getName());
     }
 
 
@@ -739,7 +739,7 @@ class SchemaAssembler
         }
         catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
         {
-            throw new DomainQLException(e);
+            throw new QLiveDomainException(e);
         }
 
 
@@ -995,7 +995,7 @@ class SchemaAssembler
 
         if (jpaNotNull && inputFieldAnno != null && !inputFieldAnno.notNull())
         {
-            throw new DomainQLException(javaType.getSimpleName() + "." + info.getJavaPropertyName() +
+            throw new QLiveDomainException(javaType.getSimpleName() + "." + info.getJavaPropertyName() +
                 ": Required field disagreement between @NotNull and @GraphQLField required value");
         }
 
@@ -1088,7 +1088,7 @@ class SchemaAssembler
         final Type genericReturnType = getterMethod.getGenericReturnType();
         if (!(genericReturnType instanceof ParameterizedType))
         {
-            throw new DomainQLException(type.getName() + "." + propertyName +
+            throw new QLiveDomainException(type.getName() + "." + propertyName +
                 ": Property getter type must be parametrized.");
         }
 
@@ -1171,7 +1171,7 @@ class SchemaAssembler
         }
         catch (Exception e)
         {
-            throw new DomainQLTypeException("Error creating type for " + table, e);
+            throw new QLiveDomainTypeException("Error creating type for " + table, e);
         }
     }
 
@@ -1230,7 +1230,7 @@ class SchemaAssembler
 
         if (fieldsGenerated.contains(backReferenceFieldName))
         {
-            throw new DomainQLTypeException("Invalid object field name " + pojoType.getSimpleName() + "." + backReferenceFieldName + ":  exists both as object field and as scalar field.");
+            throw new QLiveDomainTypeException("Invalid object field name " + pojoType.getSimpleName() + "." + backReferenceFieldName + ":  exists both as object field and as scalar field.");
         }
 
         final JSONPropertyInfo fkPropertyInfo = findPropertyInfoForField(
@@ -1337,7 +1337,7 @@ class SchemaAssembler
 
                         if (fieldsGenerated.contains(javaName))
                         {
-                            throw new DomainQLTypeException("Invalid object field name " + pojoType.getSimpleName() + "." + javaName + ": not unique");
+                            throw new QLiveDomainTypeException("Invalid object field name " + pojoType.getSimpleName() + "." + javaName + ": not unique");
                         }
 
                         fieldsGenerated.add(javaName);
@@ -1353,7 +1353,7 @@ class SchemaAssembler
 
                         if (fieldsGenerated.contains(objectFieldName))
                         {
-                            throw new DomainQLTypeException("Invalid object field name " + pojoType.getSimpleName() + "." + objectFieldName + ":  exists both as object field and as scalar field.");
+                            throw new QLiveDomainTypeException("Invalid object field name " + pojoType.getSimpleName() + "." + objectFieldName + ":  exists both as object field and as scalar field.");
                         }
 
                         final Class<?> otherPojoType = relationModel.getTargetPojoClass();
@@ -1606,7 +1606,7 @@ class SchemaAssembler
             final Type genericParamType = parameter.getParameterizedType();
             if (!(genericParamType instanceof ParameterizedType))
             {
-                throw new DomainQLException(parameterType.getName() + "." + propertyName +
+                throw new QLiveDomainException(parameterType.getName() + "." + propertyName +
                     ": Property getter type must be parametrized.");
             }
 
@@ -1680,7 +1680,7 @@ class SchemaAssembler
 
         if (options.isUseDatabaseFieldNames() && jpaColumnAnno == null)
         {
-            throw new DomainQLException(type.getSimpleName() + "." + info.getJavaPropertyName() + ": Missing @Column " +
+            throw new QLiveDomainException(type.getSimpleName() + "." + info.getJavaPropertyName() + ": Missing @Column " +
                 "annotation");
         }
 
@@ -1723,7 +1723,7 @@ class SchemaAssembler
                 final GraphQLScalarType elementScalarType = typeRegistry.getGraphQLScalarFor(elementType, null);
                 if (elementScalarType == null)
                 {
-                    throw new DomainQLException("Unsupported array element type: " + elementType + " in " + type.getName());
+                    throw new QLiveDomainException("Unsupported array element type: " + elementType + " in " + type.getName());
                 }
 
                 graphQLType = GraphQLList.list(elementScalarType);
@@ -1803,7 +1803,7 @@ class SchemaAssembler
 
         if (!DataFetcher.class.isAssignableFrom(cls))
         {
-            throw new DomainQLException(cls + " does not implement" + DataFetcher.class.getName());
+            throw new QLiveDomainException(cls + " does not implement" + DataFetcher.class.getName());
         }
 
         final String className = cls.getName();
@@ -1813,7 +1813,7 @@ class SchemaAssembler
 
             if (constructors.length > 1)
             {
-                throw new DomainQLException("Fetcher can only have one constructor");
+                throw new QLiveDomainException("Fetcher can only have one constructor");
             }
 
             final Constructor<?> ctor = constructors[0];
@@ -1821,13 +1821,13 @@ class SchemaAssembler
             final Class<?>[] parameterTypes = ctor.getParameterTypes();
             if (parameterTypes.length > 2)
             {
-                throw new DomainQLException("Fetcher constructor can take 2 most two parameters");
+                throw new QLiveDomainException("Fetcher constructor can take 2 most two parameters");
             }
             for (Class<?> type : parameterTypes)
             {
                 if (!type.equals(String.class))
                 {
-                    throw new DomainQLException("Fetcher constructor can take only String args: (name) or (name,data)");
+                    throw new QLiveDomainException("Fetcher constructor can take only String args: (name) or (name,data)");
                 }
             }
 
@@ -1846,15 +1846,15 @@ class SchemaAssembler
         }
         catch (IllegalAccessException e)
         {
-            throw new DomainQLException("Cannot access constructor" + className + "(String,String).", e);
+            throw new QLiveDomainException("Cannot access constructor" + className + "(String,String).", e);
         }
         catch (InstantiationException e)
         {
-            throw new DomainQLException("Cannot instantiate " + className, e);
+            throw new QLiveDomainException("Cannot instantiate " + className, e);
         }
         catch (InvocationTargetException e)
         {
-            throw new DomainQLException("Error instantiating " + className, e.getTargetException());
+            throw new QLiveDomainException("Error instantiating " + className, e.getTargetException());
         }
     }
 

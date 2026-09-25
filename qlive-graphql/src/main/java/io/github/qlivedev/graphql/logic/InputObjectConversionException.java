@@ -1,9 +1,9 @@
 package io.github.qlivedev.graphql.logic;
 
-import io.github.qlivedev.graphql.DomainQLException;
+import io.github.qlivedev.graphql.QLiveDomainException;
 
 public class InputObjectConversionException
-    extends DomainQLException
+    extends QLiveDomainException
 {
 
     private static final long serialVersionUID = -5509707385416798594L;

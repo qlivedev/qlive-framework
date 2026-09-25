@@ -1,9 +1,9 @@
 package io.github.qlivedev.graphql.generic;
 
-import io.github.qlivedev.graphql.DomainQLException;
+import io.github.qlivedev.graphql.QLiveDomainException;
 
 public class DomainObjectCreationException
-    extends DomainQLException
+    extends QLiveDomainException
 {
     private static final long serialVersionUID = -494757270609475551L;
 

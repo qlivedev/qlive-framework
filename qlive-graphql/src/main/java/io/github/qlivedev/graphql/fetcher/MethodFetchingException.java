@@ -1,9 +1,9 @@
 package io.github.qlivedev.graphql.fetcher;
 
-import io.github.qlivedev.graphql.DomainQLException;
+import io.github.qlivedev.graphql.QLiveDomainException;
 
 public class MethodFetchingException
-    extends DomainQLException
+    extends QLiveDomainException
 {
     private static final long serialVersionUID = -8654277625360267910L;
 

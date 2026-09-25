@@ -113,7 +113,7 @@ public class MutableTypeRegistry
             final GraphQLScalarType existing = map.put(name, scalarType);
             if (existing != null && existing != scalarType)
             {
-                throw new DomainQLTypeException(
+                throw new QLiveDomainTypeException(
                     "Scalar name '" + name + "' is declared by both " +
                         scalarType + " (" + scalarType.getClass().getName() + ") and " +
                         existing + " (" + existing.getClass().getName() + "). " +
@@ -233,7 +233,7 @@ public class MutableTypeRegistry
             return;
         }
 
-        throw new DomainQLTypeException(
+        throw new QLiveDomainTypeException(
             "Domain type '" + existing.getName() + "' is claimed by both " + registered.getName() + " and " +
                 javaType.getName() + ". A class takes over another's name only by extending it, which is how a " +
                 "hand-written class overrides a generated POJO. Rename one of the two."

@@ -1,7 +1,7 @@
 package io.github.qlivedev.graphql.util;
 
 import io.github.qlivedev.graphql.QLiveDomain;
-import io.github.qlivedev.graphql.DomainQLException;
+import io.github.qlivedev.graphql.QLiveDomainException;
 import io.github.qlivedev.graphql.TableLookup;
 import io.github.qlivedev.graphql.generic.DomainObject;
 import org.jooq.DSLContext;
@@ -216,7 +216,7 @@ public final class DomainObjectUtil
      *
      * @return jOOQ table
      *
-     * @throws DomainQLException if the domain exposes no table under that name
+     * @throws QLiveDomainException if the domain exposes no table under that name
      */
     private static Table<?> tableFor(QLiveDomain domainQL, String domainType)
     {
@@ -224,7 +224,7 @@ public final class DomainObjectUtil
 
         if (lookup == null)
         {
-            throw new DomainQLException(
+            throw new QLiveDomainException(
                 "No table for domain type '" + domainType + "'. This class stores a domain object by writing the " +
                     "table behind its type, so a type the domain has no table for cannot go through it."
             );

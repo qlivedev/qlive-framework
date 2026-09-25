@@ -1,7 +1,7 @@
 package io.github.qlivedev.graphql;
 
 public class InvalidMachineStateException
-    extends DomainQLException
+    extends QLiveDomainException
 {
     private static final long serialVersionUID = 7078932465087727423L;
 

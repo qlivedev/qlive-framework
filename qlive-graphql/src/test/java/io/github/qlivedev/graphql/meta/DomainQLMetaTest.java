@@ -2,7 +2,7 @@ package io.github.qlivedev.graphql.meta;
 
 import io.github.qlivedev.graphql.QLiveDomainBuilder;
 import io.github.qlivedev.graphql.QLiveDomain;
-import io.github.qlivedev.graphql.DomainQLTypeException;
+import io.github.qlivedev.graphql.QLiveDomainTypeException;
 import io.github.qlivedev.graphql.RelationBuilder;
 import io.github.qlivedev.graphql.config.RelationModel;
 import io.github.qlivedev.graphql.config.SourceField;
@@ -98,7 +98,7 @@ public class DomainQLMetaTest
     @Test
     public void testNamingFieldsManyToMany()
     {
-        assertThrows(DomainQLTypeException.class, () -> {
+        assertThrows(QLiveDomainTypeException.class, () -> {
                 final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
                     .objectTypes(Public.PUBLIC)
 
@@ -118,7 +118,7 @@ public class DomainQLMetaTest
     @Test
     public void testNamingFieldsError()
     {
-        assertThrows(DomainQLTypeException.class, () -> {
+        assertThrows(QLiveDomainTypeException.class, () -> {
                 final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
                     .objectTypes(Public.PUBLIC)
 

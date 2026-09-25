@@ -27,7 +27,7 @@ final class DeferredDomain
     {
         if (domain == null)
         {
-            throw new DomainQLException(
+            throw new QLiveDomainException(
                 "The domain is not assembled yet. Nothing in the schema build has a domain to read: it is what " +
                     "the build produces."
             );

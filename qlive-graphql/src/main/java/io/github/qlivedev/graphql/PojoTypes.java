@@ -41,7 +41,7 @@ public final class PojoTypes
         }
         catch (ClassNotFoundException e)
         {
-            throw new DomainQLException(e);
+            throw new QLiveDomainException(e);
         }
     }
 
@@ -58,14 +58,14 @@ public final class PojoTypes
     {
         if (!isPojoType(cls))
         {
-            throw new DomainQLTypeException(cls.getName() + " is not a simple POJO class. Have you referenced the " +
+            throw new QLiveDomainTypeException(cls.getName() + " is not a simple POJO class. Have you referenced the " +
                 "wrong class?");
         }
 
         final GraphQLScalar annotation = cls.getAnnotation(GraphQLScalar.class);
         if (annotation != null)
         {
-            throw new DomainQLTypeException(cls.getName() + " must be declared as scalar (See QLiveDomainBuilder" +
+            throw new QLiveDomainTypeException(cls.getName() + " must be declared as scalar (See QLiveDomainBuilder" +
                 ".withAdditionalScalar)");
         }
 

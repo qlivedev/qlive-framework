@@ -14,7 +14,7 @@ import java.util.List;
  * Internal configuration for a mutation type.
  */
 public class Mutation
-    extends DomainQLMethod
+    extends QLiveDomainMethod
 {
     public Mutation(
         Supplier<QLiveDomain> domainQL,

@@ -14,7 +14,7 @@ import java.util.List;
  * Internal configuration for a query type.
  */
 public class Query
-    extends DomainQLMethod
+    extends QLiveDomainMethod
 {
     public Query(
         Supplier<QLiveDomain> domainQL,

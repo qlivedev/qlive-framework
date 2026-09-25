@@ -1,6 +1,6 @@
 package io.github.qlivedev.graphql.param;
 
-import io.github.qlivedev.graphql.logic.DomainQLDataFetchingEnvironment;
+import io.github.qlivedev.graphql.logic.QLiveDataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironment;
 
 /**
@@ -20,11 +20,11 @@ public class TypeParameterProvider
     @Override
     public Class<?> provide(DataFetchingEnvironment environment)
     {
-        if (!(environment instanceof DomainQLDataFetchingEnvironment))
+        if (!(environment instanceof QLiveDataFetchingEnvironment))
         {
-            throw new IllegalStateException("Provided environment is not an instance of " + DomainQLDataFetchingEnvironment.class);
+            throw new IllegalStateException("Provided environment is not an instance of " + QLiveDataFetchingEnvironment.class);
         }
 
-        return ((DomainQLDataFetchingEnvironment)environment).getTypeParam();
+        return ((QLiveDataFetchingEnvironment)environment).getTypeParam();
     }
 }

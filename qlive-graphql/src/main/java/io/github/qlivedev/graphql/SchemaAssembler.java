@@ -16,7 +16,7 @@ import io.github.qlivedev.graphql.fetcher.BackReferenceFetcher;
 import io.github.qlivedev.graphql.fetcher.FieldFetcher;
 import io.github.qlivedev.graphql.fetcher.MethodFetcher;
 import io.github.qlivedev.graphql.fetcher.ReferenceFetcher;
-import io.github.qlivedev.graphql.logic.DomainQLMethod;
+import io.github.qlivedev.graphql.logic.QLiveDomainMethod;
 import io.github.qlivedev.graphql.logic.GraphQLValueProvider;
 import io.github.qlivedev.graphql.logic.Mutation;
 import io.github.qlivedev.graphql.logic.Query;
@@ -656,7 +656,7 @@ class SchemaAssembler
     }
 
 
-    private FieldDoc lookMethodDoc(TypeDoc queryTypeDoc, DomainQLMethod query)
+    private FieldDoc lookMethodDoc(TypeDoc queryTypeDoc, QLiveDomainMethod query)
     {
         FieldDoc fieldDoc = lookupFieldDoc(queryTypeDoc, query.getName());
 
@@ -747,12 +747,12 @@ class SchemaAssembler
 
 
     private List<GraphQLArgument> getGraphQLArguments(
-        DomainQLMethod domainQLMethod,
+        QLiveDomainMethod domainMethod,
         Map<String, GraphQLInputObjectType> graphQlInputTypes
     )
     {
         List<GraphQLArgument> arguments = new ArrayList<>();
-        for (ParameterProvider provider : domainQLMethod.getParameterProviders())
+        for (ParameterProvider provider : domainMethod.getParameterProviders())
         {
             if (provider instanceof GraphQLValueProvider)
             {

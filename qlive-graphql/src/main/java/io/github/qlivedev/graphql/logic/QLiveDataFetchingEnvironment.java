@@ -25,9 +25,9 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Wraps the the standard GraphQL DataFetchingEnvironment to add QLiveDomain specific members.
+ * Wraps the standard GraphQL DataFetchingEnvironment to add QLive specific members.
  */
-public class DomainQLDataFetchingEnvironment
+public class QLiveDataFetchingEnvironment
     implements DataFetchingEnvironment
 {
     private final QLiveDomain domainQL;
@@ -36,7 +36,7 @@ public class DomainQLDataFetchingEnvironment
 
     private final Class<?> typeParam;
 
-    public DomainQLDataFetchingEnvironment(
+    public QLiveDataFetchingEnvironment(
         QLiveDomain domainQL,
         DataFetchingEnvironment env,
         Class<?> typeParam
@@ -236,7 +236,7 @@ public class DomainQLDataFetchingEnvironment
         return env.getVariables();
     }
 
-    // DOMAINQL SPECIFIC METHODS
+    // QLIVE SPECIFIC METHODS
 
 
     public QLiveDomain getDomain()

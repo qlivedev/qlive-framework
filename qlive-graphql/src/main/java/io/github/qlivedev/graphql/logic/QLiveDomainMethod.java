@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Abstract base class for @{@link io.github.qlivedev.graphql.annotation.GraphQLLogic} methods.
  */
-public abstract class DomainQLMethod
+public abstract class QLiveDomainMethod
     implements DataFetcher<Object>
 {
     protected final String name;
@@ -41,7 +41,7 @@ public abstract class DomainQLMethod
     private final TypeContext typeContext;
 
 
-    public DomainQLMethod(
+    public QLiveDomainMethod(
         Supplier<QLiveDomain> domainQL,
         String name,
         String description,
@@ -113,7 +113,7 @@ public abstract class DomainQLMethod
     public Object get(DataFetchingEnvironment env)
     {
 
-        DomainQLDataFetchingEnvironment environment = new DomainQLDataFetchingEnvironment(domainQL.get(), env, typeParam);
+        QLiveDataFetchingEnvironment environment = new QLiveDataFetchingEnvironment(domainQL.get(), env, typeParam);
 
         final Object[] paramValues = new Object[parameterProviders.size()];
 

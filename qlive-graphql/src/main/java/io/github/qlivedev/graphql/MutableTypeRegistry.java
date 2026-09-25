@@ -131,7 +131,7 @@ public class MutableTypeRegistry
     {
 
         final Class<?> javaType = typeContext.getType();
-        DomainQL.ensurePojoType(javaType);
+        PojoTypes.ensurePojoType(javaType);
 
 
         final InputType existing = inputTypes.get(typeContext);
@@ -171,7 +171,7 @@ public class MutableTypeRegistry
     {
         final Class<?> javaType = ctx.getType();
         
-        DomainQL.ensurePojoType(javaType);
+        PojoTypes.ensurePojoType(javaType);
 
         final OutputType existing = outputTypes.get(ctx);
         if (existing != null)
@@ -425,7 +425,7 @@ public class MutableTypeRegistry
             final GraphQLField graphQLFieldAnno = JSONUtil.findAnnotation(info, GraphQLField.class);
             final GraphQLComputed computedAnno = JSONUtil.findAnnotation(info, GraphQLComputed.class);
 
-            if (!DomainQL.isNormalProperty(info) || type.isArray() || computedAnno != null)
+            if (!PojoTypes.isNormalProperty(info) || type.isArray() || computedAnno != null)
             {
                 continue;
             }

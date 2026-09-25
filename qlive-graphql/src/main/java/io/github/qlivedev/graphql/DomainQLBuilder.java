@@ -217,7 +217,7 @@ public class DomainQLBuilder
 
         for (JSONPropertyInfo info : classInfo.getPropertyInfos())
         {
-            if (!DomainQL.isNormalProperty(info))
+            if (!PojoTypes.isNormalProperty(info))
             {
                 continue;
             }
@@ -424,7 +424,7 @@ public class DomainQLBuilder
     {
         for (Table<?> table : schema.getTables())
         {
-            final Class<?> cls = DomainQL.findPojoTypeOf(table);
+            final Class<?> cls = PojoTypes.findPojoTypeOf(table);
 
             jooqTables.put(cls.getSimpleName(), new TableLookup(cls, table));
         }
@@ -444,7 +444,7 @@ public class DomainQLBuilder
     {
         for (Table<?> table : tables)
         {
-            final Class<?> cls = DomainQL.findPojoTypeOf(table);
+            final Class<?> cls = PojoTypes.findPojoTypeOf(table);
             jooqTables.put(cls.getSimpleName(), new TableLookup(cls, table));
         }
         return this;
@@ -706,7 +706,7 @@ public class DomainQLBuilder
 
         for (Class<?> pojoType : pojoTypes)
         {
-            DomainQL.ensurePojoType(pojoType);
+            PojoTypes.ensurePojoType(pojoType);
             configureNameFields(pojoType, nameField);
         }
         return this;
@@ -768,7 +768,7 @@ public class DomainQLBuilder
             throw new IllegalArgumentException("Need at least one name field");
         }
 
-        DomainQL.ensurePojoType(pojoClass);
+        PojoTypes.ensurePojoType(pojoClass);
 
         this.nameFields.put(pojoClass.getSimpleName(), Arrays.asList(nameFields));
         return this;

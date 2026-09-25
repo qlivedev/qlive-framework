@@ -1,6 +1,6 @@
 package io.github.qlivedev.graphql.meta;
 
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.PojoTypes;
 import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.OutputType;
 import io.github.qlivedev.graphql.annotation.GraphQLComputed;
@@ -36,7 +36,7 @@ public class ComputedMetadataProvider
 
                     for (JSONPropertyInfo propertyInfo : classInfo.getPropertyInfos())
                     {
-                        if (!DomainQL.isNormalProperty(propertyInfo))
+                        if (!PojoTypes.isNormalProperty(propertyInfo))
                         {
                             continue;
                         }

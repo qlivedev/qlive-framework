@@ -419,7 +419,7 @@ public class RelationBuilder
         {
             for (JSONPropertyInfo propertyInfo : propertyInfos)
             {
-                if (!DomainQL.isNormalProperty(propertyInfo))
+                if (!PojoTypes.isNormalProperty(propertyInfo))
                 {
                     continue;
                 }

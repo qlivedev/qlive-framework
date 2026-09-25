@@ -315,7 +315,7 @@ class SchemaAssembler
     {
         for (JSONPropertyInfo info : classInfo.getPropertyInfos())
         {
-            if (DomainQL.isNormalProperty(info) && info.getJavaPropertyName().equals(javaName))
+            if (PojoTypes.isNormalProperty(info) && info.getJavaPropertyName().equals(javaName))
             {
                 return info.getJsonName();
             }
@@ -370,7 +370,7 @@ class SchemaAssembler
 //            {
 //                continue;
 //            }
-            if (!DomainQL.isNormalProperty(info))
+            if (!PojoTypes.isNormalProperty(info))
             {
                 continue;
             }
@@ -865,7 +865,7 @@ class SchemaAssembler
 
         for (InputType inputType : inputTypes)
         {
-            final Class<?> javaType = DomainQL.ensurePojoType(inputType.getJavaType());
+            final Class<?> javaType = PojoTypes.ensurePojoType(inputType.getJavaType());
 
             final TypeContext typeContext = inputType.getTypeContext();
 
@@ -914,7 +914,7 @@ class SchemaAssembler
         {
             final GraphQLComputed computedAnno = JSONUtil.findAnnotation(info, GraphQLComputed.class);
 
-            if (!DomainQL.isNormalProperty(info) || computedAnno != null)
+            if (!PojoTypes.isNormalProperty(info) || computedAnno != null)
             {
                 continue;
             }
@@ -1217,7 +1217,7 @@ class SchemaAssembler
     )
     {
         final Table<?> otherTable = relationModel.getSourceTable();
-        final Class<?> otherPojoType = DomainQL.findPojoTypeOf(otherTable);
+        final Class<?> otherPojoType = PojoTypes.findPojoTypeOf(otherTable);
 
         final boolean isOneToOne = relationModel.getTargetField() == TargetField.ONE;
 
@@ -1423,7 +1423,7 @@ class SchemaAssembler
         for (JSONPropertyInfo info : classInfo.getPropertyInfos())
         {
 
-            if (!DomainQL.isNormalProperty(info))
+            if (!PojoTypes.isNormalProperty(info))
             {
                 continue;
             }

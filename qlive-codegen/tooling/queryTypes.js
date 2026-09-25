@@ -582,9 +582,9 @@ function isQueryDocumentResult(schema, operation)
 
 
 /**
- * Returns true if the given type is one DomainQL derived from QueryDocument&lt;T&gt;.
+ * Returns true if the given type is one QLive derived from QueryDocument&lt;T&gt;.
  *
- * The backend answers this from DomainQL's generic type registry, which a schema file does not carry.
+ * The backend answers this from the domain's generic type registry, which a schema file does not carry.
  * What it does carry is the shape that registry produces, and QueryDocument has exactly one: the four
  * properties of io.github.qlivedev.model.QueryDocument, never more and never fewer. So the shape is
  * what gets matched -- a naming convention would call an application's own "...Document" type a query

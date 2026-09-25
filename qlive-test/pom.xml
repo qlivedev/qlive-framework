@@ -282,14 +282,14 @@
               <inputSchema>public</inputSchema>
 
               <forcedTypes>
-                <!-- DomainQL has a scalar for its own JSONB type, not for jOOQ's -->
+                <!-- QLive has a scalar for its own JSONB type, not for jOOQ's -->
                 <forcedType>
                   <userType>io.github.qlivedev.graphql.jsonb.JSONB</userType>
                   <binding>io.github.qlivedev.graphql.jsonb.PGJSONBinding</binding>
                   <includeTypes>jsonb</includeTypes>
                 </forcedType>
 
-                <!-- Postgres has no one-byte integer, and DomainQL has a Byte scalar but no Short one, so
+                <!-- Postgres has no one-byte integer, and QLive has a Byte scalar but no Short one, so
                      a column meant to hold a byte says so here -->
                 <forcedType>
                   <name>TINYINT</name>
@@ -344,7 +344,7 @@
           </dependency>
         </dependencies>
         <executions>
-          <!-- Update DomainQL type documentation from Java source -->
+          <!-- Update the type documentation from Java source -->
           <execution>
             <id>update-typedocs</id>
             <goals>

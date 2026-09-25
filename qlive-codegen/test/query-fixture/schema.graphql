@@ -1,6 +1,6 @@
 # Fixture for the query result type generation.
 #
-# The schema QLive's own GraphQLQueryTypingServiceTest builds its DomainQL from, printed as SDL. The
+# The schema QLive's own GraphQLQueryTypingServiceTest builds its domain from, printed as SDL. The
 # expectations on both sides are written against these types, which is what makes them comparable:
 # the dev backend and this generator have to render the same query the same way.
 

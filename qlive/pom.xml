@@ -172,7 +172,7 @@
         </executions>
       </plugin>
 
-      <!-- Update DomainQL type documentation from Java source -->
+      <!-- Update the type documentation from Java source -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>

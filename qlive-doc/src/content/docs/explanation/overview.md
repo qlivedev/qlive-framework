@@ -40,8 +40,8 @@ Spring. These work just fine to integrate as runtime fetch requests, but they ca
 Our GraphQL schema is generated and the result of what is currently used. At the beginning we have a database we want to 
 connect to. We generally support all [databases supported by jOOQ](https://www.jooq.org/doc/latest/manual/reference/supported-rdbms/). 
 
-<img src="/qlive-framework/media/domainql-workflow-light.svg"  alt="DomainQL workflow diagram" class="dark:sl-hidden" />
-<img src="/qlive-framework/media/domainql-workflow-dark.svg"  alt="DomainQL workflow diagram" class="light:sl-hidden" />
+<img src="/qlive-framework/media/qlive-workflow-light.svg"  alt="QLive workflow diagram" class="dark:sl-hidden" />
+<img src="/qlive-framework/media/qlive-workflow-dark.svg"  alt="QLive workflow diagram" class="light:sl-hidden" />
 
 We use jOOQ to generate POJOs (plain old Java objects) that mirror the tables in the database. Our GraphQL methods are
 contained in logic beans which can also reference handwritten POJO models. The existing GraphQL methods, all POJOS, and type

@@ -9,7 +9,6 @@ import io.github.qlivedev.model.condition.Value;
 import io.github.qlivedev.model.condition.Values;
 import io.github.qlivedev.runtime.domain.TestDomainConfig;
 import io.github.qlivedev.runtime.domain.TestLogic;
-import io.github.qlivedev.graphql.DomainQL;
 import io.github.qlivedev.graphql.QLiveDomain;
 import graphql.GraphQLContext;
 import graphql.schema.Coercing;
@@ -168,7 +167,7 @@ class ConditionCoercingTest
 
 
     /// The whole way in and out, through the scalar a query actually declares. The config's coercing
-    /// delegates to condition coercings of its own, and this is what says they were given a DomainQL.
+    /// delegates to condition coercings of its own, and this is what says they were given a domain.
     @Test
     void convertsTheValuesInsideAQueryConfig()
     {

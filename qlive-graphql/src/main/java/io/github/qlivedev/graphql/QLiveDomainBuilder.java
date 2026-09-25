@@ -161,11 +161,11 @@ public class QLiveDomainBuilder
 
 
     /**
-     * Builds the configured DomainQL helper.
+     * Builds the configured domain.
      *
-     * @return DomainQL helper
+     * @return the assembled domain
      */
-    public DomainQL build()
+    public QLiveDomainImpl build()
     {
         final Map<String, Field<?>> fieldLookup = createFieldLookup();
 
@@ -179,7 +179,7 @@ public class QLiveDomainBuilder
         effectiveMetadataProviders.add(new NameFieldProvider(nameFields, nameFieldsByName));
         effectiveMetadataProviders.add(new ComputedMetadataProvider());
 
-        final DomainQL domainQL = new SchemaAssembler(
+        final QLiveDomainImpl domainQL = new SchemaAssembler(
             dslContext,
             Collections.unmodifiableSet(logicBeans),
             Collections.unmodifiableMap(jooqTables),
@@ -268,7 +268,7 @@ public class QLiveDomainBuilder
 
 
     /**
-     * Adds the given collection of parameter provider factories to the DomainQL configuration.
+     * Adds the given collection of parameter provider factories to the domain configuration.
      *
      * @param parameterProviderFactories collection of parameter provider factories
      *
@@ -282,7 +282,7 @@ public class QLiveDomainBuilder
 
 
     /**
-     * Adds the given parameter provider factory to the DomainQL configuration.
+     * Adds the given parameter provider factory to the domain configuration.
      *
      * @param parameterProviderFactories parameter provider factory
      *
@@ -420,7 +420,7 @@ public class QLiveDomainBuilder
 
 
     /**
-     * Directly build a GraphQL schema from a DomainQL definition.
+     * Directly build a GraphQL schema from a domain definition.
      */
     public GraphQLSchema buildGraphQLSchema()
     {
@@ -429,7 +429,7 @@ public class QLiveDomainBuilder
 
 
     /**
-     * Adds all tables of the given JOOQ schema to the DomainQL schema.
+     * Adds all tables of the given JOOQ schema to the GraphQL schema.
      *
      * @param schema JOOQ schema
      *
@@ -449,7 +449,7 @@ public class QLiveDomainBuilder
 
 
     /**
-     * Adds the given tables to the DomainQL schema.
+     * Adds the given tables to the GraphQL schema.
      *
      * @param tables tables varargs
      *
@@ -501,7 +501,7 @@ public class QLiveDomainBuilder
 
 
     /**
-     * Adds additional query fields to DomainQL query type.
+     * Adds additional query fields to the query type.
      *
      * @param additionalQueries additional queries
      *
@@ -516,7 +516,7 @@ public class QLiveDomainBuilder
 
 
     /**
-     * Adds additional mutation fields to DomainQL query type.
+     * Adds additional mutation fields to the mutation type.
      *
      * @param additionalMutations additional mutations
      *
@@ -640,7 +640,7 @@ public class QLiveDomainBuilder
 
 
     /**
-     * Read DomainQL type docs from the given input stream to use as source for schema descriptions.
+     * Read type docs from the given input stream to use as source for schema descriptions.
      * <p>
      * Multiple sources will be merged.
      *
@@ -675,7 +675,7 @@ public class QLiveDomainBuilder
 
 
     /**
-     * Read DomainQL type docs from the given input stream to use as source for schema descriptions.
+     * Read type docs from the given input stream to use as source for schema descriptions.
      * <p>
      * Multiple sources will be merged.
      *
@@ -752,7 +752,7 @@ public class QLiveDomainBuilder
 
 
     /**
-     * Adds the given meta data provider instances to be used for DomainQL schema metadata creation.
+     * Adds the given meta data provider instances to be used for schema metadata creation.
      *
      * @param metadataProviders Varargs of meta data provider instances.
      *

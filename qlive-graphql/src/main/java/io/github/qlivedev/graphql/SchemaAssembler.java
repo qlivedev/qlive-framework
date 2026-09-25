@@ -89,7 +89,7 @@ import java.util.stream.Stream;
 import static graphql.schema.GraphQLNonNull.*;
 
 /**
- * Turns a configured {@link QLiveDomainBuilder} into a {@link DomainQL}: registers the types, defines them, wires the
+ * Turns a configured {@link QLiveDomainBuilder} into a {@link QLiveDomainImpl}: registers the types, defines them, wires the
  * fetchers and assembles the GraphQL schema out of the result.
  * <p>
  * Annotation-based convention over configuration throughout. Nothing here outlives the assembly, and nothing
@@ -175,13 +175,13 @@ class SchemaAssembler
      *
      * @return the assembled domain
      */
-    DomainQL assemble()
+    QLiveDomainImpl assemble()
     {
         final GraphQLSchema graphQLSchema = buildGraphQLSchema();
 
         final DomainQLMeta metaData = buildMetaData(graphQLSchema);
 
-        final DomainQL domainQL = new DomainQL(graphQLSchema, typeRegistry, metaData);
+        final QLiveDomainImpl domainQL = new QLiveDomainImpl(graphQLSchema, typeRegistry, metaData);
 
         // from here on the domain is whole, and everything that was waiting for it can have it
         domain.provide(domainQL);
@@ -244,7 +244,7 @@ class SchemaAssembler
             ) + 1;
 
 
-            log.debug("DomainQL initialized");
+            log.debug("Domain initialized");
             for (OutputType outputType : typeRegistry.getOutputTypes())
             {
                 final TypeContext typeContext = outputType.getTypeContext();
@@ -261,7 +261,7 @@ class SchemaAssembler
 
 
     /**
-     * Builds a graphql schema instance from the given DomainQL configuration.
+     * Builds a graphql schema instance from the given configuration.
      *
      * @param jooqTables      tables the builder collected, by domain type name
      * @param relationModels  relations as configured

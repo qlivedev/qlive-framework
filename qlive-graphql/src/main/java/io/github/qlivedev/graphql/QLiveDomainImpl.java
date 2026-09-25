@@ -9,7 +9,7 @@ import graphql.schema.GraphQLSchema;
  * <p>
  * Immutable, and holds nothing of the assembly that produced it -- see {@link SchemaAssembler} for that.
  */
-public class DomainQL
+public class QLiveDomainImpl
     implements QLiveDomain
 {
     private final GraphQLSchema graphQLSchema;
@@ -19,7 +19,7 @@ public class DomainQL
     private final DomainQLMeta metaData;
 
 
-    DomainQL(GraphQLSchema graphQLSchema, TypeRegistry typeRegistry, DomainQLMeta metaData)
+    QLiveDomainImpl(GraphQLSchema graphQLSchema, TypeRegistry typeRegistry, DomainQLMeta metaData)
     {
         this.graphQLSchema = graphQLSchema;
         this.typeRegistry = typeRegistry;

@@ -100,7 +100,7 @@ public class OptionsBuilder
     }
 
 
-    public DomainQL build()
+    public QLiveDomainImpl build()
     {
         return endOptions().build();
     }

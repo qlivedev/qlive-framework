@@ -1,52 +1,35 @@
-# qlive-framework (Repo A — developer monorepo)
+<p>
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="./docs/qlive-logo-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="./docs/qlive-logo-light.svg">
+      <img alt="qlive framework" src="./docs/qlive-logo-dark.svg">
+    </picture>
+</p>
 
-One repo for framework maintainers/contributors. Buildable with a single
-command; nothing is published to iterate locally.
+Monorepo for the QLive fullstack framework.
+
+[User Documentation](https://qlivedev.github.io/qlive-framework/)
+
+---
+
+## About this repo
+
+The monorepo collects the parts that make up the core fullstack framework on both
+the Java/server side and the TypeScript/client side.
 
 ```
-qlive/                     Java library, version 1.0.0-SNAPSHOT
-qlive-ts/                  @qlivedev/qlive-ts, linked by pnpm workspace (built with tsdown; dev aliases to its TS source)
-qlive-codegen/             @qlivedev/qlive-codegen, the codegen CLIs (schema.graphql -> types.d.ts and the
-                           query result types; and optionally schema.graphql itself, from a running backend)
-qlive-test/                Spring Boot app, depends on qlive as a SNAPSHOT
-  frontend/                 Vite + React app, depends on qlive-ts via "workspace:*"
-qlive-doc/                 framework-user documentation (plain .md for now)
+qlive/              QLive Java library
+qlive-ts/           QLive TypeScript library
+qlive-codegen/      CLI tools to generate Typescript types from GraphQL
+qlive-test/         QLive Test app (based on Spring Boot)
+  frontend/         QLive Test app frontend: Vite + React app
+qlive-doc/          Source for the Github pages documentation 
+qlive-api/          QLive API for applications 
+qlive-graphql/      QLive jOOQ/GraphQL engine 
 ```
 
 `qlive-test` is both the framework's integration/regression test target
 and the source the end-user template gets extracted from later.
-
-## Documentation
-
-- **[`qlive-doc/`](qlive-doc/README.md)** — documentation for the framework
-  *user*, i.e. someone building an application on QLive. Markdown pages built
-  with Astro Starlight and published to
-  <https://qlivedev.github.io/qlive-framework/>. Deliberately outside both
-  the Maven reactor and the pnpm workspace, so its toolchain installs only
-  when someone builds the docs — `pnpm docs:dev`, `pnpm docs:build`.
-- `docs/` — internal development documentation for maintainers.
-  `docs/design/` is for ideas not yet realized.
-
-The second half of the framework-user documentation — what gets generated
-into a new application alongside the template — waits for the templating
-command.
-
-The frontend (`qlive-test/frontend/src/...`) mirrors the demo app
-migrated from the framework's previous incarnation: a Home page using
-`FilterDSL`/`useInjection`, a typed `GraphQLQuery` (`Q_Foo`), and the
-`types.d.ts`. It isn't split along wiring/scenarios lines.
-
-The Java side (`qlive-test/src/main/java/io/github/qlivedev/qlivetest/...`)
-mirrors the demo app migrated from the framework's previous incarnation:
-GraphQL domain config, jOOQ-backed auth and domain model, and query
-logic exercising `qlive`. Neither side is split along wiring/scenarios
-lines.
-
-The codegen CLI is a separate package on purpose. It needs `graphql` and
-`@graphql-tools/*` - about 5 MB that the `qlive-ts` runtime never imports -
-so applications that do not run codegen should not have to carry them.
-Add it as a devDependency where you need it, as `qlive-test/frontend`
-does, and run it via `pnpm generate`.
 
 ## One-command entry points
 
@@ -63,41 +46,15 @@ pnpm dev       # the built backend jar on :8080 + frontend (vite on :5173, proxy
                # /graphql and /push to :8080)
 pnpm dev-ts    # the frontend half alone, for when the backend already runs somewhere else
 ```
+### Github pages documentation
 
-### Who owns :8080
-
-One process at a time, and usually that is the IDE's run configuration --
-it is the one with a debugger attached, which is the reason to prefer it.
-`pnpm dev-ts` is the other half for exactly that case: it waits a minute
-for something to answer on :8080 and then says what is missing rather
-than hanging.
-
-`pnpm dev` is for when no IDE run is up. Its backend is the already built
-jar rather than Maven, which keeps the frontend loop quick but means a
-Java change only takes effect after `pnpm build`. It refuses to start a
-jar older than the Java sources instead of running code that is not what
-the tree says, and refuses to start at all when something already holds
-the port -- the IDE's backend outranks it.
-
-Either way the frontend reloads itself; a Java change needs whichever
-backend is running to be restarted.
-
-While `pnpm dev` is running, editing `qlive-ts/src` reflects immediately
-in the browser — no rebuild step. `qlive-ts`'s `package.json` points at
-`dist/`, which is what consumers get and what `vite build` resolves, but
-`qlive-test/frontend/vite.config.ts` aliases the package to its `.ts`
-source in serve mode, so Vite transpiles the linked workspace source
-directly. Vitest runs in serve mode too, so tests exercise source as well.
-
-The trade: only `vite build` touches `dist/`, so packaging mistakes (a bad
-`exports` entry, a file that never got emitted) surface at build time
-rather than in the inner loop. `pnpm build` runs that build, so they are
-still caught before anything ships.
-
-QLive's stylesheet is shipped as a separate artifact, imported explicitly
-by the application (`import "@qlivedev/qlive-ts/styles.css"`) rather than
-pulled in by the JS, so the app controls where it lands in the cascade.
-See `docs/styling.md`.
+```bash
+pnpm docs:dev         # symlinks qlive-ts into qlive-test/frontend/node_modules
+pnpm docs:build       # ./mvnw install — builds qlive, then qlive-ts (tsdown), then the frontend
+pnpm docs:api         # generate API part of the documentation from jsdoc
+pnpm docs:api:check   # check API documentation status
+pnpm docs:preview     # run docs preview 
+```
 
 ## Toolchain
 

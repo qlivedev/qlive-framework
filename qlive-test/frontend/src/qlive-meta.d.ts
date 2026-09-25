@@ -1,7 +1,7 @@
 /*
-    Application-level extension of the DomainQL meta data.
+    Application-level extension of the domain meta data.
 
-    The server-side meta data is an open map that every MetadataProvider bean adds to, so the DomainQLMeta type
+    The server-side meta data is an open map that every MetadataProvider bean adds to, so the DomainMeta type
     qlive-ts declares only covers what the framework itself knows about. Declaration merging is how an application
     adds the rest: name your addenda here once and config().meta is typed everywhere, with no casting at the use
     sites -- and the declarations stay in one place when a provider changes.
@@ -12,7 +12,7 @@ import "@qlivedev/qlive-ts"
 
 declare module "@qlivedev/qlive-ts" {
 
-    interface DomainQLMeta {
+    interface DomainMeta {
 
         /**
          * Names of the GraphQL types taking part in the quick search, alphabetically.
@@ -20,7 +20,7 @@ declare module "@qlivedev/qlive-ts" {
         quickSearchTypes: string[]
     }
 
-    interface DomainQLFieldMeta {
+    interface DomainFieldMeta {
 
         /**
          * true if this is the field the quick search of its type matches against.

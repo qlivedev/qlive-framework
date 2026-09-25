@@ -11,7 +11,7 @@ import java.util.Set;
  * Encapsulates the additional meta data and field meta data for a given GraphQL object type.
  *
  */
-public class DomainQLTypeMeta
+public class DomainTypeMeta
 {
 
     private final Map<String, Object> meta = new HashMap<>();

@@ -1,7 +1,7 @@
 package io.github.qlivedev.qlivetest.runtime.config;
 
 import io.github.qlivedev.graphql.QLiveDomain;
-import io.github.qlivedev.graphql.meta.DomainQLMeta;
+import io.github.qlivedev.graphql.meta.DomainMeta;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
 import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLObjectType;
@@ -13,7 +13,7 @@ import java.util.List;
  * Exemplary application-level metadata provider.
  * <p>
  * Every MetadataProvider bean is picked up automatically (see GraphQLConfiguration#domainQL) and can write into the
- * DomainQLMeta the server embeds in the page. This one marks the types the application offers in a quick search,
+ * DomainMeta the server embeds in the page. This one marks the types the application offers in a quick search,
  * writing on both levels the mechanism has: an addendum next to "types", "genericTypes" and "relations", and field
  * meta data on the field the search matches against.
  * <p>
@@ -39,7 +39,7 @@ public class ExampleMetadataProvider
 
 
     @Override
-    public void provideMetaData(QLiveDomain domainQL, DomainQLMeta meta)
+    public void provideMetaData(QLiveDomain domainQL, DomainMeta meta)
     {
         final List<String> quickSearchTypes = new ArrayList<>();
 

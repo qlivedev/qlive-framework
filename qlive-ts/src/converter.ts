@@ -400,7 +400,7 @@ registerConverter<string, Temporal.Instant>(
 
 /**
  * Splits a generic scalar's type name into the named type and whether it was a list of them, which is how
- * domainql's coercing writes it: "Timestamp" or "[Timestamp]".
+ * the server's coercing writes it: "Timestamp" or "[Timestamp]".
  */
 function genericParts(type: string): { name: string, list: boolean }
 {

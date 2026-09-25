@@ -84,15 +84,15 @@ public class DomainQLMetaTest
             .build();
 
 
-        final DomainQLTypeMeta barMeta = domainQL.getMetaData().getTypeMeta("Bar");
-        final DomainQLTypeMeta barOwnerMeta = domainQL.getMetaData().getTypeMeta("BarOwner");
-        final DomainQLTypeMeta barOrgMeta = domainQL.getMetaData().getTypeMeta("BarOrg");
-        final DomainQLTypeMeta fooMeta = domainQL.getMetaData().getTypeMeta("Foo");
+        final DomainTypeMeta barMeta = domainQL.getMetaData().getTypeMeta("Bar");
+        final DomainTypeMeta barOwnerMeta = domainQL.getMetaData().getTypeMeta("BarOwner");
+        final DomainTypeMeta barOrgMeta = domainQL.getMetaData().getTypeMeta("BarOrg");
+        final DomainTypeMeta fooMeta = domainQL.getMetaData().getTypeMeta("Foo");
 
-        assertThat( barMeta.getMeta(DomainQLMeta.NAME_FIELDS), is(Arrays.asList("name", "owner.name", "owner.org.name")) );
-        assertThat( barOwnerMeta.getMeta(DomainQLMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
-        assertThat( barOrgMeta.getMeta(DomainQLMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
-        assertThat( fooMeta.getMeta(DomainQLMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
+        assertThat( barMeta.getMeta(DomainMeta.NAME_FIELDS), is(Arrays.asList("name", "owner.name", "owner.org.name")) );
+        assertThat( barOwnerMeta.getMeta(DomainMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
+        assertThat( barOrgMeta.getMeta(DomainMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
+        assertThat( fooMeta.getMeta(DomainMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
     }
 
     @Test
@@ -144,15 +144,15 @@ public class DomainQLMetaTest
             .configureNameFields(Bar.class,"name", "owner.name", "owner.org.name")
             .build();
 
-        final DomainQLTypeMeta barMeta = domainQL.getMetaData().getTypeMeta("Bar");
-        final DomainQLTypeMeta barOwnerMeta = domainQL.getMetaData().getTypeMeta("BarOwner");
-        final DomainQLTypeMeta barOrgMeta = domainQL.getMetaData().getTypeMeta("BarOrg");
-        final DomainQLTypeMeta fooMeta = domainQL.getMetaData().getTypeMeta("Foo");
+        final DomainTypeMeta barMeta = domainQL.getMetaData().getTypeMeta("Bar");
+        final DomainTypeMeta barOwnerMeta = domainQL.getMetaData().getTypeMeta("BarOwner");
+        final DomainTypeMeta barOrgMeta = domainQL.getMetaData().getTypeMeta("BarOrg");
+        final DomainTypeMeta fooMeta = domainQL.getMetaData().getTypeMeta("Foo");
 
-        assertThat( barMeta.getMeta(DomainQLMeta.NAME_FIELDS), is(Arrays.asList("name", "owner.name", "owner.org.name")) );
-        assertThat( barOwnerMeta.getMeta(DomainQLMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
-        assertThat( barOrgMeta.getMeta(DomainQLMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
-        assertThat( fooMeta.getMeta(DomainQLMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
+        assertThat( barMeta.getMeta(DomainMeta.NAME_FIELDS), is(Arrays.asList("name", "owner.name", "owner.org.name")) );
+        assertThat( barOwnerMeta.getMeta(DomainMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
+        assertThat( barOrgMeta.getMeta(DomainMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
+        assertThat( fooMeta.getMeta(DomainMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
 
     }
 
@@ -171,9 +171,9 @@ public class DomainQLMetaTest
             .build();
 
 
-        final DomainQLTypeMeta fullResponseMeta = domainQL.getMetaData().getTypeMeta("FullResponse");
+        final DomainTypeMeta fullResponseMeta = domainQL.getMetaData().getTypeMeta("FullResponse");
 
-        assertThat( fullResponseMeta.getMeta(DomainQLMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
+        assertThat( fullResponseMeta.getMeta(DomainMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
     }
 
 

@@ -4,7 +4,7 @@ import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.util.Util;
 import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.OutputType;
-import io.github.qlivedev.graphql.meta.DomainQLMeta;
+import io.github.qlivedev.graphql.meta.DomainMeta;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -172,7 +172,7 @@ public class QueryConfigMetadataProvider
 
 
     @Override
-    public void provideMetaData(QLiveDomain domainQL, DomainQLMeta meta)
+    public void provideMetaData(QLiveDomain domainQL, DomainMeta meta)
     {
         final Set<Class<?>> queryDocumentRowTypes = Util.getQueryDocumentRowTypes(domainQL);
         if (allTypesConfigurer != null)
@@ -235,7 +235,7 @@ public class QueryConfigMetadataProvider
     }
 
 
-    private static void write(QLiveDomain domainQL, DomainQLMeta meta, String typeName, QueryConfigTypeConfigurer delta)
+    private static void write(QLiveDomain domainQL, DomainMeta meta, String typeName, QueryConfigTypeConfigurer delta)
     {
         requireType(domainQL, typeName);
 
@@ -247,7 +247,7 @@ public class QueryConfigMetadataProvider
     }
 
 
-    private static void writeMax(QLiveDomain domainQL, DomainQLMeta meta, String typeName, int maxPageSize)
+    private static void writeMax(QLiveDomain domainQL, DomainMeta meta, String typeName, int maxPageSize)
     {
         requireType(domainQL, typeName);
 

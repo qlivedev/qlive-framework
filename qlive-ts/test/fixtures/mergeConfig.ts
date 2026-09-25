@@ -18,7 +18,7 @@ import {
  * type only a declaration can identify, and enough unversioned and non-link types for every "no" to have a
  * subject.
  *
- * The relations are the shape DomainQL writes them in, i.e. sourceFields and targetFields hold GraphQL field
+ * The relations are the shape the server writes them in, i.e. sourceFields and targetFields hold GraphQL field
  * names and not column names.
  */
 

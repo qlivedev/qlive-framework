@@ -20,8 +20,8 @@ import io.github.qlivedev.graphql.logic.DomainQLMethod;
 import io.github.qlivedev.graphql.logic.GraphQLValueProvider;
 import io.github.qlivedev.graphql.logic.Mutation;
 import io.github.qlivedev.graphql.logic.Query;
-import io.github.qlivedev.graphql.meta.DomainQLMeta;
-import io.github.qlivedev.graphql.meta.DomainQLTypeMeta;
+import io.github.qlivedev.graphql.meta.DomainMeta;
+import io.github.qlivedev.graphql.meta.DomainTypeMeta;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
 import io.github.qlivedev.graphql.param.ParameterProvider;
 import io.github.qlivedev.graphql.param.ParameterProviderFactory;
@@ -179,7 +179,7 @@ class SchemaAssembler
     {
         final GraphQLSchema graphQLSchema = buildGraphQLSchema();
 
-        final DomainQLMeta metaData = buildMetaData(graphQLSchema);
+        final DomainMeta metaData = buildMetaData(graphQLSchema);
 
         final QLiveDomainImpl domainQL = new QLiveDomainImpl(graphQLSchema, typeRegistry, metaData);
 
@@ -205,9 +205,9 @@ class SchemaAssembler
      *
      * @return metadata
      */
-    private DomainQLMeta buildMetaData(GraphQLSchema graphQLSchema)
+    private DomainMeta buildMetaData(GraphQLSchema graphQLSchema)
     {
-        final Map<String, DomainQLTypeMeta> types = new HashMap<>();
+        final Map<String, DomainTypeMeta> types = new HashMap<>();
 
         for (OutputType outputType : typeRegistry.getOutputTypes())
         {
@@ -217,15 +217,15 @@ class SchemaAssembler
             {
                 types.put(
                     typeName,
-                    new DomainQLTypeMeta()
+                    new DomainTypeMeta()
                 );
             }
         }
 
-        final DomainQLMeta metaData = new DomainQLMeta(types);
+        final DomainMeta metaData = new DomainMeta(types);
 
-        metaData.addAddendum(DomainQLMeta.GENERIC_TYPES, Collections.unmodifiableList(genericTypes));
-        metaData.addAddendum(DomainQLMeta.RELATIONS, typeRegistry.getRelationModels());
+        metaData.addAddendum(DomainMeta.GENERIC_TYPES, Collections.unmodifiableList(genericTypes));
+        metaData.addAddendum(DomainMeta.RELATIONS, typeRegistry.getRelationModels());
 
         return metaData;
     }

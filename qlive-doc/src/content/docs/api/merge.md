@@ -252,7 +252,7 @@ type MergeTypeMeta = {
 
 What a type declares about merging it, written server-side by QLive's MergeMetadataProvider and read back
 through the functions below. Reached as config().meta.types[name].meta.merge, which is where
-DomainQLTypeMetaProps declares it.
+DomainTypeMetaProps declares it.
 
 Which types take part is not in here and cannot be -- that is the "version" field, see isVersioned().
 What a provider declares is only the part that is genuinely the application's decision.
@@ -433,7 +433,7 @@ type MergeTypeMeta = {
 
 What a type declares about merging it, written server-side by QLive's MergeMetadataProvider and read back
 through the functions below. Reached as config().meta.types[name].meta.merge, which is where
-DomainQLTypeMetaProps declares it.
+DomainTypeMetaProps declares it.
 
 Which types take part is not in here and cannot be -- that is the "version" field, see isVersioned().
 What a provider declares is only the part that is genuinely the application's decision.

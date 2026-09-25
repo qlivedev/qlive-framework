@@ -3,7 +3,7 @@ package io.github.qlivedev.runtime.meta;
 import io.github.qlivedev.runtime.util.Util;
 import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.OutputType;
-import io.github.qlivedev.graphql.meta.DomainQLTypeMeta;
+import io.github.qlivedev.graphql.meta.DomainTypeMeta;
 import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLObjectType;
 
@@ -165,7 +165,7 @@ public final class MergeMeta
     @SuppressWarnings("unchecked")
     private static Map<String, Object> merge(QLiveDomain domainQL, String typeName)
     {
-        final DomainQLTypeMeta typeMeta = Util.typeMeta(domainQL, typeName);
+        final DomainTypeMeta typeMeta = Util.typeMeta(domainQL, typeName);
 
         final Map<String, Object> declared = typeMeta == null ? null : typeMeta.getMeta(MERGE);
 

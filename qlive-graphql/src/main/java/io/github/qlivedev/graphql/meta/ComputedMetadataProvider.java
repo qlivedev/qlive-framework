@@ -18,7 +18,7 @@ public class ComputedMetadataProvider
     private static final String COMPUTED = "computed";
 
     @Override
-    public void provideMetaData(QLiveDomain domainQL, DomainQLMeta meta)
+    public void provideMetaData(QLiveDomain domainQL, DomainMeta meta)
     {
         final GraphQLSchema graphQLSchema = domainQL.getGraphQLSchema();
 
@@ -32,7 +32,7 @@ public class ComputedMetadataProvider
                 if (outputType != null)
                 {
                     final JSONClassInfo classInfo = JSONUtil.getClassInfo(outputType.getJavaType());
-                    final DomainQLTypeMeta typeMeta = meta.getTypeMeta(typeName);
+                    final DomainTypeMeta typeMeta = meta.getTypeMeta(typeName);
 
                     for (JSONPropertyInfo propertyInfo : classInfo.getPropertyInfos())
                     {

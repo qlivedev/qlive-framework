@@ -4,7 +4,7 @@ import io.github.qlivedev.runtime.util.Util;
 import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.GenericTypeReference;
 import io.github.qlivedev.graphql.OutputType;
-import io.github.qlivedev.graphql.meta.DomainQLTypeMeta;
+import io.github.qlivedev.graphql.meta.DomainTypeMeta;
 
 import java.util.Map;
 import java.util.Optional;
@@ -70,7 +70,7 @@ public final class QueryConfigMeta
     /// @return the delta, or `null` where the type is unknown or declares none
     public static Map<String, Object> deltaForType(QLiveDomain domainQL, Class<?> javaType)
     {
-        final DomainQLTypeMeta typeMeta = Util.typeMeta(domainQL, javaType.getSimpleName());
+        final DomainTypeMeta typeMeta = Util.typeMeta(domainQL, javaType.getSimpleName());
 
         return typeMeta == null ? null : typeMeta.getMeta(QUERY_CONFIG);
     }
@@ -92,7 +92,7 @@ public final class QueryConfigMeta
         else
         {
             final String typeName = outputType.getName();
-            final DomainQLTypeMeta typeMeta = Util.typeMeta(domainQL, typeName);
+            final DomainTypeMeta typeMeta = Util.typeMeta(domainQL, typeName);
 
             final Object maxPageSize = typeMeta == null ? null : typeMeta.getMeta(MAX_PAGE_SIZE);
 

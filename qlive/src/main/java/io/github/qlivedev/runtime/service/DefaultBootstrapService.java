@@ -10,7 +10,7 @@ import io.github.qlivedev.model.ts.TrackUsageData;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.QLivePaths;
 import io.github.qlivedev.graphql.QLiveDomain;
-import io.github.qlivedev.graphql.meta.DomainQLMeta;
+import io.github.qlivedev.graphql.meta.DomainMeta;
 import io.github.qlivedev.graphql.util.IntrospectionUtil;
 import io.github.qlivedev.graphql.util.JSONHolder;
 import io.github.qlivedev.util.JSONUtil;
@@ -143,11 +143,11 @@ public class DefaultBootstrapService
     /// Empty, not absent: the client dereferences `meta.types`, `meta.genericTypes` and `meta.relations`
     /// unconditionally while it initializes the derived config, so leaving any of them off the wire turns a
     /// reduced page into a startup crash rather than a smaller payload.
-    private static DomainQLMeta emptyMeta()
+    private static DomainMeta emptyMeta()
     {
-        final DomainQLMeta meta = new DomainQLMeta(Map.of());
-        meta.addAddendum(DomainQLMeta.RELATIONS, List.of());
-        meta.addAddendum(DomainQLMeta.GENERIC_TYPES, List.of());
+        final DomainMeta meta = new DomainMeta(Map.of());
+        meta.addAddendum(DomainMeta.RELATIONS, List.of());
+        meta.addAddendum(DomainMeta.GENERIC_TYPES, List.of());
 
         return meta;
     }

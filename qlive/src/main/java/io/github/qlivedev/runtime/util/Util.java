@@ -3,7 +3,7 @@ package io.github.qlivedev.runtime.util;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.GenericTypeReference;
-import io.github.qlivedev.graphql.meta.DomainQLTypeMeta;
+import io.github.qlivedev.graphql.meta.DomainTypeMeta;
 import io.github.qlivedev.model.QueryDocument;
 import org.jooq.tools.StringUtils;
 
@@ -83,7 +83,7 @@ public class Util
     }
 
 
-    /// Key the domain meta data holds its type meta data under. Not a constant of DomainQLMeta's own,
+    /// Key the domain meta data holds its type meta data under. Not a constant of DomainMeta's own,
     /// which only names its addenda.
     private final static String TYPES = "types";
 
@@ -91,15 +91,15 @@ public class Util
     /// The meta data of the given type, or `null` where the domain has none for it.
     ///
     /// Answers rather than throws, which is the reason to go through this rather than through [
-    /// io.github.qlivedev.graphql.meta.DomainQLMeta#getTypeMeta(String)]: that one raises on an unknown name, and
+    /// io.github.qlivedev.graphql.meta.DomainMeta#getTypeMeta(String)]: that one raises on an unknown name, and
     /// asking about a name that may be no type at all is what every reader of type meta data does.
     ///
     /// @param typeName  name of a GraphQL type, known or not
     @SuppressWarnings("unchecked")
-    public static DomainQLTypeMeta typeMeta(QLiveDomain domainQL, String typeName)
+    public static DomainTypeMeta typeMeta(QLiveDomain domainQL, String typeName)
     {
-        final Map<String, DomainQLTypeMeta> types =
-            (Map<String, DomainQLTypeMeta>) domainQL.getMetaData().getData().get(TYPES);
+        final Map<String, DomainTypeMeta> types =
+            (Map<String, DomainTypeMeta>) domainQL.getMetaData().getData().get(TYPES);
 
         return types.get(typeName);
     }

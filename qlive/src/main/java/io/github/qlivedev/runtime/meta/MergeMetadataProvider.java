@@ -3,7 +3,7 @@ package io.github.qlivedev.runtime.meta;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.OutputType;
-import io.github.qlivedev.graphql.meta.DomainQLMeta;
+import io.github.qlivedev.graphql.meta.DomainMeta;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
 import graphql.schema.GraphQLObjectType;
 import org.slf4j.Logger;
@@ -246,7 +246,7 @@ public class MergeMetadataProvider
 
 
     @Override
-    public void provideMetaData(QLiveDomain domainQL, DomainQLMeta meta)
+    public void provideMetaData(QLiveDomain domainQL, DomainMeta meta)
     {
         // Java types first, then names, so that a type declared through both is reported as declared twice
         // rather than half-written. The order within each is the application's.
@@ -290,7 +290,7 @@ public class MergeMetadataProvider
     }
 
 
-    private static void write(QLiveDomain domainQL, DomainQLMeta meta, String typeName, Declaration declaration)
+    private static void write(QLiveDomain domainQL, DomainMeta meta, String typeName, Declaration declaration)
     {
         requireType(domainQL, typeName);
 

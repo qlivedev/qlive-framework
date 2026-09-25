@@ -215,11 +215,11 @@ export type QLiveConfig = {
      */
     schema: GraphQLSchema
     /**
-     * DomainQL meta information for the schema.
+     * Domain meta information for the schema.
      * Contents vary with MetadataProvider configuration. QLive comes with `maxPageSize` and query configuration by type
      * which is transmitted here.
      */
-    meta: DomainQLMeta,
+    meta: DomainMeta,
 
     // client-side only
     csrfToken?: CSRFToken
@@ -260,28 +260,28 @@ export type QLiveConfig = {
 }
 
 /**
- * Domain meta information from DomainQL.
+ * Domain meta information from the server.
  *
  * Declared as an interface, not a type alias, so that an application can extend it. The server-side
- * io.github.qlivedev.graphql.meta.DomainQLMeta is an open map that every MetadataProvider bean adds its own addenda to,
+ * io.github.qlivedev.graphql.meta.DomainMeta is an open map that every MetadataProvider bean adds its own addenda to,
  * and declaration merging is the client-side equivalent: name the addenda your providers write once and they are
  * typed at every place the application reads config().meta.
  *
  *     declare module "@qlivedev/qlive-ts" {
- *         interface DomainQLMeta {
+ *         interface DomainMeta {
  *             myAddendum: MyAddendumInfo[]
  *         }
  *     }
  *
- * @see DomainQLTypeMetaProps and DomainQLFieldMeta for the per-type and per-field levels, which extend the same way
+ * @see DomainTypeMetaProps and DomainFieldMeta for the per-type and per-field levels, which extend the same way
  */
-export interface DomainQLMeta {
+export interface DomainMeta {
 
     /**
      * Contains type names mapped to TypeMeta
      */
     types: {
-        [typeName: string]: DomainQLTypeMeta
+        [typeName: string]: DomainTypeMeta
     }
     genericTypes: GenericTypeInfo[]
     relations: RelationInfo[]
@@ -290,30 +290,30 @@ export interface DomainQLMeta {
 /**
  * Meta data for a single GraphQL object type.
  */
-export interface DomainQLTypeMeta {
+export interface DomainTypeMeta {
 
     /**
      * Field meta data by field name. Absent if no provider wrote field meta data for this type.
      */
     fields?: {
-        [fieldName: string]: DomainQLFieldMeta
+        [fieldName: string]: DomainFieldMeta
     }
 
     /**
      * Type meta data. Absent if no provider wrote type meta data for this type.
      */
-    meta?: DomainQLTypeMetaProps
+    meta?: DomainTypeMetaProps
 }
 
 /**
- * Type-level meta data properties, written server-side with DomainQLTypeMeta#setMeta.
+ * Type-level meta data properties, written server-side with DomainTypeMeta#setMeta.
  *
- * Extend by declaration merging, see DomainQLMeta.
+ * Extend by declaration merging, see DomainMeta.
  */
-export interface DomainQLTypeMetaProps {
+export interface DomainTypeMetaProps {
 
     /**
-     * Names of the fields naming an instance of the type to a user, most significant first. Written by domainql's
+     * Names of the fields naming an instance of the type to a user, most significant first. Written by QLive's
      * NameFieldProvider.
      */
     nameFields?: string[]
@@ -357,14 +357,14 @@ export interface DomainQLTypeMetaProps {
 }
 
 /**
- * Field-level meta data properties, written server-side with DomainQLTypeMeta#setFieldMeta.
+ * Field-level meta data properties, written server-side with DomainTypeMeta#setFieldMeta.
  *
- * Extend by declaration merging, see DomainQLMeta.
+ * Extend by declaration merging, see DomainMeta.
  */
-export interface DomainQLFieldMeta {
+export interface DomainFieldMeta {
 
     /**
-     * true if the field is a GraphQLComputed-annotated property. Written by domainql's ComputedMetadataProvider,
+     * true if the field is a GraphQLComputed-annotated property. Written by QLive's ComputedMetadataProvider,
      * which an application has to register as a MetadataProvider bean itself.
      */
     computed?: boolean

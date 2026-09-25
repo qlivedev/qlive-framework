@@ -6,7 +6,7 @@ sidebar:
 ---
 
 Every `MetadataProvider` bean is picked up automatically and writes into
-the `DomainQLMeta` the server embeds in the page, on two levels: an
+the `DomainMeta` the server embeds in the page, on two levels: an
 addendum next to `types`, `genericTypes` and `relations`, and field meta
 data on individual fields.
 
@@ -15,10 +15,10 @@ once and they are typed everywhere the application reads `config().meta`:
 
 ```ts
 declare module "@qlivedev/qlive-ts" {
-    interface DomainQLMeta {
+    interface DomainMeta {
         quickSearchTypes: string[]
     }
-    interface DomainQLFieldMeta {
+    interface DomainFieldMeta {
         quickSearch?: boolean
     }
 }

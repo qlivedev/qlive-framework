@@ -18,7 +18,7 @@ describe("fieldMask", () => {
 
     it("assigns a bit per field, alphabetically", () => {
 
-        // The order FieldLayout.of(DomainQL, String) assigns on the Java side. Both ends derive it from
+        // The order FieldLayout.of(QLiveDomain, String) assigns on the Java side. Both ends derive it from
         // the same schema, and a mask read under another order names other fields without saying so.
         expect(fieldOrder("Bar")).toEqual(
             ["bazLinks", "created", "description", "id", "name", "num", "version"]

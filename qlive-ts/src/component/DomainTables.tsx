@@ -1,7 +1,7 @@
 import React, {useLayoutEffect, useState} from "react"
 import { isListType, isNonNull, unwrapAll } from "../type-utils"
 import config from "../config"
-import type { DomainQLMeta } from "../config"
+import type { DomainMeta } from "../config"
 import type {
     GraphQLField,
     GraphQLObjectType,
@@ -79,7 +79,7 @@ function handleJump(targetId: string, setFilter: (filter: string) => void, sourc
     return true
 }
 
-function findRelations(schema : GraphQLSchema, meta: DomainQLMeta, type : GraphQLObjectType, field : GraphQLField, setFilter : (filter: string) => void)
+function findRelations(schema : GraphQLSchema, meta: DomainMeta, type : GraphQLObjectType, field : GraphQLField, setFilter : (filter: string) => void)
 {
     const outgoing = []
     for (let i = 0; i < meta.relations.length; i++)
@@ -185,7 +185,7 @@ const FilterNotice = ({ filter, setFilter }: FilterNoticeProps) => {
 type DomainTypeProps = {
     schema: GraphQLSchema
     type: GraphQLObjectType
-    meta: DomainQLMeta
+    meta: DomainMeta
     filter: string
     setFilter : (filter: string) => void
 }
@@ -257,7 +257,7 @@ const objectTypeNegativeList = [
 ]
 
 
-function filterTypes(schema: GraphQLSchema, meta: DomainQLMeta, filter: string, setFilter : (filter: string) => void) : GraphQLObjectType[]
+function filterTypes(schema: GraphQLSchema, meta: DomainMeta, filter: string, setFilter : (filter: string) => void) : GraphQLObjectType[]
 {
     // Nothing sets a filter today -- see FilterNotice. What arrives here when
     // something does is a regular expression, which is what the FilterDSL work

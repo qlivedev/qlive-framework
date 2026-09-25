@@ -1,6 +1,6 @@
 package io.github.qlivedev.model.bootstrap;
 
-import io.github.qlivedev.graphql.meta.DomainQLMeta;
+import io.github.qlivedev.graphql.meta.DomainMeta;
 
 import java.util.Map;
 
@@ -11,7 +11,7 @@ public class QLiveConfig
 
     private Map<String, Object> schema;
 
-    private DomainQLMeta meta;
+    private DomainMeta meta;
 
 
     public String getContextPath()
@@ -38,13 +38,13 @@ public class QLiveConfig
     }
 
 
-    public DomainQLMeta getMeta()
+    public DomainMeta getMeta()
     {
         return meta;
     }
 
 
-    public void setMeta(DomainQLMeta meta)
+    public void setMeta(DomainMeta meta)
     {
         this.meta = meta;
     }

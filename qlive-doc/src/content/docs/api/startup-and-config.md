@@ -148,11 +148,11 @@ type QLiveConfig = {
    */
   schema: GraphQLSchema;
   /**
-   * DomainQL meta information for the schema.
+   * Domain meta information for the schema.
    * Contents vary with MetadataProvider configuration. QLive comes with `maxPageSize` and query configuration by type
    * which is transmitted here.
    */
-  meta: DomainQLMeta;
+  meta: DomainMeta;
   csrfToken?: CSRFToken;
   /**
    * Who is looking at this page. Not part of the config the server renders -- that one is per module and
@@ -269,97 +269,97 @@ type CSRFToken = {
 
 Cross-Site Request-Forging protection token handling.
 
-## DomainQLMeta
+## DomainMeta
 
 <span class="api-kind">interface</span>
 
 ```ts
-interface DomainQLMeta
+interface DomainMeta
 ```
 
-Domain meta information from DomainQL.
+Domain meta information from the server.
 
 Declared as an interface, not a type alias, so that an application can extend it. The server-side
-io.github.qlivedev.graphql.meta.DomainQLMeta is an open map that every MetadataProvider bean adds its own addenda to,
+io.github.qlivedev.graphql.meta.DomainMeta is an open map that every MetadataProvider bean adds its own addenda to,
 and declaration merging is the client-side equivalent: name the addenda your providers write once and they are
 typed at every place the application reads config().meta.
 
     declare module "@qlivedev/qlive-ts" {
-        interface DomainQLMeta {
+        interface DomainMeta {
             myAddendum: MyAddendumInfo[]
         }
     }
 
-### DomainQLMeta.types
+### DomainMeta.types
 
 ```ts
 types: {
-  [typeName: string]: DomainQLTypeMeta;
+  [typeName: string]: DomainTypeMeta;
 ```
 
 Contains type names mapped to TypeMeta
 
-### DomainQLMeta.genericTypes
+### DomainMeta.genericTypes
 
 ```ts
 genericTypes: GenericTypeInfo[];
 ```
 
-### DomainQLMeta.relations
+### DomainMeta.relations
 
 ```ts
 relations: RelationInfo[];
 ```
 
-## DomainQLTypeMeta
+## DomainTypeMeta
 
 <span class="api-kind">interface</span>
 
 ```ts
-interface DomainQLTypeMeta
+interface DomainTypeMeta
 ```
 
 Meta data for a single GraphQL object type.
 
-### DomainQLTypeMeta.fields
+### DomainTypeMeta.fields
 
 ```ts
 fields?: {
-  [fieldName: string]: DomainQLFieldMeta;
+  [fieldName: string]: DomainFieldMeta;
 ```
 
 Field meta data by field name. Absent if no provider wrote field meta data for this type.
 
-### DomainQLTypeMeta.meta
+### DomainTypeMeta.meta
 
 ```ts
-meta?: DomainQLTypeMetaProps;
+meta?: DomainTypeMetaProps;
 ```
 
 Type meta data. Absent if no provider wrote type meta data for this type.
 
-## DomainQLTypeMetaProps
+## DomainTypeMetaProps
 
 <span class="api-kind">interface</span>
 
 ```ts
-interface DomainQLTypeMetaProps
+interface DomainTypeMetaProps
 ```
 
-Type-level meta data properties, written server-side with DomainQLTypeMeta#setMeta.
+Type-level meta data properties, written server-side with DomainTypeMeta#setMeta.
 
-Extend by declaration merging, see DomainQLMeta.
+Extend by declaration merging, see DomainMeta.
 
-### DomainQLTypeMetaProps.nameFields
+### DomainTypeMetaProps.nameFields
 
 ```ts
 nameFields?: string[];
 ```
 
-Names of the fields naming an instance of the type to a user, most significant first. Written by domainql's
+Names of the fields naming an instance of the type to a user, most significant first. Written by QLive's
 NameFieldProvider.
 
-### DomainQLTypeMetaProps.queryConfig
+### DomainTypeMetaProps.queryConfig
 
 ```ts
 queryConfig?: QueryConfigDelta;
@@ -376,7 +376,7 @@ The server applies this to the queries a view injects with useInjection(), whose
 no config to update. Nothing on the client applies it: read it where you build a query config from scratch and
 want it to start where the injected ones start.
 
-### DomainQLTypeMetaProps.maxPageSize
+### DomainTypeMetaProps.maxPageSize
 
 ```ts
 maxPageSize?: number;
@@ -389,7 +389,7 @@ Written server-side by QLive's QueryConfigMetadataProvider and enforced there: a
 -- or for all rows -- is held to this, and the config that comes back on the document says so. Read it to keep a
 page size control from offering what the server will not give, not to enforce anything.
 
-### DomainQLTypeMetaProps.merge
+### DomainTypeMetaProps.merge
 
 ```ts
 merge?: MergeTypeMeta;
@@ -405,25 +405,25 @@ Whether a type takes part in merging at all is *not* in here: that is the type h
 both ends derive from the schema. Read it through the functions in merge/meta rather than off the map, so that
 "declared nothing" and "no such type" answer the same way.
 
-## DomainQLFieldMeta
+## DomainFieldMeta
 
 <span class="api-kind">interface</span>
 
 ```ts
-interface DomainQLFieldMeta
+interface DomainFieldMeta
 ```
 
-Field-level meta data properties, written server-side with DomainQLTypeMeta#setFieldMeta.
+Field-level meta data properties, written server-side with DomainTypeMeta#setFieldMeta.
 
-Extend by declaration merging, see DomainQLMeta.
+Extend by declaration merging, see DomainMeta.
 
-### DomainQLFieldMeta.computed
+### DomainFieldMeta.computed
 
 ```ts
 computed?: boolean;
 ```
 
-true if the field is a GraphQLComputed-annotated property. Written by domainql's ComputedMetadataProvider,
+true if the field is a GraphQLComputed-annotated property. Written by QLive's ComputedMetadataProvider,
 which an application has to register as a MetadataProvider bean itself.
 
 ## GenericTypeInfo

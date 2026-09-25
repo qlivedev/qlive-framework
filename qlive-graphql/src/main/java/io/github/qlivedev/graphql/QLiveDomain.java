@@ -1,6 +1,6 @@
 package io.github.qlivedev.graphql;
 
-import io.github.qlivedev.graphql.meta.DomainQLMeta;
+import io.github.qlivedev.graphql.meta.DomainMeta;
 import graphql.schema.GraphQLSchema;
 
 /**
@@ -36,5 +36,5 @@ public interface QLiveDomain
      *
      * @return metadata
      */
-    DomainQLMeta getMetaData();
+    DomainMeta getMetaData();
 }

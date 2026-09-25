@@ -9,5 +9,5 @@ import io.github.qlivedev.graphql.QLiveDomain;
  */
 public interface MetadataProvider
 {
-    void provideMetaData(QLiveDomain domainQL, DomainQLMeta meta);
+    void provideMetaData(QLiveDomain domainQL, DomainMeta meta);
 }

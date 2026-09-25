@@ -2,7 +2,7 @@ package io.github.qlivedev.graphql.meta;
 
 import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.OutputType;
-import io.github.qlivedev.graphql.meta.DomainQLMeta;
+import io.github.qlivedev.graphql.meta.DomainMeta;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLNamedType;
@@ -34,7 +34,7 @@ public class NameFieldProvider
 
 
     @Override
-    public void provideMetaData(QLiveDomain domainQL, DomainQLMeta meta)
+    public void provideMetaData(QLiveDomain domainQL, DomainMeta meta)
     {
 
         final GraphQLSchema schema = domainQL.getGraphQLSchema();
@@ -71,7 +71,7 @@ public class NameFieldProvider
 
         for (Map.Entry<String, List<String>> e : nameFields.entrySet())
         {
-            meta.getTypeMeta(e.getKey()).setMeta(DomainQLMeta.NAME_FIELDS, e.getValue());
+            meta.getTypeMeta(e.getKey()).setMeta(DomainMeta.NAME_FIELDS, e.getValue());
         }
 
     }

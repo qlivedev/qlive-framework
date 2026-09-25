@@ -1,7 +1,7 @@
 import React, {useLayoutEffect, useState} from "react"
 import { i18n, config, isListType, isNonNull, unwrapAll, DomainTables, Logout, QuickLogin } from "@qlivedev/qlive-ts"
 import type {
-    DomainQLMeta,
+    DomainMeta,
     GraphQLField, GraphQLInterfaceType, GraphQLObjectType,
     GraphQLSchema,
     GraphQLType,

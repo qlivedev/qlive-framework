@@ -5,7 +5,7 @@ import {GraphQLType} from "../GraphQLSchema";
 
 /**
  * Container type the top-level selections of an operation are fields of. Subscriptions
- * are not in here: their container type has no established name on the DomainQL side
+ * are not in here: their container type has no established name on the Java side
  * yet, and nothing converts them, so they get an empty map.
  */
 const CONTAINER_TYPES: { [operation: string]: string } = {

@@ -25,7 +25,7 @@ public class TestDomainConfig
         ), logicBeans);
     }
 
-    public static QLiveDomain domainQLNoMeta(Object... logicBeans)
+    public static QLiveDomain domainNoMeta(Object... logicBeans)
     {
         return domainQL(Collections.emptyList(), logicBeans);
     }

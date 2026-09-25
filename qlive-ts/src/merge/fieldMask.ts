@@ -4,7 +4,7 @@ import {objectFields} from "../type-utils";
  * The bit each field of a type owns in a field mask: every field of the GraphQL type, alphabetically, the
  * position being the bit.
  *
- * The mirror of FieldLayout.of(DomainQL, String) on the Java side, and it has to stay one -- a mask is
+ * The mirror of FieldLayout.of(QLiveDomain, String) on the Java side, and it has to stay one -- a mask is
  * positions, and two ends reading it under different orders name different fields, confidently and
  * silently. The order is the schema's own field list sorted, which both ends derive from the same schema
  * rather than agreeing on separately.

@@ -1,7 +1,7 @@
 package io.github.qlivedev.qlivetest.runtime.config;
 
 import io.github.qlivedev.qlivetest.runtime.logic.QueryLogic;
-import io.github.qlivedev.graphql.meta.DomainQLMeta;
+import io.github.qlivedev.graphql.meta.DomainMeta;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -24,7 +24,7 @@ import static org.hamcrest.Matchers.nullValue;
 /// drift apart.
 class ExampleMetadataProviderTest
 {
-    private static DomainQLMeta meta;
+    private static DomainMeta meta;
 
 
     @BeforeAll

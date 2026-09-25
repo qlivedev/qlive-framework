@@ -1,6 +1,6 @@
 package io.github.qlivedev.graphql;
 
-import io.github.qlivedev.graphql.meta.DomainQLMeta;
+import io.github.qlivedev.graphql.meta.DomainMeta;
 import graphql.schema.GraphQLSchema;
 
 /**
@@ -16,10 +16,10 @@ public class QLiveDomainImpl
 
     private final TypeRegistry typeRegistry;
 
-    private final DomainQLMeta metaData;
+    private final DomainMeta metaData;
 
 
-    QLiveDomainImpl(GraphQLSchema graphQLSchema, TypeRegistry typeRegistry, DomainQLMeta metaData)
+    QLiveDomainImpl(GraphQLSchema graphQLSchema, TypeRegistry typeRegistry, DomainMeta metaData)
     {
         this.graphQLSchema = graphQLSchema;
         this.typeRegistry = typeRegistry;
@@ -42,7 +42,7 @@ public class QLiveDomainImpl
 
 
     @Override
-    public DomainQLMeta getMetaData()
+    public DomainMeta getMetaData()
     {
         return metaData;
     }

@@ -13,9 +13,9 @@ import java.util.Map;
  * Schema meta data on the server-side. Basically a data map with named keys, "types" being special and containing the
  * type meta data.
  *
- * @see DomainQLTypeMeta
+ * @see DomainTypeMeta
  */
-public class DomainQLMeta
+public class DomainMeta
     implements JSONable
 {
     private final Map<String, Object> data;
@@ -35,7 +35,7 @@ public class DomainQLMeta
      */
     public final static String GENERIC_TYPES = "genericTypes";
 
-    public DomainQLMeta(Map<String, DomainQLTypeMeta> types)
+    public DomainMeta(Map<String, DomainTypeMeta> types)
     {
 
         data = new HashMap<>();
@@ -53,15 +53,15 @@ public class DomainQLMeta
         data.put(name, object);
     }
 
-    public DomainQLTypeMeta getTypeMeta(String typeName)
+    public DomainTypeMeta getTypeMeta(String typeName)
     {
         final Map<String, Object> typesMap = (Map<String, Object>) data.get("types");
-        final DomainQLTypeMeta domainQLTypeMeta = (DomainQLTypeMeta) typesMap.get(typeName);
-        if (domainQLTypeMeta == null)
+        final DomainTypeMeta domainTypeMeta = (DomainTypeMeta) typesMap.get(typeName);
+        if (domainTypeMeta == null)
         {
             throw new IllegalStateException("Invalid type '" + typeName + "'");
         }
-        return domainQLTypeMeta;
+        return domainTypeMeta;
     }
 
 

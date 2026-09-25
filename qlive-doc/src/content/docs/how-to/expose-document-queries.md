@@ -9,7 +9,7 @@ An application exposes
 [query documents](/qlive-framework/explanation/query-documents/) from a
 logic bean. GraphQL knows no generics, so a concrete type has to exist for
 every `QueryDocument<T>` you want -- but you write one Java method and let
-DomainQL make them.
+QLive make them.
 
 ```java {31-37,44-46} title='QueryLogic.java'
 import io.github.qlivedev.graphql.annotation.GraphQLLogic;

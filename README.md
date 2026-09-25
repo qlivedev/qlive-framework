@@ -38,7 +38,7 @@ migrated from the framework's previous incarnation: a Home page using
 
 The Java side (`qlive-test/src/main/java/io/github/qlivedev/qlivetest/...`)
 mirrors the demo app migrated from the framework's previous incarnation:
-GraphQL/DomainQL config, jOOQ-backed auth and domain model, and query
+GraphQL domain config, jOOQ-backed auth and domain model, and query
 logic exercising `qlive`. Neither side is split along wiring/scenarios
 lines.
 

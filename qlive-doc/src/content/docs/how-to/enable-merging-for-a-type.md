@@ -130,7 +130,7 @@ Either as a `MetadataProvider` bean, which the domain picks up through the
 [Wire up a Spring application](/qlive-framework/how-to/wire-up-a-spring-application/),
 or inline in the domain builder, which is what `qlive-test` does:
 
-```java title="DomainQLConfiguration.java"
+```java title="QLiveDomainConfiguration.java"
 .withMetadataProviders(
     QueryConfigMetadataProvider.newProvider()
         .forAllTypes()
@@ -154,7 +154,7 @@ what else rides along on the same mechanism.
 
 `MergeLogic` contributes one mutation, `mergeWorkingSet`, and it is the
 only one an application needs in order to store anything. A change travels
-as field names and `GenericScalar` values, which DomainQL coerces to
+as field names and `GenericScalar` values, which QLive coerces to
 whatever Java type the field actually has -- so there is no `BarInput`, no
 `BazInput` and no mutation per operation to keep in step with them.
 

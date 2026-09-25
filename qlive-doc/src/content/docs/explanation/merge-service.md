@@ -52,8 +52,8 @@ What it costs to run is two tables and a column per participating type --
 You can opt into even more protection in the meta configuration. Here we see the configuration in qlive-test for 
 the `Bar` edit example.
 
-```java title="DomainQLConfiguration.java"
-    final QLiveDomain domainQL = QLiveDefaultDomain.newDomain(dslContext, metadataProviders)
+```java title="QLiveDomainConfiguration.java"
+    final QLiveDomain domain = QLiveDefaultDomain.newDomain(dslContext, metadataProviders)
         // ... rest of the domain configuration
         .withMetadataProviders(
             MergeMetadataProvider.newProvider()

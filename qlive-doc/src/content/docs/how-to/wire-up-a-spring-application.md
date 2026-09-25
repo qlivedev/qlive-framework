@@ -6,7 +6,7 @@ sidebar:
 ---
 
 The Java half is a Spring Boot application depending on `qlive`, which
-brings DomainQL and jOOQ with it. `qlive-test` is the reference wiring.
+brings the GraphQL schema assembly and jOOQ with it. `qlive-test` is the reference wiring.
 
 ## What QLive provides
 
@@ -32,7 +32,7 @@ pages that answer 503 forever.
 
 ```java
 @Bean
-public QLiveDomain domainQL() throws IOException
+public QLiveDomain domain() throws IOException
 {
     return QLiveDefaultDomain.newDomain(
             dslContext,
@@ -51,8 +51,8 @@ the rest) into the domain.
 
 `QLiveDomain` is the whole of what the framework and your own code read the
 domain through: `getGraphQLSchema()`, `getTypeRegistry()` and
-`getMetaData()`. Declare the bean as that rather than as the `DomainQL` the
-builder returns -- the schema assembly behind it is not something an
+`getMetaData()`. Declare the bean as that rather than as the `QLiveDomainImpl`
+the builder returns -- the schema assembly behind it is not something an
 application has anything to say to.
 
 You can keep the domain definition separable from the bean wiring: nothing in it
@@ -61,7 +61,7 @@ same schema with `null` and assert on it without a database. Hand it the
 same logic beans and metadata providers, or you are testing a different
 schema than you ship. 
 
-(See io.github.qlivedev.qlivetest.runtime.config.GraphQLConfiguration.domainQL)
+(See io.github.qlivedev.qlivetest.runtime.config.QLiveDomainConfiguration.newDomain)
 
 Every `MetadataProvider` bean the context holds is handed to the domain
 here -- see

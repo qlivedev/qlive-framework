@@ -1,7 +1,6 @@
 # A facade for DomainQL
 
-Status: done through step 6; step 7 deferred by decision. Written
-2026-09-21, revised 2026-09-22.
+Status: done. Written 2026-09-21, revised 2026-09-22 and 2026-09-25.
 
 The analysis below is what the work was planned from and is left as it was
 written, in the present tense of that day. The step list says what landed.
@@ -227,12 +226,43 @@ reaches across modules for a problem one cell states exactly. The
 `DomainQLAware` scalars moved to after assembly for the same reason: they
 were being handed a `DomainQL` whose `metaData` field was still null.
 
-**Step 7 -- rename.** `DomainQL`, `DomainQLBuilder`, `DomainQLAware`,
-`DomainQLException`. The facade means this costs one pass, not two: the
-interface has the name QLive wants and the implementation behind it can
-keep the old one until the rename is convenient. Deferred by decision;
-listed here so the ordering is on record. `DomainQLMethod`'s `domainQL`
-parameters and the `setDomainQL` method name are part of it.
+**Step 7 -- rename.** Done 2026-09-25, and it did cost one pass rather
+than two: every reference the rename touched already went through the
+facade, so nothing had to be re-decided on the way.
+
+| was | is |
+| --- | --- |
+| `DomainQL` | `QLiveDomainImpl` |
+| `DomainQLBuilder` | `QLiveDomainBuilder`, which now holds `newDomain()` |
+| `DomainQLAware`, `setDomainQL` | `QLiveDomainAware`, `setDomain` |
+| `DomainQLException` and its three subclasses | `QLiveDomainException`, `QLiveDomainBuilderException`, `QLiveDomainTypeException`, `QLiveDomainExecutionException` |
+| `DomainQLMeta`, `DomainQLTypeMeta` | `DomainMeta`, `DomainTypeMeta`, with `DomainTypeMetaProps` and `DomainFieldMeta` in qlive-ts |
+| `DomainQLMethod`, `DomainQLDataFetchingEnvironment` | `QLiveDomainMethod`, `QLiveDataFetchingEnvironment` |
+| `domainQL` (474 fields, parameters, locals) | `domain` |
+
+Three decisions inside it:
+
+- **The implementation stays public.** `build()` returns
+  `QLiveDomainImpl`, not the interface. A test declares it and an
+  application never needs to; narrowing the return type would churn the
+  test suite to hide a type nothing reaches for.
+- **The statics came off first.** `DomainQL` was a domain and a utility
+  holder bolted together. `SchemaNames` took the naming rules --
+  absorbing a duplicate `getInputTypeName` in `MutableTypeRegistry` and
+  duplicate `QUERY_TYPE`/`MUTATION_TYPE` literals in `TypeDoc` -- and
+  `PojoTypes` took the class introspection. What was left was three
+  fields and their getters, which is what the name now describes.
+- **Two exception roots stay.** `QLiveDomainException` for a domain that
+  could not be assembled or a schema that could not answer;
+  `QLiveException` in `qlive` for a request that could not be served.
+  `QLiveDomainBuilderException` extended `RuntimeException` and now
+  extends the root, so catching the domain exception catches
+  misconfiguration too.
+
+`docs/design` was left in the names it was written in. A design document
+records what was decided when, and quoting a signature that did not exist
+yet would make it a worse record. The user-facing site in `qlive-doc` was
+updated.
 
 Each step left the build green.
 

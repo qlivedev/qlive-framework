@@ -33,9 +33,9 @@ import static io.github.qlivedev.qlivetest.domain.Tables.*;
  * Exemplary configuration of GraphQL in a project.
  */
 @Configuration
-public class DomainQLConfiguration
+public class QLiveDomainConfiguration
 {
-    private final static Logger log = LoggerFactory.getLogger(DomainQLConfiguration.class);
+    private final static Logger log = LoggerFactory.getLogger(QLiveDomainConfiguration.class);
 
 
     private final ApplicationContext applicationContext;
@@ -43,7 +43,7 @@ public class DomainQLConfiguration
 
 
     @Autowired
-    public DomainQLConfiguration(
+    public QLiveDomainConfiguration(
         ApplicationContext applicationContext,
         DSLContext dslContext
     )
@@ -68,7 +68,7 @@ public class DomainQLConfiguration
     @Bean
     public QLiveDomain domain() throws IOException
     {
-        return newDomainQL(
+        return newDomain(
             dslContext,
             applicationContext.getBeansWithAnnotation(GraphQLLogic.class).values(),
             applicationContext.getBeansOfType(MetadataProvider.class).values()
@@ -82,7 +82,7 @@ public class DomainQLConfiguration
      * enough to get at the schema and its meta data. The logic beans and metadata providers are what the schema
      * is built out of, so a test has to hand over the same ones to get the same schema.
      */
-    static QLiveDomain newDomainQL(
+    static QLiveDomain newDomain(
         DSLContext dslContext,
         Collection<Object> logicBeans,
         Collection<MetadataProvider> metadataProviders

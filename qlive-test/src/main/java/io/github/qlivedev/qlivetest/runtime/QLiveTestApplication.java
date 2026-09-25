@@ -2,7 +2,7 @@ package io.github.qlivedev.qlivetest.runtime;
 
 import io.github.qlivedev.runtime.config.QLiveConfiguration;
 import io.github.qlivedev.qlivetest.runtime.config.DevConfiguration;
-import io.github.qlivedev.qlivetest.runtime.config.DomainQLConfiguration;
+import io.github.qlivedev.qlivetest.runtime.config.QLiveDomainConfiguration;
 import io.github.qlivedev.qlivetest.runtime.config.JOQQConfiguration;
 import io.github.qlivedev.qlivetest.runtime.config.SecurityConfiguration;
 import io.github.qlivedev.qlivetest.runtime.config.WebConfiguration;
@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Import;
 /**
  * <p>
  *     Component scan covers the two packages whose contents are found by type rather than named: {@code logic}
- *     holds the {@code @GraphQLLogic} beans {@link DomainQLConfiguration} collects with
+ *     holds the {@code @GraphQLLogic} beans {@link QLiveDomainConfiguration} collects with
  *     {@code getBeansWithAnnotation()}, and {@code service} holds the application's own services.
  * </p>
  * <p>
@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Import;
 @Import({
 	JOQQConfiguration.class,
 	DevConfiguration.class,
-	DomainQLConfiguration.class,
+	QLiveDomainConfiguration.class,
 	QLiveConfiguration.class,
 	SecurityConfiguration.class,
 	WebConfiguration.class

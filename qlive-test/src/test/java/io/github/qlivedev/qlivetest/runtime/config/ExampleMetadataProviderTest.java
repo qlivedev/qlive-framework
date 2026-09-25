@@ -33,7 +33,7 @@ class ExampleMetadataProviderTest
         // QueryLogic carries the type list that puts the handwritten Qux in the generated POJO's place, so
         // leaving it out would build a schema the application never runs. Nothing calls into it here, which is
         // why it can be handed a null service.
-        meta = DomainQLConfiguration.newDomainQL(
+        meta = QLiveDomainConfiguration.newDomain(
             null,
             List.of(new QueryLogic(null)),
             List.of(new ExampleMetadataProvider())

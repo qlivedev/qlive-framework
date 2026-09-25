@@ -28,7 +28,7 @@ import java.util.Map;
 /// overlap are always correct and therefore automatic, while handing a user two values and asking them to
 /// choose is a decision about the application's UI and has to be asked for.
 ///
-/// The client reads the same map through declaration merging on `DomainQLTypeMetaProps`, the way
+/// The client reads the same map through declaration merging on `DomainTypeMetaProps`, the way
 /// `queryConfig` and `maxPageSize` already do.
 public final class MergeMeta
 {
@@ -43,7 +43,7 @@ public final class MergeMeta
     public final static String VERSION = "version";
 
     /// Name of the type meta data property holding everything a type declares about merging it. Has to agree
-    /// with `DomainQLTypeMetaProps` on the client, which declares the same name to TypeScript.
+    /// with `DomainTypeMetaProps` on the client, which declares the same name to TypeScript.
     ///
     /// One grouped property rather than four loose ones: the type meta data is a namespace an application
     /// extends with addenda of its own, and `resolve`, `autoMerge`, `ignoredFields` and `linkType` are words

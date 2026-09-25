@@ -38,12 +38,12 @@ public final class QueryConfigMeta
         // no instances
     }
 
-    /// Name of the type meta data property holding the delta. Has to agree with `DomainQLTypeMetaProps` on
+    /// Name of the type meta data property holding the delta. Has to agree with `DomainTypeMetaProps` on
     /// the client, which declares the same name to TypeScript.
     public final static String QUERY_CONFIG = "queryConfig";
 
     /// Name of the type meta data property holding the maximum page size. Has to agree with
-    /// `DomainQLTypeMetaProps` on the client, which declares the same name to TypeScript.
+    /// `DomainTypeMetaProps` on the client, which declares the same name to TypeScript.
     public final static String MAX_PAGE_SIZE = "maxPageSize";
 
     /// The delta declared for the row type of the given query document type.

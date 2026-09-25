@@ -1,8 +1,7 @@
 package io.github.qlivedev.runtime.domain;
 
-import io.github.qlivedev.graphql.DomainQL;
 import io.github.qlivedev.graphql.QLiveDomain;
-import io.github.qlivedev.graphql.DomainQLBuilder;
+import io.github.qlivedev.graphql.QLiveDomainBuilder;
 import io.github.qlivedev.graphql.generic.DomainObject;
 import io.github.qlivedev.graphql.generic.DomainObjectScalar;
 import io.github.qlivedev.graphql.generic.GenericScalar;
@@ -37,14 +36,14 @@ public class QLiveDefaultDomain
 {
     private final static Logger log = LoggerFactory.getLogger(QLiveDefaultDomain.class);
 
-    public static DomainQLBuilder newDomain(
+    public static QLiveDomainBuilder newDomain(
         DSLContext dslContext,
         Collection<MetadataProvider> metadataProviders
     )
     {
         log.debug("Creating automaton domain: metadataProviders = {}", metadataProviders);
 
-        return DomainQL.newDomainQL(dslContext)
+        return QLiveDomainBuilder.newDomain(dslContext)
             .withAdditionalScalar(DomainObject.class, DomainObjectScalar.newDomainObjectScalar())
             .withAdditionalScalar(JSONB.class, JSONBScalar.newScalar())
             .withAdditionalScalar(CNode.class, ConditionType.newConditionType())

@@ -89,7 +89,7 @@ import java.util.stream.Stream;
 import static graphql.schema.GraphQLNonNull.*;
 
 /**
- * Turns a configured {@link DomainQLBuilder} into a {@link DomainQL}: registers the types, defines them, wires the
+ * Turns a configured {@link QLiveDomainBuilder} into a {@link DomainQL}: registers the types, defines them, wires the
  * fetchers and assembles the GraphQL schema out of the result.
  * <p>
  * Annotation-based convention over configuration throughout. Nothing here outlives the assembly, and nothing

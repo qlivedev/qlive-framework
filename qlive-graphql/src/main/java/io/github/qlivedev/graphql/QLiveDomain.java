@@ -8,7 +8,7 @@ import graphql.schema.GraphQLSchema;
  * metadata the schema carries.
  * <p>
  * This is what the framework hands an application. The schema is assembled once at startup by
- * {@link DomainQLBuilder}, and everything that runs afterwards -- the runtime itself, an application's
+ * {@link QLiveDomainBuilder}, and everything that runs afterwards -- the runtime itself, an application's
  * {@link io.github.qlivedev.graphql.meta.MetadataProvider} or {@link DomainQLAware} scalar, a service holding the
  * domain as a bean -- reads it through here.
  */

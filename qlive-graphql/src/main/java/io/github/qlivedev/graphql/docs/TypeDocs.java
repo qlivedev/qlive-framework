@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
  * Reshapes lists of {@link TypeDoc} into the form the schema expects.
  *
  * Separate from {@link DocsExtractor} because this half is what runs at runtime:
- * {@code DomainQLBuilder} normalizes the typedocs it loads from resources, and doing
+ * {@code QLiveDomainBuilder} normalizes the typedocs it loads from resources, and doing
  * so must not drag javaparser onto the classpath of an application that only consumes
  * the generated JSON.
  */

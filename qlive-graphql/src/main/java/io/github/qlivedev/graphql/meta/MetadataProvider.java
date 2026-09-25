@@ -5,7 +5,7 @@ import io.github.qlivedev.graphql.QLiveDomain;
 /**
  * Implemented by classes that want to contribute schema metadata to the domain's meta data.
  *
- * @see io.github.qlivedev.graphql.DomainQLBuilder#withMetadataProviders(MetadataProvider...) 
+ * @see io.github.qlivedev.graphql.QLiveDomainBuilder#withMetadataProviders(MetadataProvider...) 
  */
 public interface MetadataProvider
 {

@@ -327,7 +327,7 @@ public class MutableTypeRegistry
     @Override
     public Field<?> lookupField(String domainType, String property)
     {
-        return dbFieldLookup.get(DomainQLBuilder.fieldLookupKey(domainType, property));
+        return dbFieldLookup.get(QLiveDomainBuilder.fieldLookupKey(domainType, property));
     }
 
 

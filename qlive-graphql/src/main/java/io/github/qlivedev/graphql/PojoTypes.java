@@ -65,7 +65,7 @@ public final class PojoTypes
         final GraphQLScalar annotation = cls.getAnnotation(GraphQLScalar.class);
         if (annotation != null)
         {
-            throw new DomainQLTypeException(cls.getName() + " must be declared as scalar (See DomainQLBuilder" +
+            throw new DomainQLTypeException(cls.getName() + " must be declared as scalar (See QLiveDomainBuilder" +
                 ".withAdditionalScalar)");
         }
 

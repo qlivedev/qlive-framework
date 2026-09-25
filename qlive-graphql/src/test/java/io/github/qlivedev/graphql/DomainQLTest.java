@@ -37,7 +37,7 @@ public class DomainQLTest
     final LogicWithMirrorInput logic2 = new LogicWithMirrorInput();
 
 
-    final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+    final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
         .objectTypes(Public.PUBLIC)
         .logicBeans(Collections.singleton(logic))
 

@@ -24,7 +24,7 @@ import java.util.Set;
 /**
  * Builds and configures a relation configuration object.
  *
- * @see DomainQLBuilder#withRelation(RelationBuilder)
+ * @see QLiveDomainBuilder#withRelation(RelationBuilder)
  */
 public class RelationBuilder
 {
@@ -447,7 +447,7 @@ public class RelationBuilder
 
         for (String name : sourceFields)
         {
-            final String key = DomainQLBuilder.fieldLookupKey(
+            final String key = QLiveDomainBuilder.fieldLookupKey(
                 sourceDomainType,
                 name
             );

@@ -59,11 +59,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Mutable builder / configurator for {@link DomainQL}.
+ * Mutable builder / configurator for a {@link QLiveDomain}. Start with {@link #newDomain(DSLContext)}, configure,
+ * and call {@link #build()} to assemble the domain.
  */
-public class DomainQLBuilder
+public class QLiveDomainBuilder
 {
-    private final static Logger log = LoggerFactory.getLogger(DomainQLBuilder.class);
+    private final static Logger log = LoggerFactory.getLogger(QLiveDomainBuilder.class);
 
     /**
      * Standard GraphQL directives. Are registered by default, unless {@link #withoutStandardDirectives()} is called.
@@ -123,7 +124,21 @@ public class DomainQLBuilder
     private Set<MetadataProvider> metadataProviders = new HashSet<>();
 
 
-    DomainQLBuilder(DSLContext dslContext)
+    /**
+     * Creates a new builder to be configured. Call {@link #build()} on it after configuration to assemble the
+     * domain.
+     *
+     * @param dslContext JOOQ DSL context instance
+     *
+     * @return builder
+     */
+    public static QLiveDomainBuilder newDomain(DSLContext dslContext)
+    {
+        return new QLiveDomainBuilder(dslContext);
+    }
+
+
+    QLiveDomainBuilder(DSLContext dslContext)
     {
         this.dslContext = dslContext;
 
@@ -259,7 +274,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder parameterProviderFactories(Collection<ParameterProviderFactory> parameterProviderFactories)
+    public QLiveDomainBuilder parameterProviderFactories(Collection<ParameterProviderFactory> parameterProviderFactories)
     {
         this.parameterProviderFactories.addAll(parameterProviderFactories);
         return this;
@@ -273,7 +288,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder parameterProvider(ParameterProviderFactory parameterProviderFactories)
+    public QLiveDomainBuilder parameterProvider(ParameterProviderFactory parameterProviderFactories)
     {
         this.parameterProviderFactories.add(parameterProviderFactories);
         return this;
@@ -306,7 +321,7 @@ public class DomainQLBuilder
      *
      * @see #withRelation(RelationBuilder)
      */
-    public DomainQLBuilder configureRelation(
+    public QLiveDomainBuilder configureRelation(
         TableField<?, ?> fkField, SourceField sourceField, TargetField targetField
     )
     {
@@ -327,7 +342,7 @@ public class DomainQLBuilder
      *
      * @return
      */
-    public DomainQLBuilder withRelation(RelationBuilder relationBuilder)
+    public QLiveDomainBuilder withRelation(RelationBuilder relationBuilder)
     {
         relationBuilders.add(relationBuilder);
         return this;
@@ -353,7 +368,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder configureRelation(
+    public QLiveDomainBuilder configureRelation(
         TableField<?, ?> fkField,
         SourceField sourceField,
         TargetField targetField,
@@ -382,7 +397,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder logicBeans(Collection<Object> logicBeans)
+    public QLiveDomainBuilder logicBeans(Collection<Object> logicBeans)
     {
         this.logicBeans.addAll(logicBeans);
         return this;
@@ -397,7 +412,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder logicBeans(Object... logicBeans)
+    public QLiveDomainBuilder logicBeans(Object... logicBeans)
     {
         Collections.addAll(this.logicBeans, logicBeans);
         return this;
@@ -420,7 +435,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder objectTypes(Schema schema)
+    public QLiveDomainBuilder objectTypes(Schema schema)
     {
         for (Table<?> table : schema.getTables())
         {
@@ -440,7 +455,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder objectTypes(Table<?>... tables)
+    public QLiveDomainBuilder objectTypes(Table<?>... tables)
     {
         for (Table<?> table : tables)
         {
@@ -464,7 +479,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder objectType(Class<?> cls)
+    public QLiveDomainBuilder objectType(Class<?> cls)
     {
         final jakarta.persistence.Table anno = cls.getAnnotation(jakarta.persistence.Table.class);
         if (anno == null)
@@ -492,7 +507,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder additionalQueries(GraphQLFieldDefinition... additionalQueries)
+    public QLiveDomainBuilder additionalQueries(GraphQLFieldDefinition... additionalQueries)
     {
         Collections.addAll(this.additionalQueries, additionalQueries);
 
@@ -507,7 +522,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder additionalMutations(GraphQLFieldDefinition... additionalMutations)
+    public QLiveDomainBuilder additionalMutations(GraphQLFieldDefinition... additionalMutations)
     {
         Collections.addAll(this.additionalMutations, additionalMutations);
 
@@ -522,7 +537,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder withDirectives(GraphQLDirective... additionalDirectives)
+    public QLiveDomainBuilder withDirectives(GraphQLDirective... additionalDirectives)
     {
         Collections.addAll(this.additionalDirectives, additionalDirectives);
         return this;
@@ -536,7 +551,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder withDirective(GraphQLDirective additionalDirectives)
+    public QLiveDomainBuilder withDirective(GraphQLDirective additionalDirectives)
     {
         this.additionalDirectives.add(additionalDirectives);
         return this;
@@ -548,7 +563,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder withoutStandardDirectives()
+    public QLiveDomainBuilder withoutStandardDirectives()
     {
         additionalDirectives.removeAll(STANDARD_DIRECTIVES);
         return this;
@@ -573,7 +588,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public <I,O> DomainQLBuilder withAdditionalScalar(Class<?> cls, GraphQLScalarType scalarType)
+    public <I,O> QLiveDomainBuilder withAdditionalScalar(Class<?> cls, GraphQLScalarType scalarType)
     {
         this.additionalScalarTypes.put(cls, scalarType);
         return this;
@@ -597,7 +612,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder withAdditionalInputType(Class<?> inputType)
+    public QLiveDomainBuilder withAdditionalInputType(Class<?> inputType)
     {
         this.additionalInputTypes.add(inputType);
 
@@ -616,7 +631,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder withAdditionalInputTypes(Class<?>... inputTypes)
+    public QLiveDomainBuilder withAdditionalInputTypes(Class<?>... inputTypes)
     {
         Collections.addAll(this.additionalInputTypes, inputTypes);
 
@@ -633,7 +648,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder withTypeDocsFrom(File file) throws FileNotFoundException
+    public QLiveDomainBuilder withTypeDocsFrom(File file) throws FileNotFoundException
     {
         if (file == null)
         {
@@ -652,7 +667,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder withTypeDocs(List<TypeDoc> typeDocs)
+    public QLiveDomainBuilder withTypeDocs(List<TypeDoc> typeDocs)
     {
         this.typeDocs.addAll(typeDocs);
         return this;
@@ -668,7 +683,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder withTypeDocsFrom(InputStream is)
+    public QLiveDomainBuilder withTypeDocsFrom(InputStream is)
     {
         if (is == null)
         {
@@ -697,7 +712,7 @@ public class DomainQLBuilder
      *
      * @see #configureNameFields(Class, String...)
      */
-    public DomainQLBuilder configureNameFieldForTypes(String nameField, Class<?>... pojoTypes)
+    public QLiveDomainBuilder configureNameFieldForTypes(String nameField, Class<?>... pojoTypes)
     {
         if (pojoTypes == null || pojoTypes.length < 1)
         {
@@ -723,7 +738,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder configureNameField(String... nameFields)
+    public QLiveDomainBuilder configureNameField(String... nameFields)
     {
         if (nameFields == null || nameFields.length < 1)
         {
@@ -743,7 +758,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder withMetadataProviders(MetadataProvider... metadataProviders)
+    public QLiveDomainBuilder withMetadataProviders(MetadataProvider... metadataProviders)
     {
         Collections.addAll(this.metadataProviders, metadataProviders);
 
@@ -761,7 +776,7 @@ public class DomainQLBuilder
      *
      * @return this builder
      */
-    public DomainQLBuilder configureNameFields(Class<?> pojoClass, String... nameFields)
+    public QLiveDomainBuilder configureNameFields(Class<?> pojoClass, String... nameFields)
     {
         if (nameFields == null || nameFields.length < 1)
         {

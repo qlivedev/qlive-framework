@@ -1,6 +1,6 @@
 package io.github.qlivedev.graphql.meta;
 
-import io.github.qlivedev.graphql.DomainQL;
+import io.github.qlivedev.graphql.QLiveDomainBuilder;
 import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.DomainQLTypeException;
 import io.github.qlivedev.graphql.RelationBuilder;
@@ -41,7 +41,7 @@ public class DomainQLMetaTest
     public void testMetadataGeneration()
     {
         // checks that output type overriding works via @GraphQLTypeParam, too
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
 
             .withRelation(
@@ -73,7 +73,7 @@ public class DomainQLMetaTest
     @Test
     public void testNameFields()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
 
             .configureRelation(BAR.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
@@ -99,7 +99,7 @@ public class DomainQLMetaTest
     public void testNamingFieldsManyToMany()
     {
         assertThrows(DomainQLTypeException.class, () -> {
-                final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+                final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
                     .objectTypes(Public.PUBLIC)
 
                     .configureRelation(BAR.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY)
@@ -119,7 +119,7 @@ public class DomainQLMetaTest
     public void testNamingFieldsError()
     {
         assertThrows(DomainQLTypeException.class, () -> {
-                final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+                final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
                     .objectTypes(Public.PUBLIC)
 
                     .configureRelation(BAR.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
@@ -134,7 +134,7 @@ public class DomainQLMetaTest
     @Test
     public void testNameFieldConfiguringByName()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
 
             .configureRelation(BAR.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
@@ -159,7 +159,7 @@ public class DomainQLMetaTest
     @Test
     public void testNameFieldConfiguringNonDBByName()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .logicBeans(new ConfigureNonDBByNameLogic())
             .objectTypes(Public.PUBLIC)
 
@@ -180,7 +180,7 @@ public class DomainQLMetaTest
     @Test
     public void testRelationModelMetadata()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new TestLogic()))
 

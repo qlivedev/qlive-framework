@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 /**
  * Marks classes as GraphQL scalar values.
  * <p>
- *     The scalar must be defined with {@link io.github.qlivedev.graphql.DomainQLBuilder#withAdditionalScalar(Class, GraphQLScalarType)}, this annotation
+ *     The scalar must be defined with {@link io.github.qlivedev.graphql.QLiveDomainBuilder#withAdditionalScalar(Class, GraphQLScalarType)}, this annotation
  *     only protects the scalar from being used without it being formally declared as a scalar value. 
  * </p>
  */

@@ -100,7 +100,7 @@ public class DomainQLExecutionTest
 
     private final TestLogic logic = new TestLogic(dslContext);
 
-    private final GraphQLSchema schema = DomainQL.newDomainQL(dslContext)
+    private final GraphQLSchema schema = QLiveDomainBuilder.newDomain(dslContext)
         .objectTypes(Public.PUBLIC)
         .logicBeans(Arrays.asList(logic, new TypeConversionLogic()))
 
@@ -352,7 +352,7 @@ public class DomainQLExecutionTest
     public void testTypeConvertingMutation()
     {
 
-        final GraphQLSchema schema = DomainQL.newDomainQL(dslContext)
+        final GraphQLSchema schema = QLiveDomainBuilder.newDomain(dslContext)
             .logicBeans(Collections.singletonList(new TypeConversionLogic()))
             .buildGraphQLSchema();
 
@@ -383,7 +383,7 @@ public class DomainQLExecutionTest
     @Test
     public void testCustomFetcher()
     {
-        final GraphQLSchema schema = DomainQL.newDomainQL(dslContext)
+        final GraphQLSchema schema = QLiveDomainBuilder.newDomain(dslContext)
             .logicBeans(Collections.singletonList(new CustomFetcherLogic()))
             .buildGraphQLSchema();
 
@@ -411,7 +411,7 @@ public class DomainQLExecutionTest
     @Test
     public void testGetterArguments()
     {
-        final GraphQLSchema schema = DomainQL.newDomainQL(dslContext)
+        final GraphQLSchema schema = QLiveDomainBuilder.newDomain(dslContext)
             .logicBeans(Collections.singletonList(new GetterArgLogic()))
             .buildGraphQLSchema();
 
@@ -489,7 +489,7 @@ public class DomainQLExecutionTest
     public void testEnumOperations()
     {
         {
-            final GraphQLSchema schema = DomainQL.newDomainQL(dslContext)
+            final GraphQLSchema schema = QLiveDomainBuilder.newDomain(dslContext)
                 .logicBeans(Arrays.asList(new LogicWithEnums(), new LogicWithEnums2()))
                 .buildGraphQLSchema();
 
@@ -585,7 +585,7 @@ public class DomainQLExecutionTest
     @Test
     public void testDegenerify()
     {
-        final GraphQLSchema schema = DomainQL.newDomainQL(null)
+        final GraphQLSchema schema = QLiveDomainBuilder.newDomain(null)
             .logicBeans(Collections.singleton(new DegenerifyAndRenameLogic()))
             .buildGraphQLSchema();
 
@@ -630,7 +630,7 @@ public class DomainQLExecutionTest
     @Test
     public void testDegenerifiedListInput()
     {
-        final GraphQLSchema schema = DomainQL.newDomainQL(null)
+        final GraphQLSchema schema = QLiveDomainBuilder.newDomain(null)
             .logicBeans(Collections.singleton(new DegenerifiedInputLogic()))
             .buildGraphQLSchema();
 
@@ -676,7 +676,7 @@ public class DomainQLExecutionTest
     @Test
     public void testDegenerifiedInput()
     {
-        final GraphQLSchema schema = DomainQL.newDomainQL(null)
+        final GraphQLSchema schema = QLiveDomainBuilder.newDomain(null)
             .logicBeans(Collections.singleton(new DegenerifiedContainerLogic()))
             .buildGraphQLSchema();
 
@@ -711,7 +711,7 @@ public class DomainQLExecutionTest
     @Test
     public void testDegenerifiedContainerOutput()
     {
-        final GraphQLSchema schema = DomainQL.newDomainQL(null)
+        final GraphQLSchema schema = QLiveDomainBuilder.newDomain(null)
             .logicBeans(Collections.singleton(new DegenerifyContainerLogic()))
             .buildGraphQLSchema();
 
@@ -752,7 +752,7 @@ public class DomainQLExecutionTest
     @Test
     public void testDoubleDegenerification()
     {
-        final GraphQLSchema schema = DomainQL.newDomainQL(null)
+        final GraphQLSchema schema = QLiveDomainBuilder.newDomain(null)
             .logicBeans(Collections.singleton(new DoubleDegenerificationLogic()))
             .buildGraphQLSchema();
 
@@ -791,7 +791,7 @@ public class DomainQLExecutionTest
     @Test
     public void testGenericDomainObject()
     {
-        final GraphQLSchema schema = DomainQL.newDomainQL(null)
+        final GraphQLSchema schema = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new GenericDomainLogic()))
             .withAdditionalScalar(DomainObject.class, DomainObjectScalar.newDomainObjectScalar())
@@ -863,7 +863,7 @@ public class DomainQLExecutionTest
     @Test
     public void testGenericDomainObjectOutput()
     {
-        final GraphQLSchema schema = DomainQL.newDomainQL(null)
+        final GraphQLSchema schema = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .withAdditionalScalar(DomainObject.class, DomainObjectScalar.newDomainObjectScalar())
             .logicBeans(Collections.singleton(new GenericDomainOutputLogic()))
@@ -903,7 +903,7 @@ public class DomainQLExecutionTest
     @Test
     public void testTypeParam()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new TypeParamLogic()))
             .build();
@@ -948,7 +948,7 @@ public class DomainQLExecutionTest
     @Test
     public void testTypeParam2()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new TypeParamLogic()))
             .build();
@@ -1082,7 +1082,7 @@ public class DomainQLExecutionTest
     @Test
     public void testTypeParamForMutation()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new TypeParamMutationLogic()))
             .build();
@@ -1237,7 +1237,7 @@ public class DomainQLExecutionTest
     @Test
     public void testNullForComplexValue()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new NullForComplexValueLogic()))
             .build();
@@ -1265,7 +1265,7 @@ public class DomainQLExecutionTest
     @Test
     public void testAccessDomainQLByEnv()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new AccessDomainQLLogic()))
             .build();
@@ -1295,7 +1295,7 @@ public class DomainQLExecutionTest
     @Test
     public void testGenericScalar()
     {
-        final GraphQLSchema schema = DomainQL.newDomainQL(null)
+        final GraphQLSchema schema = QLiveDomainBuilder.newDomain(null)
             .logicBeans(Collections.singleton(new GenericScalarLogic()))
             .withAdditionalScalar(GenericScalar.class, GenericScalarType.newGenericScalar())
             .withAdditionalScalar(DomainObject.class, DomainObjectScalar.newDomainObjectScalar())
@@ -1383,7 +1383,7 @@ public class DomainQLExecutionTest
     @Test
     public void testFetcherContext()
     {
-        final GraphQLSchema schema = DomainQL.newDomainQL(dslContext)
+        final GraphQLSchema schema = QLiveDomainBuilder.newDomain(dslContext)
             .objectTypes(Public.PUBLIC)
             .logicBeans(new FetcherContextLogic())
 
@@ -1429,7 +1429,7 @@ public class DomainQLExecutionTest
     @Test
     public void testToOneBackReferenceWithFetcherContext()
     {
-        final GraphQLSchema schema = DomainQL.newDomainQL(dslContext)
+        final GraphQLSchema schema = QLiveDomainBuilder.newDomain(dslContext)
             .objectTypes(Public.PUBLIC)
             .logicBeans(new FetcherContextLogic())
 
@@ -1477,7 +1477,7 @@ public class DomainQLExecutionTest
     @Test
     public void testToManyBackReferenceWithFetcherContext()
     {
-        final GraphQLSchema schema = DomainQL.newDomainQL(dslContext)
+        final GraphQLSchema schema = QLiveDomainBuilder.newDomain(dslContext)
             .objectTypes(Public.PUBLIC)
             .logicBeans(new FetcherContextLogic())
 
@@ -1527,7 +1527,7 @@ public class DomainQLExecutionTest
     @Test
     public void testDBView()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new SumPerMonthLogic()))
             .objectType(SumPerMonth.class)
@@ -1648,7 +1648,7 @@ public class DomainQLExecutionTest
     @Test
     public void testListOfDomainObjectScalarsInput()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new ListInputLogic()))
             .withAdditionalInputType(Foo.class)
@@ -1698,7 +1698,7 @@ public class DomainQLExecutionTest
     @Test
     public void testListOfDomainObjectsInput()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new ListInputLogic()))
             .withAdditionalInputType(Foo.class)
@@ -1741,7 +1741,7 @@ public class DomainQLExecutionTest
     @Test
     public void testListOfEnumsInput()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new ListInputLogic()))
             .withAdditionalInputType(Foo.class)
@@ -1777,7 +1777,7 @@ public class DomainQLExecutionTest
     @Test
     public void testNullableListOfScalarsInput()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new ListInputLogic()))
             .withAdditionalInputType(Foo.class)
@@ -1837,7 +1837,7 @@ public class DomainQLExecutionTest
     @Test
     public void testListOfGenericDomainObjects()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new GenericScalarLogic()))
             .withAdditionalScalar(GenericScalar.class, GenericScalarType.newGenericScalar())
@@ -1885,7 +1885,7 @@ public class DomainQLExecutionTest
     @Test
     public void testGenericScalarNull()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new GenericScalarLogic()))
             .withAdditionalScalar(GenericScalar.class, GenericScalarType.newGenericScalar())
@@ -1927,7 +1927,7 @@ public class DomainQLExecutionTest
     @Test
     public void testNullPropInDomainObject()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new NullPropInDomainObjectLogic()))
             .withAdditionalScalar(DomainObject.class, DomainObjectScalar.newDomainObjectScalar())
@@ -1963,7 +1963,7 @@ public class DomainQLExecutionTest
     @Test
     public void testNonNullViolationInDomainObject()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new NullPropInDomainObjectLogic()))
             .withAdditionalScalar(DomainObject.class, DomainObjectScalar.newDomainObjectScalar())
@@ -1994,7 +1994,7 @@ public class DomainQLExecutionTest
     @Test
     public void testBinaryData()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new BinaryDataLogic()))
             .build();
@@ -2033,7 +2033,7 @@ public class DomainQLExecutionTest
     @Test
     public void testBigNumericTypes()
     {
-        final QLiveDomain domainQL = DomainQL.newDomainQL(null)
+        final QLiveDomain domainQL = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new BigNumericLogic()))
             .withAdditionalScalar(BigDecimal.class, BigDecimalScalar.newScalar())

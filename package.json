@@ -18,7 +18,8 @@
     "docs:build": "pnpm -C qlive-doc build",
     "docs:api": "pnpm -filter @qlivedev/qlive-ts run build && node tooling/generateApiDocs.mjs",
     "docs:api:check": "node tooling/generateApiDocs.mjs --check",
-    "docs:preview": "pnpm -C qlive-doc preview"
+    "docs:preview": "pnpm -C qlive-doc preview",
+    "release:npm": "node tooling/publishNpm.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.0.0",

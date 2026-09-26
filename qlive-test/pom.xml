@@ -25,6 +25,11 @@
     <!-- Must match .nvmrc / root package.json engines.node so every tool agrees on one Node build. -->
     <node.version>v22.23.2</node.version>
     <pnpm.version>9.15.0</pnpm.version>
+    <!-- Never published (see the parent's central-publishing-maven-plugin), so the
+         release profile has nothing to document or sign here -->
+    <maven.source.skip>true</maven.source.skip>
+    <maven.javadoc.skip>true</maven.javadoc.skip>
+    <gpg.skip>true</gpg.skip>
   </properties>
 
   <dependencyManagement>

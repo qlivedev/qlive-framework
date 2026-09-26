@@ -15,7 +15,10 @@
   <packaging>jar</packaging>
 
   <name>qlive</name>
-  <description>Framework core, consumed as source-built SNAPSHOT by qlive-test.</description>
+  <description>
+    Framework core: the GraphQL endpoint, the merge that writes client changes back, and the
+    push transport that keeps clients live.
+  </description>
 
   <dependencies>
     <dependency>

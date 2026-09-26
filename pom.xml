@@ -9,6 +9,7 @@
   <version>0.9.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
+  <url>https://qlivedev.github.io/qlive-framework/</url>
   <inceptionYear>2026</inceptionYear>
 
   <licenses>
@@ -19,10 +20,25 @@
     </license>
   </licenses>
 
+  <developers>
+    <developer>
+      <name>Sven Helmberger</name>
+      <email>sven dot helmberger at gmx dot de</email>
+      <url>http://fforw.de/</url>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:https://github.com/qlivedev/qlive-framework.git</connection>
+    <developerConnection>scm:git:git@github.com:qlivedev/qlive-framework.git</developerConnection>
+    <url>https://github.com/qlivedev/qlive-framework</url>
+    <tag>HEAD</tag>
+  </scm>
+
   <name>qlive-framework (parent)</name>
   <description>
-    Maven reactor for the qlive framework developer monorepo. Builds qlive
-    and qlive-test from source in one pass, no publishing required.
+    Parent of the QLive fullstack framework modules: the Spring, Security and
+    svenson versions they are built and tested against, and their shared build.
   </description>
 
   <modules>

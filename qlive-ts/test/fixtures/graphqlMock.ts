@@ -1,4 +1,4 @@
-import {vi} from "vitest";
+import {vi, type Mock} from "vitest";
 
 /**
  * Stubs out what the server puts into the page and what it answers with. The suite runs
@@ -8,7 +8,7 @@ import {vi} from "vitest";
  *
  * @returns the fetch mock, to assert on what went out
  */
-export function respondWith(response: any)
+export function respondWith(response: any): Mock
 {
     const fetchMock = vi.fn().mockResolvedValue({
         json: () => Promise.resolve(response)

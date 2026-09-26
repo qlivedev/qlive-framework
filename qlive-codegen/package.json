@@ -3,11 +3,23 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "description": "Generates TypeScript types from a QLive GraphQL schema and its queries. Build-time only, and kept apart from @qlivedev/qlive-ts so that the runtime does not carry graphql.",
+  "license": "Apache-2.0",
+  "author": "Sven Helmberger",
+  "homepage": "https://qlivedev.github.io/qlive-framework/",
+  "bugs": "https://github.com/qlivedev/qlive-framework/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qlivedev/qlive-framework.git",
+    "directory": "qlive-codegen"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": "./tooling/queryTypeGenerator.js",
     "./package.json": "./package.json"
   },
-  "description": "Schema-to-TypeScript codegen for QLive. Build-time only, and deliberately a separate package: graphql and @graphql-tools are ~5MB that the qlive-ts runtime never imports, so apps that do not run codegen should not carry them.",
   "bin": {
     "generate-ts": "tooling/generateTS.js",
     "generate-query-types": "tooling/generateQueryTypes.js",
@@ -17,7 +29,8 @@
     "test": "vitest run"
   },
   "files": [
-    "tooling"
+    "tooling",
+    "NOTICE"
   ],
   "dependencies": {
     "@graphql-tools/graphql-file-loader": "^8.1.12",
@@ -25,7 +38,7 @@
     "graphql": "^16.13.1"
   },
   "peerDependencies": {
-    "@qlivedev/qlive-ts": "workspace:*"
+    "@qlivedev/qlive-ts": "workspace:^"
   },
   "devDependencies": {
     "@qlivedev/qlive-ts": "workspace:*",

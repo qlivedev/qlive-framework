@@ -1,15 +1,16 @@
 ---
 title: Expose document queries
-description: One generic method that becomes queryFooDocument, queryBarDocument and the rest.
+description: How to setup QueryDocumentService endpoints
 sidebar:
   order: 2
 ---
+Each type of query document needs to be served by its own dedicated endpoint. Thanks to our GraphQL engine we don't have
+to write them by hand, but we can instead use one generic endpoint that gets multiplied into one query per row type we 
+declare. 
 
-An application exposes
-[query documents](/qlive-framework/explanation/query-documents/) from a
-logic bean. GraphQL knows no generics, so a concrete type has to exist for
-every `QueryDocument<T>` you want -- but you write one Java method and let
-QLive make them.
+We use this general qlive-graphql pattern to serve out [query documents](/qlive-framework/explanation/query-documents/).
+
+Here we see the setup for logic bean containing such a generic QueryDocumentService endpoint.
 
 ```java {31-37,44-46} title='QueryLogic.java'
 import io.github.qlivedev.graphql.annotation.GraphQLLogic;
@@ -62,14 +63,29 @@ public class QueryLogic
 }
 ```
 
-`@GraphQLTypeParam` is what turns the one method into `queryFooDocument`,
-`queryBarDocument` and the rest: for every type in `types` it creates a type
-that is `QueryDocument<T>` on the Java side and `FooDocument` or
-`BarDocument` in GraphQL and TypeScript, plus the query method returning it.
+`@GraphQLTypeParam` controls how the generic method is turned into many concrete methods:
 
-**Adding a type to `types` adds a query.** That is the whole of extending
-this, and it is also a schema change -- so
-[regenerate](/qlive-framework/how-to/regenerate-from-the-schema/) afterwards.
+ * `types` lists all rowTypes we want. 
+ * `namePattern` declares the name pattern for the GraphQL method. 
+ * `typeNamePattern` declares the pattern for the result type name
+
+So here we declare `Foo.class` and `Bar.class` as the row types we want. The result schema corresponding to this will
+be
+
+```graphql
+type QueryType {
+  "Queries Foo objects based on the given query config"
+  queryFooDocument(config: QueryConfig!): FooDocument!
+  "Queries Bar objects based on the given query config"
+  queryBarDocument(config: QueryConfig!): BarDocument!
+  # ...
+}
+```
+:::note
+
+Remember to [regenerate the TypeScript types](/qlive-framework/how-to/regenerate-from-the-schema/) for any schema change on the server side.
+
+:::
 
 ## `selectByFilter`
 
@@ -85,11 +101,11 @@ posted by a browser may reach.
   surface -- a client can then read through relations the query did not
   select.
 
-`qlive-test` passes `true` because it is a test application exercising the
-DSL. An application serving real data should have a reason before it does.
+`qlive-test` passes `true` because it is a test application that only has security examples and no real security. 
 
 ## Next
-
+                                                                     
+- Read about [why the document can be a security boundary](/qlive-framework/explanation/query-documents/#why-the-document-can-be-a-security-boundary)
 - A page size cap, a default sort or a standing condition per type:
   [Add schema metadata](/qlive-framework/how-to/add-schema-metadata/).
 - Row-level security, or redefining what "no config" means:

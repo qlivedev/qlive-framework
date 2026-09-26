@@ -6,7 +6,7 @@ sidebar:
 ---
 
 The config a document query executes with is the one you hand
-`buildQuery()`, and nothing says it has to be the one that arrived. Both
+`queryDocumentService.buildQuery()`, and nothing says it has to be the one that arrived. Both
 recipes below are the same move: take the incoming `QueryConfig`, change
 it, pass the changed one on.
 
@@ -20,19 +20,19 @@ An injection with no config of its own still reaches your query method with
 a complete `QueryConfig` object: QLive assembles one from what the meta
 configuration suggests for that type -- the default `pageSize`, the default
 sorting. There is no GraphQL coercion that could have done it, because
-there was no config level in the query at all.
+there was no config level in the query parameters at all.
 
-Its normal meaning is "give me this type with default configuration", and
+Its normal meaning is "give me this type with default configuration", but
 you can redefine it. Detect that the config is the default before you pass
 it into the service, and replace what you like -- the condition with one of
-your own, the sort fields with a complex expression list:
+your own, the sort fields with a complex expression list.
 
-> "The latest edited favorites of the current user", or whatever satisfies
-> your needs.
+*"The latest edited favorites of the current user"*, or whatever satisfies
+your needs.
 
 The query then executes with your config, and that same config is what
 comes back on the document -- so the client's next `update()` starts from
-where you put it.
+the same changed `QueryConfig`.
 
 ## Filter by security rules
 

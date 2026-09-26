@@ -9,8 +9,8 @@ hero:
   # <h1>, so the image's alt text is what the heading says. Raw HTML, hence
   # public/ and the base in the path -- see "Images" in the README.
   title: >-
-    <img src="/qlive-framework/media/qlive-logo-light.svg" alt="QLive" class="qlive-logo dark:sl-hidden" />
-    <img src="/qlive-framework/media/qlive-logo-dark.svg" alt="QLive" class="qlive-logo light:sl-hidden" />
+    <img src="/qlive-framework/media/qlive-logo-light.svg" alt="QLive Framework User Documentation" class="qlive-logo dark:sl-hidden" />
+    <img src="/qlive-framework/media/qlive-logo-dark.svg" alt="QLive Framework User Documentation" class="qlive-logo light:sl-hidden" />
   tagline: One domain, from the database to the browser
   actions:
     - text: Read the overview

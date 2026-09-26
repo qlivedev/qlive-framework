@@ -7,7 +7,7 @@ sidebar:
 
 Most data a page needs is
 [injected](/qlive-framework/explanation/injections/) and arrives in the HTML
-document. Runtime execution is for what could not have been: a detail
+document. Runtime execution is for what could not have been injected: a detail
 record chosen by a click, a lookup whose parameters only exist once the
 user has typed something.
 

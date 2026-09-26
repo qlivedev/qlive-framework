@@ -76,7 +76,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>30.1.1-jre</version>
+      <version>33.7.1-jre</version>
     </dependency>
 
     <!-- build time only: the three below are DocsExtractor's, which reads javadoc out

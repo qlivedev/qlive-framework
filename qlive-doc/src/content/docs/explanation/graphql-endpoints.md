@@ -1,5 +1,5 @@
 ---
-title: The Java half
+title: GraphQL endpoints in Java
 description: What QLive inherits from DomainQL, and the shape of a logic bean.
 sidebar:
   order: 3
@@ -17,7 +17,7 @@ This page is what the pieces are.
 
 ## Logic beans
 
-A logic bean is where your GraphQL methods live. Two annotations carry
+A logic bean is where your GraphQL methods live. Three annotations carry
 almost all of it:
 
 ```java {6, 10, 16} title='QueryAndMutationExample.java'
@@ -50,13 +50,12 @@ Spring bean and that it contains GraphQL methods.
 
 `@GraphQLQuery` declares that the given method is part of the GraphQL
 schema. The input types, output types and scalars it uses are added to the
-schema automatically. `@GraphQLMutation` is the write side -- declare all
-modifications as mutations.
+schema automatically. `@GraphQLMutation` is the same for write side. 
+You should declare all changing actions as mutations.
 
 Logic definitions take precedence over the definitions coming from the
-database POJOs. That is the seam an application widens: replacing an
-auto-generated type with your own implementation adds GraphQL fields, or
-defines GraphQL types the database cannot imply. See
+database POJOs. This allows overriding the types from the database to 
+either disambiguate types or to extend functionality. See
 [Replace a generated type](/qlive-framework/how-to/replace-a-generated-type/).
 
 ## QueryDocumentService

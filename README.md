@@ -1,8 +1,8 @@
 <p>
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="./docs/qlive-logo-dark.svg">
-      <source media="(prefers-color-scheme: light)" srcset="./docs/qlive-logo-light.svg">
-      <img alt="qlive framework" src="./docs/qlive-logo-dark.svg">
+      <source media="(prefers-color-scheme: dark)" srcset="qlive-doc/public/media/qlive-logo-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="qlive-doc/public/media/qlive-logo-light.svg">
+      <img alt="qlive framework" src="qlive-doc/public/media/qlive-logo-dark.svg">
     </picture>
 </p>
 
@@ -49,8 +49,8 @@ pnpm dev-ts    # the frontend half alone, for when the backend already runs some
 ### Github pages documentation
 
 ```bash
-pnpm docs:dev         # symlinks qlive-ts into qlive-test/frontend/node_modules
-pnpm docs:build       # ./mvnw install — builds qlive, then qlive-ts (tsdown), then the frontend
+pnpm docs:dev         # Runs the dev server for the astro starlight documentation page
+pnpm docs:build       # Builds the astro starlight documentation page 
 pnpm docs:api         # generate API part of the documentation from jsdoc
 pnpm docs:api:check   # check API documentation status
 pnpm docs:preview     # run docs preview 

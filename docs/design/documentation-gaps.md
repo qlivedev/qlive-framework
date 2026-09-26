@@ -260,7 +260,7 @@ the only way a view-backed type gets a relation at all.
 the task makes sense.
 
 `explanation/database-views.md`, explanation order 4, after
-`the-java-half.md`: what backs a domain type, why some types have no
+`graphql-endpoints.md`: what backs a domain type, why some types have no
 generated POJO behind them, and why a relation that no foreign key
 describes has to be declared instead of discovered. Inserting at 4
 renumbers the five pages after it, which the sidebar section below

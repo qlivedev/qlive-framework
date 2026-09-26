@@ -4,6 +4,8 @@ description: How a URL becomes a view module.
 sidebar:
   order: 5
 ---
+QLive is dealing with views and routing out of necessity and not because we thought it would be fun to reinvent routing. 
+For the injection mechanism to work, the server has to know which component's injection to prepare. 
 
 A **view** is the component a URL renders. Views live under `src/app`, they
 are the only modules that may call `useInjection()`, and they are the only

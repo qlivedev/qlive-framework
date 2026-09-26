@@ -17,25 +17,48 @@ The feature-set, however, focuses on a small number of features and concepts, hi
 domain.
 
 
-## Data Access
+## Data Access / jOOQ
 
 For data access we have to consider it on two levels: What we offer now and basically limitless possibilities.
 
-Hibernate/JPA has wrought havoc on many a project, and of course, it is because the critics have always been right 
-and the mismatch between the OOP world and databases is fundamental. 
+We generally really like jOOQ to access databases and prefer it over industry-standard alternatives like JPA/Hibernate. 
+jOOQ abstracts away the differences in database dialect and leads to a kind of simplicity that is both very 
+attractive but at the same time maybe a bit bare-bones alone. 
 
-### jOOQ
+The jOOQ people will be the first to point out that 
+[jOOQ is no simple replacement for JPA](https://www.jooq.org/doc/latest/manual/getting-started/jooq-and-jpa/). In 
+combination with our GraphQL implementation and our QueryDocumentService we do however have a functionally a full 
+alternative to JPA. One where the frontend developer decides how much of the object graph they need for their use case.
 
-We use jOOQ for database access, and you can, too, but you don't have to. The declarative features are powerful enough
-that you can plausibly create entire applications without writing a jOOQ query. It defines however what we can send to 
-client from our logic functions and that is anything expressible as a hierarchy of GraphQL compatible POJOs. GraphQL
-limits us a bit because it e.g. does not allow typed maps or discriminator based JSON parsing.  
+This is what we are currently offering. In combination with the MergeService we have a full-circle data
+access and update mechanism that operates on a very high, declarative level. It is plausible to write complex 
+applications with just those two services.
 
-But still, the possibilities of what can be expressed in these POJOs is endless. If you have other data sources, I'm
-pretty sure that you can integrate them. But you can also mix and match -- just use REST or whatever with
-Spring. These work just fine to integrate as runtime fetch requests, but they cannot enjoy the data injection features.
+### Integration into QLive
 
-### GraphQL: Database/code-first
+This does not bind you, however. You certainly should use our services, because, if you are not using them at all, 
+why are you using QLive? 
+
+But you can also just do what you want. For one, QLive is fully integrated into Spring and you can do whatever. 
+We have some controller endpoints we need for the system, but apart from those you can use whatever 
+data communication/access/templating you like and integrate into anything. 
+
+You can also do a lot of these things *within* the QLive system. Everything that fits into the GraphQL method paradigm
+can enjoy all data injection features and/or extend them for their purposes. 
+
+#### POJOS as data layer
+                        
+Every GraphQL endpoint returns a graph of <abbr title="Plain old java objects">POJOs</abbr>. For the database-backed POJOs, 
+the expressiveness is limited to what jOOQ generates. The handwritten POJOs which would be basis for any integration are
+a bit more expressive in that they can use QLive annotations to change the GraphQL type of properties and to create
+custom field implementations executing logic. 
+
+GraphQL is what limits the POJOs a bit, for example it does not allow typed maps or discriminator based JSON parsing.  
+
+But still, the possibilities of what can be expressed in these POJOs are endless. If you have other data sources, I'm
+pretty sure that you can integrate them.
+
+## GraphQL: Database/code-first
 
 Our GraphQL schema is generated and the result of what is currently used. At the beginning we have a database we want to 
 connect to. We generally support all [databases supported by jOOQ](https://www.jooq.org/doc/latest/manual/reference/supported-rdbms/). 
@@ -43,7 +66,7 @@ connect to. We generally support all [databases supported by jOOQ](https://www.j
 <img src="/qlive-framework/media/qlive-workflow-light.svg"  alt="QLive workflow diagram" class="dark:sl-hidden" />
 <img src="/qlive-framework/media/qlive-workflow-dark.svg"  alt="QLive workflow diagram" class="light:sl-hidden" />
 
-We use jOOQ to generate POJOs (plain old Java objects) that mirror the tables in the database. Our GraphQL methods are
+We use jOOQ to generate <abbr title="Plain old java objects">POJOs</abbr> that mirror the tables in the database. Our GraphQL methods are
 contained in logic beans which can also reference handwritten POJO models. The existing GraphQL methods, all POJOS, and type
 documentation together build the GraphQL schema.
 

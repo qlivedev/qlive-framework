@@ -80,6 +80,15 @@ cannot see at build time is not there when the query runs.
 
 For values only known at runtime, inject a starting page and move on with
 `update()` or `execute()`.
+:::note
+Note that our strong recommendation would be *not* to define the second parameter but 
+instead to use the built-in defaults mechanism.
+
+
+
+
+See [Query config parameters](/qlive-framework/explanation/injections/#query-config-parameters).
+:::
 
 ### The query has to be a declared constant
 

@@ -56,7 +56,8 @@ The cost is one extra `pnpm -C qlive-doc install` before the first
 
 ## Colors
 
-`src/styles/qlive.css` is generated -- do not edit it. The six brand colors
+`src/styles/qlive.css` is generated -- do not edit it; hand-written rules
+go in `src/styles/site.css`. The six brand colors
 live in `tooling/palette.mjs`, which derives every shade, tint and neutral
 from them and picks how far to mix by measuring WCAG contrast rather than by
 eye. Change a color there and run `pnpm -C qlive-doc palette`.

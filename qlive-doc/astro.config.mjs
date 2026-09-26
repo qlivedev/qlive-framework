@@ -23,7 +23,7 @@ export default defineConfig({
     integrations: [
         starlight({
             title: "QLive",
-            customCss: ["./src/styles/qlive.css"],
+            customCss: ["./src/styles/qlive.css", "./src/styles/site.css"],
             description:
                 "Documentation for building applications on the QLive framework.",
             social: [

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="192"
+   height="64"
+   viewBox="0 0 50.800258 16.933349"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.3.2 (1:1.3.2+202311252150+091e20ef0f)"
+   sodipodi:docname="qlive-logo-header-light.svg"
+   inkscape:export-filename="../../Desktop/tmp/qlive.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#075d5a"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     inkscape:zoom="2.8284271"
+     inkscape:cx="141.42136"
+     inkscape:cy="43.663844"
+     inkscape:window-width="1920"
+     inkscape:window-height="1011"
+     inkscape:window-x="0"
+     inkscape:window-y="32"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     showguides="true"
+     showgrid="false">
+    <sodipodi:guide
+       position="106.79699,4.1756632"
+       orientation="0,-1"
+       id="guide2"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="360.36469,-174.62478"
+       orientation="0,-1"
+       id="guide3"
+       inkscape:locked="false" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1">
+    <linearGradient
+       id="linearGradient1"
+       inkscape:collect="always">
+      <stop
+         style="stop-color:#1c827e;stop-opacity:1;"
+         offset="0"
+         id="stop1" />
+      <stop
+         style="stop-color:#8d763f;stop-opacity:1;"
+         offset="0.37653184"
+         id="stop3" />
+      <stop
+         style="stop-color:#ff6b01;stop-opacity:1;"
+         offset="1"
+         id="stop2" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1"
+       id="linearGradient2"
+       x1="164.48805"
+       y1="134.38574"
+       x2="150.58531"
+       y2="156.52711"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.14362571,0,0,0.14362571,44.819441,56.598506)" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-51.622931,-66.615957)">
+    <circle
+       style="color:#000000;overflow:visible;fill:none;fill-rule:evenodd;stroke:#1c827e;stroke-width:3.14307;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+       id="path2"
+       cx="59.041843"
+       cy="75.530197"
+       r="5.3260503" />
+    <path
+       id="path5"
+       style="fill:url(#linearGradient2);fill-rule:evenodd;stroke-width:0.112252;stroke-linecap:square;stroke-linejoin:round"
+       d="m 69.763927,70.875281 c -0.753014,0.0031 -1.50623,-0.0022 -2.259184,0.0032 -0.162842,0.01268 -0.333747,0.117814 -0.424466,0.263474 -0.07894,0.112033 -0.09151,0.251365 -0.08909,0.384178 -0.02435,0.89369 -0.06526,1.789057 -0.193511,2.674682 -0.112864,0.749225 -0.291422,1.499963 -0.647551,2.174029 -0.292156,0.570683 -0.696274,1.071766 -1.067145,1.591429 -0.06778,0.05911 -0.159064,0.0067 -0.209754,-0.04895 -1.045548,-0.859614 -2.134371,-1.666675 -3.259039,-2.419717 -0.718451,-0.474341 -1.464178,-0.919101 -2.251753,-1.275756 -0.229808,-0.08469 -0.50391,3.77e-4 -0.652025,0.193915 -0.592674,0.64059 -1.190228,1.276929 -1.778686,1.921253 -0.191801,0.24689 -0.123404,0.648849 0.14497,0.812489 0.153901,0.08996 0.329319,0.133065 0.488484,0.212307 0.935332,0.411428 1.820076,0.929202 2.675815,1.485406 0.970955,0.642248 1.886488,1.363932 2.782394,2.106026 0.414365,0.344069 0.817217,0.701728 1.220862,1.058078 0.479106,0.375128 1.158759,0.486505 1.725667,0.255705 0.338283,-0.132156 0.632296,-0.369311 0.835628,-0.670016 0.373132,-0.541891 0.786442,-1.054503 1.176975,-1.583736 0.510629,-0.682735 0.972951,-1.399544 1.323639,-2.17809 0.489609,-1.069562 0.783172,-2.218961 0.959272,-3.379204 0.152795,-1.000962 0.223135,-2.015927 0.246681,-3.030168 -0.0015,-0.20144 -0.137875,-0.408699 -0.327121,-0.495919 -0.130009,-0.066 -0.279906,-0.05189 -0.421063,-0.05456 z" />
+    <path
+       id="path3"
+       style="fill:#ff6b01;fill-rule:evenodd;stroke-width:0.11268;stroke-linecap:square;stroke-linejoin:round"
+       d="m 67.562417,67.205438 c -0.205581,0.0023 -0.406669,0.111634 -0.513402,0.288471 -0.09479,0.142423 -0.09616,0.318572 -0.09084,0.483448 0.0025,0.512808 0.0069,1.02578 0.0035,1.538482 0.0026,0.239943 0.161541,0.466914 0.38575,0.55218 0.181765,0.06746 0.379289,0.03366 0.568809,0.04194 0.686506,-0.0015 1.373271,0.0029 2.059618,-0.0022 0.261868,-0.0058 0.504869,-0.202526 0.56258,-0.458327 0.03559,-0.163077 0.01582,-0.332503 0.02176,-0.498416 -0.002,-0.459282 -0.0015,-0.91884 -0.0085,-1.377941 -0.007,-0.263255 -0.20742,-0.506301 -0.465215,-0.561279 -0.166603,-0.03465 -0.339043,-0.01089 -0.508172,-0.01659 -0.671988,0.0034 -1.343978,0.0068 -2.015966,0.01024 z" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12.7001px;line-height:130%;font-family:'Bitstream Vera Sans';-inkscape-font-specification:'Bitstream Vera Sans, Normal';font-variant-ligatures:none;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000217;fill-opacity:1;stroke:#000000;stroke-width:0.0993766px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="70.839607"
+       y="80.03363"
+       id="text1"><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12.7001px;line-height:130%;font-family:'Bitstream Vera Sans';-inkscape-font-specification:'Bitstream Vera Sans, Normal';font-variant-ligatures:none;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;text-anchor:start;fill:#000217;fill-opacity:1;stroke-width:0.0993766px"
+         x="70.839607"
+         y="80.03363"
+         id="tspan2">qlive</tspan></text>
+  </g>
+</svg>

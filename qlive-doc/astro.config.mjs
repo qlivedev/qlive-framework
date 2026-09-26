@@ -23,6 +23,14 @@ export default defineConfig({
     integrations: [
         starlight({
             title: "QLive",
+            // Imported, not served from public/: Starlight resolves these
+            // paths from the project root and hashes the files into the
+            // build. The title text stays in the header for screen readers.
+            logo: {
+                light: "./src/assets/qlive-logo-header-light.svg",
+                dark: "./src/assets/qlive-logo-header-dark.svg",
+                replacesTitle: true,
+            },
             customCss: ["./src/styles/qlive.css", "./src/styles/site.css"],
             description:
                 "Documentation for building applications on the QLive framework.",

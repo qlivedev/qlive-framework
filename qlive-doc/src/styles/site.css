@@ -20,3 +20,12 @@
     border-radius: 0.25rem;
     padding: 0.05rem 0.4rem;
 }
+
+/*
+ * The landing page's logo, which stands in for the hero heading. The SVG's
+ * own size is 800px wide, so without this it overflows a phone.
+ */
+.qlive-logo {
+    max-width: 100%;
+    height: auto;
+}

@@ -38,6 +38,7 @@
     <junit.version>6.0.3</junit.version>
     <spring-framework.version>7.0.9</spring-framework.version>
     <spring-security.version>7.0.7</spring-security.version>
+    <svenson.version>1.6.1</svenson.version>
   </properties>
 
   <dependencyManagement>
@@ -48,6 +49,11 @@
         <version>${junit.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.google.code.svenson</groupId>
+        <artifactId>svenson</artifactId>
+        <version>${svenson.version}</version>
       </dependency>
       <!-- The Spring versions the framework modules build and test against. An
            application's own dependency management, usually the Spring Boot BOM,

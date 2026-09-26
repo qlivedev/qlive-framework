@@ -68,7 +68,6 @@
     <dependency>
       <groupId>com.google.code.svenson</groupId>
       <artifactId>svenson</artifactId>
-      <version>1.6.1</version>
     </dependency>
 
 

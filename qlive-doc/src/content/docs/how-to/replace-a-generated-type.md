@@ -74,8 +74,9 @@ public String getSummary()
 }
 ```
 
-A property has to be writable to become a field at all, so such a field
-needs a setter even when nothing reads what it stores.
+The getter is all it takes; there is no setter to write. Do not mark it
+`@JSONProperty(readOnly = true)` either: that keeps a property out of the
+schema altogether.
 
 Two consequences to plan around:
 

@@ -11,6 +11,7 @@ import io.github.qlivedev.graphql.generic.GenericScalar;
 import io.github.qlivedev.graphql.generic.GenericScalarType;
 import io.github.qlivedev.graphql.logicimpl.BigNumericLogic;
 import io.github.qlivedev.graphql.logicimpl.BinaryDataLogic;
+import io.github.qlivedev.graphql.logicimpl.ComputedPropsLogic;
 import io.github.qlivedev.graphql.logicimpl.CustomParameterProviderLogic;
 import io.github.qlivedev.graphql.logicimpl.DegenerifyDBLogic;
 import io.github.qlivedev.graphql.logicimpl.DegenerifiedContainerLogic;
@@ -1133,6 +1134,33 @@ public class AnotherQLiveDomainTest
         assertThat(fieldDefinitions.size(), is(1));
         assertThat(fieldDefinitions.get(0).getName(), is("value"));
 
+    }
+
+
+    /**
+     * What a {@link io.github.qlivedev.graphql.annotation.GraphQLComputed} getter needs to become a field. A
+     * getter alone is enough: svenson calls a property read-only only when {@code @JSONProperty(readOnly = true)}
+     * says so, not for want of a setter. Saying so is what keeps a property out of the schema altogether,
+     * computed or not.
+     */
+    @Test
+    public void testComputedProps()
+    {
+        final GraphQLSchema schema = QLiveDomainBuilder.newDomain(null)
+            .objectTypes(Public.PUBLIC)
+            .logicBeans(Collections.singleton(new ComputedPropsLogic()))
+            .build()
+            .getGraphQLSchema();
+
+        final GraphQLObjectType type = (GraphQLObjectType) schema.getType("ComputedPropsBean");
+        assertThat(type.getFieldDefinition("value"), is(notNullValue()));
+        assertThat(type.getFieldDefinition("valuePlus").getType(), is(Scalars.GraphQLString));
+        assertThat(type.getFieldDefinition("valueMinus"), is(nullValue()));
+        assertThat(type.getFieldDefinitions().size(), is(2));
+
+        final GraphQLInputObjectType inputType = (GraphQLInputObjectType) schema.getType("ComputedPropsBeanInput");
+        assertThat(inputType.getFieldDefinition("value"), is(notNullValue()));
+        assertThat(inputType.getFieldDefinitions().size(), is(1));
     }
 
 

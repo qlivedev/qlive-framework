@@ -51,15 +51,6 @@ public class Qux
     }
 
 
-    /// Present only so the property is not read-only, which is what a property has to be to become a field
-    /// at all. Nothing reads what it stores.
-    ///
-    /// @param ignored   ignored
-    public void setSummary(String ignored)
-    {
-    }
-
-
     /// Currency value.
     ///
     /// Defined as integer containing 1/10000th currency units. So 10000 would be 1 EUR, e.g.

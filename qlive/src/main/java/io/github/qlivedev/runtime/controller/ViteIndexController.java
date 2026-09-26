@@ -22,7 +22,7 @@ import java.util.Map;
  * Serves the application under {@code /app/**} via {@link VitePageRenderer}, which splices the current
  * {@link io.github.qlivedev.model.bootstrap.QLiveConfig} into Vite's build output. In {@code vite dev},
  * nobody touches that template, so the placeholder stays empty and the frontend falls back to fetching the
- * same data live from {@link #bootstrap(String)}.
+ * same data live from {@link #bootstrap(String, CsrfToken)}.
  */
 @Controller
 public class ViteIndexController

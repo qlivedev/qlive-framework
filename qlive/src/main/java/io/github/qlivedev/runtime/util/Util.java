@@ -90,8 +90,8 @@ public class Util
 
     /// The meta data of the given type, or `null` where the domain has none for it.
     ///
-    /// Answers rather than throws, which is the reason to go through this rather than through [
-    /// io.github.qlivedev.graphql.meta.DomainMeta#getTypeMeta(String)]: that one raises on an unknown name, and
+    /// Answers rather than throws, which is the reason to go through this rather than through
+    /// [io.github.qlivedev.graphql.meta.DomainMeta#getTypeMeta(String)]: that one raises on an unknown name, and
     /// asking about a name that may be no type at all is what every reader of type meta data does.
     ///
     /// @param typeName  name of a GraphQL type, known or not

@@ -4,7 +4,8 @@ import io.github.qlivedev.graphql.fetcher.FetcherContext;
 import io.github.qlivedev.graphql.generic.DomainObject;
 
 /**
- * Abstract base class for domain objects generated with the the {@link DomainObjectGeneratorStrategy}. Adds a
+ * Abstract base class for domain objects generated with qlive-graphql's
+ * {@code io.github.qlivedev.graphql.jooq.DomainObjectGeneratorStrategy}. Adds a
  * JSON-ignored fetcher context to the domain object to optionally optimize relation fetching
  */
 public abstract class GeneratedDomainObject

@@ -127,7 +127,7 @@ gap is felt immediately -- it is the first one a new reader hits -- and
 it is the one most constrained by decisions that have not been made.
 
 **The constraints.** A tutorial waits on application templating, which
-is `module-templating.md` and not built. The `qlive-ts/vite` entry point
+is `app-templating.md` and not built. The `qlive-ts/vite` entry point
 is on no API page on purpose, so a page here cannot spell out the
 plugin's options. Whatever gets written now has to survive both.
 

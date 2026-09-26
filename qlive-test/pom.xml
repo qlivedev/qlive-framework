@@ -22,7 +22,7 @@
   </description>
 
   <properties>
-    <spring-boot.version>4.0.3</spring-boot.version>
+    <spring-boot.version>4.0.8</spring-boot.version>
     <!-- Must match .nvmrc / root package.json engines.node so every tool agrees on one Node build. -->
     <node.version>v22.23.2</node.version>
     <pnpm.version>9.15.0</pnpm.version>

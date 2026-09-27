@@ -8,6 +8,11 @@ import trackUsageData from "./babel/trackUsageData.js";
 import deepEqual from "deep-equal";
 import type {Plugin, ResolvedConfig} from "vite";
 
+/**
+ * Which calls the analysis records: calls of `fn` on whatever `module` exports, or of the module
+ * itself when `fn` is empty. Only statically evaluable arguments are recorded, unless the options
+ * below loosen that.
+ */
 export interface TrackedFunctionSpec
 {
     /** Import source, relative to `sourceRoot` (e.g. "./service/i18n") or a bare package specifier. */
@@ -67,6 +72,10 @@ const TRACK_USAGE_DEV_URI = "/_dev/track-usage";
  */
 const FULL_PUSH_QUERY = "?full=true";
 
+/**
+ * Options of {@link trackUsage}. All of them are optional; an application usually sets
+ * `backendOrigin` and nothing else.
+ */
 export interface TrackUsagePluginOptions
 {
     /**
@@ -80,6 +89,10 @@ export interface TrackUsagePluginOptions
      * where an application's own code lives.
      */
     sourceRoot?: string;
+    /**
+     * Logs to the console every call the analysis matches and every value it records or fails to
+     * evaluate. For finding out why a call is missing from the analysis. Default: false.
+     */
     debug?: boolean;
     /**
      * Records the source offsets ([start, end]) of every tracked call alongside its arguments. Consumers that
@@ -90,7 +103,10 @@ export interface TrackUsagePluginOptions
      * Default: true.
      */
     indexes?: boolean;
-    /** Previously-built track-usage.json used to pre-seed dev mode. Default: <sourceRoot>/../dist/<outputFileName>. */
+    /**
+     * Previously-built track-usage.json used to pre-seed dev mode. Default: `dist/` next to `sourceRoot`,
+     * under `outputFileName`.
+     */
     seedFile?: string;
     /** Default: "track-usage.json". */
     outputFileName?: string;
@@ -118,6 +134,10 @@ export interface TrackUsagePluginOptions
     queryTypes?: QueryTypeOptions | false;
 }
 
+/**
+ * Where the query result types come from and what they import, for
+ * {@link TrackUsagePluginOptions.queryTypes}.
+ */
 export interface QueryTypeOptions
 {
     /** GraphQL schema the queries are checked against, relative to Vite's `root`. Default: "schema.graphql". */
@@ -249,12 +269,17 @@ export interface TrackUsageAnalysis
     usages: Record<string, unknown>;
 }
 
+/**
+ * Options of {@link analyzeSourceTree}: the plugin's options minus everything that only makes sense
+ * inside a running Vite.
+ */
 export interface AnalyzeSourceTreeOptions
 {
     /** Absolute path to the directory to analyze, i.e. the `sourceRoot` the plugin would be given. */
     sourceRoot: string;
     /** Calls to record on top of {@link QLIVE_TRACKED_FUNCTIONS}, same rules as the plugin's. */
     trackedFunctions?: Record<string, TrackedFunctionSpec>;
+    /** See {@link TrackUsagePluginOptions.debug}. Default: false. */
     debug?: boolean;
     /** See {@link TrackUsagePluginOptions.indexes}. Default: true. */
     indexes?: boolean;
@@ -379,7 +404,18 @@ async function loadQueryTypeGenerator(
     return codegen.createQueryTypeGenerator(options);
 }
 
-
+/**
+ * The Vite plugin that records the calls QLive's server-side analysis reads -- which query a view
+ * injects, which paths declared `noSchema()` -- plus any the application adds through `trackedFunctions`.
+ *
+ * `vite build` writes the analysis to `track-usage.json` in the output directory, where the backend reads
+ * it. The dev server keeps it in memory and pushes each change to `backendOrigin`, and while it runs it
+ * also rewrites the result type of every saved `GraphQLQuery` to follow its query (see `queryTypes`).
+ *
+ * @param options    where to analyze, what to track and where the backend is
+ *
+ * @returns the plugin, for `plugins` in `vite.config.ts`
+ */
 export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
     const outputFileName = options.outputFileName ?? "track-usage.json";
     const pushUrl = options.backendOrigin ? options.backendOrigin + TRACK_USAGE_DEV_URI : undefined;

@@ -111,6 +111,13 @@ function exportedNames(entry)
 }
 
 /**
+ * `{@link Name}`, `{@link Name.member}` or `{@link Name | label}`. An IDE hover
+ * turns one into a link; on a page it is shown as the name it points at, which the
+ * reader finds on the same page or in the search.
+ */
+const INLINE_LINK = /\{@link\s+([^\s|}]+)\s*(?:\|\s*([^}]+?))?\s*\}/g;
+
+/**
  * Strips the comment framing off a JSDoc block, leaving the markdown inside it.
  * The bodies already read as prose and carry their own fenced examples, so the
  * only thing standing between them and a page is the ` * ` down the left.
@@ -121,6 +128,7 @@ function stripComment(lines)
         .slice(1, -1)
         .map(line => line.replace(/^\s*\* ?/, ""))
         .join("\n")
+        .replace(INLINE_LINK, (_, target, label) => "`" + (label ?? target) + "`")
         .trim();
 }
 

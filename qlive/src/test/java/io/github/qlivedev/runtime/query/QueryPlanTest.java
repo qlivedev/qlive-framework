@@ -8,9 +8,15 @@ import io.github.qlivedev.graphql.QLiveDomain;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
+import org.jooq.Record;
 import org.jooq.SQLDialect;
+import org.jooq.TableField;
+import org.jooq.UniqueKey;
 import org.jooq.conf.ParamType;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
+import org.jooq.impl.SQLDataType;
+import org.jooq.impl.TableImpl;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
@@ -284,6 +290,122 @@ class QueryPlanTest
     }
 
 
+    /// A named sort on a column with duplicates is completed by the primary key, in the statement only: the
+    /// config that goes back is the sort the client named.
+    @Test
+    void completesANamedSortWithThePrimaryKey()
+    {
+        final QueryConfig config = config(0, 0);
+        config.setSortFields(List.of(field("name")));
+
+        assertThat(
+            sql(FOO_ALONE, config, false),
+            containsString("order by \"test_foo\".\"name\" asc, \"test_foo\".\"id\" asc")
+        );
+
+        final List<CNode> sortFields = plan(FOO_ALONE, config, false).config().getSortFields();
+        assertThat(
+            sortFields.stream()
+                .map(node -> ((io.github.qlivedev.model.condition.Field) node).getName())
+                .toList(),
+            contains("name")
+        );
+    }
+
+
+    /// The completion ascends whatever direction the named sort takes: it breaks ties and says nothing
+    /// about the order the client asked for.
+    @Test
+    void completesADescendingSortAscending()
+    {
+        final QueryConfig config = config(0, 0);
+        config.setSortFields(List.of(field("name").desc()));
+
+        assertThat(
+            sql(FOO_ALONE, config, false),
+            containsString("order by \"test_foo\".\"name\" desc, \"test_foo\".\"id\" asc")
+        );
+    }
+
+
+    /// A sort naming the primary key, or a unique key of NOT NULL columns, is total already.
+    @Test
+    void leavesASortCoveringAKeyAlone()
+    {
+        final QueryConfig byId = config(0, 0);
+        byId.setSortFields(List.of(field("name"), field("id").desc()));
+
+        assertThat(
+            sql(FOO_ALONE, byId, false),
+            containsString("order by \"test_foo\".\"name\" asc, \"test_foo\".\"id\" desc")
+        );
+
+        final QueryConfig byLogin = config(0, 0);
+        byLogin.setSortFields(List.of(field("login")));
+
+        assertThat(
+            sql(USER_WITH_FOOS, byLogin, false),
+            containsString("order by \"test_user\".\"login\" asc")
+        );
+        assertThat(sql(USER_WITH_FOOS, byLogin, false), not(containsString("\"test_user\".\"id\" asc")));
+    }
+
+
+    /// A path into a relation orders by the related row, which does not make the root's rows distinct even
+    /// where the related column is unique.
+    @Test
+    void completesASortThroughARelation()
+    {
+        final QueryConfig config = config(0, 0);
+        config.setSortFields(List.of(field("owner.login")));
+
+        assertThat(
+            sql(FOO_WITH_OWNER, config, false),
+            containsString("order by \"owner\".\"login\" asc, \"test_foo\".\"id\" asc")
+        );
+    }
+
+
+    /// The rules for picking the completion, on keys the test domain does not have.
+    @Test
+    void picksTheCompletionFromTheKeys()
+    {
+        final KeyedTable table = new KeyedTable(List.of("id"), List.of(List.of("a", "b"), List.of("c"), List.of("d")));
+
+        // part of a multi-column constraint: the rest of it, in constraint order
+        assertThat(columns(QueryPlanBuilder.completion(table, Set.of("b"))), is(List.of("a")));
+        // covered keys, primary or not
+        assertThat(columns(QueryPlanBuilder.completion(table, Set.of("a", "b"))), is(empty()));
+        assertThat(columns(QueryPlanBuilder.completion(table, Set.of("d"))), is(empty()));
+        assertThat(columns(QueryPlanBuilder.completion(table, Set.of("id"))), is(empty()));
+        // a nullable unique column leaves ties among its NULLs
+        assertThat(columns(QueryPlanBuilder.completion(table, Set.of("c"))), is(List.of("id")));
+        // nothing of any key
+        assertThat(columns(QueryPlanBuilder.completion(table, Set.of())), is(List.of("id")));
+
+        // the key missing the fewest columns wins, and the primary key wins a tie
+        final KeyedTable composite = new KeyedTable(
+            List.of("id", "a"),
+            List.of(List.of("id", "b", "d"), List.of("id", "c"))
+        );
+        assertThat(columns(QueryPlanBuilder.completion(composite, Set.of("id"))), is(List.of("a")));
+
+        final KeyedTable fewest = new KeyedTable(
+            List.of("id", "a", "b"),
+            List.of(List.of("d", "a"))
+        );
+        assertThat(columns(QueryPlanBuilder.completion(fewest, Set.of("a"))), is(List.of("d")));
+
+        // without a primary key, the shortest key
+        final KeyedTable keyless = new KeyedTable(null, List.of(List.of("a", "b"), List.of("d")));
+        assertThat(columns(QueryPlanBuilder.completion(keyless, Set.of())), is(List.of("d")));
+
+        // nothing to complete with
+        final KeyedTable none = new KeyedTable(null, List.of(List.of("c")));
+        assertThat(columns(QueryPlanBuilder.completion(none, Set.of())), is(empty()));
+    }
+
+
     /// Aliases follow the path, and stay unique and short enough for the database to keep them apart.
     @Test
     void namesAliasesAfterThePath()
@@ -304,6 +426,61 @@ class QueryPlanTest
 
 
     // -----------------------------------------------------------------------------------------------------
+
+    private static List<String> columns(List<org.jooq.Field<?>> fields)
+    {
+        return fields.stream().map(org.jooq.Field::getName).toList();
+    }
+
+
+    /// A table with the given keys over the columns `id`, `a`, `b`, `d`, which are NOT NULL, and `c`, which
+    /// is nullable.
+    private static final class KeyedTable
+        extends TableImpl<Record>
+    {
+        private final List<String> primaryKey;
+
+        private final List<List<String>> uniqueKeys;
+
+
+        private KeyedTable(List<String> primaryKey, List<List<String>> uniqueKeys)
+        {
+            super(DSL.name("keyed"));
+            createField(DSL.name("id"), SQLDataType.INTEGER.nullable(false), this, "");
+            createField(DSL.name("a"), SQLDataType.INTEGER.nullable(false), this, "");
+            createField(DSL.name("b"), SQLDataType.INTEGER.nullable(false), this, "");
+            createField(DSL.name("c"), SQLDataType.INTEGER.nullable(true), this, "");
+            createField(DSL.name("d"), SQLDataType.INTEGER.nullable(false), this, "");
+            this.primaryKey = primaryKey;
+            this.uniqueKeys = uniqueKeys;
+        }
+
+
+        @Override
+        public UniqueKey<Record> getPrimaryKey()
+        {
+            return primaryKey == null ? null : key("pk", primaryKey);
+        }
+
+
+        @Override
+        public List<UniqueKey<Record>> getUniqueKeys()
+        {
+            return uniqueKeys.stream().map(fields -> key("uc_" + String.join("_", fields), fields)).toList();
+        }
+
+
+        private UniqueKey<Record> key(String name, List<String> fields)
+        {
+            return Internal.createUniqueKey(
+                this,
+                DSL.name(name),
+                fields.stream().map(f -> (TableField<Record, ?>) field(f)).toArray(TableField[]::new),
+                true
+            );
+        }
+    }
+
 
     private static QueryConfig config(int pageSize, int offset)
     {

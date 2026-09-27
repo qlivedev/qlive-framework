@@ -2,6 +2,7 @@ package io.github.qlivedev.runtime.query;
 
 import io.github.qlivedev.model.QueryConfig;
 import io.github.qlivedev.model.condition.CNode;
+import io.github.qlivedev.model.condition.Operation;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.query.condition.ConditionTransformer;
 import io.github.qlivedev.runtime.query.condition.ExistsScope;
@@ -23,6 +24,7 @@ import org.jooq.Field;
 import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.UniqueKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.svenson.info.JSONPropertyInfo;
@@ -121,7 +123,7 @@ public class QueryPlanBuilder
 
         final List<CNode> sortNodes = new ArrayList<>();
         final List<SortField<?>> sortFields = new ArrayList<>();
-        sort(root, config, transformer, sortNodes, sortFields);
+        sort(root, lookup.getTable(), config, transformer, sortNodes, sortFields);
 
         final QueryConfig effective = new QueryConfig();
         effective.setCondition(config.getCondition());
@@ -166,8 +168,15 @@ public class QueryPlanBuilder
     /// It is resolved directly against the root instead of going through the resolver, because the primary
     /// key is one of the columns the plan selects for its own purposes and a client never had to ask for
     /// it.
+    ///
+    /// A named sort is completed to a total order (see {@link #completion(Table, Set)}), because offset
+    /// paging over ties can show a row on two pages or on none. The completion goes into the statement
+    /// only. The config that goes back is the sort the client named: the completion follows from it the
+    /// same way every time, so echoing the named sort gets the same order again, and a client displaying
+    /// the sort has nothing to tell apart from what its user chose.
     private void sort(
         PlanNode root,
+        Table<?> table,
         QueryConfig config,
         ConditionTransformer transformer,
         List<CNode> sortNodes,
@@ -180,6 +189,11 @@ public class QueryPlanBuilder
             {
                 sortNodes.add(node);
                 sortFields.add(transformer.sortField(node));
+            }
+
+            for (Field<?> field : completion(table, sortedColumns(root, config.getSortFields())))
+            {
+                sortFields.add(root.addColumn(field, false).asc());
             }
             return;
         }
@@ -197,6 +211,141 @@ public class QueryPlanBuilder
             sortNodes.add(FilterDSL.field(propertyOf(root.getPojoType(), keyField.getName())));
             sortFields.add(keyField.asc());
         }
+    }
+
+
+    /// The columns of the root the sort fields name directly -- a field of the root, bare or in an `asc` or
+    /// `desc`. A path into a relation or an expression orders by something else, even where it mentions a
+    /// root column, and cannot cover a key.
+    private Set<String> sortedColumns(PlanNode root, List<CNode> sortNodes)
+    {
+        final Set<String> columns = new HashSet<>();
+        for (CNode node : sortNodes)
+        {
+            CNode fieldNode = node;
+            if (node instanceof Operation operation &&
+                ("asc".equals(operation.getName()) || "desc".equals(operation.getName())) &&
+                operation.getOperands() != null && operation.getOperands().size() == 1)
+            {
+                fieldNode = operation.getOperands().get(0);
+            }
+
+            if (fieldNode instanceof io.github.qlivedev.model.condition.Field fieldRef &&
+                fieldRef.getName().indexOf('.') < 0)
+            {
+                final Field<?> column = types.lookupField(root.getDomainType(), fieldRef.getName());
+                if (column != null)
+                {
+                    columns.add(column.getName());
+                }
+            }
+        }
+        return columns;
+    }
+
+
+    /// The columns a sort over the given columns of a table needs appended to be a total order, in the
+    /// order to append them, ascending. Empty where it already is one, or where the table has nothing to
+    /// complete it with.
+    ///
+    /// What makes rows distinct is a unique key whose columns are all NOT NULL: the database lets any
+    /// number of rows hold NULL in a unique constraint, so a nullable one leaves ties. Only constraints
+    /// count, as jOOQ's generated metadata carries them -- a unique index that is not a constraint is not in
+    /// it. With such keys:
+    ///
+    /// - a sort covering all columns of one is total already
+    /// - one covering part of one or more gets the missing columns of the key missing the fewest, in
+    ///   constraint order, the primary key winning a tie
+    /// - one covering none gets the primary key, or the shortest key where the table has none
+    ///
+    /// @param table            table the rows come from, unaliased
+    /// @param sortedColumns    names of the columns the sort names directly
+    static List<Field<?>> completion(Table<?> table, Set<String> sortedColumns)
+    {
+        final List<UniqueKey<?>> keys = new ArrayList<>();
+        final UniqueKey<?> primaryKey = table.getPrimaryKey();
+        if (primaryKey != null && isNotNull(primaryKey))
+        {
+            keys.add(primaryKey);
+        }
+        for (UniqueKey<?> key : table.getUniqueKeys())
+        {
+            if (isNotNull(key))
+            {
+                keys.add(key);
+            }
+        }
+
+        if (keys.isEmpty())
+        {
+            return List.of();
+        }
+
+        UniqueKey<?> best = null;
+        int bestMissing = Integer.MAX_VALUE;
+        for (UniqueKey<?> key : keys)
+        {
+            final int missing = missing(key, sortedColumns).size();
+            if (missing == 0)
+            {
+                return List.of();
+            }
+
+            // the primary key comes first, so a strict comparison lets it win a tie
+            if (missing < key.getFields().size() && missing < bestMissing)
+            {
+                best = key;
+                bestMissing = missing;
+            }
+        }
+
+        if (best == null)
+        {
+            best = keys.get(0) == primaryKey ? primaryKey : shortest(keys);
+        }
+
+        return missing(best, sortedColumns);
+    }
+
+
+    private static boolean isNotNull(UniqueKey<?> key)
+    {
+        for (Field<?> field : key.getFields())
+        {
+            if (field.getDataType().nullable())
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    private static List<Field<?>> missing(UniqueKey<?> key, Set<String> sortedColumns)
+    {
+        final List<Field<?>> missing = new ArrayList<>();
+        for (Field<?> field : key.getFields())
+        {
+            if (!sortedColumns.contains(field.getName()))
+            {
+                missing.add(field);
+            }
+        }
+        return missing;
+    }
+
+
+    private static UniqueKey<?> shortest(List<UniqueKey<?>> keys)
+    {
+        UniqueKey<?> shortest = keys.get(0);
+        for (UniqueKey<?> key : keys)
+        {
+            if (key.getFields().size() < shortest.getFields().size())
+            {
+                shortest = key;
+            }
+        }
+        return shortest;
     }
 
 

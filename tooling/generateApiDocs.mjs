@@ -586,6 +586,16 @@ function renderNamespace(name, memberNames, declarations)
     return out.join("\n");
 }
 
+/**
+ * A frontmatter value, quoted only where YAML would otherwise read it as something
+ * other than the string: a `: ` or ` #` inside it, or an indicator character in
+ * front. A JSON string is a valid YAML double-quoted scalar.
+ */
+function yamlScalar(text)
+{
+    return /: | #|:$|^[-?:,\[\]{}#&*!|>'"%@`\s]/.test(text) ? JSON.stringify(text) : text;
+}
+
 function renderPage(topic, order, resolve, externals)
 {
     const extrasBefore = extrasUsed.size;
@@ -638,8 +648,8 @@ function renderPage(topic, order, resolve, externals)
 
     const front = [
         "---",
-        `title: ${topic.title}`,
-        `description: ${topic.description}`,
+        `title: ${yamlScalar(topic.title)}`,
+        `description: ${yamlScalar(topic.description)}`,
         // The edit link would point at a file that is overwritten on the next
         // build; the doc comment it came from is the thing to edit.
         "editUrl: false",

@@ -26,6 +26,11 @@ public class DomainMeta
     public final static String NAME_FIELDS = "nameFields";
 
     /**
+     * Name of the builtin unique keys type meta
+     */
+    public final static String UNIQUE_KEYS = "uniqueKeys";
+
+    /**
      * Name of the builtin relations addendum
      */
     public final static String RELATIONS = "relations";

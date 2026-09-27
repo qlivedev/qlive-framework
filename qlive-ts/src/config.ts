@@ -306,6 +306,33 @@ export interface DomainTypeMeta {
 }
 
 /**
+ * One unique constraint of a table-backed domain type.
+ */
+export interface UniqueKeyInfo {
+
+    /**
+     * Name of the constraint in the database.
+     */
+    name: string
+
+    /**
+     * Fields of the type the constraint covers, in constraint order.
+     */
+    fields: string[]
+
+    /**
+     * Whether this is the primary key.
+     */
+    primary: boolean
+
+    /**
+     * Whether any of the fields is nullable. The database lets any number of rows hold NULL in a unique constraint, so
+     * such a constraint does not make rows distinct -- a sort covering it can still have ties.
+     */
+    nullable: boolean
+}
+
+/**
  * Type-level meta data properties, written server-side with DomainTypeMeta#setMeta.
  *
  * Extend by declaration merging, see DomainMeta.
@@ -317,6 +344,12 @@ export interface DomainTypeMetaProps {
      * NameFieldProvider.
      */
     nameFields?: string[]
+
+    /**
+     * The unique constraints of a table-backed type, the primary key first. Written by QLive's UniqueKeyProvider from
+     * the jOOQ tables; unique indexes that are not constraints are not included.
+     */
+    uniqueKeys?: UniqueKeyInfo[]
 
     /**
      * What querying rows of this type looks like when nothing says otherwise: a page size, a sort order, a condition

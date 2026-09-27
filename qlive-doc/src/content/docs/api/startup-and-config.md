@@ -359,6 +359,15 @@ nameFields?: string[];
 Names of the fields naming an instance of the type to a user, most significant first. Written by QLive's
 NameFieldProvider.
 
+### DomainTypeMetaProps.uniqueKeys
+
+```ts
+uniqueKeys?: UniqueKeyInfo[];
+```
+
+The unique constraints of a table-backed type, the primary key first. Written by QLive's UniqueKeyProvider from
+the jOOQ tables; unique indexes that are not constraints are not included.
+
 ### DomainTypeMetaProps.queryConfig
 
 ```ts
@@ -404,6 +413,49 @@ if it declares any of this -- absent everywhere in one that does not, and on eve
 Whether a type takes part in merging at all is *not* in here: that is the type having a "version" field, which
 both ends derive from the schema. Read it through the functions in merge/meta rather than off the map, so that
 "declared nothing" and "no such type" answer the same way.
+
+## UniqueKeyInfo
+
+<span class="api-kind">interface</span>
+
+```ts
+interface UniqueKeyInfo
+```
+
+One unique constraint of a table-backed domain type.
+
+### UniqueKeyInfo.name
+
+```ts
+name: string;
+```
+
+Name of the constraint in the database.
+
+### UniqueKeyInfo.fields
+
+```ts
+fields: string[];
+```
+
+Fields of the type the constraint covers, in constraint order.
+
+### UniqueKeyInfo.primary
+
+```ts
+primary: boolean;
+```
+
+Whether this is the primary key.
+
+### UniqueKeyInfo.nullable
+
+```ts
+nullable: boolean;
+```
+
+Whether any of the fields is nullable. The database lets any number of rows hold NULL in a unique constraint, so
+such a constraint does not make rows distinct -- a sort covering it can still have ties.
 
 ## DomainFieldMeta
 

@@ -18,6 +18,7 @@ import io.github.qlivedev.graphql.testdomain.tables.pojos.Foo;
 import io.github.qlivedev.graphql.testdomain.tables.pojos.TargetNine;
 import io.github.qlivedev.graphql.testdomain.tables.pojos.TargetNineCounts;
 import graphql.schema.GraphQLSchema;
+import io.github.qlivedev.util.JSONUtil;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -260,5 +261,37 @@ public class DomainMetaTest
         assertThat(relationModels.get(0).getId(), is("SourceTwo-target"));
         assertThat(relationModels.get(1).getId(), is("SourceTwo-target2"));
         assertThat(relationModels.get(5).getId(), is("SourceSeven-renamedTarget"));
+    }
+
+    @Test
+    public void testUniqueKeys()
+    {
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
+            .objectTypes(Public.PUBLIC)
+            .build();
+
+        final List<UniqueKeyMeta> sevenKeys = domain.getMetaData().getTypeMeta("TargetSeven")
+            .getMeta(DomainMeta.UNIQUE_KEYS);
+
+        // primary key first
+        assertThat(sevenKeys.size(), is(2));
+        assertThat(sevenKeys.get(0).getName(), is("pk_target_seven"));
+        assertThat(sevenKeys.get(0).getFields(), is(List.of("id")));
+        assertThat(sevenKeys.get(0).isPrimary(), is(true));
+        assertThat(sevenKeys.get(1).getName(), is("target_seven_name_key"));
+        assertThat(sevenKeys.get(1).getFields(), is(List.of("name")));
+        assertThat(sevenKeys.get(1).isPrimary(), is(false));
+        assertThat(sevenKeys.get(1).isNullable(), is(false));
+
+        // multi-column constraint, in constraint order
+        final List<UniqueKeyMeta> eightKeys = domain.getMetaData().getTypeMeta("TargetEight")
+            .getMeta(DomainMeta.UNIQUE_KEYS);
+
+        assertThat(eightKeys.get(1).getFields(), is(List.of("name", "num")));
+
+        // reaches the client as field names
+        final String json = JSONUtil.DEFAULT_GENERATOR.forValue(domain.getMetaData());
+        assertThat(json, containsString("\"uniqueKeys\":[{"));
+        assertThat(json, containsString("\"fields\":[\"name\",\"num\"]"));
     }
 }

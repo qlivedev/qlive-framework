@@ -122,6 +122,7 @@ export type {
     DomainMeta,
     DomainTypeMeta,
     DomainTypeMetaProps,
+    UniqueKeyInfo,
     DomainFieldMeta,
     GenericTypeInfo,
     RelationInfo,

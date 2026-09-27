@@ -5,7 +5,7 @@ import {describe, expect, it} from "vitest"
 
 import {buildSchema, introspectionFromSchema, printSchema} from "graphql"
 
-import {schemaSDL} from "../tooling/schemaSDL.js"
+import {schemaSDL} from "../src/schemaSDL.js"
 
 /*
  * The generator is a fetch and this round trip. What can go wrong is the round trip, and introspection

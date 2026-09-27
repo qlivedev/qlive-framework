@@ -17,19 +17,19 @@
     "access": "public"
   },
   "exports": {
-    ".": "./tooling/queryTypeGenerator.js",
+    ".": "./src/queryTypeGenerator.js",
     "./package.json": "./package.json"
   },
   "bin": {
-    "generate-ts": "tooling/generateTS.js",
-    "generate-query-types": "tooling/generateQueryTypes.js",
-    "generate-schema": "tooling/generateSchema.js"
+    "generate-ts": "src/generateTS.js",
+    "generate-query-types": "src/generateQueryTypes.js",
+    "generate-schema": "src/generateSchema.js"
   },
   "scripts": {
     "test": "vitest run"
   },
   "files": [
-    "tooling",
+    "src",
     "NOTICE"
   ],
   "dependencies": {

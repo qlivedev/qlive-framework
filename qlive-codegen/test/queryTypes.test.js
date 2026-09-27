@@ -17,7 +17,7 @@ import {
     updateGraphQLQueryTypes,
     withDocumentMethodsImport,
     withNamedImports
-} from "../tooling/queryTypes.js"
+} from "../src/queryTypes.js"
 
 /*
  * The expectations here are the ones GraphQLQueryTypingServiceTest asserts on the Java side, against
@@ -29,7 +29,7 @@ import {
 const packageDir = path.dirname(fileURLToPath(new URL("../package.json", import.meta.url)))
 const fixtureDir = path.join(packageDir, "test", "query-fixture")
 const schemaFile = path.join(fixtureDir, "schema.graphql")
-const generator = path.join(packageDir, "tooling", "generateQueryTypes.js")
+const generator = path.join(packageDir, "src", "generateQueryTypes.js")
 
 /* Written to rather than read from: the generator rewrites the sources it is pointed at. */
 const sourceRoot = path.join(packageDir, "test", ".tmp", "src")

@@ -5,7 +5,7 @@ import {fileURLToPath} from "node:url"
 import {afterAll, beforeAll, describe, expect, it} from "vitest"
 
 const packageDir = path.dirname(fileURLToPath(new URL("../package.json", import.meta.url)))
-const generator = path.join(packageDir, "tooling", "generateTS.js")
+const generator = path.join(packageDir, "src", "generateTS.js")
 const schema = path.join(packageDir, "test", "schema.graphql")
 
 /*

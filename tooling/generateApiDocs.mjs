@@ -8,13 +8,18 @@
  * written from the build output instead and never edited: the fix for bad text on
  * one of them is the doc comment it came from.
  *
- * Reads dist/index.d.ts rather than the sources, because the dts bundler has
- * already decided what is public. What ends up in that file is exactly what an
- * application can see, so a page generated from it cannot document something
- * unreachable or miss something reachable.
+ * Reads the bundled declarations (dist/index.d.ts and its siblings) rather than
+ * the sources, because the dts bundler has already decided what is public. What
+ * ends up in those files is exactly what an application can see, so a page
+ * generated from them cannot document something unreachable or miss something
+ * reachable.
  *
  * Which export lands on which page is tooling/apiTopics.json, not a rule derived
- * from the module layout -- see the comment at the top of that file.
+ * from the module layout -- see the comment at the top of that file. A topic
+ * documents one entry point of the package, the main one unless it names
+ * another, and every entry point in qlive-ts/package.json with declarations has
+ * to be accounted for there: a topic reads it, or it is listed as the flat
+ * spelling of one of the main entry's namespaces.
  *
  * A symbol whose page wants more than its doc comment says takes an optional
  * prose fragment, qlive-doc/src/content/apiExtra/<symbol path>.md -- see
@@ -32,8 +37,7 @@ import path from "node:path";
 import {fileURLToPath} from "node:url";
 
 const repoRoot = path.dirname(fileURLToPath(new URL("../package.json", import.meta.url)));
-const dtsPath = path.join(repoRoot, "qlive-ts", "dist", "index.d.ts");
-const indexPath = path.join(repoRoot, "qlive-ts", "src", "index.ts");
+const packageDir = path.join(repoRoot, "qlive-ts");
 const topicsPath = path.join(repoRoot, "tooling", "apiTopics.json");
 const outDir = path.join(repoRoot, "qlive-doc", "src", "content", "docs", "api");
 const extraDir = path.join(repoRoot, "qlive-doc", "src", "content", "apiExtra");
@@ -497,17 +501,10 @@ function renderTags(tags)
 }
 
 /**
- * Every name a page gave a section of its own, recorded while the pages are
- * written rather than derived from the topic map: what the map names and what a
- * page ends up holding are the two things the check below compares.
- */
-const rendered = new Set();
-
-/**
  * One export as a section: what it is, how it is spelled, and what its doc comment
  * says about it.
  */
-function renderExport(declaration)
+function renderExport(declaration, rendered)
 {
     rendered.add(declaration.name);
 
@@ -549,7 +546,7 @@ function renderExport(declaration)
  * it resolves to. The names are claimed short on purpose -- `field`, `and`, `not`
  * -- so the namespace prefix stays on every heading.
  */
-function renderNamespace(name, memberNames, declarations)
+function renderNamespace(name, memberNames, declarations, rendered)
 {
     rendered.add(name);
 
@@ -604,8 +601,9 @@ function yamlScalar(text)
     return /: | #|:$|^[-?:,\[\]{}#&*!|>'"%@`\s]/.test(text) ? JSON.stringify(text) : text;
 }
 
-function renderPage(topic, order, resolve, externals)
+function renderPage(topic, order, entry, externals)
 {
+    const {resolve, rendered} = entry;
     const extrasBefore = extrasUsed.size;
 
     const sections = topic.members.map(name =>
@@ -634,8 +632,8 @@ function renderPage(topic, order, resolve, externals)
         }
 
         return found.namespace
-            ? renderNamespace(name, found.namespace, found.declarations)
-            : renderExport(found);
+            ? renderNamespace(name, found.namespace, found.declarations, rendered)
+            : renderExport(found, rendered);
     });
 
     if (topic.operatorTables)
@@ -668,6 +666,13 @@ function renderPage(topic, order, resolve, externals)
         ...banner,
         ""
     ];
+
+    // The main entry is what an import from the package name means; any other has
+    // to be spelled out, or the reader copies a name into an import that lacks it.
+    if (entry.key !== ".")
+    {
+        front.push(`Imported from \`${entry.specifier}\`, not from the package's main entry.`, "");
+    }
 
     if (topic.narrative)
     {
@@ -704,54 +709,133 @@ function narrativeLead(url)
 
 // --- main ------------------------------------------------------------------
 
-if (!fs.existsSync(dtsPath))
-{
-    console.error(`No declaration file at ${dtsPath} -- run the qlive-ts build first.`);
-    process.exit(2);
-}
-
 const config = JSON.parse(fs.readFileSync(topicsPath, "utf8"));
+const packageJson = JSON.parse(fs.readFileSync(path.join(packageDir, "package.json"), "utf8"));
 
-const declarations = new Map();
-const namespaces = new Map();
+/**
+ * The entry points of the package that carry declarations, as package.json
+ * spells them: "." and "./vite", mapped to their build output and source.
+ */
+const entryPoints = new Map(Object.entries(packageJson.exports)
+    .filter(([, target]) => typeof target === "object" && target.types)
+    .map(([key, target]) => [key, {
+        dts: path.join(packageDir, target.types),
+        source: path.join(packageDir, target["qlive-source"])
+    }]));
 
-for (const file of declarationFiles(dtsPath))
+/**
+ * Everything one entry point's pages are written from. `rendered` collects every
+ * name a page gave a section of its own, recorded while the pages are written
+ * rather than derived from the topic map: what the map names and what a page ends
+ * up holding are the two things the check at the end compares.
+ */
+function loadEntry(key)
 {
-    const parsed = parseDeclarations(fs.readFileSync(file, "utf8"));
-    for (const [name, declaration] of parsed.declarations)
+    const paths = entryPoints.get(key);
+    if (!paths)
     {
-        if (!declarations.has(name))
+        throw new Error(`"${key}" is no entry point with declarations in qlive-ts/package.json`);
+    }
+    if (!fs.existsSync(paths.dts))
+    {
+        console.error(`No declaration file at ${paths.dts} -- run the qlive-ts build first.`);
+        process.exit(2);
+    }
+
+    const declarations = new Map();
+    const namespaces = new Map();
+
+    for (const file of declarationFiles(paths.dts))
+    {
+        const parsed = parseDeclarations(fs.readFileSync(file, "utf8"));
+        for (const [name, declaration] of parsed.declarations)
         {
-            declarations.set(name, declaration);
+            if (!declarations.has(name))
+            {
+                declarations.set(name, declaration);
+            }
+        }
+        for (const [name, members] of parsed.namespaces)
+        {
+            namespaces.set(name, members);
         }
     }
-    for (const [name, members] of parsed.namespaces)
+
+    // The bundle names a namespace after its module, so map the public name onto it.
+    const namespaceAlias = new Map();
+    for (const match of fs.readFileSync(paths.source, "utf8").matchAll(NAMESPACE_REEXPORT))
     {
-        namespaces.set(name, members);
+        namespaceAlias.set(match[1], path.basename(match[2]) + "_d_exports");
     }
+
+    function resolve(name)
+    {
+        const alias = namespaceAlias.get(name);
+        if (alias && namespaces.has(alias))
+        {
+            return {namespace: namespaces.get(alias), declarations};
+        }
+        return declarations.get(name) ?? null;
+    }
+
+    return {
+        key,
+        specifier: key === "." ? packageJson.name : packageJson.name + key.slice(1),
+        dtsPath: paths.dts,
+        resolve,
+        rendered: new Set()
+    };
 }
 
-// The bundle names a namespace after its module, so map the public name onto it.
-const namespaceAlias = new Map();
-for (const match of fs.readFileSync(indexPath, "utf8").matchAll(NAMESPACE_REEXPORT))
-{
-    namespaceAlias.set(match[1], path.basename(match[2]) + "_d_exports");
-}
+const entries = new Map();
 
-function resolve(name)
+function entryFor(key)
 {
-    const alias = namespaceAlias.get(name);
-    if (alias && namespaces.has(alias))
+    if (!entries.has(key))
     {
-        return {namespace: namespaces.get(alias), declarations};
+        entries.set(key, loadEntry(key));
     }
-    return declarations.get(name) ?? null;
+    return entries.get(key);
 }
 
 const pages = config.topics.map((topic, index) => ({
     file: path.join(outDir, topic.slug + ".md"),
-    text: renderPage(topic, index + 1, resolve, config.external)
+    text: renderPage(topic, index + 1, entryFor(topic.entryPoint ?? "."), config.external)
 }));
+
+// An entry point that only re-exports a namespace of the main one flat is
+// documented by that namespace's section, but only while the two still agree.
+const flatNamespaces = config.flatNamespaces ?? {};
+for (const [key, namespace] of Object.entries(flatNamespaces))
+{
+    const found = entryFor(".").resolve(namespace);
+    if (!found?.namespace)
+    {
+        throw new Error(`flatNamespaces: "${namespace}" is no namespace of the main entry`);
+    }
+
+    const flat = [...exportedNames(loadEntry(key).dtsPath)].sort();
+    const nested = [...found.namespace].sort();
+    if (flat.join() !== nested.join())
+    {
+        console.error(`${packageJson.name}${key.slice(1)} no longer exports exactly what ${namespace} holds.`);
+        process.exit(2);
+    }
+}
+
+// The same bargain one level up: an entry point nobody documents would otherwise
+// go unmentioned, and every export in it with it.
+const unaccounted = [...entryPoints.keys()].filter(key => !entries.has(key) && !(key in flatNamespaces));
+if (unaccounted.length > 0)
+{
+    console.error(`Entry points of ${packageJson.name} that no topic reads:\n`);
+    for (const key of unaccounted)
+    {
+        console.error("  " + key);
+    }
+    console.error("\nGive each one a topic with \"entryPoint\" in tooling/apiTopics.json, or list it under \"flatNamespaces\".");
+    process.exit(2);
+}
 
 // A fragment is invisible from the source it belongs to, so somebody renaming an
 // export does not see it. Unappended means wrong, and it has to say so here or it
@@ -771,27 +855,30 @@ if (orphaned.length > 0)
 // The bargain tooling/apiTopics.json describes, in the direction the topic map
 // cannot keep on its own: it fails on a member the build output does not have,
 // and this fails on an export no page took.
-const undocumented = [...exportedNames(dtsPath)].filter(name =>
+for (const entry of entries.values())
 {
-    if (rendered.has(name))
+    const undocumented = [...exportedNames(entry.dtsPath)].filter(name =>
     {
-        return false;
-    }
+        if (entry.rendered.has(name))
+        {
+            return false;
+        }
 
-    // An @internal export is accounted for by the tag: it says the name is not for
-    // applications, which is the whole of what a page would have had to say.
-    const found = resolve(name);
-    return !(found && !found.namespace && isInternal(found.doc));
-});
-if (undocumented.length > 0)
-{
-    console.error(`${undocumented.length} exports of @qlivedev/qlive-ts are on no page:\n`);
-    for (const name of undocumented)
+        // An @internal export is accounted for by the tag: it says the name is not
+        // for applications, which is the whole of what a page would have had to say.
+        const found = entry.resolve(name);
+        return !(found && !found.namespace && isInternal(found.doc));
+    });
+    if (undocumented.length > 0)
     {
-        console.error("  " + name);
+        console.error(`${undocumented.length} exports of ${entry.specifier} are on no page:\n`);
+        for (const name of undocumented)
+        {
+            console.error("  " + name);
+        }
+        console.error("\nGive each one a topic in tooling/apiTopics.json, mark it @internal, or stop exporting it.");
+        process.exit(2);
     }
-    console.error("\nGive each one a topic in tooling/apiTopics.json, mark it @internal, or stop exporting it.");
-    process.exit(2);
 }
 
 if (check)

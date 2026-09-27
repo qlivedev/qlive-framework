@@ -17,8 +17,16 @@
     "",
     "\"narrative\" is the prose page a reader should start on, as {url, title}. The",
     "quadrant in the url decides how the generated tip introduces it, so a topic",
-    "whose prose is a how-to guide does not get announced as an explanation."
+    "whose prose is a how-to guide does not get announced as an explanation.",
+    "",
+    "\"entryPoint\" is the package.json export a topic documents, \".\" if left out.",
+    "\"flatNamespaces\" lists the entry points that re-export one of the main entry's",
+    "namespaces flat, which that namespace's section already documents. Every entry",
+    "point with declarations is one or the other, or the generator fails."
   ],
+  "flatNamespaces": {
+    "./filter": "FilterDSL"
+  },
   "external": {
     "Temporal": "temporal-polyfill"
   },
@@ -304,6 +312,26 @@
         "QuickLogin",
         "QuickLoginProps",
         "QuickLoginUser"
+      ]
+    },
+    {
+      "slug": "vite-plugin",
+      "title": "Vite plugin",
+      "description": "The build-time half: the plugin that records what the server analyzes, and the same analysis outside Vite.",
+      "entryPoint": "./vite",
+      "narrative": {
+        "url": "/qlive-framework/reference/qlive-test-layout/#vite-config",
+        "title": "qlive-test layout: Vite config"
+      },
+      "members": [
+        "trackUsage",
+        "TrackUsagePluginOptions",
+        "QueryTypeOptions",
+        "QLIVE_TRACKED_FUNCTIONS",
+        "TrackedFunctionSpec",
+        "analyzeSourceTree",
+        "AnalyzeSourceTreeOptions",
+        "TrackUsageAnalysis"
       ]
     }
   ]

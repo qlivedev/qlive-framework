@@ -322,4 +322,55 @@
         color: var(--qlive-color-fg);
     }
 
+    /*
+     * <Pager/>: one row of buttons and the page size select. Where the row
+     * sits is the align prop, so an application moves it without a rule of
+     * its own.
+     */
+    .qlive-grid-pager
+    {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--qlive-space-1);
+        font-family: var(--qlive-font-sans);
+        color: var(--qlive-color-fg);
+    }
+    .qlive-grid-pager-start { justify-content: flex-start; }
+    .qlive-grid-pager-center { justify-content: center; }
+    .qlive-grid-pager-end { justify-content: flex-end; }
+
+    .qlive-grid-pager button,
+    .qlive-grid-pager select
+    {
+        min-width: 2em;
+        padding: var(--qlive-space-1) var(--qlive-space-2);
+        border: 1px solid var(--qlive-color-border);
+        border-radius: var(--qlive-radius-md);
+        background: var(--qlive-color-bg);
+        color: var(--qlive-color-fg);
+        font: inherit;
+    }
+    .qlive-grid-pager button:not(:disabled)
+    {
+        cursor: pointer;
+    }
+    .qlive-grid-pager button:disabled
+    {
+        color: var(--qlive-color-muted);
+    }
+    .qlive-grid-pager button[aria-current="page"]
+    {
+        border-color: var(--qlive-color-accent);
+        color: var(--qlive-color-accent);
+        font-weight: bold;
+    }
+    .qlive-grid-pager-size
+    {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--qlive-space-1);
+        margin-inline-start: var(--qlive-space-2);
+    }
+
 }

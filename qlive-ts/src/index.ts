@@ -113,6 +113,7 @@ export { pageCount, pageIndex, pageOffset, pageSizeOptions, pageWindow } from ".
 // writes in their place.
 export { usePagination } from "./grid/usePagination";
 export { useSort } from "./grid/useSort";
+export { default as Pager } from "./grid/Pager";
 
 // ---------------------------------------------------------------------------
 // TYPESCRIPT TYPES
@@ -141,6 +142,7 @@ export type {
 export type { InjectParams } from "./inject";
 export type { PageableDocument, Pagination, PaginationOptions } from "./grid/usePagination";
 export type { SortableDocument, SortState } from "./grid/useSort";
+export type { PagerProps } from "./grid/Pager";
 export type { GraphQLParams } from "./util/graphql";
 export type {
     QueryConfig,

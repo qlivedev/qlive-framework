@@ -106,6 +106,9 @@ export function noSchema()
 export { default as findRoot } from "./util/findRoot";
 export { scalarEqual, genericScalarEqual } from "./util/scalar";
 
+// Page math for pagers: the grid's own and any an application builds.
+export { pageCount, pageIndex, pageOffset, pageSizeOptions } from "./grid/paging";
+
 // ---------------------------------------------------------------------------
 // TYPESCRIPT TYPES
 // ---------------------------------------------------------------------------

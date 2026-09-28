@@ -518,7 +518,9 @@ avoid. Its API shape is worth borrowing.
 1. Layer 1 functions, with tests. Done except `resolveColumn()`, which
    comes with the column types in step 4.
 2. `usePagination()` and `useSort()`, then `<Pager/>` and
-   `<SortHeader/>`. Useful on their own the moment they exist.
+   `<SortHeader/>`. Useful on their own the moment they exist. Done,
+   in `qlive-ts/src/grid`, with `pageWindow()` added to the page math
+   for the numbers a pager lists.
 3. `useFilters()` with operator filters, the read-back and the
    typing protection, then `<FilterInput/>`.
 4. `<DataGrid/>` composing them, and a qlive-test view that uses it

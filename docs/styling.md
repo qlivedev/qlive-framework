@@ -1,11 +1,10 @@
 # Styling
 
-Status: describes the repo as of 2026-09-05.
+Status: describes the repo as of 2026-09-28.
 
 How `@qlivedev/qlive-ts` ships CSS, and what an application that
-installs it gets. No components exist yet, so what follows is the
-packaging path and the conventions the first component will be written
-against, not a component library.
+installs it gets: the packaging path and the conventions components are
+written against, not a component library.
 
 ## What ships
 
@@ -100,7 +99,19 @@ force a theme instead of following the OS.
 
 ## What the stylesheet currently paints
 
-Two groups, neither of them framework components:
+The grid's parts, as far as they exist (see `docs/design/datagrid.md`):
+
+- `.qlive-grid-pager`, with `.qlive-grid-pager-{start,center,end}` for
+  its alignment and `-first`, `-previous`, `-page`, `-next`, `-last`
+  and `-size` on its parts. The current page is marked with
+  `aria-current="page"`, not a class.
+- `.qlive-grid-sort-header` on a `<th>`, with `.qlive-grid-sorted` and
+  `.qlive-grid-sorted-{asc,desc}` while the document sorts by its key,
+  and `.qlive-grid-sort-indicator` around the arrow and position.
+
+The merge marks (`.qlive-changed` and the others `MergeField#className`
+returns), `.qlive-link-button` and `.qlive-error` are framework classes
+too. Besides those, two groups that are not framework components:
 
 - `.qlive-placeholder`, used by
   `qlive-test/frontend/src/component/TestComponent.tsx`. It exists so

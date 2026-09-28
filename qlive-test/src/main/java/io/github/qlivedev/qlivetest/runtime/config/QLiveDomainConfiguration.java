@@ -2,6 +2,7 @@ package io.github.qlivedev.qlivetest.runtime.config;
 
 import io.github.qlivedev.runtime.meta.QueryConfigMetadataProvider;
 import io.github.qlivedev.qlivetest.domain.Public;
+import io.github.qlivedev.qlivetest.domain.tables.pojos.AppUser;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Bar;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Baz;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Foo;
@@ -124,6 +125,8 @@ public class QLiveDomainConfiguration
             .configureRelation(BAR_LINK.BAR_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY, "bar", "bazLinks")
             .configureRelation(BAR_LINK.BAZ_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY, "baz", "bazLinks")
             .configureNameField("name")
+            // users have a login instead, and a grid column of Foo.owner shows it
+            .configureNameFields(AppUser.class, "login")
 
             .withMetadataProviders(
 

@@ -47,6 +47,14 @@ const CLASSES: Record<MergeFieldStatus, string> = {
 }
 
 /**
+ * The class a field with the given status carries, empty for an unchanged one.
+ */
+export function fieldClassName(status: MergeFieldStatus): string
+{
+    return CLASSES[status]
+}
+
+/**
  * One entity as the accessor reads it. The working set's own is this and more; naming only what is read
  * here is what keeps this module from depending on the store it is handed a piece of.
  */
@@ -68,6 +76,12 @@ export type MergeEntity = {
 
     /** true where the row is not in the database any more */
     gone: boolean
+
+    /** true for a row created in the working set and not saved yet */
+    isNew: boolean
+
+    /** true for a row marked for deletion */
+    deleted: boolean
 }
 
 /**
@@ -173,6 +187,12 @@ export type MergeAccessor = {
      */
     gone: boolean
 
+    /** true for a row created in the working set and not saved yet */
+    isNew: boolean
+
+    /** true for a row marked for deletion, which the next merge deletes */
+    deleted: boolean
+
     field(name: string): MergeField
 
     /** fields the user changed, alphabetically */
@@ -263,6 +283,8 @@ export function createAccessor(host: MergeHost, entity: MergeEntity): MergeAcces
         type: entity.type,
         id: entity.id,
         gone: entity.gone,
+        isNew: entity.isNew,
+        deleted: entity.deleted,
 
         field: (name: string): MergeField =>
         {
@@ -271,7 +293,7 @@ export function createAccessor(host: MergeHost, entity: MergeEntity): MergeAcces
             return {
                 name,
                 status,
-                className: CLASSES[status],
+                className: fieldClassName(status),
                 value: valueOf(entity, name, host.view()),
                 mine: valueOf(entity, name, "mine"),
                 stored: valueOf(entity, name, "stored"),

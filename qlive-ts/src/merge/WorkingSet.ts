@@ -267,6 +267,7 @@ export class WorkingSet
      * selected, most of which a view only displays, so the query that reads a lookup table for a dropdown is
      * not the place to insist -- and the field somebody does try to change still fails long before a merge
      * could lose an update.
+
      *
      * @param document      query document, or the snapshot a view holds of one
      */
@@ -366,6 +367,22 @@ export class WorkingSet
         this.notify()
 
         return this.edit(entity.target) as unknown as T
+    }
+
+
+    /**
+     * The drafts of the rows of the given type that were created here and not saved yet, oldest first.
+     *
+     * What a list shows above the rows its query returned: a created row is in no query result until a merge
+     * wrote it.
+     *
+     * @param type      GraphQL type name
+     */
+    created<T extends object = any>(type: string): T[]
+    {
+        return [...this.entities.values()]
+            .filter(entity => entity.isNew && entity.type === type)
+            .map(entity => this.edit(entity.target) as unknown as T)
     }
 
 
@@ -996,6 +1013,17 @@ export class WorkingSet
                     ? valueOf(entity, name, this.viewFlag)
                     : Reflect.get(target, name, receiver)
             },
+
+            // A row read from a query has what the query selected, a new row has every field of its type --
+            // what nobody set yet reads as undefined -- so that a list checking a column's field against the
+            // row finds it on both.
+            has: (target, name) =>
+                Reflect.has(target, name) ||
+                typeof name === "string" && (
+                    entity.changes.has(name) ||
+                    entity.stored.has(name) ||
+                    entity.isNew && objectFields(entity.type).some(field => field.name === name)
+                ),
 
             set: (target, name, value) =>
             {

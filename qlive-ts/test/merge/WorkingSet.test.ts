@@ -392,6 +392,50 @@ describe("drafts", () => {
 
         expect(seen).toEqual([true, false])
     })
+
+    it("lists the rows created in it, by type and oldest first", async () => {
+
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        const first = ws.create("Bar", {name: "First"})
+        const second = ws.create("Bar", {name: "Second"})
+        ws.create("Baz", {name: "Other type"})
+        ws.delete(ws.create("Bar", {name: "Dropped"}))
+
+        expect(ws.created("Bar")).toEqual([first, second])
+        expect(ws.created("Bar")[0]).toBe(first)
+    })
+
+    it("says which rows are new and which are marked for deletion", async () => {
+
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        const created = ws.create("Bar", {name: "New"})
+        ws.delete(document.rows[1])
+
+        expect(ws.accessor(created)).toMatchObject({isNew: true, deleted: false})
+        expect(ws.accessor(document.rows[1])).toMatchObject({isNew: false, deleted: true})
+        expect(ws.accessor(document.rows[0])).toMatchObject({isNew: false, deleted: false})
+    })
+
+    it("has every field of its type on a new row, and what the query selected on a read one", async () => {
+
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        const created = ws.create<any>("Bar")
+        expect("description" in created).toBe(true)
+        expect(created.description).toBeUndefined()
+        expect("nonsense" in created).toBe(false)
+
+        const read = ws.edit(document.rows[0])
+        expect("name" in read).toBe(true)
+    })
 })
 
 

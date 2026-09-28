@@ -107,7 +107,12 @@ export { default as findRoot } from "./util/findRoot";
 export { scalarEqual, genericScalarEqual } from "./util/scalar";
 
 // Page math for pagers: the grid's own and any an application builds.
-export { pageCount, pageIndex, pageOffset, pageSizeOptions } from "./grid/paging";
+export { pageCount, pageIndex, pageOffset, pageSizeOptions, pageWindow } from "./grid/paging";
+
+// The grid's headless state, for its default components and any an application
+// writes in their place.
+export { usePagination } from "./grid/usePagination";
+export { useSort } from "./grid/useSort";
 
 // ---------------------------------------------------------------------------
 // TYPESCRIPT TYPES
@@ -134,6 +139,8 @@ export type {
 } from "./config";
 
 export type { InjectParams } from "./inject";
+export type { PageableDocument, Pagination, PaginationOptions } from "./grid/usePagination";
+export type { SortableDocument, SortState } from "./grid/useSort";
 export type { GraphQLParams } from "./util/graphql";
 export type {
     QueryConfig,

@@ -5,11 +5,16 @@ import {
     component,
     conditionsEqual,
     field,
+    isComposedComponentExpression,
     now,
     or,
+    ownedPart,
     today,
+    updateComponent,
     value,
     values,
+    type Condition,
+    type ConditionNode,
     type FilterExpression,
     type LogicalOperand,
     type RawValue
@@ -115,5 +120,119 @@ describe("conditionsEqual", () => {
         )).toBe(false);
         expect(conditionsEqual(now(), now())).toBe(true);
         expect(conditionsEqual(now(), today())).toBe(false);
+    });
+});
+
+
+describe("component ownership", () => {
+
+    const nameTerm = () => field("name").containsIgnoreCase(value("foo"));
+    const ownerTerm = () => field("owner.login").eq(value("admin"));
+
+    describe("updateComponent", () => {
+
+        test("replaces the term of the component", () => {
+            const cond = and(component("grid", nameTerm()), component("search", ownerTerm()))!;
+            const updated = updateComponent(cond, "grid", field("name").eq(value("x")));
+            expect(conditionsEqual(
+                updated,
+                and(component("grid", field("name").eq(value("x"))), component("search", ownerTerm()))
+            )).toBe(true);
+            expect((updated as ConditionNode).operands[1]).toBe((cond as ConditionNode).operands[1]);
+        });
+
+        test("returns the same object for an equal term", () => {
+            const cond = and(component("grid", nameTerm()), component("search", null))!;
+            expect(updateComponent(cond, "grid", nameTerm())).toBe(cond);
+            expect(updateComponent(cond, "search", null)).toBe(cond);
+
+            const lone = component("grid", nameTerm());
+            expect(updateComponent(lone, "grid", nameTerm())).toBe(lone);
+        });
+
+        test("keeps an empty component", () => {
+            const cond = and(component("grid", nameTerm()), component("search", ownerTerm()))!;
+            expect(conditionsEqual(
+                updateComponent(cond, "grid", null),
+                and(component("grid", null), component("search", ownerTerm()))
+            )).toBe(true);
+        });
+
+        test("adds a missing component to an and composition on the same level", () => {
+            const cond = and(component("search", ownerTerm()), component("picker", null))!;
+            expect(conditionsEqual(
+                updateComponent(cond, "grid", nameTerm()),
+                and(component("search", ownerTerm()), component("picker", null), component("grid", nameTerm()))
+            )).toBe(true);
+        });
+
+        test("joins a lone component of someone else with and", () => {
+            const updated = updateComponent(component("search", ownerTerm()), "grid", nameTerm());
+            expect(conditionsEqual(
+                updated,
+                and(component("search", ownerTerm()), component("grid", nameTerm()))
+            )).toBe(true);
+            expect(isComposedComponentExpression(updated!)).toBe(true);
+        });
+
+        test("makes no condition the lone component", () => {
+            expect(conditionsEqual(updateComponent(null, "grid", nameTerm()), component("grid", nameTerm()))).toBe(true);
+            expect(updateComponent(null, "grid", null)).toBe(null);
+        });
+
+        test("lets two owners share a condition that started empty", () => {
+            const first = updateComponent(null, "search", ownerTerm());
+            expect(conditionsEqual(
+                updateComponent(first, "grid", nameTerm()),
+                and(component("search", ownerTerm()), component("grid", nameTerm()))
+            )).toBe(true);
+        });
+
+        test("replaces inside an or composition but refuses to add to one", () => {
+            const cond = or(component("grid", null), component("search", ownerTerm()))!;
+            expect(conditionsEqual(
+                updateComponent(cond, "grid", nameTerm()),
+                or(component("grid", nameTerm()), component("search", ownerTerm()))
+            )).toBe(true);
+
+            expect(() => updateComponent(cond, "picker", nameTerm())).toThrow(/component\("picker", null\)/);
+        });
+
+        test("replaces any other condition whole with the plain term", () => {
+            const cond = and(nameTerm(), ownerTerm())!;
+            expect(updateComponent(cond, "grid", ownerTerm())).toMatchObject({type: "Condition", name: "eq"});
+            expect(updateComponent(cond, "grid", and(nameTerm(), ownerTerm()))).toBe(cond);
+            expect(updateComponent(cond, "grid", null)).toBe(null);
+        });
+
+        test("keeps the fluent methods on plain JSON input", () => {
+            const cond = JSON.parse(JSON.stringify(and(component("grid", null), component("search", null))));
+            const updated = updateComponent(cond, "grid", nameTerm()) as Condition;
+            expect(typeof updated.and).toBe("function");
+        });
+    });
+
+    describe("ownedPart", () => {
+
+        test("reads the owner's component in a composition", () => {
+            const cond = and(component("grid", nameTerm()), component("search", ownerTerm()))!;
+            expect(conditionsEqual(ownedPart(cond, "grid"), nameTerm())).toBe(true);
+            expect(ownedPart(cond, "picker")).toBe(null);
+        });
+
+        test("treats a lone component as a composition of one", () => {
+            expect(conditionsEqual(ownedPart(component("grid", nameTerm()), "grid"), nameTerm())).toBe(true);
+            expect(ownedPart(component("search", ownerTerm()), "grid")).toBe(null);
+        });
+
+        test("owns any other condition whole", () => {
+            const cond = and(nameTerm(), ownerTerm())!;
+            expect(ownedPart(cond, "grid")).toBe(cond);
+            expect(ownedPart(null, "grid")).toBe(null);
+        });
+
+        test("reads an empty component as nothing", () => {
+            expect(ownedPart(and(component("grid", null), component("search", ownerTerm())), "grid")).toBe(null);
+        });
     });
 });

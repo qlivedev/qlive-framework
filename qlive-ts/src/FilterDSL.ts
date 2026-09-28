@@ -767,6 +767,136 @@ function rawEqual(a: unknown, b: unknown): boolean
     return keysA.length === keysB.length && keysA.every(k => rawEqual(objA[k], objB[k]));
 }
 
+
+function isComponent(node: CNode | null): node is ComponentNode
+{
+    return node != null && node.type === "Component";
+}
+
+
+/**
+ * A logical condition with the given operands, built fresh so the result has the fluent methods whatever the input
+ * came as.
+ */
+function logical(name: string, operands: CNode[]): Condition
+{
+    const cond = new Condition(name);
+    cond.operands = operands;
+    return cond;
+}
+
+
+/**
+ * Replaces the part of a condition that belongs to the holder of the given component id -- the write side of
+ * ownedPart(), by the same rules.
+ *
+ * This is how several owners share one condition -- a grid's filter row, a search form, a picker -- each writing only
+ * its own component and leaving the others as they are:
+ *
+ * - The component with the id gets the new term. A `null` term keeps the component as `component(id, null)`, so the
+ *   owner finds its place again later; only the SQL transformation drops an empty component.
+ * - A missing component is added as another operand of an `and` composition, or joined with `and()` to a lone
+ *   component, so the result stays one flat level. Owners narrow what is shown, so adding means `and`.
+ * - An `or` composition without the component is refused: joining it would widen the result, and wrapping the `or`
+ *   would produce a second level. Put `component(id, null)` into the `or` where the owner's term belongs.
+ * - No condition at all becomes the lone component, so the next owner to write joins it. A `null` term leaves it at
+ *   no condition.
+ * - Any other condition is owned whole and replaced by the plain term, without a marker.
+ *
+ * Returns the very same condition object when the owned part is structurally equal to the new term, so an unchanged
+ * filter need not send an update().
+ *
+ * @param condition     condition or null
+ * @param id            component id of the owner writing
+ * @param term          new term of that owner, `null` for "filters nothing"
+ *
+ * @throws Error for an `or` composition that lacks the component
+ */
+export function updateComponent(condition: FilterExpression | null, id: string, term: FilterExpression | null): FilterExpression | null
+{
+    if (condition == null)
+    {
+        return term == null ? null : component(id, term);
+    }
+
+    if (isComponent(condition))
+    {
+        if (condition.id === id)
+        {
+            return conditionsEqual(condition.condition, term) ? condition : component(id, term);
+        }
+        return logical("and", [condition, component(id, term)]);
+    }
+
+    if (!isComposedComponentExpression(condition))
+    {
+        return conditionsEqual(condition, term) ? condition : term;
+    }
+
+    const {name, operands} = condition;
+    const index = operands.findIndex(o => (o as ComponentNode).id === id);
+    if (index < 0)
+    {
+        if (name !== "and")
+        {
+            throw new Error(
+                "Cannot add component " + JSON.stringify(id) + " to an '" + name + "' composition: joining it " +
+                "would widen the result. Put component(" + JSON.stringify(id) + ", null) into the composition."
+            );
+        }
+        return logical(name, [...operands, component(id, term)]);
+    }
+
+    const existing = operands[index] as ComponentNode;
+    if (conditionsEqual(existing.condition, term))
+    {
+        return condition;
+    }
+
+    const updated = operands.slice();
+    updated[index] = component(id, term);
+    return logical(name, updated);
+}
+
+
+/**
+ * The part of a condition that belongs to the holder of the given component id:
+ *
+ * - in a composition of components, the term of its component, or `null` if there is none;
+ * - in a lone component, its term if the component is its own, `null` if it belongs to someone else;
+ * - any other condition is owned whole.
+ *
+ * Components exist on one level only: inside its component, an owner recognizes its terms by content, not by further
+ * markers.
+ *
+ * @param condition     condition or null
+ * @param id            component id of the owner reading
+ *
+ * @return the owned part, `null` for "nothing"
+ */
+export function ownedPart(condition: FilterExpression | null, id: string): FilterExpression | null
+{
+    if (condition == null)
+    {
+        return null;
+    }
+
+    if (isComponent(condition))
+    {
+        // a component wraps a condition, never a bare field or value
+        return condition.id === id ? condition.condition as FilterExpression | null : null;
+    }
+
+    if (isComposedComponentExpression(condition))
+    {
+        const own = condition.operands.find(o => (o as ComponentNode).id === id) as ComponentNode | undefined;
+        return own ? own.condition as FilterExpression | null : null;
+    }
+
+    return condition;
+}
+
+
 /**
  * Converts the given condition graph into simple js objects.
  *

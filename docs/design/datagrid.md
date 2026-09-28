@@ -1,6 +1,6 @@
 # DataGrid (design)
 
-Status: built through step 6 of the build order. Written 2026-09-27.
+Status: built through step 7 of the build order. Written 2026-09-27.
 
 The table component for QLive, and the pieces under it. What it has to
 cover is `datagrid-features.md`, a survey of the Automaton DataGrid in
@@ -465,10 +465,12 @@ All of it is optional. A grid without a working set carries none of it.
   shows, a relation column its foreign key, and a column of a related
   row's field nothing. The fields of a new row aren't marked: the row
   says it.
-- **Created rows** appear on the first page when the document's current
-  condition matches them. That needs client-side condition evaluation,
-  which doesn't exist yet (see "What has to exist first"). Until then,
-  created rows show unfiltered on the first page.
+- **Created rows** appear on the first page when the document's
+  condition matches them, evaluated in the browser. The condition
+  decides when it changes, the way a query decides which rows it
+  returns: the created rows it matches then show, and so does every row
+  created after. A row created under a filter shows although it is still
+  empty, and an edit takes no row out of the list, created or not.
 - **Live updates** come from `watch` on the working set, or from
   `useDocumentWatch()` on the document when there is no working set.
   Watching the document, the grid marks the changed rows and cells and
@@ -523,13 +525,7 @@ avoid. Its API shape is worth borrowing.
   `grid/paging.ts` and `grid/columns.ts`; the server's completion of
   named sorts described under "Sorting", relation paths included; and
   the `uniqueKeys` type meta (`UniqueKeyProvider`).
-- **Client-side condition evaluation**: a FilterDSL evaluator over
-  JavaScript objects that agrees with the SQL path and with
-  `PayloadOperators` on equality and ordering per scalar (the planned
-  `scalarEqual(type, a, b)`). Needed for created working-set rows on the
-  first page and for local rows (a hand-built `QueryDocument`, which
-  can't `update()`). Prior art: Automaton's `filterTransformer`,
-  `evaluateMemoryQuery`.
+- **Client-side condition evaluation**: built in step 7.
 - **Validation errors** to show in cells. Nothing produces them yet.
 
 ## Build order
@@ -581,7 +577,22 @@ avoid. Its API shape is worth borrowing.
    the server learned the `toString` operation the DSL always had, as a
    cast to text in SQL and `String.valueOf()` for payloads.
 7. Client-side evaluation, then created rows filtered on the first page
-   and local rows.
+   and local rows. Done. `evaluate.ts` compiles a condition against the
+   schema into `conditionPredicate(type, condition)` and sort fields into
+   `sortComparator(type, sortFields)`. Where the SQL path and
+   `PayloadOperators` differ it follows the SQL path, since it stands in
+   for the database: three-valued logic, a to-many path as an EXISTS per
+   comparison, values read as the type they are compared to, arithmetic
+   in the type of its first operand. Ordering is `scalarCompare()`, with
+   an optional `compare()` on a converter as the extension point
+   (registered for Timestamp) and numbers compared exactly across number,
+   bigint and decimal string. What the browser can't match: text orders
+   by the user's locale, not the database's collation; `likeRegex` is a
+   JavaScript regular expression; `now()` and `today()` are the browser's
+   clock. Local rows are `localDocument(type, rows, config)` and
+   `useLocalDocument()`, a `QueryDocument` whose `update()` evaluates
+   instead of querying, so the grid can't tell the difference. Home in
+   qlive-test lists its owner catalog through one.
 
 ## Open
 

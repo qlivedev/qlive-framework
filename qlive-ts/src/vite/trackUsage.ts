@@ -72,6 +72,9 @@ const TRACK_USAGE_DEV_URI = "/_dev/track-usage";
  */
 const FULL_PUSH_QUERY = "?full=true";
 
+/** How long a starting dev server waits for the backend to take the first push before serving anyway. */
+const FIRST_PUSH_WAIT_MS = 5000;
+
 /**
  * Options of {@link trackUsage}. All of them are optional; an application usually sets
  * `backendOrigin` and nothing else.
@@ -511,8 +514,11 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
      * Sends what the backend does not have yet: the modules changed since the last push, or the whole
      * analysis while {@link needsFullPush} stands. Nothing to send is not a push -- the dev server transforms
      * every module the browser asks for, and all but the edited one match what was pushed before.
+     *
+     * @returns a promise settling once the push has been dealt with -- landed, failed, or resent in full to
+     *          a restarted backend. It never rejects: a failure is warned about and queued for the next push.
      */
-    function pushToServer(): void
+    function pushToServer(): Promise<void>
     {
         if (pushTimer !== undefined)
         {
@@ -521,7 +527,7 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
         }
         if (!pushUrl)
         {
-            return;
+            return Promise.resolve();
         }
 
         const full = needsFullPush;
@@ -539,7 +545,7 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
             // emptiness would only cost the backend its "not ready" answer, which is the one the frontend
             // knows how to retry.
             reloadIf(reload);
-            return;
+            return Promise.resolve();
         }
 
         // Cleared before the request, so that edits made while it is in flight are pushed by the next one.
@@ -555,7 +561,7 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
 
         const url = full ? pushUrl + FULL_PUSH_QUERY : pushUrl;
 
-        fetch(url, {
+        return fetch(url, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({usages}),
@@ -569,8 +575,7 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
                     // backend, so it is the one the browser waits for.
                     reloadPending = reload;
                     needsFullPush = true;
-                    pushToServer();
-                    return;
+                    return pushToServer();
                 }
 
                 if (!res.ok)
@@ -667,7 +672,7 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
             });
         },
 
-        configureServer(server)
+        async configureServer(server)
         {
             reloadBrowser = () => server.ws.send({type: "full-reload"});
 
@@ -683,8 +688,8 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
                     debug: options.debug,
                     indexes: resolved.indexes,
                 });
-                pushToServer();
             }
+            const firstPush = isDevMode ? pushToServer() : Promise.resolve();
 
             // Once per server, and before the first save: a checked-in result type can be behind its query
             // -- someone else edited it, or the schema moved -- and the first thing the developer would
@@ -758,6 +763,18 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
 
             server.watcher.on("add", reanalyze);
             server.watcher.on("change", reanalyze);
+
+            // Vite waits for this hook before it serves anything, so a page request can't reach a backend
+            // still holding the analysis of a previous dev server -- one that kept running across a Vite
+            // restart. Last, so that a save made meanwhile is already watched. Bounded, because a backend that
+            // accepts the connection and never answers must not keep the dev server from starting; the push
+            // carries on without it. An unreachable backend fails at once and is warned about.
+            let timer: ReturnType<typeof setTimeout> | undefined;
+            await Promise.race([
+                firstPush,
+                new Promise<void>(resolve => timer = setTimeout(resolve, FIRST_PUSH_WAIT_MS))
+            ]);
+            clearTimeout(timer);
         },
     };
 }

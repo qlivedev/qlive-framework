@@ -44,6 +44,8 @@ describe("trackUsage", () => {
     let sourceRoot: string;
     let pushes: Push[];
     let reloads: number;
+    /** whether configureServer() has returned, which is when Vite starts serving */
+    let serving: boolean;
     let watcher: EventEmitter;
 
     /** The plugin hooks this test drives, which are declared as plain functions. */
@@ -104,10 +106,11 @@ describe("trackUsage", () => {
             ...extra,
         });
 
-        plugin.configureServer({
+        serving = false;
+        Promise.resolve(plugin.configureServer({
             watcher,
             ws: {send: () => { reloads++; }},
-        } as unknown as ViteDevServer);
+        } as unknown as ViteDevServer)).then(() => { serving = true; });
 
         return plugin;
     }
@@ -184,6 +187,39 @@ describe("trackUsage", () => {
         vi.useRealTimers();
         vi.unstubAllGlobals();
         fs.rmSync(projectRoot, {recursive: true, force: true});
+    });
+
+
+    it("serves only once the backend has taken the first push", async () => {
+        // A backend that outlived a dev server restart still holds the old analysis, and would render the
+        // first page request from it.
+        startPlugin();
+        await settle();
+        expect(serving).toBe(false);
+
+        pushes[0].answer(204);
+        await settle();
+        expect(serving).toBe(true);
+    });
+
+
+    it("serves anyway when the backend takes the push but doesn't answer", async () => {
+        startPlugin();
+        vi.advanceTimersByTime(4999);
+        await settle();
+        expect(serving).toBe(false);
+
+        vi.advanceTimersByTime(1);
+        await settle();
+        expect(serving).toBe(true);
+    });
+
+
+    it("serves at once when there is no backend to reach", async () => {
+        startPlugin();
+        pushes[0].fail();
+        await settle();
+        expect(serving).toBe(true);
     });
 
 

@@ -1,0 +1,206 @@
+import {beforeAll, describe, expect, test} from "vitest";
+import {Temporal} from "temporal-polyfill";
+import {FieldPath, resolveColumn, rowKey} from "../../src/grid/columns";
+import {initGridConfig} from "../fixtures/gridConfig";
+
+beforeAll(initGridConfig);
+
+const created = Temporal.Instant.from("2026-09-04T10:15:30Z");
+
+const row = {
+    id: "foo-1",
+    name: "Foo #1",
+    num: 12,
+    ratio: null,
+    flag: true,
+    created,
+    owner: {id: "user-1", login: "admin"},
+    fooType: {name: "TypeA", ordinal: 1}
+};
+
+describe("resolveColumn", () => {
+
+    test("derives a String column from its path", () => {
+        const column = resolveColumn("Foo", "name");
+
+        expect(column.field).toBe("name");
+        expect(column.heading).toBe("[Foo.name]");
+        expect(column.render(row)).toBe("Foo #1");
+        expect(column.sort).toBe("name");
+        expect(column.filter!.field).toBe("name");
+        expect(column.filter!.filter.toCondition("name", ["oo"])).toMatchObject({name: "containsIgnoreCase"});
+        expect(column.nowrap).toBe(false);
+        expect(column.className(row)).toBeUndefined();
+    });
+
+    test("filters numbers by eq, of their type", () => {
+        const num = resolveColumn("Foo", "num").filter!;
+        expect(num.filter.toCondition("num", ["12"])).toMatchObject({
+            name: "eq",
+            operands: [{type: "Field", name: "num"}, {type: "Value", scalarType: "Int", value: 12}]
+        });
+        const ratio = resolveColumn("Foo", "ratio").filter!;
+        expect(ratio.filter.toCondition("ratio", ["0.5"])).toMatchObject({
+            operands: [{}, {scalarType: "Float", value: 0.5}]
+        });
+    });
+
+    test("filters Booleans with a select", () => {
+        const flag = resolveColumn("Foo", "flag");
+        expect(flag.filter!.filter.Input).toBeDefined();
+        expect(flag.filter!.filter.toCondition("flag", ["true"])).toMatchObject({
+            name: "eq",
+            operands: [{}, {scalarType: "Boolean", value: true}]
+        });
+        expect(flag.render(row)).toBe("true");
+    });
+
+    test("formats values through their converters, and has no default filter for time", () => {
+        const column = resolveColumn("Foo", "created");
+        expect(column.render(row)).toBe(created.toLocaleString());
+        expect(column.sort).toBe("created");
+        expect(column.filter).toBeNull();
+        expect(resolveColumn("Foo", "day").filter).toBeNull();
+    });
+
+    test("shows null as nothing", () => {
+        expect(resolveColumn("Foo", "ratio").render(row)).toBe("");
+    });
+
+    test("labels a path into a relation by the type owning the field", () => {
+        const column = resolveColumn("Foo", "owner.login");
+        expect(column.heading).toBe("[AppUser.login]");
+        expect(column.render(row)).toBe("admin");
+        expect(column.sort).toBe("owner.login");
+        expect(column.render({...row, owner: null})).toBe("");
+    });
+
+    test("shows, sorts and filters a relation by its name fields", () => {
+        const column = resolveColumn("Foo", "owner");
+
+        expect(column.heading).toBe("[Foo.owner]");
+        expect(column.render(row)).toBe("admin");
+        expect(column.render({...row, owner: null})).toBe("");
+        expect(column.sort).toBe("owner.login");
+        expect(column.filter!.field).toBe("owner.login");
+    });
+
+    test("hands a relation column's own filter the relation", () => {
+        const filter = {arity: 1, toCondition: () => null};
+        expect(resolveColumn("Foo", {field: "owner", filter}).filter).toEqual({field: "owner", filter});
+    });
+
+    test("names a name field the query doesn't select", () => {
+        const column = resolveColumn("Foo", "owner");
+        expect(() => column.render({...row, owner: {id: "user-1"}}))
+            .toThrow("Column \"owner\": the rows have no \"owner.login\". Select it in the grid's query.");
+    });
+
+    test("names a field the query doesn't select", () => {
+        const column = resolveColumn("Foo", "num");
+        expect(() => column.render({id: "foo-1"})).toThrow("the rows have no \"num\"");
+    });
+
+    test("needs name fields for a relation column deriving anything", () => {
+        expect(() => resolveColumn("Foo", "fooType"))
+            .toThrow("Column \"fooType\": FooType has no name fields to show, sort and filter the relation by.");
+
+        const column = resolveColumn("Foo", {
+            field: "fooType",
+            render: (r: typeof row) => r.fooType.name,
+            sort: "fooType.ordinal",
+            filter: false
+        });
+        expect(column.render(row)).toBe("TypeA");
+        expect(column.sort).toBe("fooType.ordinal");
+    });
+
+    test("refuses paths the schema doesn't have or a column can't show", () => {
+        expect(() => resolveColumn("Foo", "nope")).toThrow("Column \"nope\": Foo has no field \"nope\".");
+        expect(() => resolveColumn("Foo", "tags")).toThrow("tags of Foo is a list");
+        expect(() => resolveColumn("Foo", "name.x")).toThrow("name of Foo is a String, with no fields below it.");
+        expect(() => resolveColumn("Foo", "embedded")).toThrow("neither a scalar nor a to-one relation");
+    });
+
+    test("takes what the object form states over what is derived", () => {
+        const column = resolveColumn("Foo", {
+            field: "name",
+            heading: "Title",
+            sort: false,
+            filter: false,
+            className: r => r.flag ? "flagged" : undefined,
+            nowrap: true,
+            maxWidth: "20em"
+        });
+
+        expect(column.heading).toBe("Title");
+        expect(column.sort).toBeNull();
+        expect(column.filter).toBeNull();
+        expect(column.className(row)).toBe("flagged");
+        expect(column.nowrap).toBe(true);
+        expect(column.maxWidth).toBe("20em");
+
+        expect(resolveColumn("Foo", {field: "num", sort: {type: "Field", name: "ratio"}}).sort)
+            .toEqual({type: "Field", name: "ratio"});
+    });
+
+    test("formats what render returns unless it is an element", () => {
+        const plain = resolveColumn("Foo", {field: "created", render: () => created});
+        expect(plain.render(row)).toBe(created.toLocaleString());
+
+        const element = <b>bold</b>;
+        expect(resolveColumn("Foo", {field: "name", render: () => element}).render(row)).toBe(element);
+    });
+
+    test("takes a column without a field if it renders", () => {
+        const column = resolveColumn("Foo", {heading: "Actions", render: () => <button/>});
+        expect(column.field).toBeNull();
+        expect(column.sort).toBeNull();
+        expect(column.filter).toBeNull();
+
+        expect(() => resolveColumn("Foo", {heading: "Nothing"})).toThrow("needs a render function");
+        expect(() => resolveColumn("Foo", {render: () => "", filter: {arity: 1, toCondition: () => null}}))
+            .toThrow("nothing to filter");
+    });
+});
+
+describe("rowKey", () => {
+
+    test("reads the primary key, with its fields joined", () => {
+        expect(rowKey("Foo", row)).toBe("foo-1");
+        expect(rowKey("FooLink", {fooId: "a", tagId: "b"})).toBe("a,b");
+    });
+
+    test("falls back to the id", () => {
+        expect(rowKey("AppUser", {id: "user-1"})).toBe("user-1");
+    });
+
+    test("names a key field the query doesn't select", () => {
+        expect(() => rowKey("FooLink", {fooId: "a"}))
+            .toThrow("The rows of FooLink have no \"tagId\", which is part of its key.");
+    });
+});
+
+describe("FieldPath", () => {
+
+    type Row = {
+        id: string
+        name: string
+        created: Temporal.Instant
+        owner: { id: string, login: string } | null
+        tags: { id: string }[]
+    };
+
+    test("is the fields and the to-one paths, without lists", () => {
+        const paths: FieldPath<Row>[] = ["id", "name", "created", "owner", "owner.id", "owner.login"];
+        expect(paths).toHaveLength(6);
+
+        // @ts-expect-error: not selected
+        const typo: FieldPath<Row> = "nmae";
+        // @ts-expect-error: a list is no column
+        const list: FieldPath<Row> = "tags";
+        // @ts-expect-error: a Temporal.Instant is a value, not a relation
+        const inside: FieldPath<Row> = "created.epochMilliseconds";
+        expect([typo, list, inside]).toHaveLength(3);
+    });
+});

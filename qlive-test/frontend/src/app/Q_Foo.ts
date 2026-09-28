@@ -1,8 +1,8 @@
 import { GraphQLQuery, QueryDocumentMethods } from "@qlivedev/qlive-ts";
-import {AppUser, Foo, FooDocument, FooType} from "../types";
+import {AppUser, Foo, FooDocument} from "../types";
 
-export type Q_FooResult = Pick<FooDocument,"type" | "config"> & {
-    rows : Array<Pick<Foo,"id" | "name" | "description"> & {
+export type Q_FooResult = Pick<FooDocument,"type" | "config" | "rowCount"> & {
+    rows : Array<Pick<Foo,"id" | "name" | "description" | "num" | "flag" | "created"> & {
         owner : Pick<AppUser,"id" | "login">
     }>
 } & QueryDocumentMethods<Q_FooResult>
@@ -13,11 +13,15 @@ export const Q_Foo = new GraphQLQuery<Q_FooResult>(
         xxx: queryFooDocument(config: $config) {
             type
             config
+            rowCount
             rows {
 
                 id
                 name
                 description
+                num
+                flag
+                created
 
                 owner {
                     id

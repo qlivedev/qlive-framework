@@ -218,3 +218,23 @@ body
     background: color-mix(in srgb, var(--qlive-mark-color) 15%, transparent);
     box-shadow: inset var(--qlive-space-1) 0 0 0 var(--qlive-mark-color);
 }
+
+/*
+ * Home's search form: one line of labeled filter inputs above the grid.
+ */
+.foo-search
+{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.foo-search label
+{
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 14rem;
+}

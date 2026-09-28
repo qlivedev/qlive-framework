@@ -2,7 +2,7 @@
 title: Filter DSL
 description: One condition language, and what it means in each place it lands.
 sidebar:
-  order: 7
+  order: 6
 ---
 
 The FilterDSL is a fluent TypeScript API that produces JSON-like graphs. To

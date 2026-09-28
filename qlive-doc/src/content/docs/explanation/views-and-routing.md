@@ -2,7 +2,7 @@
 title: Views and routing
 description: How a URL becomes a view module.
 sidebar:
-  order: 5
+  order: 9
 ---
 QLive is dealing with views and routing out of necessity and not because we thought it would be fun to reinvent routing. 
 For the injection mechanism to work, the server has to know which component's injection to prepare. 

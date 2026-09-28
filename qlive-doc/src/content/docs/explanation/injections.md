@@ -6,10 +6,10 @@ sidebar:
 ---
 
 An injection is a query the server runs **before the page is sent**, whose
-result arrives inside the HTML document. It is what makes a QLive page
+result arrives inside the HTML document. It is what makes a **QLive view**
 complete when it paints.
 
-```tsx
+```tsx title="./app/Home.tsx"
 import {useInjection} from "@qlivedev/qlive-ts";
 import {Q_Foo} from "./Q_Foo";
 
@@ -25,6 +25,12 @@ Nothing is declared twice. `useInjection(Q_Foo, ...)` in the view is the
 only place the query is named; the build's analysis carries it to the
 server, which resolves the identifier the same way the bundler does -- in
 the calling module and in the modules it imports directly.
+                             
+:::note
+Note that useInjection only works in views.
+
+See [Views and routing](/qlive-framework/explanation/views-and-routing/)
+:::
 
 ## Signature
 

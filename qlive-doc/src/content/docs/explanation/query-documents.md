@@ -2,7 +2,7 @@
 title: Query documents
 description: The paged result, the store behind it, and the query plan it comes from.
 sidebar:
-  order: 6
+  order: 5
 ---
 **Query documents** are the central aspect of the data querying in QLive. A query document contains the results of a query
 as well as the **QueryConfig** the query was created with. 

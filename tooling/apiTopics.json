@@ -130,6 +130,29 @@
       ]
     },
     {
+      "slug": "paging-and-sorting",
+      "title": "Paging and sorting",
+      "description": "Pagers and sort headers over a query document: the page math, the hooks, and the default components built on them.",
+      "members": [
+        "usePagination",
+        "PageableDocument",
+        "PaginationOptions",
+        "Pagination",
+        "Pager",
+        "PagerProps",
+        "pageCount",
+        "pageIndex",
+        "pageOffset",
+        "pageSizeOptions",
+        "pageWindow",
+        "useSort",
+        "SortableDocument",
+        "SortState",
+        "SortHeader",
+        "SortHeaderProps"
+      ]
+    },
+    {
       "slug": "filter-dsl",
       "title": "Filter DSL",
       "description": "The condition and expression graph, and what builds one.",

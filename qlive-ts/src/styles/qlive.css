@@ -373,4 +373,29 @@
         margin-inline-start: var(--qlive-space-2);
     }
 
+    /*
+     * <SortHeader/>: the whole cell is the button, so it reads as a heading
+     * and not as a control sitting in one.
+     */
+    .qlive-grid-sort-header > button
+    {
+        display: flex;
+        align-items: center;
+        gap: var(--qlive-space-1);
+        width: 100%;
+        padding: 0;
+        border: none;
+        background: none;
+        color: inherit;
+        font: inherit;
+        text-align: inherit;
+        cursor: pointer;
+    }
+    .qlive-grid-sort-indicator
+    {
+        color: var(--qlive-color-accent);
+        font-size: var(--qlive-font-size-sm);
+        white-space: nowrap;
+    }
+
 }

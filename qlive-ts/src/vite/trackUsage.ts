@@ -103,11 +103,6 @@ export interface TrackUsagePluginOptions
      * Default: true.
      */
     indexes?: boolean;
-    /**
-     * Previously-built track-usage.json used to pre-seed dev mode. Default: `dist/` next to `sourceRoot`,
-     * under `outputFileName`.
-     */
-    seedFile?: string;
     /** Default: "track-usage.json". */
     outputFileName?: string;
     /**
@@ -540,8 +535,9 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
         if (modules.length === 0)
         {
             // Nothing the backend does not have: an earlier push took these modules, or -- at a dev-server
-            // start with no seed file to read -- there is no analysis yet. Pushing that emptiness would only
-            // cost the backend its "not ready" answer, which is the one the frontend knows how to retry.
+            // start over a source tree without tracked calls -- there is no analysis yet. Pushing that
+            // emptiness would only cost the backend its "not ready" answer, which is the one the frontend
+            // knows how to retry.
             reloadIf(reload);
             return;
         }
@@ -673,20 +669,20 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
 
         configureServer(server)
         {
-            const seedPath = options.seedFile ?? path.join(resolved.sourceRoot, "..", "dist", outputFileName);
-            try
-            {
-                devData = JSON.parse(fs.readFileSync(seedPath, "utf-8"));
-            } catch
-            {
-                devData = {usages: {}};
-            }
             reloadBrowser = () => server.ws.send({type: "full-reload"});
 
-            // Immediately and in full: the backend answers page requests from this data, and the first of
-            // them arrives before the browser has asked the dev server for a single module.
             if (isDevMode)
             {
+                // The whole tree, before the first page request: the backend answers those from this data,
+                // and the first of them arrives before the browser has asked the dev server for a single
+                // module. A view analyzed only once it is transformed would be served with whatever the
+                // backend had for it before -- nothing, or the injections of an older version of it.
+                devData = analyzeSourceTree({
+                    sourceRoot: resolved.sourceRoot,
+                    trackedFunctions: options.trackedFunctions,
+                    debug: options.debug,
+                    indexes: resolved.indexes,
+                });
                 pushToServer();
             }
 
@@ -704,12 +700,7 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
                         sourceRoot: resolved.sourceRoot,
                         typesModule: options.queryTypes?.typesModule,
                     });
-                    generateQueryTypes(analyzeSourceTree({
-                        sourceRoot: resolved.sourceRoot,
-                        trackedFunctions: options.trackedFunctions,
-                        debug: options.debug,
-                        indexes: resolved.indexes,
-                    }).usages);
+                    generateQueryTypes(devData.usages);
                 }
             }
 

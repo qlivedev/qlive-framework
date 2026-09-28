@@ -90,15 +90,6 @@ argument values.
 
 Default: true.
 
-### TrackUsagePluginOptions.seedFile
-
-```ts
-seedFile?: string;
-```
-
-Previously-built track-usage.json used to pre-seed dev mode. Default: `dist/` next to `sourceRoot`,
-under `outputFileName`.
-
 ### TrackUsagePluginOptions.outputFileName
 
 ```ts

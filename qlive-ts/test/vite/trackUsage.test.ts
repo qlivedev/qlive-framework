@@ -99,7 +99,6 @@ describe("trackUsage", () => {
     {
         const plugin = resolvePlugin({
             sourceRoot,
-            seedFile: path.join(projectRoot, "no-such-seed.json"),
             backendOrigin: backendOrigin ?? undefined,
             pushDebounceMs: DEBOUNCE_MS,
             ...extra,
@@ -136,10 +135,6 @@ describe("trackUsage", () => {
     async function startWithBothModulesPushed(): Promise<TestPlugin>
     {
         const plugin = startPlugin();
-
-        plugin.transform(HOME, moduleFile("app/Home.tsx"));
-        plugin.transform(Q_FOO, moduleFile("app/Q_Foo.ts"));
-        await tick();
 
         expect(pushes).toHaveLength(1);
         expect(pushes[0].url).toContain("full=true");
@@ -193,12 +188,29 @@ describe("trackUsage", () => {
 
 
     it("says nothing to a backend it has nothing for", async () => {
-        // No seed file and no module transformed yet. An empty analysis pushed as the whole truth would
-        // cost the backend the "not ready" answer the frontend retries on.
+        // A source tree without tracked calls. An empty analysis pushed as the whole truth would cost the
+        // backend the "not ready" answer the frontend retries on.
+        fs.rmSync(sourceRoot, {recursive: true, force: true});
+        fs.mkdirSync(sourceRoot);
         startPlugin();
         await tick();
 
         expect(pushes).toHaveLength(0);
+    });
+
+
+    it("pushes every view as it is on disk before the browser asks for one", async () => {
+        // The backend renders a page from this analysis before the dev server has transformed the page's
+        // view. A view known only from an older build would be served with that build's injections.
+        const plugin = await startWithBothModulesPushed();
+
+        plugin.transform(HOME, moduleFile("app/Home.tsx"));
+        plugin.transform(Q_FOO, moduleFile("app/Q_Foo.ts"));
+        await tick();
+
+        // what the transforms found is what was pushed at the start
+        expect(pushes).toHaveLength(0);
+        expect(reloads).toBe(0);
     });
 
 

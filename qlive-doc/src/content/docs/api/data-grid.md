@@ -346,8 +346,11 @@ The rows a list shows, and what has happened to each of them and their fields.
 
 Without a working set the rows are the document's own. With one they are its drafts, so a row being edited
 elsewhere, in a detail pane or a dialog, shows the edits before they are saved; the rows created in the working
-set are listed first on the first page, all of them for now, whether or not the document's condition matches
-them. The document is registered with the working set here, so its rows can be edited without doing that first.
+set are listed first on the first page. Which of them is decided the way a query decides which rows it returns:
+when the condition changes, the created rows it matches then show, evaluated in the browser as
+conditionPredicate() has it, and so does every row created after. A row created under a filter shows although it
+is still empty, and neither it nor a row of the query leaves the list because an edit made it stop matching.
+The document is registered with the working set here, so its rows can be edited without doing that first.
 
 The calling component re-renders with every change to the working set. DataGrid is this plus markup; a table of
 its own gets the same through this hook.
@@ -378,7 +381,8 @@ rows: readonly R[];
 ```
 
 The rows to show. Without a working set, the document's rows. With one, the drafts of them, preceded on the
-first page by the rows created in it.
+first page by the rows created in it that the document's condition matched when it was set, and the rows
+created since.
 
 ### GridRows.status
 
@@ -423,7 +427,7 @@ workingSet?: WorkingSet | null;
 ```
 
 The working set the rows are edited in. The rows are then its drafts, so unsaved edits show in the list, and
-the rows created in it show on the first page.
+the rows created in it show on the first page, those the document's condition matches.
 
 ### GridRowsOptions.watch
 

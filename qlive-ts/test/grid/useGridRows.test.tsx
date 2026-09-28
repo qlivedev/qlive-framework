@@ -2,6 +2,7 @@
 import {afterEach, beforeAll, beforeEach, describe, expect, it, vi} from "vitest";
 import {act} from "react";
 import {createRoot, Root} from "react-dom/client";
+import {component, field, value} from "../../src/FilterDSL";
 import {QueryConfig} from "../../src/QueryDocument";
 import DataGrid, {GridDocument} from "../../src/grid/DataGrid";
 import {resolveColumn} from "../../src/grid/columns";
@@ -120,6 +121,31 @@ describe("useGridRows() through DataGrid", () => {
 
         const second = render(<DataGrid doc={ doc({offset: 10}) } workingSet={ ws } columns={ COLUMNS }/>);
         expect(bodyRows(second).map(r => r.getAttribute("data-id"))).toEqual(["foo-1", "foo-2"]);
+    });
+
+    it("lists the created rows the condition matched when it was set, and those created since", () => {
+        const ws = new WorkingSet();
+        ws.create<Row>("Foo", {id: "foo-a", name: "Alpha", num: 5});
+        ws.create<Row>("Foo", {id: "foo-b", name: "Beta", num: 50});
+        const ids = (grid: HTMLElement) => bodyRows(grid).map(r => r.getAttribute("data-id"));
+
+        const big = component("grid", field("num").gt(value(10)));
+        const grid = render(<DataGrid doc={ doc({condition: big}) } workingSet={ ws } columns={ COLUMNS }/>);
+        expect(ids(grid)).toEqual(["foo-b", "foo-1", "foo-2"]);
+
+        // created under the filter, still empty, and shown
+        act(() => { ws.create<Row>("Foo", {id: "foo-c"}); });
+        expect(ids(grid)).toEqual(["foo-b", "foo-c", "foo-1", "foo-2"]);
+
+        // an edit doesn't take a row out of the list, nor bring one in
+        act(() => { ws.edit(ws.created<Row>("Foo")[0]).num = 20; });
+        act(() => { ws.edit(ws.created<Row>("Foo")[1]).num = 1; });
+        expect(ids(grid)).toEqual(["foo-b", "foo-c", "foo-1", "foo-2"]);
+
+        // a new condition decides again
+        const small = component("grid", field("num").lt(value(10)));
+        render(<DataGrid doc={ doc({condition: small}) } workingSet={ ws } columns={ COLUMNS }/>);
+        expect(ids(grid)).toEqual(["foo-b", "foo-1", "foo-2"]);
     });
 
     it("keeps a row marked for deletion until the merge, and drops a created one", () => {

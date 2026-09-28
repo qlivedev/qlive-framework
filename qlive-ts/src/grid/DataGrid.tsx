@@ -7,6 +7,7 @@ import {GridColumn, ResolvedColumn, resolveColumn, rowKey} from "./columns";
 import FilterInput from "./FilterInput";
 import Pager from "./Pager";
 import SortHeader from "./SortHeader";
+import {unawaited} from "./unawaited";
 import {FilterableDocument, useFilters} from "./useFilters";
 import {GridRowStatus, useGridRows} from "./useGridRows";
 import {PageableDocument} from "./usePagination";
@@ -194,7 +195,7 @@ export default function DataGrid<R>(props: DataGridProps<R>): JSX.Element
                     stale && (
                         <>
                             <span className="qlive-grid-note">{ i18n("Rows changed elsewhere") }</span>
-                            <button type="button" className="qlive-grid-reload" onClick={ () => doc.update({}) }>
+                            <button type="button" className="qlive-grid-reload" onClick={ () => unawaited(doc.update({})) }>
                                 { i18n("Reload") }
                             </button>
                         </>
@@ -202,7 +203,7 @@ export default function DataGrid<R>(props: DataGridProps<R>): JSX.Element
                 }
                 {
                     filters.active && (
-                        <button type="button" className="qlive-grid-reset" onClick={ () => filters.reset() }>
+                        <button type="button" className="qlive-grid-reset" onClick={ () => unawaited(filters.reset()) }>
                             { i18n("Reset filters") }
                         </button>
                     )

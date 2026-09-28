@@ -2,6 +2,7 @@ import {useEffect, useReducer, useRef} from "react";
 import {and, conditionsEqual, FilterExpression, ownedPart, updateComponent} from "../FilterDSL";
 import {QueryConfig, QueryConfigDelta} from "../QueryDocument";
 import {claimTerms, ColumnFilter, FilterColumn, filled} from "./filters";
+import {unawaited} from "./unawaited";
 
 /**
  * What useFilters() needs of a query document: its config and update(). A snapshot from useInjection() or
@@ -215,7 +216,7 @@ export function useFilters(
         {
             clearTimeout(current.timer);
         }
-        current.timer = setTimeout(send, options.delay ?? DEFAULT_DELAY);
+        current.timer = setTimeout(() => unawaited(send()), options.delay ?? DEFAULT_DELAY);
     };
 
     const reset = () => {

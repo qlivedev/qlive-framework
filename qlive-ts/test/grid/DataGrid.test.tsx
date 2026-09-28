@@ -166,6 +166,29 @@ describe("DataGrid", () => {
         expect(d.update).toHaveBeenCalledWith({condition: component("grid", null), offset: 0});
     });
 
+    it("leaves a failed update to the document rather than rejecting unhandled", async () => {
+        vi.useFakeTimers();
+        const d = doc({condition: component("grid", field("name").isNull() as FilterExpression)});
+        const failed = vi.fn(() => Promise.reject(new Error("Not authenticated")));
+        d.update = failed;
+        const grid = render(<DataGrid doc={ d } columns={ ["name", "num"] }/>);
+
+        const input = grid.querySelectorAll(".qlive-grid-filters input")[1] as HTMLInputElement;
+        const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+        await act(async () => {
+            (grid.querySelector(".qlive-grid-headings button") as HTMLElement).click();
+            const size = grid.querySelector(".qlive-grid-pager-size select") as HTMLSelectElement;
+            size.value = "20";
+            size.dispatchEvent(new Event("change", {bubbles: true}));
+            (grid.querySelector(".qlive-grid-reset") as HTMLElement).click();
+            setter.call(input, "2");
+            input.dispatchEvent(new Event("input", {bubbles: true}));
+            vi.advanceTimersByTime(300);
+        });
+
+        expect(failed).toHaveBeenCalledTimes(4);
+    });
+
     it("notes nothing where every sort field and term has its column", () => {
         const term = field("name").containsIgnoreCase(value("x")) as FilterExpression;
         const grid = render(

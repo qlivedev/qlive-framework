@@ -2,6 +2,7 @@ import type {JSX} from "react";
 
 import i18n from "../i18n";
 import {pageWindow} from "./paging";
+import {unawaited} from "./unawaited";
 import {PageableDocument, PaginationOptions, usePagination} from "./usePagination";
 
 export type PagerProps = PaginationOptions & {
@@ -42,11 +43,11 @@ export default function Pager({doc, pageSizes, radius = 2, align = "start", clas
     return (
         <nav className={ classes } aria-label={ i18n("Pagination") }>
             <button type="button" className="qlive-grid-pager-first" disabled={ page <= 0 }
-                    aria-label={ i18n("First page") } onClick={ () => paging.goTo(0) }>
+                    aria-label={ i18n("First page") } onClick={ () => unawaited(paging.goTo(0)) }>
                 «
             </button>
             <button type="button" className="qlive-grid-pager-previous" disabled={ page <= 0 }
-                    aria-label={ i18n("Previous page") } onClick={ () => paging.goTo(page - 1) }>
+                    aria-label={ i18n("Previous page") } onClick={ () => unawaited(paging.goTo(page - 1)) }>
                 ‹
             </button>
             {
@@ -54,22 +55,22 @@ export default function Pager({doc, pageSizes, radius = 2, align = "start", clas
                     <button key={ n } type="button" className="qlive-grid-pager-page"
                             aria-label={ i18n("Page {0}", String(n + 1)) }
                             aria-current={ n === page ? "page" : undefined }
-                            onClick={ () => paging.goTo(n) }>
+                            onClick={ () => unawaited(paging.goTo(n)) }>
                         { n + 1 }
                     </button>
                 ))
             }
             <button type="button" className="qlive-grid-pager-next" disabled={ page >= last }
-                    aria-label={ i18n("Next page") } onClick={ () => paging.goTo(page + 1) }>
+                    aria-label={ i18n("Next page") } onClick={ () => unawaited(paging.goTo(page + 1)) }>
                 ›
             </button>
             <button type="button" className="qlive-grid-pager-last" disabled={ page >= last }
-                    aria-label={ i18n("Last page") } onClick={ () => paging.goTo(last) }>
+                    aria-label={ i18n("Last page") } onClick={ () => unawaited(paging.goTo(last)) }>
                 »
             </button>
             <label className="qlive-grid-pager-size">
                 { i18n("Rows per page") }
-                <select value={ paging.pageSize } onChange={ ev => paging.setPageSize(Number(ev.target.value)) }>
+                <select value={ paging.pageSize } onChange={ ev => unawaited(paging.setPageSize(Number(ev.target.value))) }>
                     {
                         paging.pageSizes.map(size => (
                             <option key={ size } value={ size }>

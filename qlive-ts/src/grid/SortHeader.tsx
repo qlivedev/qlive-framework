@@ -1,6 +1,7 @@
 import type {JSX, ReactNode} from "react";
 
 import {FieldExpression} from "../FilterDSL";
+import {unawaited} from "./unawaited";
 import {SortableDocument, useSort} from "./useSort";
 
 export type SortHeaderProps = {
@@ -48,7 +49,7 @@ export default function SortHeader({doc, sortKey, children, className}: SortHead
 
     return (
         <th className={ classes } aria-sort={ ariaSort }>
-            <button type="button" onClick={ toggle }>
+            <button type="button" onClick={ () => unawaited(toggle()) }>
                 { children }
                 <span className="qlive-grid-sort-indicator" aria-hidden="true">
                     { direction && ARROWS[direction] }

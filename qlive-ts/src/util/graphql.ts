@@ -2,15 +2,18 @@ import {GraphQLQuery} from "../GraphQLQuery";
 import config from "../config";
 
 
-type GraphQLErrorLocation = {
+/**
+ * Where in the query string an error is.
+ */
+export type GraphQLErrorLocation = {
     line: number
     column: number
 }
 
 /**
- * GraphQL Error
+ * One entry of the "errors" of a GraphQL response.
  */
-type GraphQLError = {
+export type GraphQLError = {
     /**
      * Error message
      */
@@ -19,6 +22,59 @@ type GraphQLError = {
      * Query string location
      */
     locations?: GraphQLErrorLocation[]
+    /**
+     * Result key path of the field that failed, for an error while executing
+     */
+    path?: (string | number)[]
+    /**
+     * Whatever else the server says about the error. The QLive server puts its kind in `classification`:
+     * "UNAUTHENTICATED" for a missing or expired login, "FORBIDDEN" for a missing role or CSRF token, and
+     * graphql-java's own classifications, such as "ValidationError", for the rest.
+     */
+    extensions?: {
+        classification?: string
+        [name: string]: unknown
+    }
+}
+
+/**
+ * The rejection of a request the server answered with GraphQL errors. It carries them parsed, so a caller
+ * can tell an ended session from a missing role or a broken query without reading the message.
+ *
+ *     catch (e)
+ *     {
+ *         if (e instanceof GraphQLResponseError && e.hasClassification("UNAUTHENTICATED")) ...
+ *     }
+ *
+ * A request that got no GraphQL response at all -- the network, a server that isn't up -- rejects with
+ * whatever went wrong instead.
+ */
+export class GraphQLResponseError extends Error
+{
+    /**
+     * The errors of the response, as the server sent them
+     */
+    readonly errors: readonly GraphQLError[];
+
+    /**
+     * @param errors    the errors of the response, at least one
+     */
+    constructor(errors: readonly GraphQLError[])
+    {
+        super("GraphQL error: " + errors.map(error => error.message).join("; "));
+        this.name = "GraphQLResponseError";
+        this.errors = errors;
+    }
+
+    /**
+     * Returns true if one of the errors has the given classification.
+     *
+     * @param classification    classification from the errors' extensions, e.g. "UNAUTHENTICATED"
+     */
+    hasClassification(classification: string): boolean
+    {
+        return this.errors.some(error => error.extensions?.classification === classification);
+    }
 }
 
 /**
@@ -78,7 +134,8 @@ export type GraphQLParams =
 
 /**
  * Posts the given query to the server's /graphql endpoint and resolves with its
- * data, rejecting on a transport error or on any GraphQL error in the response.
+ * data, rejecting on a transport error or on any GraphQL error in the response. The
+ * latter rejects with a GraphQLResponseError carrying the errors.
  *
  * This is the raw call: values go out and come back in their wire format, and the
  * result is the whole data object, keyed by result key. GraphQLQuery.execute()
@@ -131,7 +188,7 @@ export default function graphql<T>(query: GraphQLQuery<T> | string, params: Grap
 
             if (data.errors && data.errors.length > 0)
             {
-                return Promise.reject(new Error("GraphQL error: " + JSON.stringify(data.errors)));
+                return Promise.reject(new GraphQLResponseError(data.errors));
             }
             return data.data as T
         })

@@ -5,6 +5,7 @@ import {GraphQLQuery} from "../src/GraphQLQuery";
 import {QueryDocument} from "../src/QueryDocument";
 import {queryResult, testConfig, testCsrfToken, testAuthentication} from "./fixtures/testConfig";
 import {respondWith, sentVariables} from "./fixtures/graphqlMock";
+import {GraphQLResponseError} from "../src/util/graphql";
 
 const Q_Foo = new GraphQLQuery<QueryDocument<any>>(
     `query Q_Foo($config: QueryConfig!, $since: Timestamp) {
@@ -74,8 +75,19 @@ describe("GraphQLQuery", () => {
     })
 
     it("rejects with the GraphQL errors rather than converting them", async () => {
-        respondWith({data: null, errors: [{message: "boom"}]})
+        vi.spyOn(console, "error").mockImplementation(() => {})
+        const errors = [
+            {message: "Not authenticated", locations: [], extensions: {classification: "UNAUTHENTICATED"}},
+            {message: "boom"}
+        ]
+        respondWith({data: null, errors})
 
-        await expect(Q_Foo.execute({config: {}})).rejects.toThrowError(/boom/)
+        const error = await Q_Foo.execute({config: {}}).catch(e => e)
+
+        expect(error).toBeInstanceOf(GraphQLResponseError)
+        expect(error.message).toBe("GraphQL error: Not authenticated; boom")
+        expect(error.errors).toEqual(errors)
+        expect(error.hasClassification("UNAUTHENTICATED")).toBe(true)
+        expect(error.hasClassification("FORBIDDEN")).toBe(false)
     })
 })

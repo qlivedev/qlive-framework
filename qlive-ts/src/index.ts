@@ -26,7 +26,7 @@ export { default as i18n } from "./i18n";
 export { useInjection } from "./useInjection";
 export { default as data, injectionSource } from "./data";
 export { GraphQLQuery } from "./GraphQLQuery";
-export { default as graphql, firstValue } from "./util/graphql";
+export { default as graphql, firstValue, GraphQLResponseError } from "./util/graphql";
 export { QueryDocument } from "./QueryDocument";
 export { parseQuery } from "./util/parseQuery";
 
@@ -170,7 +170,7 @@ export type { FilterInputProps } from "./grid/FilterInput";
 export type { FieldPath, DataGridColumn, GridColumn, ResolvedColumn } from "./grid/columns";
 export type { GridRowStatus, GridRowsOptions, GridRows } from "./grid/useGridRows";
 export type { GridDocument, DataGridProps } from "./grid/DataGrid";
-export type { GraphQLParams } from "./util/graphql";
+export type { GraphQLParams, GraphQLError, GraphQLErrorLocation } from "./util/graphql";
 export type {
     QueryConfig,
     QueryConfigDelta,

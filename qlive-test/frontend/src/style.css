@@ -231,7 +231,7 @@ body
     margin-bottom: 1rem;
 }
 
-.foo-search label
+.foo-search > label
 {
     display: flex;
     flex-direction: column;

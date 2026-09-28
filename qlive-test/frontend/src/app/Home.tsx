@@ -2,16 +2,22 @@ import { useState } from "react";
 import {
     DataGrid,
     FilterInput,
+    flagSetFilter,
     GraphQLResponseError,
     GraphQLTransportError,
+    numberContainsFilter,
     operatorFilter,
+    patternFilter,
+    pick,
     Temporal,
     useFilters,
     useInjection,
     useWorkingSet,
     WorkingSet
 } from "@qlivedev/qlive-ts";
+import { field, value } from "@qlivedev/qlive-ts/filter";
 import { Q_Foo, Q_FooResult } from "./Q_Foo";
+import { Q_OwnerCatalog } from "./Q_OwnerCatalog";
 
 type FooRow = Q_FooResult["rows"][number];
 
@@ -20,8 +26,16 @@ type FooRow = Q_FooResult["rows"][number];
  * value like any other.
  */
 const SEARCH = [
-    {field: "description", filter: operatorFilter("containsIgnoreCase")},
-    {field: "num", filter: operatorFilter("between", "Int")}
+    // "foo* & !bar | baz": wildcards, and, or and not
+    {field: "description", filter: patternFilter()},
+    {field: "num", filter: operatorFilter("between", "Int")},
+    {
+        field: "flag",
+        filter: flagSetFilter([
+            {name: "flagged", label: "Flagged", term: path => field(path).isTrue()},
+            {name: "large", label: "Num over 100", term: () => field("num").gt(value(100))}
+        ])
+    }
 ];
 
 export default function Home() {
@@ -38,7 +52,11 @@ export default function Home() {
     // form writes "search", and the condition is both of them joined with and(): each narrows what the other
     // shows, and neither touches the other's part.
     const search = useFilters(foos, "search", SEARCH);
-    const [description, num] = search.columns;
+    const [description, num, flags] = search.columns;
+
+    // A catalog for the owner column's filter: all users, few enough to load whole. The grid can't fetch it
+    // itself -- only views inject -- so the view hands it over through pick().
+    const owners = useInjection(Q_OwnerCatalog, {config: {pageSize: 0, sortFields: ["login"]}});
 
     // The rows are edited in a working set, which lives as long as the editing does. The grid registers the
     // document with it and shows its drafts: an edit, a deletion or a new row shows before it is saved, and
@@ -52,13 +70,14 @@ export default function Home() {
 
             <form className="foo-search" onSubmit={ ev => ev.preventDefault() }>
                 <label>
-                    Description contains
+                    Description matches
                     <FilterInput column={ description }/>
                 </label>
                 <label>
                     Num between
                     <FilterInput column={ num }/>
                 </label>
+                <FilterInput column={ flags }/>
                 <button type="button" className="btn" disabled={ !search.active } onClick={ () => search.reset() }>
                     Clear search
                 </button>
@@ -99,9 +118,12 @@ export default function Home() {
                         // the row is the draft, so the input writes into the working set
                         render: row => <input value={ row.name } onChange={ ev => { row.name = ev.target.value } }/>
                     },
-                    "num",
+                    // finds 123 for "2"
+                    {field: "num", filter: numberContainsFilter()},
                     "flag",
-                    "owner",
+                    // filters ownerId by the user chosen from the catalog
+                    {field: "owner", filter: pick(owners)},
+                    // a date range, the default for a Timestamp
                     {field: "created", nowrap: true},
                     {
                         heading: "",

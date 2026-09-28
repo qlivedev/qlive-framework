@@ -58,14 +58,13 @@ as from the grid. They live next to the FilterDSL.
   `update()`. A missing component is added as another operand of an
   `and` composition, or joined with `and()` to a lone component, so the
   result stays one flat level. An `or` composition without the
-  component is refused (see "Component awareness"). Prior art:
+  component is refused, and any other condition is replaced whole (see
+  "Component awareness"). Prior art:
   Automaton's `updateComponentCondition()`, which wrapped instead of
   joining and so produced a second level.
-- **`ownedPart(condition, id)`** and its counterpart for writing,
-  `replaceOwnedPart(condition, id, term)`: which part of a condition
-  belongs to the holder of an id, by the rules under "Component
-  awareness". `ownsWhole(condition)` says whether that part is all of
-  it.
+- **`ownedPart(condition, id)`**, the read side: which part of a
+  condition belongs to the holder of an id, by the rules under
+  "Component awareness".
 - **`matchSort(sortFields, key)`**: whether a column's sort key appears
   in a sort order, and if so its direction and position. A key is one
   sort field or a sequence of them (a relation column's grouped key); a
@@ -284,6 +283,10 @@ shape decides what the grid owns.
   it in an `and` would produce a second level, which
   `isComposedComponentExpression()` rejects, so the grid would take over
   the whole condition on the next read.
+- **No condition starts a composition.** The first owner to write
+  makes its component the lone one, and the next joins it. A grid and a
+  search form on a fresh document share it without the view seeding
+  their slots. An owner writing nothing leaves no condition.
 - **Any other condition: the grid owns all of it**, and writes a plain
   term without a marker.
 - **Components exist on one level only.** Inside its component, the grid

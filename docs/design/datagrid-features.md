@@ -55,9 +55,10 @@ the condition belongs to the grid depends on the condition's shape.
   operand, so a composition of one arrives as a bare component node,
   which `isComposedComponentExpression()` rejects. The grid treats it as
   a composition of one component.
-- **Any other condition: the grid owns all of it.** A plain condition,
-  or none at all, is taken over whole. The filter row reads it and
-  replaces it.
+- **Any other condition: the grid owns all of it.** A plain condition
+  is taken over whole. The filter row reads it and replaces it. No
+  condition at all is nobody's yet, and whoever writes first starts a
+  composition with their component.
 - **Changes from outside show in the grid.** Code outside the grid may
   also change the grid's own part: its component in a composed
   condition, or the whole condition otherwise. The filter inputs then

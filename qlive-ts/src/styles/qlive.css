@@ -425,4 +425,108 @@
         border-color: var(--qlive-color-accent);
     }
 
+    /*
+     * <DataGrid/>. The container scrolls a wide table sideways, so the page
+     * around it doesn't. Row shading is mixed from the text and accent
+     * colors, so it follows the tokens into dark mode.
+     *
+     * Striped, hover, bordered and compact are opt-in classes on the grid,
+     * through its className prop.
+     */
+    .qlive-grid
+    {
+        --qlive-grid-cell-padding: var(--qlive-space-1) var(--qlive-space-2);
+
+        overflow-x: auto;
+        font-family: var(--qlive-font-sans);
+        color: var(--qlive-color-fg);
+    }
+    .qlive-grid-table
+    {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .qlive-grid-table th,
+    .qlive-grid-table td
+    {
+        padding: var(--qlive-grid-cell-padding);
+        text-align: start;
+        vertical-align: top;
+    }
+    .qlive-grid-headings th
+    {
+        border-bottom: 2px solid var(--qlive-color-border);
+        white-space: nowrap;
+    }
+    .qlive-grid-filters td
+    {
+        border-bottom: 1px solid var(--qlive-color-border);
+    }
+    .qlive-grid-row td
+    {
+        border-bottom: 1px solid var(--qlive-color-border);
+    }
+    .qlive-grid-nowrap
+    {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .qlive-grid-empty td
+    {
+        padding: var(--qlive-space-3);
+        text-align: center;
+        color: var(--qlive-color-muted);
+    }
+    .qlive-grid-footer
+    {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--qlive-space-2);
+        padding-block: var(--qlive-space-2);
+    }
+    .qlive-grid-footer .qlive-grid-pager
+    {
+        margin-inline-start: auto;
+    }
+    .qlive-grid-note
+    {
+        color: var(--qlive-color-muted);
+        font-size: var(--qlive-font-size-sm);
+    }
+    .qlive-grid-reset
+    {
+        padding: var(--qlive-space-1) var(--qlive-space-2);
+        border: 1px solid var(--qlive-color-border);
+        border-radius: var(--qlive-radius-md);
+        background: var(--qlive-color-bg);
+        color: var(--qlive-color-fg);
+        font: inherit;
+        cursor: pointer;
+    }
+
+    .qlive-grid-striped .qlive-grid-row:nth-child(even) td
+    {
+        background: color-mix(in srgb, var(--qlive-color-fg) 4%, transparent);
+    }
+    .qlive-grid-hover .qlive-grid-row:hover td
+    {
+        background: color-mix(in srgb, var(--qlive-color-accent) 8%, transparent);
+    }
+    /* after striped and hover, and as specific, so it shows over both */
+    .qlive-grid .qlive-grid-row.qlive-grid-highlighted td
+    {
+        background: color-mix(in srgb, var(--qlive-color-accent) 15%, transparent);
+    }
+    .qlive-grid-bordered .qlive-grid-table th,
+    .qlive-grid-bordered .qlive-grid-table td
+    {
+        border: 1px solid var(--qlive-color-border);
+    }
+    .qlive-grid-compact
+    {
+        --qlive-grid-cell-padding: 0 var(--qlive-space-1);
+    }
+
 }

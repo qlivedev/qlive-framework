@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -51,11 +51,12 @@ class BootstrapInjectionTest
     @Test
     void injectsWhatTheHomeViewDeclares()
     {
-        // "/app/home" is the browser's location.pathname, "./app/Home" the module behind it, and Q_Foo the
-        // query that module injects -- none of which is configured anywhere, all of it read off the source.
+        // "/app/home" is the browser's location.pathname, "./app/Home" the module behind it, and Q_Foo and
+        // Q_OwnerCatalog the queries that module injects -- none of which is configured anywhere, all of it
+        // read off the source.
         final Map<String, Injection> injections = bootstrapService.provideInjectionData("/app/home");
 
-        assertThat(injections.keySet(), contains("Q_Foo"));
+        assertThat(injections.keySet(), containsInAnyOrder("Q_Foo", "Q_OwnerCatalog"));
 
         final Injection injection = injections.get("Q_Foo");
         assertThat(injection.getType(), is("FooDocument"));

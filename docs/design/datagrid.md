@@ -1,6 +1,6 @@
 # DataGrid (design)
 
-Status: built through step 5 of the build order. Written 2026-09-27.
+Status: built through step 6 of the build order. Written 2026-09-27.
 
 The table component for QLive, and the pieces under it. What it has to
 cover is `datagrid-features.md`, a survey of the Automaton DataGrid in
@@ -222,7 +222,9 @@ const owners = useInjection(Q_OwnerCatalog, {config: {pageSize: 1000}});
 ```
 
 `pick(doc)` is a shipped filter. `toCondition` writes an `eq` on the
-foreign key field, found through `relations` in the domain meta.
+foreign key field, which the column finds through `relations` in the
+domain meta and hands to filters that pick the related row
+(`ColumnFilter.key`).
 `fromCondition` reads the id back and looks its label up in the catalog,
 so a filter set from outside shows its name without a lookup. The same
 catalog document serves the foreign key select in the view's edit form.
@@ -336,7 +338,8 @@ interface ColumnFilter<V extends unknown[]>
   `pick(doc)` for catalog columns, a picker for large target tables, a
   flag set) are written against this interface like any
   application filter and implement `fromCondition` themselves.
-- A filter with several inputs takes effect only once all are filled.
+- A filter with several inputs takes effect only once all are filled,
+  unless it is `partial`, like a date range open at one end.
 
 ### Reading a condition back
 
@@ -560,7 +563,23 @@ avoid. Its API shape is worth borrowing.
    `deleted` on the accessor, drafts of new rows answering `in` for
    every field of their type, and `register()` telling subscribers
    about rows it hadn't announced.
-6. The shipped filters.
+6. The shipped filters. Done, except the picker for large target
+   tables, which needs its own search document and a dialog, and
+   waits until a view needs one: `dateRangeFilter()` (the default for
+   Date and Timestamp, a Timestamp filtered by whole days in the user's
+   time zone), `numberContainsFilter()`, `patternFilter()` (`*`, `&`,
+   `|`, `!`, built as `containsIgnoreCase` and `likeRegex` terms rather
+   than one regular expression, so reading back is a walk over the
+   term), `pick(doc)` and `flagSetFilter()`. Home in qlive-test uses
+   each. Three additions came with them. `ColumnFilter.partial` lets
+   a filter take effect with some inputs empty, a range open at one
+   end. `ColumnFilter.key` marks a filter that picks the related row,
+   and `resolveColumn()` hands it the foreign key instead of the first
+   name field; `pick()` so needs no domain meta and no row type, and a
+   search form gives it the foreign key directly. Any other filter on a
+   relation column gets the first name field, like the default. And
+   the server learned the `toString` operation the DSL always had, as a
+   cast to text in SQL and `String.valueOf()` for payloads.
 7. Client-side evaluation, then created rows filtered on the first page
    and local rows.
 

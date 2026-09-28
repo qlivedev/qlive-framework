@@ -221,9 +221,27 @@ function parseDeclarations(text)
         const body = [line];
 
         // A body closes with `}` for a class or interface and `};` for an object
-        // type alias, both at column 0; anything else is a one-liner that ends
-        // where its semicolon does.
-        if (line.includes("{") && !line.trimEnd().endsWith(";"))
+        // type alias, both at column 0; anything else ends where its semicolon
+        // does. A function has no body, but its signature can hold object types
+        // spanning lines, so it ends at the first semicolon outside all brackets.
+        if (kind === "function")
+        {
+            let depth = 0;
+            for (let j = i; ; j++)
+            {
+                if (j > i)
+                {
+                    body.push(lines[j]);
+                }
+                depth += (lines[j].match(/[({[]/g) ?? []).length - (lines[j].match(/[)}\]]/g) ?? []).length;
+                if ((depth <= 0 && lines[j].trimEnd().endsWith(";")) || j + 1 >= lines.length)
+                {
+                    i = j;
+                    break;
+                }
+            }
+        }
+        else if (line.includes("{") && !line.trimEnd().endsWith(";"))
         {
             while (i + 1 < lines.length && !/^\};?$/.test(body[body.length - 1]))
             {

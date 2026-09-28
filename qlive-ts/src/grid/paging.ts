@@ -74,3 +74,24 @@ export function pageSizeOptions(options: readonly number[], maxPageSize?: number
     }
     return allowed;
 }
+
+/**
+ * The page indexes a pager lists as numbers: the current page and up to `radius` pages on either side of it. Near
+ * either end the window shifts so it still holds `2 * radius + 1` pages where there are that many.
+ *
+ * @param page       current page index, from 0
+ * @param pageCount  number of pages, as from `pageCount()`
+ * @param radius     pages to list on either side of the current one
+ */
+export function pageWindow(page: number, pageCount: number, radius: number = 2): number[]
+{
+    const size = Math.min(pageCount, 2 * radius + 1);
+    const first = Math.max(0, Math.min(page - radius, pageCount - size));
+
+    const pages: number[] = [];
+    for (let i = 0; i < size; i++)
+    {
+        pages.push(first + i);
+    }
+    return pages;
+}

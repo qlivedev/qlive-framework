@@ -1,5 +1,5 @@
 import {describe, expect, test} from "vitest";
-import {pageCount, pageIndex, pageOffset, pageSizeOptions} from "../../src/grid/paging";
+import {pageCount, pageIndex, pageOffset, pageSizeOptions, pageWindow} from "../../src/grid/paging";
 
 describe("page math", () => {
 
@@ -26,5 +26,14 @@ describe("page math", () => {
         expect(pageSizeOptions(options, 50)).toEqual([10, 25, 50]);
         expect(pageSizeOptions(options, 40)).toEqual([10, 25, 40]);
         expect(pageSizeOptions([10, 25], 100)).toEqual([10, 25]);
+    });
+
+    test("lists the pages around the current one", () => {
+        expect(pageWindow(0, 1)).toEqual([0]);
+        expect(pageWindow(5, 10)).toEqual([3, 4, 5, 6, 7]);
+        expect(pageWindow(0, 10)).toEqual([0, 1, 2, 3, 4]);
+        expect(pageWindow(9, 10)).toEqual([5, 6, 7, 8, 9]);
+        expect(pageWindow(2, 3)).toEqual([0, 1, 2]);
+        expect(pageWindow(4, 10, 1)).toEqual([3, 4, 5]);
     });
 });

@@ -72,8 +72,11 @@ Sorting by a column with duplicates would leave the order among them to the
 database, and paging over that can show a row on two pages or on none. So
 where the sort fields don't already cover a unique key of NOT NULL
 columns, the server appends the rest of one they partly cover, or else the
-primary key; with no sort fields at all, the primary key is the sort. None
-of that shows in the config that comes back. It follows from the config's
+primary key; with no sort fields at all, the primary key is the sort. A
+sort through a relation is completed the same way for the related row,
+right after it: `owner.name` runs as `owner.name, owner.id`, so the rows of
+two owners sharing a name don't interleave. None of that shows in the
+config that comes back. It follows from the config's
 sort the same way every time, so the config alone gets the same order
 again, and a sort nobody chose never looks like one somebody did.
 

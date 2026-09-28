@@ -3,6 +3,7 @@ import {
     DataGrid,
     FilterInput,
     GraphQLResponseError,
+    GraphQLTransportError,
     operatorFilter,
     Temporal,
     useFilters,
@@ -115,13 +116,18 @@ export default function Home() {
 
 /**
  * What a failed update of the list says. The server classifies its errors, so an ended session reads
- * differently from a query the server refused.
+ * differently from a query the server refused, and a server that didn't answer GraphQL at all differently
+ * again.
  */
 function ListError({ error }: { error: Error })
 {
     if (error instanceof GraphQLResponseError && error.hasClassification("UNAUTHENTICATED"))
     {
         return <p className="warning">Your session has ended. Log in again to page, sort and filter.</p>;
+    }
+    if (error instanceof GraphQLTransportError)
+    {
+        return <p className="warning">The server can't be reached right now. Try again in a moment.</p>;
     }
     return <p className="warning">Couldn't update the list: { error.message }</p>;
 }

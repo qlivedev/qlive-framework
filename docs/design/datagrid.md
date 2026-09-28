@@ -1,6 +1,6 @@
 # DataGrid (design)
 
-Status: built through step 4 of the build order. Written 2026-09-27.
+Status: built through step 5 of the build order. Written 2026-09-27.
 
 The table component for QLive, and the pieces under it. What it has to
 cover is `datagrid-features.md`, a survey of the Automaton DataGrid in
@@ -104,11 +104,14 @@ Each takes a document snapshot and talks to the document only through
   (see "Reading a condition back") has to see all columns at once to
   assign terms.
 - **`useSelection(ids?)`**: a set of row ids the view owns.
-- **`useGridRows(doc, workingSet?)`**: the rows to display. Without a
-  working set, the document's rows. With one, the drafts, plus rows
-  created in the working set on the first page (see "Working set").
+- **`useGridRows(doc, {workingSet, watch})`**: the rows to display,
+  and per row its status and per field its class. Without a working
+  set, the document's rows. With one, the drafts, plus rows created in
+  the working set on the first page (see "Working set").
 - The merge hooks that already exist, `useWorkingSet()` and
-  `useMerge()`, cover row and field status.
+  `useMerge()`, cover the working set's own state and a form's fields.
+  The grid reads row and field status through `ws.accessor(row)`, one
+  subscription for all rows rather than a hook per row.
 
 ### Layer 3: default components
 
@@ -454,14 +457,27 @@ All of it is optional. A grid without a working set carries none of it.
 - **Drafts.** With a working set, `useGridRows()` returns `ws.edit(row)`
   for every row, so unsaved edits show in the list.
 - **Row and field status.** Row classes for new, changed, deleted,
-  conflicted and gone rows; cell classes from
-  `useMerge(row).field(name).className`, one accessor per row.
+  conflicted, gone and remote-changed rows; cell classes from the
+  accessor's `field(name).className`. A column marks the field it
+  shows, a relation column its foreign key, and a column of a related
+  row's field nothing. The fields of a new row aren't marked: the row
+  says it.
 - **Created rows** appear on the first page when the document's current
   condition matches them. That needs client-side condition evaluation,
   which doesn't exist yet (see "What has to exist first"). Until then,
   created rows show unfiltered on the first page.
 - **Live updates** come from `watch` on the working set, or from
   `useDocumentWatch()` on the document when there is no working set.
+  Watching the document, the grid marks the changed rows and cells and
+  offers a reload; the values arrive only with it.
+- **Registration.** `useGridRows()` registers the document with the
+  working set, and again whenever its rows change, so a watch follows
+  the pages turned. The rows of pages already seen stay in the working
+  set and in the watch.
+- **Relation cells of drafts** show the related row as read. A draft
+  whose foreign key changed, or a created row, has no related row to
+  show until the merge refetches, so its relation cell shows the old
+  one or nothing.
 
 ## Styling
 
@@ -538,7 +554,12 @@ avoid. Its API shape is worth borrowing.
    filter of step 6. Selection (`useSelection()`, `<RowSelector/>`) is
    not built yet.
 5. Working set integration through `useGridRows()`, without created-row
-   filtering.
+   filtering. Done: `DataGrid` takes `workingSet` and `watch`, and Home
+   in qlive-test edits, duplicates and deletes rows through a working
+   set. The merge layer gained `WorkingSet.created(type)`, `isNew` and
+   `deleted` on the accessor, drafts of new rows answering `in` for
+   every field of their type, and `register()` telling subscribers
+   about rows it hadn't announced.
 6. The shipped filters.
 7. Client-side evaluation, then created rows filtered on the first page
    and local rows.

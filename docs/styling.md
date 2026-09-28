@@ -119,8 +119,14 @@ The grid's parts, as far as they exist (see `docs/design/datagrid.md`):
   with `.qlive-grid-highlighted` on the highlighted one, and
   `.qlive-grid-empty` is the "no rows" row. A cell of a `nowrap`
   column is `.qlive-grid-nowrap`. Below the table, `.qlive-grid-footer`
-  holds `.qlive-grid-note` lines, the `.qlive-grid-reset` button and
-  the pager.
+  holds `.qlive-grid-note` lines, the `.qlive-grid-reset` and
+  `.qlive-grid-reload` buttons and the pager.
+- With a working set or a watch, a row carries what happened to it:
+  `.qlive-grid-new`, `.qlive-grid-changed`, `.qlive-grid-conflict`,
+  `.qlive-grid-remote-changed`, `.qlive-grid-deleted` or
+  `.qlive-grid-gone`, shown as a bar at its start in
+  `--qlive-grid-row-mark`. A cell carries the field marks an input
+  would, `.qlive-changed` and the rest.
 - `.qlive-grid-striped`, `.qlive-grid-hover`, `.qlive-grid-bordered`
   and `.qlive-grid-compact` are opt-in, set through the grid's
   `className`. The cell padding is `--qlive-grid-cell-padding`, which

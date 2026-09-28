@@ -522,7 +522,12 @@ avoid. Its API shape is worth borrowing.
    in `qlive-ts/src/grid`, with `pageWindow()` added to the page math
    for the numbers a pager lists.
 3. `useFilters()` with operator filters, the read-back and the
-   typing protection, then `<FilterInput/>`.
+   typing protection, then `<FilterInput/>`. Done, in
+   `qlive-ts/src/grid`: `operatorFilter(name, scalarType)` takes text
+   inputs and converts them to the scalar type, `claimTerms()` is the
+   read-back, and the typing protection keeps every term a column sent
+   until it comes back, so a slow response overtaken by further typing
+   doesn't rewrite the input either.
 4. `<DataGrid/>` composing them, and a qlive-test view that uses it
    next to a search form owning a second component.
 5. Working set integration through `useGridRows()`, without created-row

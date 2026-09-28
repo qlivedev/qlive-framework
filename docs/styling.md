@@ -108,6 +108,9 @@ The grid's parts, as far as they exist (see `docs/design/datagrid.md`):
 - `.qlive-grid-sort-header` on a `<th>`, with `.qlive-grid-sorted` and
   `.qlive-grid-sorted-{asc,desc}` while the document sorts by its key,
   and `.qlive-grid-sort-indicator` around the arrow and position.
+- `.qlive-grid-filter` around one column's filter inputs, with
+  `.qlive-grid-filter-active` while its term is in the condition, and
+  `.qlive-grid-filter-input` on each default text input.
 
 The merge marks (`.qlive-changed` and the others `MergeField#className`
 returns), `.qlive-link-button` and `.qlive-error` are framework classes

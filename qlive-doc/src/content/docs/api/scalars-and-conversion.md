@@ -121,6 +121,16 @@ type Converter<Wire = any, Live = any> = {
    * Optional: a value of a type without one displays as String(value).
    */
   format?: (value: Live, type: string) => string;
+  /**
+   * Orders two live values: negative if the first comes first, positive if the
+   * second does, 0 for the same value. Never called with null or undefined. What
+   * a condition evaluated in the browser (`lt`, `between`, ...) and a local sort
+   * order values of the type by, see scalarCompare().
+   *
+   * Optional: numbers, strings and Booleans order without one. A type whose live
+   * values are objects needs one to be ordered at all.
+   */
+  compare?: (a: Live, b: Live, type: string) => number;
 };
 ```
 
@@ -322,6 +332,36 @@ rather than being dropped as one -- and the cost is a write and a version for a 
 |---|---|
 | `a` | one value, in the live form of its type |
 | `b` | the other |
+
+## scalarCompare()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function scalarCompare(type: string, a: unknown, b: unknown): number;
+```
+
+Orders two values of a scalar type: negative if the first comes first, positive if the second does, 0 for the same
+value. What a condition evaluated in the browser compares by, and a local sort orders by.
+
+- A type whose converter has a `compare()` is ordered by it, see Converter. QLive registers one for Timestamp.
+- Numbers of the number types compare by value across their forms, see isNumericType().
+- `String` and `ID` values follow the user's locale, so `"a" < "B"`. A database orders by its collation, which the
+  browser doesn't know; the locale is the nearest guess, and where they differ a server sort and a local one
+  differ too. Text of other types, a `Date` among them, compares by character code, which orders ISO dates right.
+- Booleans order `false` first.
+
+Nulls aren't values here; a caller decides where they go.
+
+**Parameters**
+
+| | |
+|---|---|
+| `type` | GraphQL scalar type name the values are of |
+| `a` | one value, in the live form of its type |
+| `b` | the other  |
+
+**Throws** Error for values that type has no order for
 
 ## genericScalarEqual()
 

@@ -219,7 +219,9 @@
       },
       "members": [
         "FilterDSL",
-        "decompileFilter"
+        "decompileFilter",
+        "conditionPredicate",
+        "sortComparator"
       ],
       "operatorTables": {
         "source": "qlive-ts/src/FilterDSL.ts",
@@ -364,6 +366,7 @@
         "SelectionNode",
         "QueryConversionMap",
         "scalarEqual",
+        "scalarCompare",
         "genericScalarEqual",
         "GenericScalar",
         "GenericBigDecimal",

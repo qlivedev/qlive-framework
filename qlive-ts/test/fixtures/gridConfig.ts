@@ -16,7 +16,8 @@ import {
 /**
  * Schema and meta data the grid tests run against: a Foo with a field of every kind a column has to tell apart --
  * String, numbers, Boolean, time, a to-one relation with name fields, one without, an object that is no relation,
- * and a list -- and a FooLink keyed by two fields.
+ * and a list of Tags, a to-many relation for the conditions evaluated in the browser -- and a FooLink keyed by two
+ * fields.
  */
 
 function relation(sourceType: string, leftSideObjectName: string, targetType: string): RelationInfo
@@ -56,7 +57,9 @@ export function initGridConfig()
                         field("ordinal", NOT_NULL(NAMED("Int")))
                     ]),
                     object("Tag", [
-                        field("id", NOT_NULL(STRING))
+                        field("id", NOT_NULL(STRING)),
+                        field("name", STRING),
+                        field("rank", NAMED("Int"))
                     ]),
                     object("Foo", [
                         field("id", NOT_NULL(STRING)),

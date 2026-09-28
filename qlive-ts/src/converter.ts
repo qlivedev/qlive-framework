@@ -49,6 +49,17 @@ export type Converter<Wire = any, Live = any> = {
      * Optional: a value of a type without one displays as String(value).
      */
     format?: (value: Live, type: string) => string
+
+    /**
+     * Orders two live values: negative if the first comes first, positive if the
+     * second does, 0 for the same value. Never called with null or undefined. What
+     * a condition evaluated in the browser (`lt`, `between`, ...) and a local sort
+     * order values of the type by, see scalarCompare().
+     *
+     * Optional: numbers, strings and Booleans order without one. A type whose live
+     * values are objects needs one to be ordered at all.
+     */
+    compare?: (a: Live, b: Live, type: string) => number
 }
 
 const converterRegistry: { [type: string]: Converter } = {}
@@ -422,7 +433,8 @@ registerConverter<string, Temporal.Instant>(
     {
         fromServer: value => Temporal.Instant.from(value),
         toServer: value => value.toString(),
-        format: value => value.toLocaleString()
+        format: value => value.toLocaleString(),
+        compare: (a, b) => Temporal.Instant.compare(a, b)
     }
 )
 

@@ -662,6 +662,62 @@ form using the FilterDSL API (and DateTime.fromIso() expressions)
 
 **Returns** {string} pretty-printed source string. If match was used, the >> << might prevent it from being valid JavaScript
 
+## conditionPredicate()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function conditionPredicate<R extends object = any>(type: string, condition: FilterExpression | null): (row: R) => boolean;
+```
+
+Compiles a condition into a test of rows: whether the server would return a row for a query with that condition.
+
+    const matches = conditionPredicate("Foo", doc.config.condition);
+    const shown = created.filter(matches);
+
+Everything the condition decides by itself is checked here, once: a field the type doesn't have, an operator that
+doesn't exist or gets the wrong number of operands, a value its type can't read. A row missing a field the
+condition reads is an error when it is tested -- the query doesn't select that field.
+
+It follows the SQL path: three-valued logic, so a row matches only where the condition is true and a comparison
+with null never is; a path through a to-many relation asks whether some element matches; values read as the type
+of what they are compared to. Text orders by the user's locale rather than the database's collation, `likeRegex`
+is a JavaScript regular expression, and `now()` and `today()` are the browser's clock.
+
+**Parameters**
+
+| | |
+|---|---|
+| `type` | GraphQL type name of the rows |
+| `condition` | FilterDSL condition, `null` for "all rows"  |
+
+**Returns** test of a row, in the live form a query result or a working set draft has
+
+## sortComparator()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function sortComparator<R extends object = any>(type: string, sortFields: readonly FieldExpression[]): (a: R, b: R) => number;
+```
+
+Compiles sort fields into a comparison of rows, for `Array.prototype.sort()`.
+
+    rows.sort(sortComparator("Foo", ["!num", "name"]))
+
+Sort fields come in every form a query config takes them: a field path, `"!"` in front for descending, a field or
+expression node, or one in `asc()` or `desc()`. Nulls come last ascending and first descending, as in PostgreSQL.
+Values order by scalarCompare(). Rows equal under every sort field keep their order, sort() being stable.
+
+**Parameters**
+
+| | |
+|---|---|
+| `type` | GraphQL type name of the rows |
+| `sortFields` | sort fields, most significant first  |
+
+**Returns** comparison of two rows
+
 ## Conditions on a field
 
 Called on a field or value node, and reachable as `condition(name, operands)` for building a graph programmatically. Operands are the ones passed besides the node it is called on, so `isNull` takes none and `between` takes two.

@@ -67,6 +67,9 @@ export { default as QuickLogin } from "./component/QuickLogin";
 
 export { decompileFilter } from "./util/decompileFilter";
 
+// The FilterDSL evaluated in the browser, over rows it holds.
+export { conditionPredicate, sortComparator } from "./evaluate";
+
 // What the schema and the type meta data say about merging a type. Namespaced
 // the way FilterDSL is: isLinkType, versionedTypes and ignoredFields say what
 // they mean next to a merge prefix and not much without one.
@@ -105,7 +108,7 @@ export function noSchema()
 }
 
 export { default as findRoot } from "./util/findRoot";
-export { scalarEqual, genericScalarEqual } from "./util/scalar";
+export { scalarEqual, scalarCompare, genericScalarEqual } from "./util/scalar";
 
 // Page math for pagers: the grid's own and any an application builds.
 export { pageCount, pageIndex, pageOffset, pageSizeOptions, pageWindow } from "./grid/paging";

@@ -81,6 +81,11 @@ catch (e)
 }
 ```
 
+A request that got no GraphQL response at all rejects with a
+`GraphQLTransportError` instead: the server couldn't be reached (`status`
+is `null`), or answered with something else, like the 503 of a server
+still starting. The error underneath is its `cause`.
+
 Nothing converts the result and nothing types it: this is the escape hatch,
 not the normal path.
 

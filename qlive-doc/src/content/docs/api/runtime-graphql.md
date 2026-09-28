@@ -104,8 +104,9 @@ declare function graphql<T>(query: GraphQLQuery<T> | string, params: GraphQLPara
 ```
 
 Posts the given query to the server's /graphql endpoint and resolves with its
-data, rejecting on a transport error or on any GraphQL error in the response. The
-latter rejects with a GraphQLResponseError carrying the errors.
+data, rejecting on a transport error or on any GraphQL error in the response: with
+a GraphQLTransportError where no GraphQL response came back, with a
+GraphQLResponseError carrying the errors where one did.
 
 This is the raw call: values go out and come back in their wire format, and the
 result is the whole data object, keyed by result key. GraphQLQuery.execute()
@@ -188,6 +189,41 @@ Returns true if one of the errors has the given classification.
 | | |
 |---|---|
 | `classification` | classification from the errors' extensions, e.g. "UNAUTHENTICATED" |
+
+## GraphQLTransportError
+
+<span class="api-kind">class</span>
+
+```ts
+class GraphQLTransportError extends Error
+```
+
+The rejection of a request that got no GraphQL response: the server couldn't be reached, or answered with
+something other than a GraphQL response -- an error page, or a 503 while it is starting up.
+
+Where the server did answer GraphQL, errors and all, the rejection is a GraphQLResponseError instead.
+
+### GraphQLTransportError.status
+
+```ts
+readonly status: number | null;
+```
+
+HTTP status of the answer, `null` where there was none
+
+### GraphQLTransportError.constructor
+
+```ts
+constructor(message: string, status: number | null, cause?: unknown);
+```
+
+**Parameters**
+
+| | |
+|---|---|
+| `message` | what went wrong |
+| `status` | HTTP status of the answer, `null` where there was none |
+| `cause` | the error underneath, e.g. fetch()'s or the JSON parser's |
 
 ## GraphQLError
 

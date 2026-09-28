@@ -50,7 +50,8 @@ export interface QueryConfigDelta
 }
 
 /**
- * What a query document is on the client on top of the data the server sent.
+ * What a query document is on the client on top of the data the server sent: the way to run
+ * the query again, and how the last attempt went.
  *
  * Every document the server sends becomes a QueryDocument instance, so the generated
  * result type of a query selecting one mixes this in: these members are part of the type
@@ -75,6 +76,16 @@ export interface ClientQueryDocument<D>
      * @returns the snapshot the update produced
      */
     update(newConfig: QueryConfigDelta): Promise<D>
+
+    /**
+     * Why the last update() failed, `null` once one succeeds again. The rows and config are the ones from
+     * before the failure.
+     *
+     * The update() promise rejects with the same error, but a pager, a sort header or a filter row doesn't
+     * wait for it: this is where a view sees their failures, and what it shows for one is its own choice.
+     * Only the latest update() counts, so a slow one failing after a later one succeeded sets nothing.
+     */
+    error: Error | null
 }
 
 /**
@@ -152,6 +163,16 @@ export class QueryDocument<T> implements ClientQueryDocument<QueryDocumentSnapsh
      * Total number of available rows.
      */
     rowCount: number;
+    /**
+     * Why the last update() failed, `null` once one succeeds again.
+     */
+    error: Error | null;
+
+    /**
+     * Number of the latest update(), which alone may set or clear the error.
+     * @private
+     */
+    private updates: number;
 
     /**
      * Subscriber functions
@@ -179,7 +200,9 @@ export class QueryDocument<T> implements ClientQueryDocument<QueryDocumentSnapsh
         this.config = config;
         this.rows = rows;
         this.rowCount = rowCount;
+        this.error = null;
 
+        this.updates = 0
         this.subscribers = []
         this.snapshot = null
     }
@@ -209,11 +232,30 @@ export class QueryDocument<T> implements ClientQueryDocument<QueryDocumentSnapsh
             ...newConfig,
         }
 
-        const queryDocument = await query.execute({config: mergedConfig});
+        const update = ++this.updates;
+
+        let queryDocument: QueryDocument<T>;
+        try
+        {
+            queryDocument = await query.execute({config: mergedConfig});
+        }
+        catch (e)
+        {
+            if (update === this.updates)
+            {
+                this.error = e instanceof Error ? e : new Error(String(e));
+                this.notify();
+            }
+            throw e;
+        }
 
         this.rows = queryDocument.rows;
         this.config = queryDocument.config;
         this.rowCount = queryDocument.rowCount;
+        if (update === this.updates)
+        {
+            this.error = null;
+        }
 
         return this.notify()
     }
@@ -248,6 +290,7 @@ export class QueryDocument<T> implements ClientQueryDocument<QueryDocumentSnapsh
                 config: this.config,
                 rowCount: this.rowCount,
                 update: this.update,
+                error: this.error,
             }
 
             // A snapshot is a still of the document as it was, and anything holding one past an update()

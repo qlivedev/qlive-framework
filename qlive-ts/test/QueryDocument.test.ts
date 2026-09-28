@@ -136,6 +136,48 @@ describe("QueryDocument", () => {
         expect(after.rows[0].name).toBe("Foo #2")
     })
 
+    it("keeps why the last update failed until one succeeds", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => {})
+        const doc = await executed()
+        const before = doc.getSnapshot()
+        const heard = vi.fn()
+        doc.subscribe(heard)
+
+        respondWith({data: null, errors: [{message: "Not authenticated"}]})
+        await expect(before.update({offset: 10})).rejects.toThrowError(/Not authenticated/)
+
+        const failed = doc.getSnapshot()
+        expect(heard).toHaveBeenCalledTimes(1)
+        expect(failed.error!.message).toMatch(/Not authenticated/)
+        expect(failed.rows).toBe(before.rows)
+        expect(failed.config).toBe(before.config)
+
+        respondWith(documentWith("Foo #2", 10))
+        await failed.update({offset: 10})
+        expect(doc.getSnapshot().error).toBeNull()
+    })
+
+    it("lets only the latest update set or clear the error", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => {})
+        const doc = await executed()
+
+        // two requests in flight, answered in reverse order
+        const answers: ((response: any) => void)[] = []
+        vi.stubGlobal("fetch", vi.fn(() => new Promise(resolve => answers.push(
+            response => resolve({json: () => Promise.resolve(response)})
+        ))))
+
+        const slow = doc.update({offset: 10})
+        const fast = doc.update({offset: 20})
+
+        answers[1](documentWith("Foo #3", 20))
+        await fast
+        answers[0]({data: null, errors: [{message: "Timed out"}]})
+        await expect(slow).rejects.toThrowError(/Timed out/)
+
+        expect(doc.getSnapshot().error).toBeNull()
+    })
+
     it("refuses to update a document no query was registered with", async () => {
         const doc = new QueryDocument("Foo", fooDocument().config, [], 0)
 

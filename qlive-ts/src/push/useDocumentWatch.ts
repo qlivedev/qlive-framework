@@ -40,16 +40,35 @@ export function useDocumentWatch(document: DocumentOrSnapshot): DocumentWatchSna
         )
     }
 
+    return useWatch(live)!
+}
+
+
+/** the store of a watch that isn't there */
+const unwatched = () => () => {}
+
+const nothing = () => null
+
+
+/**
+ * useDocumentWatch() for a document that may be null, which is watching nothing and returns null. What a hook
+ * that watches only in some configurations calls, the rules of hooks ruling out calling useDocumentWatch() in
+ * some renders and not in others.
+ *
+ * @param live      the live document to watch, or null
+ */
+export function useWatch(live: QueryDocument<any> | null): DocumentWatchSnapshot | null
+{
     // Constructed closed and constructed here rather than in an effect: opening registers a subscription
     // and so belongs in an effect, but the watch itself has to exist before the first render returns,
     // because useSyncExternalStore() reads it. Closed is what makes that safe -- StrictMode renders twice
     // and keeps the second, and a render can be thrown away entirely, and a watch that never opened holds
     // nothing that would have to be closed by the render that no longer exists.
-    const held = useRef<{document: QueryDocument<any>, watch: DocumentWatch} | null>(null)
+    const held = useRef<{document: QueryDocument<any> | null, watch: DocumentWatch | null} | null>(null)
 
-    if (held.current?.document !== live)
+    if (!held.current || held.current.document !== live)
     {
-        held.current = {document: live, watch: watchDocument(live, {open: false})}
+        held.current = {document: live, watch: live && watchDocument(live, {open: false})}
     }
 
     const {watch} = held.current
@@ -60,12 +79,15 @@ export function useDocumentWatch(document: DocumentOrSnapshot): DocumentWatchSna
     useEffect(
         () =>
         {
+            if (!watch)
+            {
+                return undefined
+            }
             watch.open()
             return watch.close
         },
         [watch]
     )
 
-    return useSyncExternalStore(watch.subscribe, watch.getSnapshot)
+    return useSyncExternalStore(watch?.subscribe ?? unwatched, watch?.getSnapshot ?? nothing)
 }
-

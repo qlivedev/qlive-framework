@@ -344,6 +344,10 @@ export type {
  *                                       the Java side exactly. A caller that
  *                                       needs a mask is building a subscription
  *                                       by hand, and the watchers do that
+ *   push/useDocumentWatch.useWatch      useDocumentWatch() for a hook that
+ *                                       watches only in some configurations.
+ *                                       An application that doesn't want a
+ *                                       watch doesn't call useDocumentWatch()
  *   util/delay                          a setTimeout promise, not framework API
  *   util/viteEnv.isViteDev/viteBaseUrl  reads Vite's import.meta.env, which an
  *                                       application has direct access to

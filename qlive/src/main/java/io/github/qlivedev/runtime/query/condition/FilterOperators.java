@@ -34,7 +34,7 @@ final class FilterOperators
         "startsWith", "in", "not", "or", "orNot", "and", "andNot", "bitNand", "mod", "div", "neg", "rem", "add",
         "subtract", "plus", "bitAnd", "bitXor", "shl", "unaryMinus", "bitNor", "shr", "modulo", "bitXNor", "bitNot",
         "sub", "minus", "mul", "bitOr", "times", "pow", "divide", "power", "multiply", "unaryPlus", "lower",
-        "upper", "asc", "desc"
+        "upper", "toString", "asc", "desc"
     );
 
     /// The logic operators, which combine conditions instead of fields and are applied directly.
@@ -59,7 +59,8 @@ final class FilterOperators
     }
 
 
-    /// Invokes the JOOQ method the given operator name and operand count identify.
+    /// Invokes the JOOQ method the given operator name and operand count identify. `toString` is the one name
+    /// that isn't such a method -- reflection would find `Object.toString()` -- and its caller handles it.
     ///
     /// @param name         operator name, already checked against the positive list
     /// @param receiver     field the operator is applied to, i.e. the first operand

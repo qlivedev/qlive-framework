@@ -148,7 +148,8 @@ final class PayloadOperators
 
         Map.entry("lower", arithmetic(1, o -> text(o.get(0)).toLowerCase())),
         Map.entry("upper", arithmetic(1, o -> text(o.get(0)).toUpperCase())),
-        Map.entry("concat", arithmetic(2, o -> text(o.get(0)) + text(o.get(1))))
+        Map.entry("concat", arithmetic(2, o -> text(o.get(0)) + text(o.get(1)))),
+        Map.entry("toString", arithmetic(1, o -> text(o.get(0))))
     );
 
 

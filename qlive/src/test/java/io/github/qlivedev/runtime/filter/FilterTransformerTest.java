@@ -207,6 +207,7 @@ class FilterTransformerTest
         assertThat(compile(field("entityType").notLikeRegex(value("z"))).test(payload), is(true));
         assertThat(compile(field("entityType").lower().eq(value("bar"))).test(payload), is(true));
         assertThat(compile(field("entityType").upper().eq(value("BAR"))).test(payload), is(true));
+        assertThat(compile(field("revision").asText().contains(value("7"))).test(payload), is(true));
         assertThat(compile(field("draft").isTrue()).test(payload), is(true));
         assertThat(compile(field("draft").isFalse()).test(payload), is(false));
         assertThat(compile(field("revision").add(value(3)).eq(value(10))).test(payload), is(true));

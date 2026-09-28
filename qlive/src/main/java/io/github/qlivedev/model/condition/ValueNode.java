@@ -38,6 +38,8 @@ public abstract class ValueNode
     public Operation lower() { return Operation.create("lower", this); }
     public Operation upper() { return Operation.create("upper", this); }
     public Operation concat(CNode a) { return Operation.create("concat", this, a); }
+    /// The value as text, the TypeScript DSL's `toString()`, which a Java method can't be named.
+    public Operation asText() { return Operation.create("toString", this); }
     public Operation asc() { return Operation.create("asc", this); }
     public Operation desc() { return Operation.create("desc", this); }
 

@@ -22,6 +22,7 @@ import static io.github.qlivedev.testdomain.Tables.TEST_FOO;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -55,6 +56,10 @@ class ConditionTransformerTest
     {
         assertThat(sql(field("num").plus(value(1)).eq(value(3))), is("(\"public\".\"test_foo\".\"num\" + 1) = 3"));
         assertThat(sql(field("name").lower().eq(value("x"))), is("lower(\"public\".\"test_foo\".\"name\") = 'x'"));
+        assertThat(
+            sql(field("num").asText().contains(value("23"))),
+            containsString("cast(\"public\".\"test_foo\".\"num\" as varchar) like")
+        );
     }
 
 
@@ -137,10 +142,12 @@ class ConditionTransformerTest
         );
         assertThat(e.getMessage(), containsString("Invalid filter operator"));
 
-        assertThrows(
+        // on the list as an operation, never as a condition, and never Object.toString()
+        final QLiveException asCondition = assertThrows(
             QLiveException.class,
             () -> transformer.transform(condition("toString", field("name")))
         );
+        assertThat(asCondition.getMessage(), not(containsString("Invalid filter operator")));
     }
 
 

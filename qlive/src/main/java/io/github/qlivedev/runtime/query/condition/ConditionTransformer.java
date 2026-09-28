@@ -207,6 +207,17 @@ public class ConditionTransformer
             return in(receiver, operands);
         }
 
+        // the value as text: a cast, not the Object.toString() a reflective lookup of the name would find
+        if (name.equals("toString"))
+        {
+            if (operands.size() != 1)
+            {
+                throw new QLiveException("Filter operator 'toString' does not take " + (operands.size() - 1) +
+                    " operand(s) besides the field it applies to");
+            }
+            return receiver.cast(String.class);
+        }
+
         final DataType<?> hint = receiver.getDataType();
         final List<Field<?>> args = new ArrayList<>(operands.size() - 1);
         for (CNode operand : operands.subList(1, operands.size()))

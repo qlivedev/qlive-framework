@@ -398,4 +398,31 @@
         white-space: nowrap;
     }
 
+    /*
+     * <FilterInput/>: the inputs of one column's filter side by side. An
+     * active filter gets the accent border, so a filtered column shows as
+     * one even where its input is scrolled out of sight of its value.
+     */
+    .qlive-grid-filter
+    {
+        display: flex;
+        gap: var(--qlive-space-1);
+        font-family: var(--qlive-font-sans);
+    }
+    .qlive-grid-filter-input
+    {
+        flex: 1 1 0;
+        min-width: 3em;
+        padding: var(--qlive-space-1) var(--qlive-space-2);
+        border: 1px solid var(--qlive-color-border);
+        border-radius: var(--qlive-radius-md);
+        background: var(--qlive-color-bg);
+        color: var(--qlive-color-fg);
+        font: inherit;
+    }
+    .qlive-grid-filter-active .qlive-grid-filter-input
+    {
+        border-color: var(--qlive-color-accent);
+    }
+
 }

@@ -408,8 +408,9 @@ business: its input loads the label or takes it from the view.
   sort key matches a sort field (`matchSort()`) shows its direction and
   its position in the order. Sort fields matching no column show as
   "also sorted by something else", not left out.
-- **The primary-key sort** the server applies when none is named, and
-  reports in the returned config, isn't shown as a column sort.
+- **The primary-key sort** the server applies when none is named stays
+  in the SQL, like the completion below. The returned config names no
+  sort, so no header shows one.
 - **The server makes every order total.** Offset paging over a sort
   with ties can show a row on two pages or on none. So the server
   completes every named sort: where the sort fields include part of a

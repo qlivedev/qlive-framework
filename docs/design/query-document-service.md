@@ -316,11 +316,16 @@ name is an error.
 
 - **`pageSize: 0` returns all rows.** No cap for now.
 - **No sort fields means sort by the primary key**, so that paging is
-  deterministic out of the box. A client-supplied sort is used exactly
-  as given; the primary key is not appended to it (see open items).
-- **The effective config is what goes back into the document**,
-  including the defaulted sort, since that is what the client echoes
-  into its next `update()`.
+  deterministic out of the box. A named sort is completed to a total
+  order (`QueryPlanBuilder.completion()`).
+- **The effective config is what goes back into the document**, since
+  that is what the client echoes into its next `update()`. It includes
+  everything that assembled the config: fresh defaults, the type's
+  delta, the call's delta and interceptors, and the page size cap.
+- **Making the order total is below the config.** The primary-key
+  default and the completion of a named sort go into the SQL only and
+  not into the returned config. They follow from the config's sort the
+  same way every time, so echoing it gets the same order again.
 - **No row-level security hook.** Policies attached through DomainQL
   metadata are the intended direction, and that is a separate design.
   Nothing in this service should pre-empt it.
@@ -363,10 +368,6 @@ only name whose argument is not a field, and its caller handles it.
 
 ## Open items (not decided)
 
-- **Appending the primary key to a client-supplied sort.** Without it,
-  paging over a non-unique sort key can repeat or skip rows; with it,
-  the echoed effective config grows a field the client did not ask for.
-  Only the empty case is decided.
 - **`MULTISET` instead of follow-up queries.** Deliberately deferred,
   not rejected. The plan tree is the seam.
 - **Same-row semantics for multiple conditions on one to-many path.**

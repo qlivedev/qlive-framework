@@ -124,8 +124,8 @@ the condition belongs to the grid depends on the condition's shape.
   view provides.
 - **Per-column opt-out** of sorting.
 - **Primary-key sort.** With no sort named, the server sorts by primary
-  key and the returned config says so. The grid must not show that as
-  "unsorted", and ideally shows no header as sorted.
+  key, in the SQL only; the returned config names no sort, so no header
+  shows as sorted.
 
 ## Filtering
 

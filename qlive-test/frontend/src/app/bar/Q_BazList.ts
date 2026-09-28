@@ -1,5 +1,5 @@
 import { Baz, BazDocument } from "../../types";
-import { GraphQLQuery, QueryDocumentMethods } from "@qlivedev/qlive-ts";
+import { GraphQLQuery, ClientQueryDocument } from "@qlivedev/qlive-ts";
 
 /**
  * Everything a Bar could be associated with, which is what the association editor offers. A list to pick
@@ -7,7 +7,7 @@ import { GraphQLQuery, QueryDocumentMethods } from "@qlivedev/qlive-ts";
  */
 export type Q_BazListResult = Pick<BazDocument,"type" | "config"> & {
     rows : Array<Pick<Baz,"id" | "name" | "version">>
-} & QueryDocumentMethods<Q_BazListResult>
+} & ClientQueryDocument<Q_BazListResult>
 
 export const Q_BazList = new GraphQLQuery<Q_BazListResult>(
     // language=GraphQL

@@ -175,7 +175,7 @@ export type {
     QueryConfig,
     QueryConfigDelta,
     QueryDocumentSnapshot,
-    QueryDocumentMethods,
+    ClientQueryDocument,
     DocumentOrSnapshot
 } from "./QueryDocument";
 export type { ParsedQuery, QuerySelection, OperationType } from "./util/parseQuery";

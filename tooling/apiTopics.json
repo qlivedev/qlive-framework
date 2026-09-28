@@ -124,7 +124,7 @@
       "members": [
         "QueryDocument",
         "QueryDocumentSnapshot",
-        "QueryDocumentMethods",
+        "ClientQueryDocument",
         "QueryConfig",
         "QueryConfigDelta"
       ]

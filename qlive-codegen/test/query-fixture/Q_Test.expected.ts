@@ -1,11 +1,11 @@
 import { TestFooDocument, TestFoo, TestUser } from "../types";
-import { GraphQLQuery, QueryDocumentMethods } from "@qlivedev/qlive-ts";
+import { GraphQLQuery, ClientQueryDocument } from "@qlivedev/qlive-ts";
 
 export type Q_TestResult = Pick<TestFooDocument,"type" | "config"> & {
     rows : Array<Pick<TestFoo,"name"> & {
         owner : Pick<TestUser,"login">
     }>
-} & QueryDocumentMethods<Q_TestResult>
+} & ClientQueryDocument<Q_TestResult>
 
 export const Q_Test = new GraphQLQuery<Q_TestResult>(
     // language=GraphQL

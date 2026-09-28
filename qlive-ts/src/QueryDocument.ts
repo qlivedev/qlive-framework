@@ -50,17 +50,17 @@ export interface QueryConfigDelta
 }
 
 /**
- * What a query document can do on top of holding its data.
+ * What a query document is on the client on top of the data the server sent.
  *
  * Every document the server sends becomes a QueryDocument instance, so the generated
- * result type of a query selecting one mixes this in: the methods are part of the type
+ * result type of a query selecting one mixes this in: these members are part of the type
  * the same way they are part of the value.
  *
  * @typeParam D    document type update() resolves to. That is the type this interface is
  *                 mixed into, so an updated document keeps the exact selection of the one
  *                 it was updated from and can be updated again.
  */
-export interface QueryDocumentMethods<D>
+export interface ClientQueryDocument<D>
 {
     /**
      * Re-executes the query this document snapshot came from with its config changed as given and
@@ -87,7 +87,7 @@ export interface QueryDocumentMethods<D>
  * visible to React.memo, to effect dependencies and to useSyncExternalStore's own
  * change detection.
  */
-export interface QueryDocumentSnapshot<T> extends QueryDocumentMethods<QueryDocumentSnapshot<T>>
+export interface QueryDocumentSnapshot<T> extends ClientQueryDocument<QueryDocumentSnapshot<T>>
 {
     /**
      * The name of the row type
@@ -134,7 +134,7 @@ const DOCUMENT = Symbol("QLive QueryDocument")
  * QueryDocument or its snapshots are the way you are interacting with injections.
  *
  */
-export class QueryDocument<T> implements QueryDocumentMethods<QueryDocumentSnapshot<T>>
+export class QueryDocument<T> implements ClientQueryDocument<QueryDocumentSnapshot<T>>
 {
     /**
      * The name of the row type

@@ -19,7 +19,7 @@ rules below are what makes that derivation possible.
 ## Rules a query has to follow
 
 ```ts {11-24} title="src/app/Q_Foo.ts"
-import {GraphQLQuery, QueryDocumentMethods} from "@qlivedev/qlive-ts";
+import {GraphQLQuery, ClientQueryDocument} from "@qlivedev/qlive-ts";
 import {AppUser, Foo, FooDocument} from "../types";
 
 // generated
@@ -27,7 +27,7 @@ export type Q_FooResult = Pick<FooDocument, "type" | "config"> & {
     rows: Array<Pick<Foo, "id" | "name" | "description"> & {
         owner: Pick<AppUser, "id" | "login">
     }>
-} & QueryDocumentMethods<Q_FooResult>
+} & ClientQueryDocument<Q_FooResult>
 
 export const Q_Foo = new GraphQLQuery<Q_FooResult>(
     // language=GraphQL
@@ -75,7 +75,7 @@ location.
 parses the query against `schema.graphql` and patches the result type into
 the module at the source offsets the track-usage plugin recorded, along
 with the imports it needs: the domain types it picks fields out of, and
-`QueryDocumentMethods` when the query selects a document.
+`ClientQueryDocument` when the query selects a document.
 
 It runs from two places, and it is the same code in both:
 

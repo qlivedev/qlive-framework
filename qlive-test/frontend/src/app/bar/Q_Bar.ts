@@ -1,5 +1,5 @@
 import { Bar, BarDocument, BarLink, Baz } from "../../types";
-import { GraphQLQuery, QueryDocumentMethods } from "@qlivedev/qlive-ts";
+import { GraphQLQuery, ClientQueryDocument } from "@qlivedev/qlive-ts";
 
 /**
  * The rows the edit view edits.
@@ -17,7 +17,7 @@ export type Q_BarResult = Pick<BarDocument,"type" | "config"> & {
             baz : Pick<Baz,"id" | "name" | "version">
         }>
     }>
-} & QueryDocumentMethods<Q_BarResult>
+} & ClientQueryDocument<Q_BarResult>
 
 export const Q_Bar = new GraphQLQuery<Q_BarResult>(
     // language=GraphQL

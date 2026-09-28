@@ -22,7 +22,7 @@ import {getNamedType, isListType, isNonNullType, isObjectType, parse} from "grap
 export const QLIVE_PACKAGE = "@qlivedev/qlive-ts"
 
 /** Interface mixed into the result type of a query selecting a query document */
-export const DOCUMENT_METHODS = "QueryDocumentMethods"
+export const CLIENT_DOCUMENT = "ClientQueryDocument"
 
 /** The name the track-usage analysis files a `new GraphQLQuery(...)` under */
 export const GRAPHQL_QUERY_CONSTRUCTOR_NAME = "GraphQLQuery"
@@ -566,7 +566,7 @@ function fieldsMatch(type, selectedKids)
  * derived from QueryDocument&lt;T&gt;, e.g. FooDocument.
  *
  * Those arrive in the application as QueryDocument instances, not as the plain JSON objects they are
- * on the wire, which is what earns their result type the {@link DOCUMENT_METHODS} mix-in.
+ * on the wire, which is what earns their result type the {@link CLIENT_DOCUMENT} mix-in.
  *
  * @param {Object} schema     GraphQL schema
  * @param {Object} operation  selected operation
@@ -576,7 +576,7 @@ function fieldsMatch(type, selectedKids)
 function isQueryDocumentResult(schema, operation)
 {
     // A list of documents is not a document, and nothing produces one -- so we stay on the
-    // safe side of a type that would promise methods the values do not have.
+    // safe side of a type that would promise members the values do not have.
     return !isList(operation) && isQueryDocumentType(schema.getType(getFieldTypeName(operation)))
 }
 
@@ -588,7 +588,7 @@ function isQueryDocumentResult(schema, operation)
  * What it does carry is the shape that registry produces, and QueryDocument has exactly one: the four
  * properties of io.github.qlivedev.model.QueryDocument, never more and never fewer. So the shape is
  * what gets matched -- a naming convention would call an application's own "...Document" type a query
- * document and give it methods its values do not have.
+ * document and give it members its values do not have.
  *
  * @param {Object} type  named GraphQL type, or undefined
  *
@@ -628,9 +628,9 @@ export function renderModule(moduleInfo, tsCode, isQueryDocument, domainTypes = 
 {
     const typeName = moduleInfo.variableName + "Result"
 
-    // The document methods are parameterized with the result type itself, so an updated
+    // The client document is parameterized with the result type itself, so an updated
     // document is typed exactly like the one it came from -- selection and all.
-    const resultType = isQueryDocument ? tsCode + " & " + DOCUMENT_METHODS + "<" + typeName + ">" : tsCode
+    const resultType = isQueryDocument ? tsCode + " & " + CLIENT_DOCUMENT + "<" + typeName + ">" : tsCode
 
     // The domain types first, so that a prologue getting both ends up with the QLive import on top --
     // which is the order the modules are written in.
@@ -641,7 +641,7 @@ export function renderModule(moduleInfo, tsCode, isQueryDocument, domainTypes = 
     }
     if (isQueryDocument)
     {
-        imports = withDocumentMethodsImport(imports)
+        imports = withClientDocumentImport(imports)
     }
 
     return imports + "export type " + typeName + " = " + resultType + "\n\n" +
@@ -651,15 +651,15 @@ export function renderModule(moduleInfo, tsCode, isQueryDocument, domainTypes = 
 
 
 /**
- * Returns the given module prologue with {@link DOCUMENT_METHODS} imported from {@link QLIVE_PACKAGE}.
+ * Returns the given module prologue with {@link CLIENT_DOCUMENT} imported from {@link QLIVE_PACKAGE}.
  *
  * @param {string} prologue  module source in front of the generated result type
  *
- * @returns {string} prologue importing the document methods
+ * @returns {string} prologue importing the client document type
  */
-export function withDocumentMethodsImport(prologue)
+export function withClientDocumentImport(prologue)
 {
-    return withNamedImports(prologue, QLIVE_PACKAGE, [DOCUMENT_METHODS])
+    return withNamedImports(prologue, QLIVE_PACKAGE, [CLIENT_DOCUMENT])
 }
 
 

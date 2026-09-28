@@ -1,5 +1,5 @@
 import { Bar, BarDocument } from "../../types";
-import { GraphQLQuery, QueryDocumentMethods } from "@qlivedev/qlive-ts";
+import { GraphQLQuery, ClientQueryDocument } from "@qlivedev/qlive-ts";
 
 /**
  * Bars as a view that only displays them reads them: two fields and no version.
@@ -10,7 +10,7 @@ import { GraphQLQuery, QueryDocumentMethods } from "@qlivedev/qlive-ts";
  */
 export type Q_BarNamesResult = Pick<BarDocument,"type" | "config"> & {
     rows : Array<Pick<Bar,"id" | "name">>
-} & QueryDocumentMethods<Q_BarNamesResult>
+} & ClientQueryDocument<Q_BarNamesResult>
 
 export const Q_BarNames = new GraphQLQuery<Q_BarNamesResult>(
     // language=GraphQL

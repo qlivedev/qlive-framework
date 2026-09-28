@@ -361,6 +361,64 @@ class QueryPlanTest
     }
 
 
+    /// A path into a relation is completed toward the related row's identity right after it, so the rows
+    /// of two related rows sharing the sorted value do not interleave. The root is completed at the end,
+    /// and the config that goes back is the sort that was named.
+    @Test
+    void groupsASortThroughARelationByTheRelatedRow()
+    {
+        final QueryConfig config = config(0, 0);
+        config.setSortFields(List.of(field("owner.created")));
+
+        assertThat(
+            sql(FOO_WITH_OWNER, config, true),
+            containsString("order by \"owner\".\"created\" asc, \"owner\".\"id\" asc, \"test_foo\".\"id\" asc")
+        );
+
+        final List<CNode> sortFields = plan(FOO_WITH_OWNER, config, true).config().getSortFields();
+        assertThat(
+            sortFields.stream()
+                .map(node -> ((io.github.qlivedev.model.condition.Field) node).getName())
+                .toList(),
+            contains("owner.created")
+        );
+    }
+
+
+    /// The related row's completion follows the run of sort fields on it, before whatever the sort names
+    /// next, and ascends whatever direction the run takes.
+    @Test
+    void completesARelationRunInPlace()
+    {
+        final QueryConfig config = config(0, 0);
+        config.setSortFields(List.of(field("owner.created").desc(), field("num")));
+
+        assertThat(
+            sql(FOO_WITH_OWNER, config, true),
+            containsString(
+                "order by \"owner\".\"created\" desc, \"owner\".\"id\" asc, \"test_foo\".\"num\" asc, " +
+                    "\"test_foo\".\"id\" asc"
+            )
+        );
+    }
+
+
+    /// A run covering a key of the related row identifies it already.
+    @Test
+    void leavesARelationRunCoveringAKeyAlone()
+    {
+        final QueryConfig config = config(0, 0);
+        config.setSortFields(List.of(field("owner.created"), field("owner.login")));
+
+        assertThat(
+            sql(FOO_WITH_OWNER, config, true),
+            containsString(
+                "order by \"owner\".\"created\" asc, \"owner\".\"login\" asc, \"test_foo\".\"id\" asc"
+            )
+        );
+    }
+
+
     /// The rules for picking the completion, on keys the test domain does not have.
     @Test
     void picksTheCompletionFromTheKeys()

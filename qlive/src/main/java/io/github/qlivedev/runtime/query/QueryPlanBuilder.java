@@ -118,7 +118,7 @@ public class QueryPlanBuilder
         final List<PlanNode> countJoins = countJoins(root, resolver.touched);
 
         final List<SortField<?>> sortFields = new ArrayList<>();
-        sort(root, lookup.getTable(), config, transformer, sortFields);
+        sort(root, config, transformer, sortFields);
 
         final QueryConfig effective = new QueryConfig();
         effective.setCondition(config.getCondition());
@@ -165,7 +165,10 @@ public class QueryPlanBuilder
     /// to ask for it.
     ///
     /// A named sort is completed to a total order (see {@link #completion(Table, Set)}), because offset
-    /// paging over ties can show a row on two pages or on none.
+    /// paging over ties can show a row on two pages or on none. The root is completed at the end. Before
+    /// that, each run of sort fields naming columns of one related row is completed toward that row's
+    /// identity, right after the run: sorting by `owner.name` alone would interleave the rows of two
+    /// owners sharing a name, and `owner.name, owner.id` keeps each owner's rows together.
     ///
     /// The default and the completion go into the statement only. The config that goes back has the sort
     /// of the config the plan was built from -- whatever assembled that, type defaults and interceptors
@@ -174,7 +177,6 @@ public class QueryPlanBuilder
     /// nobody chose.
     private void sort(
         PlanNode root,
-        Table<?> table,
         QueryConfig config,
         ConditionTransformer transformer,
         List<SortField<?>> sortFields
@@ -182,15 +184,38 @@ public class QueryPlanBuilder
     {
         if (config.getSortFields() != null && !config.getSortFields().isEmpty())
         {
+            final Set<String> rootColumns = new HashSet<>();
+
+            PlanNode runNode = null;
+            final Set<String> runColumns = new HashSet<>();
+
             for (CNode node : config.getSortFields())
             {
-                sortFields.add(transformer.sortField(node));
-            }
+                // transformed first: that resolves the path, joining what it crosses where it may
+                final SortField<?> sortField = transformer.sortField(node);
 
-            for (Field<?> field : completion(table, sortedColumns(root, config.getSortFields())))
-            {
-                sortFields.add(root.addColumn(field, false).asc());
+                final SortedColumn sorted = sortedColumn(root, node);
+                final PlanNode related = sorted != null && sorted.node() != root ? sorted.node() : null;
+                if (related != runNode)
+                {
+                    complete(runNode, runColumns, sortFields);
+                    runNode = related;
+                    runColumns.clear();
+                }
+
+                sortFields.add(sortField);
+                if (related != null)
+                {
+                    runColumns.add(sorted.column());
+                }
+                else if (sorted != null)
+                {
+                    rootColumns.add(sorted.column());
+                }
             }
+            complete(runNode, runColumns, sortFields);
+
+            complete(root, rootColumns, sortFields);
             return;
         }
 
@@ -209,33 +234,59 @@ public class QueryPlanBuilder
     }
 
 
-    /// The columns of the root the sort fields name directly -- a field of the root, bare or in an `asc` or
-    /// `desc`. A path into a relation or an expression orders by something else, even where it mentions a
-    /// root column, and cannot cover a key.
-    private Set<String> sortedColumns(PlanNode root, List<CNode> sortNodes)
+    /// A column a sort field names directly: a field path, bare or in an `asc` or `desc`, together with the
+    /// plan node whose row it belongs to. `null` for an expression, which orders by something else even
+    /// where it mentions a column, and cannot cover a key.
+    private record SortedColumn(PlanNode node, String column)
     {
-        final Set<String> columns = new HashSet<>();
-        for (CNode node : sortNodes)
-        {
-            CNode fieldNode = node;
-            if (node instanceof Operation operation &&
-                ("asc".equals(operation.getName()) || "desc".equals(operation.getName())) &&
-                operation.getOperands() != null && operation.getOperands().size() == 1)
-            {
-                fieldNode = operation.getOperands().get(0);
-            }
+    }
 
-            if (fieldNode instanceof io.github.qlivedev.model.condition.Field fieldRef &&
-                fieldRef.getName().indexOf('.') < 0)
-            {
-                final Field<?> column = types.lookupField(root.getDomainType(), fieldRef.getName());
-                if (column != null)
-                {
-                    columns.add(column.getName());
-                }
-            }
+
+    private SortedColumn sortedColumn(PlanNode root, CNode node)
+    {
+        CNode fieldNode = node;
+        if (node instanceof Operation operation &&
+            ("asc".equals(operation.getName()) || "desc".equals(operation.getName())) &&
+            operation.getOperands() != null && operation.getOperands().size() == 1)
+        {
+            fieldNode = operation.getOperands().get(0);
         }
-        return columns;
+
+        if (!(fieldNode instanceof io.github.qlivedev.model.condition.Field fieldRef))
+        {
+            return null;
+        }
+
+        final String[] parts = fieldRef.getName().split("\\.", -1);
+        PlanNode target = root;
+        for (int i = 0; i < parts.length - 1 && target != null; i++)
+        {
+            target = target.getChild(parts[i]);
+        }
+        if (target == null)
+        {
+            return null;
+        }
+
+        final Field<?> column = types.lookupField(target.getDomainType(), parts[parts.length - 1]);
+        return column != null ? new SortedColumn(target, column.getName()) : null;
+    }
+
+
+    /// Appends what a sort over the given columns of a node's rows needs to be total over those rows, as
+    /// {@link #completion(Table, Set)} says, ascending. Nothing for no node.
+    private void complete(PlanNode node, Set<String> columns, List<SortField<?>> sortFields)
+    {
+        if (node == null)
+        {
+            return;
+        }
+
+        final Table<?> table = types.lookupType(node.getDomainType()).getTable();
+        for (Field<?> field : completion(table, columns))
+        {
+            sortFields.add(node.addColumn(field, false).asc());
+        }
     }
 
 

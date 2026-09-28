@@ -153,6 +153,28 @@
       ]
     },
     {
+      "slug": "filtering",
+      "title": "Filtering",
+      "description": "Filter inputs over a query document's condition: column filters, reading a condition back, the hook and the default input.",
+      "members": [
+        "useFilters",
+        "FilterableDocument",
+        "FiltersOptions",
+        "Filters",
+        "ColumnFilterState",
+        "FilterInput",
+        "FilterInputProps",
+        "ColumnFilter",
+        "ColumnFilterInputProps",
+        "FilterInputValues",
+        "FilterColumn",
+        "operatorFilter",
+        "filled",
+        "claimTerms",
+        "ClaimedTerms"
+      ]
+    },
+    {
       "slug": "filter-dsl",
       "title": "Filter DSL",
       "description": "The condition and expression graph, and what builds one.",

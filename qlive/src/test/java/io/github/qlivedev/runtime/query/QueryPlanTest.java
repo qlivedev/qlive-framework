@@ -273,20 +273,15 @@ class QueryPlanTest
     }
 
 
-    /// With no sort fields the primary key is the sort, and the config that goes back to the client says
-    /// so -- the client spreads its next update over exactly this config.
+    /// With no sort fields the primary key is the sort, in the statement only: the config that goes back
+    /// names no sort, and echoing it gets the same default again.
     @Test
     void defaultsTheSortToThePrimaryKey()
     {
-        final QueryPlan plan = plan(FOO_ALONE, config(0, 0), false);
+        final QueryConfig config = config(0, 0);
 
-        final List<CNode> sortFields = plan.config().getSortFields();
-        assertThat(
-            sortFields.stream()
-                .map(node -> ((io.github.qlivedev.model.condition.Field) node).getName())
-                .toList(),
-            contains("id")
-        );
+        assertThat(sql(FOO_ALONE, config, false), containsString("order by \"test_foo\".\"id\" asc"));
+        assertThat(plan(FOO_ALONE, config, false).config().getSortFields(), is(empty()));
     }
 
 

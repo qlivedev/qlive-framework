@@ -8,17 +8,14 @@ import io.github.qlivedev.runtime.query.condition.ConditionTransformer;
 import io.github.qlivedev.runtime.query.condition.ExistsScope;
 import io.github.qlivedev.runtime.query.condition.FieldResolver;
 import io.github.qlivedev.runtime.query.condition.ResolvedField;
-import io.github.qlivedev.runtime.scalar.FilterDSL;
 import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.TableLookup;
 import io.github.qlivedev.graphql.TypeRegistry;
 import io.github.qlivedev.graphql.config.RelationModel;
 import io.github.qlivedev.graphql.config.TargetField;
-import io.github.qlivedev.util.JSONUtil;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.DataFetchingFieldSelectionSet;
 import graphql.schema.SelectedField;
-import jakarta.persistence.Column;
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.SortField;
@@ -27,7 +24,6 @@ import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.svenson.info.JSONPropertyInfo;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -121,15 +117,16 @@ public class QueryPlanBuilder
         // condition's and nothing else
         final List<PlanNode> countJoins = countJoins(root, resolver.touched);
 
-        final List<CNode> sortNodes = new ArrayList<>();
         final List<SortField<?>> sortFields = new ArrayList<>();
-        sort(root, lookup.getTable(), config, transformer, sortNodes, sortFields);
+        sort(root, lookup.getTable(), config, transformer, sortFields);
 
         final QueryConfig effective = new QueryConfig();
         effective.setCondition(config.getCondition());
         effective.setOffset(config.getOffset());
         effective.setPageSize(config.getPageSize());
-        effective.setSortFields(sortNodes);
+        effective.setSortFields(
+            config.getSortFields() != null ? new ArrayList<>(config.getSortFields()) : new ArrayList<>()
+        );
 
         final QueryPlan plan = new QueryPlan(root, condition, sortFields, countJoins, effective);
 
@@ -163,23 +160,23 @@ public class QueryPlanBuilder
 
     /// Transforms the config's sort fields, or defaults them to the primary key.
     ///
-    /// The default is written back into the effective config rather than only into the statement: the
-    /// client echoes that config into its next update(), so a document that came back sorted says by what.
-    /// It is resolved directly against the root instead of going through the resolver, because the primary
-    /// key is one of the columns the plan selects for its own purposes and a client never had to ask for
-    /// it.
+    /// The default is resolved directly against the root instead of going through the resolver, because
+    /// the primary key is one of the columns the plan selects for its own purposes and a client never had
+    /// to ask for it.
     ///
     /// A named sort is completed to a total order (see {@link #completion(Table, Set)}), because offset
-    /// paging over ties can show a row on two pages or on none. The completion goes into the statement
-    /// only. The config that goes back is the sort the client named: the completion follows from it the
-    /// same way every time, so echoing the named sort gets the same order again, and a client displaying
-    /// the sort has nothing to tell apart from what its user chose.
+    /// paging over ties can show a row on two pages or on none.
+    ///
+    /// The default and the completion go into the statement only. The config that goes back has the sort
+    /// of the config the plan was built from -- whatever assembled that, type defaults and interceptors
+    /// included, is reflected, and this is not. Both follow from that sort the same way every time, so
+    /// echoing the config gets the same order again, and a client displaying the sort never sees one
+    /// nobody chose.
     private void sort(
         PlanNode root,
         Table<?> table,
         QueryConfig config,
         ConditionTransformer transformer,
-        List<CNode> sortNodes,
         List<SortField<?>> sortFields
     )
     {
@@ -187,7 +184,6 @@ public class QueryPlanBuilder
         {
             for (CNode node : config.getSortFields())
             {
-                sortNodes.add(node);
                 sortFields.add(transformer.sortField(node));
             }
 
@@ -208,7 +204,6 @@ public class QueryPlanBuilder
 
         for (Field<?> keyField : root.getKeyFields())
         {
-            sortNodes.add(FilterDSL.field(propertyOf(root.getPojoType(), keyField.getName())));
             sortFields.add(keyField.asc());
         }
     }
@@ -588,25 +583,6 @@ public class QueryPlanBuilder
     // -----------------------------------------------------------------------------------------------------
     // names
     // -----------------------------------------------------------------------------------------------------
-
-    /// The POJO property a column belongs to, which is the name the FilterDSL and the GraphQL schema use
-    /// for it. Read from the same JPA annotations QLiveDomain builds its own field lookup from.
-    static String propertyOf(Class<?> pojoType, String columnName)
-    {
-        for (JSONPropertyInfo info : JSONUtil.getClassInfo(pojoType).getPropertyInfos())
-        {
-            final Column column = JSONUtil.findAnnotation(info, Column.class);
-            if (column != null && column.name().equals(columnName))
-            {
-                return info.getJsonName();
-            }
-        }
-
-        throw new QLiveException(
-            "Type '" + pojoType.getSimpleName() + "' has no property for column '" + columnName + "'"
-        );
-    }
-
 
     /// Converts an identifier to the database's own spelling of it: `fooId` to `foo_id`, `FooType` to
     /// `foo_type`.

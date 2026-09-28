@@ -69,8 +69,9 @@ class QueryDocumentServiceTest
     }
 
 
-    /// With no page size the document is everything, and the config that comes back says what was applied
-    /// -- including the sort nobody asked for.
+    /// With no page size the document is everything, and the config that comes back says what was applied.
+    /// The primary-key sort the server falls back on is not part of that: nobody asked for it, and an empty
+    /// sort echoed back gets it again.
     @Test
     void returnsTheConfigItActuallyUsed()
     {
@@ -80,7 +81,7 @@ class QueryDocumentServiceTest
         final Map<String, Object> config = (Map<String, Object>) document.get("config");
 
         assertThat(config.get("pageSize"), is(0));
-        assertThat((List<?>) config.get("sortFields"), contains("id"));
+        assertThat((List<?>) config.get("sortFields"), is(empty()));
         assertThat(rows(document), hasSize((Integer) document.get("rowCount")));
     }
 

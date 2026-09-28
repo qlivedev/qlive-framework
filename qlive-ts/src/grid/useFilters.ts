@@ -265,7 +265,7 @@ function empty(column: FilterColumn): unknown[]
  */
 function readBack(store: Store, part: FilterExpression | null, columns: readonly FilterColumn[])
 {
-    const claimed = claimTerms(part, columns);
+    const claimed = claimTerms(part, columns, store.columns.map(state => state.sent));
 
     columns.forEach((column, index) => {
         const state = store.columns[index];

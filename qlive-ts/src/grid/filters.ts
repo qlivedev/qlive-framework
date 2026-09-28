@@ -7,6 +7,7 @@ import type {ComponentType} from "react";
 import {
     CNode,
     condition,
+    conditionsEqual,
     field,
     fieldConditionArity,
     FieldConditionName,
@@ -188,7 +189,7 @@ export interface ClaimedTerms
     /** per column, the term it claimed, or `null` */
     terms: (FilterExpression | null)[];
 
-    /** per column, the input values its term came from, or `null` */
+    /** per column, the input values its term came from, or `null`, also for a term the column wrote itself */
     values: (unknown[] | null)[];
 
     /** terms no column claimed, or more than one did */
@@ -208,10 +209,18 @@ export interface ClaimedTerms
  * about in development: two columns filtering one field with one operator. A column claims one term at most; a
  * second one it recognizes is unclaimed.
  *
+ * A term a column wrote itself is that column's without asking its filter, which is how a filter without
+ * `fromCondition` keeps its own terms. Its values are `null` then: the owner still has what it wrote them from.
+ *
  * @param part      the owner's part of the condition, as from `ownedPart()`
  * @param columns   the owner's filter columns
+ * @param written   per column, terms it wrote itself
  */
-export function claimTerms(part: FilterExpression | null, columns: readonly FilterColumn[]): ClaimedTerms
+export function claimTerms(
+    part: FilterExpression | null,
+    columns: readonly FilterColumn[],
+    written: readonly (readonly (FilterExpression | null)[])[] = []
+): ClaimedTerms
 {
     const result: ClaimedTerms = {
         terms: columns.map(() => null),
@@ -225,7 +234,12 @@ export function claimTerms(part: FilterExpression | null, columns: readonly Filt
     }
 
     const claims = (term: FilterExpression) => {
-        const found: { index: number, values: unknown[] }[] = [];
+        const own = columns.findIndex((_, index) => written[index]?.some(t => conditionsEqual(t, term)));
+        if (own >= 0)
+        {
+            return [{index: own, values: null}];
+        }
+        const found: { index: number, values: unknown[] | null }[] = [];
         columns.forEach(({field, filter}, index) => {
             const values = filter.fromCondition?.(field, term);
             if (values)
@@ -243,7 +257,7 @@ export function claimTerms(part: FilterExpression | null, columns: readonly Filt
         return found;
     };
 
-    const assign = (term: FilterExpression, found: { index: number, values: unknown[] }[]) => {
+    const assign = (term: FilterExpression, found: { index: number, values: unknown[] | null }[]) => {
         const claim = found.length === 1 ? found[0] : null;
         if (claim && result.terms[claim.index] === null)
         {

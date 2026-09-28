@@ -376,7 +376,7 @@ True if every input of a filter has a value. An empty string counts as no value.
 <span class="api-kind">function</span>
 
 ```ts
-declare function claimTerms(part: FilterExpression | null, columns: readonly FilterColumn[]): ClaimedTerms;
+declare function claimTerms(part: FilterExpression | null, columns: readonly FilterColumn[], written?: readonly (readonly (FilterExpression | null)[])[]): ClaimedTerms;
 ```
 
 Hands the terms of an owner's part of a condition to the columns that produced them, by asking each column's
@@ -391,12 +391,16 @@ A term no column claims is unclaimed, and so is a term two columns claim, which 
 about in development: two columns filtering one field with one operator. A column claims one term at most; a
 second one it recognizes is unclaimed.
 
+A term a column wrote itself is that column's without asking its filter, which is how a filter without
+`fromCondition` keeps its own terms. Its values are `null` then: the owner still has what it wrote them from.
+
 **Parameters**
 
 | | |
 |---|---|
 | `part` | the owner's part of the condition, as from `ownedPart()` |
 | `columns` | the owner's filter columns |
+| `written` | per column, terms it wrote itself |
 
 ## ClaimedTerms
 

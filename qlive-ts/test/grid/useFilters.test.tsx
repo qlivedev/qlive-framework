@@ -156,6 +156,20 @@ describe("useFilters", () => {
         expect(filters.columns[0].values).toEqual(["FoO"]);
     });
 
+    it("keeps the terms of a filter that can't read them back as its own", () => {
+        const blind: ColumnFilter<string[]> = {arity: 1, toCondition: contains.toCondition};
+        render(null, [{field: "name", filter: blind}]);
+
+        type(0, "foo");
+        wait();
+        expect(conditionsEqual(config.condition, component("grid", nameTerm("foo")))).toBe(true);
+        expect(filters.unclaimed).toEqual([]);
+
+        type(0, null);
+        wait();
+        expect(conditionsEqual(config.condition, component("grid", null))).toBe(true);
+    });
+
     it("keeps typing that overtook a slow update", () => {
         holdUpdates = true;
         render(null);

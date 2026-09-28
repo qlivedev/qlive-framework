@@ -129,4 +129,14 @@ describe("claimTerms", () => {
         expect(claimed.values[0]).toEqual(["foo"]);
         expect(claimed.unclaimed).toEqual([second]);
     });
+
+    test("hands a column the terms it wrote without asking its filter", () => {
+        const blind: FilterColumn = {field: "name", filter: {arity: 1, toCondition: contains.toCondition}};
+        const twice: FilterColumn[] = [blind, {field: "name", filter: contains}];
+
+        const claimed = claimTerms(nameTerm(), twice, [[null, nameTerm()], [null]]);
+        expect(claimed.terms).toEqual([nameTerm(), null]);
+        expect(claimed.values).toEqual([null, null]);
+        expect(claimed.unclaimed).toEqual([]);
+    });
 });

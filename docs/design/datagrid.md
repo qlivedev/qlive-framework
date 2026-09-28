@@ -315,7 +315,7 @@ interface ColumnFilter<V extends unknown[]>
     fromCondition?(field: string, term: FilterExpression): V | null
 
     /** Input component, when the default for the scalar type won't do. */
-    Input?: ComponentType<FilterInputProps<V>>
+    Input?: ComponentType<ColumnFilterInputProps<V>>
 }
 ```
 

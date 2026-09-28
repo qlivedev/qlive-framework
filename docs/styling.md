@@ -110,7 +110,21 @@ The grid's parts, as far as they exist (see `docs/design/datagrid.md`):
   and `.qlive-grid-sort-indicator` around the arrow and position.
 - `.qlive-grid-filter` around one column's filter inputs, with
   `.qlive-grid-filter-active` while its term is in the condition, and
-  `.qlive-grid-filter-input` on each default text input.
+  `.qlive-grid-filter-input` on each default text input and on the
+  Boolean filter's select.
+- `.qlive-grid` around a `<DataGrid/>`, scrolling a wide table
+  sideways, with `.qlive-grid-table` on the table. Its header rows are
+  `.qlive-grid-headings` and `.qlive-grid-filters`, and a heading that
+  doesn't sort is `.qlive-grid-heading`. Rows are `.qlive-grid-row`,
+  with `.qlive-grid-highlighted` on the highlighted one, and
+  `.qlive-grid-empty` is the "no rows" row. A cell of a `nowrap`
+  column is `.qlive-grid-nowrap`. Below the table, `.qlive-grid-footer`
+  holds `.qlive-grid-note` lines, the `.qlive-grid-reset` button and
+  the pager.
+- `.qlive-grid-striped`, `.qlive-grid-hover`, `.qlive-grid-bordered`
+  and `.qlive-grid-compact` are opt-in, set through the grid's
+  `className`. The cell padding is `--qlive-grid-cell-padding`, which
+  compact redefines.
 
 The merge marks (`.qlive-changed` and the others `MergeField#className`
 returns), `.qlive-link-button` and `.qlive-error` are framework classes

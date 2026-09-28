@@ -1,6 +1,6 @@
 # DataGrid (design)
 
-Status: designed, not built. Written 2026-09-27.
+Status: built through step 4 of the build order. Written 2026-09-27.
 
 The table component for QLive, and the pieces under it. What it has to
 cover is `datagrid-features.md`, a survey of the Automaton DataGrid in
@@ -500,8 +500,8 @@ avoid. Its API shape is worth borrowing.
 
 ## What has to exist first
 
-- Built already: the layer 1 functions above except `resolveColumn()`,
-  in `FilterDSL.ts` and `grid/paging.ts`; the server's completion of
+- Built already: the layer 1 functions above, in `FilterDSL.ts`,
+  `grid/paging.ts` and `grid/columns.ts`; the server's completion of
   named sorts described under "Sorting", relation paths included; and
   the `uniqueKeys` type meta (`UniqueKeyProvider`).
 - **Client-side condition evaluation**: a FilterDSL evaluator over
@@ -515,8 +515,8 @@ avoid. Its API shape is worth borrowing.
 
 ## Build order
 
-1. Layer 1 functions, with tests. Done except `resolveColumn()`, which
-   comes with the column types in step 4.
+1. Layer 1 functions, with tests. Done, `resolveColumn()` with the
+   column types in step 4.
 2. `usePagination()` and `useSort()`, then `<Pager/>` and
    `<SortHeader/>`. Useful on their own the moment they exist. Done,
    in `qlive-ts/src/grid`, with `pageWindow()` added to the page math
@@ -529,7 +529,14 @@ avoid. Its API shape is worth borrowing.
    until it comes back, so a slow response overtaken by further typing
    doesn't rewrite the input either.
 4. `<DataGrid/>` composing them, and a qlive-test view that uses it
-   next to a search form owning a second component.
+   next to a search form owning a second component. Done: Home in
+   qlive-test. `resolveColumn()` and `FieldPath<T>` are in
+   `grid/columns.ts`, with `rowKey()` keying rows by the type's primary
+   key from `uniqueKeys` rather than assuming an `id`. Cells display
+   through `formatValue()`, the new optional `format()` of a converter.
+   Date and time columns have no default filter until the date range
+   filter of step 6. Selection (`useSelection()`, `<RowSelector/>`) is
+   not built yet.
 5. Working set integration through `useGridRows()`, without created-row
    filtering.
 6. The shipped filters.

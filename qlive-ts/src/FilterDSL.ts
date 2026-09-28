@@ -282,6 +282,23 @@ const FIELD_CONDITIONS = {
     "in": 1
 } as const;
 
+/**
+ * Name of a condition a field has as a method, `eq`, `containsIgnoreCase`, `between` and so on.
+ */
+export type FieldConditionName = keyof typeof FIELD_CONDITIONS;
+
+/**
+ * Number of operands a field condition takes besides the field, 1 for `eq`, 2 for `between`, `undefined` for a name
+ * that isn't one.
+ *
+ * @param name  condition name
+ */
+export function fieldConditionArity(name: string): number | undefined
+{
+    const fieldConditions: Readonly<Record<string, number>> = FIELD_CONDITIONS;
+    return Object.prototype.hasOwnProperty.call(fieldConditions, name) ? fieldConditions[name] : undefined;
+}
+
 const CONDITION_METHODS = {
     "not": 0,
     "or": 1,

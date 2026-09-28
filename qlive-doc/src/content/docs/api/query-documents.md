@@ -19,7 +19,7 @@ sidebar:
 <span class="api-kind">class</span>
 
 ```ts
-class QueryDocument<T> implements QueryDocumentMethods<QueryDocumentSnapshot<T>>
+class QueryDocument<T> implements ClientQueryDocument<QueryDocumentSnapshot<T>>
 ```
 
 QueryDocument or its snapshots are the way you are interacting with injections.
@@ -57,6 +57,14 @@ rowCount: number;
 ```
 
 Total number of available rows.
+
+### QueryDocument.error
+
+```ts
+error: Error | null;
+```
+
+Why the last update() failed, `null` once one succeeds again.
 
 ### QueryDocument.constructor
 
@@ -100,7 +108,7 @@ called detached from the document and needs to keep both its "this" and its iden
 <span class="api-kind">interface</span>
 
 ```ts
-interface QueryDocumentSnapshot<T> extends QueryDocumentMethods<QueryDocumentSnapshot<T>>
+interface QueryDocumentSnapshot<T> extends ClientQueryDocument<QueryDocumentSnapshot<T>>
 ```
 
 Immutable snapshot of a QueryDocument
@@ -144,21 +152,22 @@ rowCount: number;
 
 Total number of available rows.
 
-## QueryDocumentMethods
+## ClientQueryDocument
 
 <span class="api-kind">interface</span>
 
 ```ts
-interface QueryDocumentMethods<D>
+interface ClientQueryDocument<D>
 ```
 
-What a query document can do on top of holding its data.
+What a query document is on the client on top of the data the server sent: the way to run
+the query again, and how the last attempt went.
 
 Every document the server sends becomes a QueryDocument instance, so the generated
-result type of a query selecting one mixes this in: the methods are part of the type
+result type of a query selecting one mixes this in: these members are part of the type
 the same way they are part of the value.
 
-### QueryDocumentMethods.update
+### ClientQueryDocument.update
 
 ```ts
 update(newConfig: QueryConfigDelta): Promise<D>;
@@ -178,6 +187,19 @@ before that.
 | `newConfig` | config fields to change  |
 
 **Returns** the snapshot the update produced
+
+### ClientQueryDocument.error
+
+```ts
+error: Error | null;
+```
+
+Why the last update() failed, `null` once one succeeds again. The rows and config are the ones from
+before the failure.
+
+The update() promise rejects with the same error, but a pager, a sort header or a filter row doesn't
+wait for it: this is where a view sees their failures, and what it shows for one is its own choice.
+Only the latest update() counts, so a slow one failing after a later one succeeded sets nothing.
 
 ## QueryConfig
 

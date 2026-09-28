@@ -1,4 +1,3 @@
-import * as React from "react";
 import {createRoot, Root} from "react-dom/client";
 
 import {init, logStartup, QLiveBoostrap, QLiveConfig} from "./config";
@@ -9,7 +8,7 @@ import findRoot from "./util/findRoot";
 import ErrorBoundary from "./component/ErrorBoundary";
 import {loadViewForPath} from "./router";
 import {initPubSub} from "./pubsub";
-import {FunctionComponent} from "react";
+import {ComponentType, Fragment, FunctionComponent, StrictMode} from "react";
 
 /**
  * QLive startup options.
@@ -159,7 +158,7 @@ export async function startup(options: StartupOptions): Promise<Root>
     const rootContainer = createRoot(findRoot());
     // The URL picks the view: /home renders app/Home.tsx, /sub/view renders app/sub/View.tsx. Its chunk is
     // fetched here, at the moment the route needs it -- nothing loaded it up to this point.
-    let View: React.ComponentType | null = null;
+    let View: ComponentType | null = null;
 
     if (locationIsRoot && root && !rootIsViewName)
     {
@@ -189,7 +188,7 @@ export async function startup(options: StartupOptions): Promise<Root>
     // for initialization and nothing else, and renders into the root it is handed here itself.
     if (View)
     {
-        const ViewWrapper = strictMode ? React.StrictMode : React.Fragment
+        const ViewWrapper = strictMode ? StrictMode : Fragment
 
         rootContainer.render(
             <ViewWrapper>

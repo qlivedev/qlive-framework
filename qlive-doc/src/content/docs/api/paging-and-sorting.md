@@ -147,7 +147,7 @@ Changes the page size, keeping the first row shown on the page shown. Does nothi
 <span class="api-kind">function</span>
 
 ```ts
-declare function Pager({ doc, pageSizes, radius, align, className }: PagerProps): React$1.JSX.Element;
+declare function Pager({ doc, pageSizes, radius, align, className }: PagerProps): JSX.Element;
 ```
 
 First, previous, nearby page numbers, next and last page, and a page size select, for any query document.
@@ -369,7 +369,7 @@ by nothing else. Goes back to the first page, since the rows on any other page a
 <span class="api-kind">function</span>
 
 ```ts
-declare function SortHeader({ doc, sortKey, children, className }: SortHeaderProps): React$1.JSX.Element;
+declare function SortHeader({ doc, sortKey, children, className }: SortHeaderProps): JSX.Element;
 ```
 
 A table header cell that sorts the document by its key when clicked, and shows where the key stands in the
@@ -395,7 +395,7 @@ type SortHeaderProps = {
   /**
    * The heading.
    */
-  children?: React$1.ReactNode;
+  children?: ReactNode;
   /**
    * Added to the header cell's own classes.
    */

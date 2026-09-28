@@ -1,4 +1,4 @@
-import * as React from "react";
+import type {JSX, ReactNode} from "react";
 
 import config from "../config";
 
@@ -6,7 +6,7 @@ export type LogoutProps = {
     /**
      * Rendered inside the submit button. Defaults to "Logout".
      */
-    children?: React.ReactNode
+    children?: ReactNode
 
     /**
      * "button" renders the submit as a normal button, "link" makes it look like the surrounding text's
@@ -30,7 +30,7 @@ export type LogoutProps = {
  * how the submit button is styled, not what it is -- a button inside a form, so it keeps working with
  * keyboard activation and without JavaScript.
  */
-export default function Logout({ children = "Logout", variant = "button", className }: LogoutProps)
+export default function Logout({ children = "Logout", variant = "button", className }: LogoutProps): JSX.Element
 {
     const { csrfToken } = config()
 

@@ -1,4 +1,4 @@
-import * as React from "react";
+import type {JSX} from "react";
 
 import i18n from "../i18n";
 import {ColumnFilterState} from "./useFilters";
@@ -21,7 +21,7 @@ export type FilterInputProps = {
  *
  * Built on useFilters() and nothing else, so an input that has to look different is written the same way.
  */
-export default function FilterInput({column, className}: FilterInputProps)
+export default function FilterInput({column, className}: FilterInputProps): JSX.Element
 {
     const {field, filter, values, setValues, active} = column
     const {Input, arity} = filter

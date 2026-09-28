@@ -1,4 +1,4 @@
-import * as React from "react";
+import type {JSX} from "react";
 
 import i18n from "../i18n";
 import {pageWindow} from "./paging";
@@ -31,7 +31,7 @@ export type PagerProps = PaginationOptions & {
  *
  * Built on usePagination() and nothing else, so a pager that has to look different is written the same way.
  */
-export default function Pager({doc, pageSizes, radius = 2, align = "start", className}: PagerProps)
+export default function Pager({doc, pageSizes, radius = 2, align = "start", className}: PagerProps): JSX.Element
 {
     const paging = usePagination(doc, {pageSizes})
     const {page, pageCount} = paging

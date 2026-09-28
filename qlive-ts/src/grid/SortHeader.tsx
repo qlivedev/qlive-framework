@@ -1,4 +1,4 @@
-import * as React from "react";
+import type {JSX, ReactNode} from "react";
 
 import {FieldExpression} from "../FilterDSL";
 import {SortableDocument, useSort} from "./useSort";
@@ -17,7 +17,7 @@ export type SortHeaderProps = {
     /**
      * The heading.
      */
-    children?: React.ReactNode
+    children?: ReactNode
 
     /**
      * Added to the header cell's own classes.
@@ -34,7 +34,7 @@ const ARROWS = {asc: "▲", desc: "▼"}
  * Built on useSort() and nothing else, so a header that has to look different, or isn't a table cell, is written
  * the same way.
  */
-export default function SortHeader({doc, sortKey, children, className}: SortHeaderProps)
+export default function SortHeader({doc, sortKey, children, className}: SortHeaderProps): JSX.Element
 {
     const {direction, position, toggle} = useSort(doc, sortKey)
 

@@ -176,7 +176,7 @@ active: boolean;
 <span class="api-kind">function</span>
 
 ```ts
-declare function FilterInput({ column, className }: FilterInputProps): React$1.JSX.Element;
+declare function FilterInput({ column, className }: FilterInputProps): JSX.Element;
 ```
 
 The inputs of one column's filter: the filter's own `Input` component where it has one, otherwise one text input

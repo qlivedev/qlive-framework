@@ -1,3 +1,5 @@
+import type {JSX} from "react";
+
 import config from "../config";
 
 /**
@@ -41,7 +43,7 @@ export type QuickLoginProps = {
  * configured success URL -- the point of a one-click switch is staying where you were and seeing it take
  * effect, not being carried off to wherever a real login lands.
  */
-export default function QuickLogin({ users, url = "/login" }: QuickLoginProps)
+export default function QuickLogin({ users, url = "/login" }: QuickLoginProps): JSX.Element
 {
     const { csrfToken, authentication } = config()
 

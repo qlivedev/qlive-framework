@@ -14,7 +14,7 @@ sidebar:
 <span class="api-kind">constant</span>
 
 ```ts
-declare const DomainTables: ({ filter, setFilter }: DomainTablesProps) => React.JSX.Element;
+declare const DomainTables: ({ filter, setFilter }: DomainTablesProps) => JSX.Element;
 ```
 
 :::note[Undocumented]
@@ -114,7 +114,7 @@ What an error view is handed.
 <span class="api-kind">function</span>
 
 ```ts
-declare function Logout({ children, variant, className }: LogoutProps): React$1.JSX.Element;
+declare function Logout({ children, variant, className }: LogoutProps): JSX.Element;
 ```
 
 Logs the current user out.
@@ -134,7 +134,7 @@ type LogoutProps = {
   /**
    * Rendered inside the submit button. Defaults to "Logout".
    */
-  children?: React$1.ReactNode;
+  children?: ReactNode;
   /**
    * "button" renders the submit as a normal button, "link" makes it look like the surrounding text's
    * anchors instead -- for a nav bar or a sentence where a boxed button would stand out for no reason.
@@ -157,7 +157,7 @@ This export carries no doc comment in the source.
 <span class="api-kind">function</span>
 
 ```ts
-declare function QuickLogin({ users, url }: QuickLoginProps): import("react").JSX.Element;
+declare function QuickLogin({ users, url }: QuickLoginProps): JSX.Element;
 ```
 
 Shows who a page is being served to and offers to become one of a fixed list of other users in a single

@@ -1,4 +1,4 @@
-import * as React from "react";
+import type {JSX} from "react";
 
 /**
  * What an error view is handed.
@@ -17,7 +17,7 @@ export type ErrorViewProps = {
  * Deliberately bare: it states the error and leaves it there, because a page that belongs to an application
  * is the application's to design. Replace it by assigning to config.errorView in startup()'s init hook.
  */
-export default function DefaultErrorView({error}: ErrorViewProps)
+export default function DefaultErrorView({error}: ErrorViewProps): JSX.Element
 {
     return (
         <p className="qlive-error">

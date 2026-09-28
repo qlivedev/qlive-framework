@@ -1,4 +1,4 @@
-import React, {useLayoutEffect, useState} from "react"
+import {JSX, useLayoutEffect, useState} from "react"
 import { isListType, isNonNull, unwrapAll } from "../type-utils"
 import config from "../config"
 import type { DomainMeta } from "../config"
@@ -496,7 +496,7 @@ export type DomainTablesProps = {
     setFilter : (filter: string) => void
 }
 
-const DomainTables = ({filter, setFilter} : DomainTablesProps) => {
+const DomainTables = ({filter, setFilter} : DomainTablesProps): JSX.Element => {
 
     const { schema, meta } = config();
     

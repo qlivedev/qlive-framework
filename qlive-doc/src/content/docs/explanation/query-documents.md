@@ -59,21 +59,23 @@ so `{offset: 5}` changes the offset and leaves the filter, the page size
 and the sort alone. Only a document that came out of an execution can be
 updated; one built by hand carries no query and says so.
 
-The config that comes back on the document is **the config that was
-applied**, not the one you sent. Where you named no sort fields, the server
-sorts by the primary key and says so in the config it returns -- and since
-your next `update()` is spread over exactly that config, a document that
-came back sorted stays sorted.
+The config that comes back on the document is **the config the query ran
+with**, not the one you sent. For an injection that is the config the
+server assembled -- the type's defaults, the call's delta, whatever an
+interceptor changed -- so every document carries a complete config, and
+sending it back as it is runs the same query again. A page size the server
+capped comes back capped, so a cut page does not look like the last page of
+a short table.
 
-A sort you did name is made total before it runs. Sorting by a column
-with duplicates would leave the order among them to the database, and
-paging over that can show a row on two pages or on none. So where your
-sort fields don't already cover a unique key of NOT NULL columns, the
-server appends the rest of one they partly cover, or else the primary
-key. That happens in the SQL only: the config that comes back is the
-sort you named, and naming it again gets the same order again. A page size the server capped comes back
-capped for the same reason, so a cut page does not look like the last page
-of a short table.
+Under that config, the server makes the order the SQL runs in total.
+Sorting by a column with duplicates would leave the order among them to the
+database, and paging over that can show a row on two pages or on none. So
+where the sort fields don't already cover a unique key of NOT NULL
+columns, the server appends the rest of one they partly cover, or else the
+primary key; with no sort fields at all, the primary key is the sort. None
+of that shows in the config that comes back. It follows from the config's
+sort the same way every time, so the config alone gets the same order
+again, and a sort nobody chose never looks like one somebody did.
 
 ## QueryDocumentService
                        

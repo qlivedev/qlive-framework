@@ -158,8 +158,8 @@ foos.update({sortFields: [field("created").desc()]})
 foos.update({sortFields: [field("a").plus(field("b"))]})
 ```
 
-With no sort fields the primary key is the sort, and the config that comes
-back says so.
+With no sort fields the primary key is the sort. That is below the config:
+the config that comes back still names none.
 
 ## Nodes are class instances
 

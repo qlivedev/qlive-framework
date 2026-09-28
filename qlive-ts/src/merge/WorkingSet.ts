@@ -232,6 +232,12 @@ export class WorkingSet
     /** what an accessor reaches the store through, built once because it never varies */
     private readonly host: MergeHost;
 
+    /**
+     * true while rows have been registered that no subscriber was told about: a walk from a draft read in a
+     * render must not notify, and register() makes up for it
+     */
+    private unannounced: boolean;
+
 
     constructor(options: WorkingSetOptions = {})
     {
@@ -244,6 +250,7 @@ export class WorkingSet
         this.snapshot = null
         this.viewFlag = "merged"
         this.accessors = new Map()
+        this.unannounced = false
 
         this.host = {
             view: () => this.viewFlag,
@@ -267,7 +274,10 @@ export class WorkingSet
      * selected, most of which a view only displays, so the query that reads a lookup table for a dropdown is
      * not the place to insist -- and the field somebody does try to change still fails long before a merge
      * could lose an update.
-
+     *
+     * Registering a document again takes the rows it holds now, after a page turn say. Rows new to the
+     * working set are a change like any other and reach the subscribers, which is what moves a watch on to
+     * them -- also where edit() met them first and bound them without telling anyone.
      *
      * @param document      query document, or the snapshot a view holds of one
      */
@@ -284,6 +294,11 @@ export class WorkingSet
         }
 
         this.walk(live)
+
+        if (this.unannounced)
+        {
+            this.notify()
+        }
     }
 
 
@@ -799,6 +814,7 @@ export class WorkingSet
      */
     private notify(): void
     {
+        this.unannounced = false
         this.snapshot = null
         this.accessors = new Map()
 
@@ -902,6 +918,7 @@ export class WorkingSet
             return
         }
 
+        this.unannounced = true
         this.entities.set(key(type, id), {
             type,
             id,

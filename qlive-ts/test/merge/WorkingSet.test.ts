@@ -228,6 +228,33 @@ describe("registration", () => {
     })
 
 
+    it("tells its subscribers about rows it hadn't announced when registering again", async () => {
+
+        // A view drafting the rows of a page it just turned to binds them before anything registers them,
+        // and a watch on the working set only hears about rows through a change.
+        const document = await loadBars()
+        const ws = new WorkingSet()
+        ws.register(document)
+
+        const heard = vi.fn()
+        ws.subscribe(heard)
+
+        const next = {...barDocument(), rows: [{...barDocument().rows[1], id: "bar-3", bazLinks: []}]}
+        respondWith({data: {queryBarDocument: next}, errors: []})
+        await document.update({offset: 10})
+
+        ws.edit(document.rows[0])
+        expect(heard).not.toHaveBeenCalled()
+
+        ws.register(document)
+        expect(heard).toHaveBeenCalledTimes(1)
+        expect(ws.held().find(held => held.type === "Bar")!.ids).toContain("bar-3")
+
+        ws.register(document)
+        expect(heard).toHaveBeenCalledTimes(1)
+    })
+
+
     it("follows a snapshot's document, not the snapshot", async () => {
 
         // What a view registers is what useInjection() handed it, which is a still of the document. Its

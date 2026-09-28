@@ -153,6 +153,22 @@
       ]
     },
     {
+      "slug": "data-grid",
+      "title": "Data grid",
+      "description": "The default table over a query document, and the column derivation it shares with hand-written tables.",
+      "members": [
+        "DataGrid",
+        "DataGridProps",
+        "GridDocument",
+        "GridColumn",
+        "DataGridColumn",
+        "FieldPath",
+        "resolveColumn",
+        "ResolvedColumn",
+        "rowKey"
+      ]
+    },
+    {
       "slug": "filtering",
       "title": "Filtering",
       "description": "Filter inputs over a query document's condition: column filters, reading a condition back, the hook and the default input.",
@@ -169,6 +185,7 @@
         "FilterInputValues",
         "FilterColumn",
         "operatorFilter",
+        "booleanFilter",
         "filled",
         "claimTerms",
         "ClaimedTerms"
@@ -319,6 +336,7 @@
         "Temporal",
         "registerConverter",
         "getConverter",
+        "formatValue",
         "Converter",
         "ConversionFn",
         "convertToServer",

@@ -162,6 +162,13 @@ describe("resolveColumn", () => {
         expect(() => resolveColumn("Foo", {render: () => "", filter: {arity: 1, toCondition: () => null}}))
             .toThrow("nothing to filter");
     });
+
+    test("names the field of the row whose status the cells show", () => {
+        expect(resolveColumn("Foo", "name").statusField).toBe("name");
+        expect(resolveColumn("Foo", "owner").statusField).toBe("ownerId");
+        expect(resolveColumn("Foo", "owner.login").statusField).toBeNull();
+        expect(resolveColumn("Foo", {render: () => ""}).statusField).toBeNull();
+    });
 });
 
 describe("rowKey", () => {

@@ -124,6 +124,12 @@ export interface ResolvedColumn<R = any>
     /** classes of the column's cells for a row */
     className(row: R): string | undefined;
 
+    /**
+     * The field of the row whose working set status the cells show: the field itself for a field of the row, the
+     * foreign key for a relation of it. `null` for a field of a related row and for a computed column.
+     */
+    statusField: string | null;
+
     nowrap: boolean;
     minWidth?: string;
     maxWidth?: string;
@@ -132,7 +138,7 @@ export interface ResolvedColumn<R = any>
 /** what a field path ends at */
 type Target =
     { kind: "scalar", owner: string, name: string, scalarType: string } |
-    { kind: "relation", owner: string, name: string, targetType: string };
+    { kind: "relation", owner: string, name: string, targetType: string, sourceFields: string[] };
 
 function columnError(path: string, message: string)
 {
@@ -175,7 +181,7 @@ function resolvePath(type: string, path: string): Target
             {
                 throw columnError(path, name + " of " + owner + " is neither a scalar nor a to-one relation.");
             }
-            return {kind: "relation", owner, name, targetType: named.name!};
+            return {kind: "relation", owner, name, targetType: named.name!, sourceFields: relation.sourceFields};
         }
         owner = named.name!;
     }
@@ -264,6 +270,7 @@ export function resolveColumn<R = any>(type: string, column: NoInfer<GridColumn<
         sort: given.sort || null,
         filter: null,
         className: typeof cellClass === "function" ? cellClass : () => cellClass,
+        statusField: null,
         nowrap: given.nowrap ?? false,
         minWidth: given.minWidth,
         maxWidth: given.maxWidth
@@ -285,6 +292,12 @@ export function resolveColumn<R = any>(type: string, column: NoInfer<GridColumn<
     }
 
     const target = resolvePath(type, path);
+    if (!path.includes("."))
+    {
+        resolved.statusField = target.kind === "scalar"
+            ? path
+            : target.sourceFields.length === 1 ? target.sourceFields[0] : null;
+    }
     if (given.heading === undefined)
     {
         resolved.heading = i18n(target.owner + "." + target.name);

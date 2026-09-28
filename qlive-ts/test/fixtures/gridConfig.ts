@@ -66,6 +66,7 @@ export function initGridConfig()
                         field("flag", NOT_NULL(NAMED("Boolean"))),
                         field("created", NOT_NULL(TIMESTAMP)),
                         field("day", NAMED("Date")),
+                        field("ownerId", STRING),
                         field("owner", NAMED("AppUser", "OBJECT")),
                         field("fooType", NAMED("FooType", "OBJECT")),
                         field("embedded", NAMED("Tag", "OBJECT")),

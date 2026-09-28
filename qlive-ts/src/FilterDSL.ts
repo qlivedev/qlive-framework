@@ -92,9 +92,10 @@ export interface ComponentNode
      */
     id: string | null,
     /**
-     * Actual condition
+     * Actual condition, or `null` for a component that currently filters nothing. An empty component keeps its
+     * place in a composition; only the SQL transformation drops it.
      */
-    condition: CNode
+    condition: CNode | null
 }
 
 
@@ -453,11 +454,11 @@ export function field(name: string): Field
  * Logically they are evaluated as the condition they wrap.
  *
  * @param {String} id                   component id
- * @param {CNode} condition     actual condition for the component
+ * @param {CNode} condition     actual condition for the component, `null` for an empty one
  *
  * @return {CNode}
  */
-export function component(id: string | null, condition: CNode): ComponentNode
+export function component(id: string | null, condition: CNode | null): ComponentNode
 {
     return {
         type: "Component",
@@ -673,7 +674,7 @@ export function findComponentNode(conditionNode: CNode | null, id: string): CNod
  * @param condition    Input condition, potentially consisting of DSL instances
  * @return condition as graph of objects / arrays
  */
-export function toJSON(condition: CNode): RawValue
+export function toJSON(condition: CNode | null): RawValue
 {
     if (!condition)
     {

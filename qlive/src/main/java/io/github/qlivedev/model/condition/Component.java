@@ -23,7 +23,6 @@ public class Component
     }
 
 
-    @NotNull
     public CNode getCondition()
     {
         return condition;

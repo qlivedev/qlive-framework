@@ -65,16 +65,19 @@ as from the grid. They live next to the FilterDSL.
 - **`ownedPart(condition, id)`**, the read side: which part of a
   condition belongs to the holder of an id, by the rules under
   "Component awareness".
+- **`simplifySortField(sortField)`**: the simple string form of a sort
+  field where it has one. A field, bare, as a node or in `asc` / `desc`,
+  becomes `"name"` or `"!name"`; an expression stays a node.
 - **`matchSort(sortFields, key)`**: whether a column's sort key appears
-  in a sort order, and if so its direction and position. A key is one
-  sort field or a sequence of them (a relation column's grouped key); a
-  sequence matches where it appears contiguously, all in one direction.
-  A single field matches a sort field that is the same name or the same
-  expression, bare, with a `!` prefix, or wrapped in `desc`. Prior art:
+  in a sort order, and if so its direction and position. A key is what
+  the column sorts by, a field path or an expression node, without a
+  direction. It matches a sort field sorting by the same field or a
+  structurally equal expression, in either direction. Prior art:
   Automaton's `findSort()`.
 - **`toggleSort(sortFields, key)`**: the sort order a header click asks
-  for (see "Sorting"), fields in the `"name"` / `"!name"` form the
-  server echoes.
+  for (see "Sorting"): the key descending if it alone is the sort and
+  ascending, the key ascending otherwise. A path comes out as `"name"`
+  or `"!name"`, an expression as itself or in `desc`.
 - **Page math**: `pageCount()`, `pageIndex()`, `pageOffset()` and
   `pageSizeOptions()`, the last clamped to the type's `maxPageSize`.
   Pages count from 0, like offsets.
@@ -186,22 +189,11 @@ column stands for the related row, named by the target type's
   would make it misleading, while "sorted by the most significant name"
   stays true whatever the renderer does.
 
-  The sort key does get completed, but toward the related row's
-  identity, not toward the other name fields. Rows pointing at two
-  different owners that share a name would otherwise interleave, and
-  the user couldn't tell which row belongs to which owner. So the key
-  groups rows by the related row, using the target type's `uniqueKeys`
-  meta:
-
-  - the first name field alone, if a non-nullable unique constraint
-    consists of just that field;
-  - the first name field followed by the remaining fields of a
-    non-nullable unique constraint it is part of, in constraint order;
-  - otherwise the first name field followed by the target's primary key.
-
-  This makes the order total over the related rows, not over the grid's
-  rows, since many rows point at one owner. Making the grid's own order
-  total is the server's job (see "Sorting").
+  The key is the first name field's path alone (`"owner.name"`). Rows
+  pointing at two different owners that share a name still come out
+  grouped by owner, because the server completes a path into a relation
+  toward the related row's identity (see "Sorting"). The client has
+  nothing to spell out for that.
 - **Filter**: `containsIgnoreCase` on the first name field. The server
   joins it, so no extra query is needed.
 
@@ -246,8 +238,8 @@ A `DataGridColumn` has:
 - **`heading`**: overrides the derived heading.
 - **`render(row)`**: optional. A plain return value gets the default
   formatting; an element is used as is.
-- **`sort`**: overrides the derived sort key with any FilterDSL field
-  expression; `false` turns sorting off.
+- **`sort`**: overrides the derived sort key with another field path or
+  an expression node, for a computed column; `false` turns sorting off.
 - **`filter`**: overrides the derived filter (see "Filters"); `false`
   turns filtering off.
 - **Cell presentation**: width limits, no-wrap, cell classes (fixed or
@@ -420,8 +412,18 @@ business: its input loads the label or takes it from the view.
   non-nullable unique constraint of the root type, it appends that
   constraint's remaining fields in constraint order; otherwise it
   appends the primary key. A sort already covering such a constraint is
-  left alone. A path into a relation doesn't count toward a key, since it
-  orders by the related row. The completion goes into the SQL only: the
+  left alone. A path into a relation doesn't count toward a root key,
+  since it orders by the related row.
+
+  A path into a to-one relation is completed first, toward the related
+  row's identity, by the same rule applied to the target type: the rest
+  of a non-nullable unique constraint of the target the path is part of,
+  otherwise the target's primary key. `["owner.name"]` runs as
+  `owner.name, owner.id, id`. Without that, rows of two owners sharing a
+  name would interleave, and the user couldn't tell which row belongs
+  to which owner. (Not built yet.)
+
+  The completion goes into the SQL only: the
   config that comes back is the sort that was named, so the headers have
   nothing to tell apart from what the user or the view chose. It follows
   from the named sort the same way every time, so echoing the config
@@ -500,8 +502,10 @@ avoid. Its API shape is worth borrowing.
 
 - Built already: the layer 1 functions above except `resolveColumn()`,
   in `FilterDSL.ts` and `grid/paging.ts`; the server's completion of
-  named sorts described under "Sorting"; and the `uniqueKeys` type meta
-  the client needs for relation columns (`UniqueKeyProvider`).
+  named sorts over the root type described under "Sorting"; and the
+  `uniqueKeys` type meta (`UniqueKeyProvider`).
+- **Completion of a relation path** toward the related row's identity,
+  in `QueryPlanBuilder.completion()` (see "Sorting").
 - **Client-side condition evaluation**: a FilterDSL evaluator over
   JavaScript objects that agrees with the SQL path and with
   `PayloadOperators` on equality and ordering per scalar (the planned

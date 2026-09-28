@@ -12,6 +12,7 @@ import {
     Temporal,
     useFilters,
     useInjection,
+    useLocalDocument,
     useWorkingSet,
     WorkingSet
 } from "@qlivedev/qlive-ts";
@@ -57,6 +58,10 @@ export default function Home() {
     // A catalog for the owner column's filter: all users, few enough to load whole. The grid can't fetch it
     // itself -- only views inject -- so the view hands it over through pick().
     const owners = useInjection(Q_OwnerCatalog, {config: {pageSize: 0, sortFields: ["login"]}});
+
+    // The same catalog as a list of its own. The injection holds every user already, so this document filters,
+    // sorts and pages them in the browser instead of asking the server again.
+    const ownerList = useLocalDocument("AppUser", owners.rows, {pageSize: 5});
 
     // The rows are edited in a working set, which lives as long as the editing does. The grid registers the
     // document with it and shows its drafts: an edit, a deletion or a new row shows before it is saved, and
@@ -132,6 +137,9 @@ export default function Home() {
                 ] }
                 className="qlive-grid-striped qlive-grid-hover"
             />
+
+            <h2>Owners</h2>
+            <DataGrid doc={ ownerList } columns={ ["login"] } className="qlive-grid-striped"/>
         </div>
     );
 }

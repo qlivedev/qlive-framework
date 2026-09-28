@@ -19,7 +19,7 @@ This allows client components to update the document to get the next page or sor
 ### QueryDocument&lt;T&gt;
 
 One the Java / server-side, the query documents exist as generic type `QueryDocument<T>`. QLive generates a concrete 
-query document type for each used row type. The types are named `FooDocument`, `BarDocument` and so on.
+query document type for each used row type. The types are commonly named `FooDocument`, `BarDocument` and so on.
 
 The query document types enter the schema usually by being referenced by a QueryDocumentService endpoint. 
 

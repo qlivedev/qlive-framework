@@ -61,9 +61,11 @@ as from the grid. They live next to the FilterDSL.
   component is refused (see "Component awareness"). Prior art:
   Automaton's `updateComponentCondition()`, which wrapped instead of
   joining and so produced a second level.
-- **`ownedPart(condition, id)`** and its counterpart for writing: which
-  part of a condition belongs to the holder of an id, by the rules
-  under "Component awareness".
+- **`ownedPart(condition, id)`** and its counterpart for writing,
+  `replaceOwnedPart(condition, id, term)`: which part of a condition
+  belongs to the holder of an id, by the rules under "Component
+  awareness". `ownsWhole(condition)` says whether that part is all of
+  it.
 - **`matchSort(sortFields, key)`**: whether a column's sort key appears
   in a sort order, and if so its direction and position. A key is one
   sort field or a sequence of them (a relation column's grouped key); a
@@ -71,10 +73,16 @@ as from the grid. They live next to the FilterDSL.
   A single field matches a sort field that is the same name or the same
   expression, bare, with a `!` prefix, or wrapped in `desc`. Prior art:
   Automaton's `findSort()`.
-- **Page math**: page count, current page, the offset of page n, and
-  page size options clamped to the type's `maxPageSize`.
-- **Structural comparison** of conditions, which `updateComponent()`,
-  `matchSort()` and the filter read-back all need.
+- **`toggleSort(sortFields, key)`**: the sort order a header click asks
+  for (see "Sorting"), fields in the `"name"` / `"!name"` form the
+  server echoes.
+- **Page math**: `pageCount()`, `pageIndex()`, `pageOffset()` and
+  `pageSizeOptions()`, the last clamped to the type's `maxPageSize`.
+  Pages count from 0, like offsets.
+- **`conditionsEqual(a, b)`**: structural comparison of conditions,
+  which `updateComponent()`, `matchSort()` and the filter read-back all
+  need. Values compare by their JSON form, so a condition equals the
+  plain copy the server echoes.
 
 ### Layer 2: headless hooks
 
@@ -486,12 +494,10 @@ avoid. Its API shape is worth borrowing.
 
 ## What has to exist first
 
-- **`updateComponent()`, `ownedPart()`, `matchSort()`** and structural
-  comparison in `FilterDSL.ts`. Nothing else in the grid can be built
-  correctly without them, and forms need them anyway.
-- Built already: the server's completion of named sorts described under
-  "Sorting", and the `uniqueKeys` type meta the client needs for
-  relation columns (`UniqueKeyProvider`).
+- Built already: the layer 1 functions above except `resolveColumn()`,
+  in `FilterDSL.ts` and `grid/paging.ts`; the server's completion of
+  named sorts described under "Sorting"; and the `uniqueKeys` type meta
+  the client needs for relation columns (`UniqueKeyProvider`).
 - **Client-side condition evaluation**: a FilterDSL evaluator over
   JavaScript objects that agrees with the SQL path and with
   `PayloadOperators` on equality and ordering per scalar (the planned
@@ -503,7 +509,8 @@ avoid. Its API shape is worth borrowing.
 
 ## Build order
 
-1. Layer 1 functions, with tests.
+1. Layer 1 functions, with tests. Done except `resolveColumn()`, which
+   comes with the column types in step 4.
 2. `usePagination()` and `useSort()`, then `<Pager/>` and
    `<SortHeader/>`. Useful on their own the moment they exist.
 3. `useFilters()` with operator filters, the read-back and the

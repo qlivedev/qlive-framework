@@ -119,6 +119,9 @@ export { default as SortHeader } from "./grid/SortHeader";
 export { operatorFilter, claimTerms, filled } from "./grid/filters";
 export { useFilters } from "./grid/useFilters";
 export { default as FilterInput } from "./grid/FilterInput";
+export { booleanFilter } from "./grid/booleanFilter";
+export { resolveColumn, rowKey } from "./grid/columns";
+export { default as DataGrid } from "./grid/DataGrid";
 
 // ---------------------------------------------------------------------------
 // TYPESCRIPT TYPES
@@ -163,6 +166,8 @@ export type {
     ColumnFilterState
 } from "./grid/useFilters";
 export type { FilterInputProps } from "./grid/FilterInput";
+export type { FieldPath, DataGridColumn, GridColumn, ResolvedColumn } from "./grid/columns";
+export type { GridDocument, DataGridProps } from "./grid/DataGrid";
 export type { GraphQLParams } from "./util/graphql";
 export type {
     QueryConfig,
@@ -349,6 +354,11 @@ export type {
  *
  *   FIELD_CONDITIONS, CONDITION_METHODS, FIELD_OPERATIONS
  *   CondFn, OpFn, FieldConditions, FieldOperations
+ *
+ * FieldPath machinery -- the steps of the recursion that computes the paths.
+ * What an application names is FieldPath<T>.
+ *
+ *   Leaf, Less, PathOf
  *
  * Named locally only -- exporting the name would say more about the package
  * than it means:

@@ -2,11 +2,13 @@ import type {CSSProperties, JSX} from "react";
 
 import {matchSort} from "../FilterDSL";
 import i18n from "../i18n";
+import {WorkingSet} from "../merge/WorkingSet";
 import {GridColumn, ResolvedColumn, resolveColumn, rowKey} from "./columns";
 import FilterInput from "./FilterInput";
 import Pager from "./Pager";
 import SortHeader from "./SortHeader";
 import {FilterableDocument, useFilters} from "./useFilters";
+import {GridRowStatus, useGridRows} from "./useGridRows";
 import {PageableDocument} from "./usePagination";
 
 /**
@@ -36,6 +38,18 @@ export type DataGridProps<R> = {
     id?: string
 
     /**
+     * Working set the rows are edited in. The grid then shows the drafts, the rows created in the working set on the
+     * first page, and what has happened to each row and cell, see useGridRows().
+     */
+    workingSet?: WorkingSet | null
+
+    /**
+     * Whether other people's writes show as they happen, see useGridRows(). Without a working set, the grid offers
+     * to reload once a row it shows changed.
+     */
+    watch?: boolean
+
+    /**
      * Classes of a row's element.
      */
     rowClassName?: (row: R) => string | undefined
@@ -56,6 +70,16 @@ export type DataGridProps<R> = {
     className?: string
 }
 
+const STATUS_CLASSES: Record<GridRowStatus, string | null> = {
+    gone: "qlive-grid-gone",
+    deleted: "qlive-grid-deleted",
+    conflict: "qlive-grid-conflict",
+    new: "qlive-grid-new",
+    changed: "qlive-grid-changed",
+    remoteChanged: "qlive-grid-remote-changed",
+    unchanged: null
+};
+
 function cellStyle(column: ResolvedColumn): CSSProperties | undefined
 {
     const {minWidth, maxWidth} = column;
@@ -72,18 +96,20 @@ function classes(...names: (string | false | null | undefined)[]): string
  *
  *     <DataGrid doc={ foos } columns={ ["name", "num", "owner", "created"] }/>
  *
- * Each column is derived from its field path and the schema, see resolveColumn(). The grid owns a component of the
+ * Each column is derived from its field path and the schema, see resolveColumn(). Given a working set, the grid shows
+ * its drafts and marks rows and cells by what happened to them, see useGridRows(). The grid owns a component of the
  * document's condition, see useFilters(), so a search form writing a component of its own filters the same rows.
  *
- * Composed from resolveColumn(), useFilters(), SortHeader, FilterInput and Pager and nothing else. Where it doesn't
+ * Composed from resolveColumn(), useFilters(), useGridRows(), SortHeader, FilterInput and Pager and nothing else. Where it doesn't
  * fit, copying it into the application and changing it is a reasonable answer.
  */
 export default function DataGrid<R>(props: DataGridProps<R>): JSX.Element
 {
-    const {doc, id = "grid", rowClassName, highlighted, pageSizes, className} = props;
+    const {doc, id = "grid", workingSet, watch, rowClassName, highlighted, pageSizes, className} = props;
 
     const columns = props.columns.map(column => resolveColumn<R>(doc.type, column));
     const filters = useFilters(doc, id, columns.flatMap(column => column.filter ? [column.filter] : []));
+    const {rows, status, fieldClass, stale} = useGridRows(doc, {workingSet, watch});
 
     const unsorted = doc.config.sortFields.filter(
         sortField => !columns.some(column => column.sort !== null && matchSort([sortField], column.sort))
@@ -118,12 +144,13 @@ export default function DataGrid<R>(props: DataGridProps<R>): JSX.Element
                 </thead>
                 <tbody>
                     {
-                        doc.rows.map(row => {
+                        rows.map(row => {
                             const key = rowKey(doc.type, row);
                             return (
                                 <tr key={ key } data-id={ key }
                                     className={ classes(
                                         "qlive-grid-row",
+                                        STATUS_CLASSES[status(row)],
                                         key === highlighted && "qlive-grid-highlighted",
                                         rowClassName?.(row)
                                     ) }>
@@ -132,6 +159,7 @@ export default function DataGrid<R>(props: DataGridProps<R>): JSX.Element
                                             <td key={ index } style={ cellStyle(column) }
                                                 className={ classes(
                                                     column.nowrap && "qlive-grid-nowrap",
+                                                    column.statusField && fieldClass(row, column.statusField),
                                                     column.className(row)
                                                 ) || undefined }>
                                                 { column.render(row) }
@@ -143,7 +171,7 @@ export default function DataGrid<R>(props: DataGridProps<R>): JSX.Element
                         })
                     }
                     {
-                        doc.rows.length === 0 && (
+                        rows.length === 0 && (
                             <tr className="qlive-grid-empty">
                                 <td colSpan={ columns.length }>{ i18n("No rows") }</td>
                             </tr>
@@ -160,6 +188,16 @@ export default function DataGrid<R>(props: DataGridProps<R>): JSX.Element
                 {
                     filters.unclaimed.length > 0 && (
                         <span className="qlive-grid-note">{ i18n("Additional filter active") }</span>
+                    )
+                }
+                {
+                    stale && (
+                        <>
+                            <span className="qlive-grid-note">{ i18n("Rows changed elsewhere") }</span>
+                            <button type="button" className="qlive-grid-reload" onClick={ () => doc.update({}) }>
+                                { i18n("Reload") }
+                            </button>
+                        </>
                     )
                 }
                 {

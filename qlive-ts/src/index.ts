@@ -121,6 +121,7 @@ export { useFilters } from "./grid/useFilters";
 export { default as FilterInput } from "./grid/FilterInput";
 export { booleanFilter } from "./grid/booleanFilter";
 export { resolveColumn, rowKey } from "./grid/columns";
+export { useGridRows } from "./grid/useGridRows";
 export { default as DataGrid } from "./grid/DataGrid";
 
 // ---------------------------------------------------------------------------
@@ -167,6 +168,7 @@ export type {
 } from "./grid/useFilters";
 export type { FilterInputProps } from "./grid/FilterInput";
 export type { FieldPath, DataGridColumn, GridColumn, ResolvedColumn } from "./grid/columns";
+export type { GridRowStatus, GridRowsOptions, GridRows } from "./grid/useGridRows";
 export type { GridDocument, DataGridProps } from "./grid/DataGrid";
 export type { GraphQLParams } from "./util/graphql";
 export type {
@@ -318,6 +320,9 @@ export type {
  *                                       accessor is made by the working set
  *                                       holding the entity, and there is no
  *                                       entity to make one for outside it
+ *   merge/MergeAccessor.fieldClassName the class a field status carries.
+ *                                       MergeField.className and
+ *                                       GridRows.fieldClass hand it out
  *   merge/MergeAccessor.MergeHost/MergeEntity
  *                                       the two shapes createAccessor() is
  *                                       handed, named so that the accessor

@@ -529,4 +529,62 @@
         --qlive-grid-cell-padding: 0 var(--qlive-space-1);
     }
 
+    /*
+     * What happened to a row in the working set: a bar at its start, in the
+     * colors of the field marks, which the cells carry as they would on an
+     * input. The bar is a pseudo-element so it doesn't take the place of the
+     * mark of the first cell.
+     */
+    .qlive-grid-row > td:first-child
+    {
+        position: relative;
+    }
+    .qlive-grid-row:is(
+        .qlive-grid-new, .qlive-grid-changed, .qlive-grid-conflict, .qlive-grid-remote-changed,
+        .qlive-grid-deleted, .qlive-grid-gone
+    ) > td:first-child::before
+    {
+        content: "";
+        position: absolute;
+        inset-block: 0;
+        inset-inline-start: 0;
+        width: var(--qlive-space-1);
+        background: var(--qlive-grid-row-mark);
+    }
+    .qlive-grid-new,
+    .qlive-grid-changed
+    {
+        --qlive-grid-row-mark: var(--qlive-color-changed);
+    }
+    .qlive-grid-conflict
+    {
+        --qlive-grid-row-mark: var(--qlive-color-conflict);
+    }
+    .qlive-grid-remote-changed
+    {
+        --qlive-grid-row-mark: var(--qlive-color-remote-changed);
+    }
+    /* deleted by the next merge, or by somebody else already */
+    .qlive-grid-deleted,
+    .qlive-grid-gone
+    {
+        --qlive-grid-row-mark: var(--qlive-color-muted);
+    }
+    .qlive-grid-deleted td,
+    .qlive-grid-gone td
+    {
+        color: var(--qlive-color-muted);
+        text-decoration: line-through;
+    }
+    .qlive-grid-reload
+    {
+        padding: var(--qlive-space-1) var(--qlive-space-2);
+        border: 1px solid var(--qlive-color-border);
+        border-radius: var(--qlive-radius-md);
+        background: var(--qlive-color-bg);
+        color: var(--qlive-color-fg);
+        font: inherit;
+        cursor: pointer;
+    }
+
 }

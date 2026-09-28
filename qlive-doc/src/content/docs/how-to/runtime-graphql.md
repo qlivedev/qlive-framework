@@ -62,6 +62,25 @@ const data = await graphql(query, params);   // the whole "data" object
 ```
 
 It rejects on a transport error or on any GraphQL error in the response.
+GraphQL errors arrive as a `GraphQLResponseError`, the same one
+`execute()` and a query document's `update()` reject with. It carries the
+errors as the server sent them, and `hasClassification()` tells an ended
+session (`"UNAUTHENTICATED"`) from a missing role (`"FORBIDDEN"`):
+
+```ts
+try
+{
+    await graphql(query, params);
+}
+catch (e)
+{
+    if (e instanceof GraphQLResponseError && e.hasClassification("UNAUTHENTICATED"))
+    {
+        // send the user to the login
+    }
+}
+```
+
 Nothing converts the result and nothing types it: this is the escape hatch,
 not the normal path.
 

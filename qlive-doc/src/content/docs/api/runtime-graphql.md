@@ -104,7 +104,8 @@ declare function graphql<T>(query: GraphQLQuery<T> | string, params: GraphQLPara
 ```
 
 Posts the given query to the server's /graphql endpoint and resolves with its
-data, rejecting on a transport error or on any GraphQL error in the response.
+data, rejecting on a transport error or on any GraphQL error in the response. The
+latter rejects with a GraphQLResponseError carrying the errors.
 
 This is the raw call: values go out and come back in their wire format, and the
 result is the whole data object, keyed by result key. GraphQLQuery.execute()
@@ -134,6 +135,104 @@ type GraphQLParams = {
 
 Parameters for a GraphQL query. This is just the most generic description. Queries will complain loudly and in
 great length if you don't give them their inputs.
+
+## GraphQLResponseError
+
+<span class="api-kind">class</span>
+
+```ts
+class GraphQLResponseError extends Error
+```
+
+The rejection of a request the server answered with GraphQL errors. It carries them parsed, so a caller
+can tell an ended session from a missing role or a broken query without reading the message.
+
+    catch (e)
+    {
+        if (e instanceof GraphQLResponseError && e.hasClassification("UNAUTHENTICATED")) ...
+    }
+
+A request that got no GraphQL response at all -- the network, a server that isn't up -- rejects with
+whatever went wrong instead.
+
+### GraphQLResponseError.errors
+
+```ts
+readonly errors: readonly GraphQLError[];
+```
+
+The errors of the response, as the server sent them
+
+### GraphQLResponseError.constructor
+
+```ts
+constructor(errors: readonly GraphQLError[]);
+```
+
+**Parameters**
+
+| | |
+|---|---|
+| `errors` | the errors of the response, at least one |
+
+### GraphQLResponseError.hasClassification
+
+```ts
+hasClassification(classification: string): boolean;
+```
+
+Returns true if one of the errors has the given classification.
+
+**Parameters**
+
+| | |
+|---|---|
+| `classification` | classification from the errors' extensions, e.g. "UNAUTHENTICATED" |
+
+## GraphQLError
+
+<span class="api-kind">type</span>
+
+```ts
+type GraphQLError = {
+  /**
+   * Error message
+   */
+  message: string;
+  /**
+   * Query string location
+   */
+  locations?: GraphQLErrorLocation[];
+  /**
+   * Result key path of the field that failed, for an error while executing
+   */
+  path?: (string | number)[];
+  /**
+   * Whatever else the server says about the error. The QLive server puts its kind in `classification`:
+   * "UNAUTHENTICATED" for a missing or expired login, "FORBIDDEN" for a missing role or CSRF token, and
+   * graphql-java's own classifications, such as "ValidationError", for the rest.
+   */
+  extensions?: {
+    classification?: string;
+    [name: string]: unknown;
+  };
+};
+```
+
+One entry of the "errors" of a GraphQL response.
+
+## GraphQLErrorLocation
+
+<span class="api-kind">type</span>
+
+```ts
+type GraphQLErrorLocation = {
+  line: number;
+  column: number;
+};
+```
+
+Where in the query string an error is.
 
 ## firstValue()
 

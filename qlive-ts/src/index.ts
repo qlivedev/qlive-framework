@@ -115,6 +115,9 @@ export { usePagination } from "./grid/usePagination";
 export { useSort } from "./grid/useSort";
 export { default as Pager } from "./grid/Pager";
 export { default as SortHeader } from "./grid/SortHeader";
+export { operatorFilter, claimTerms, filled } from "./grid/filters";
+export { useFilters } from "./grid/useFilters";
+export { default as FilterInput } from "./grid/FilterInput";
 
 // ---------------------------------------------------------------------------
 // TYPESCRIPT TYPES
@@ -145,6 +148,20 @@ export type { PageableDocument, Pagination, PaginationOptions } from "./grid/use
 export type { SortableDocument, SortState } from "./grid/useSort";
 export type { PagerProps } from "./grid/Pager";
 export type { SortHeaderProps } from "./grid/SortHeader";
+export type {
+    ColumnFilter,
+    ColumnFilterInputProps,
+    FilterInputValues,
+    FilterColumn,
+    ClaimedTerms
+} from "./grid/filters";
+export type {
+    FilterableDocument,
+    FiltersOptions,
+    Filters,
+    ColumnFilterState
+} from "./grid/useFilters";
+export type { FilterInputProps } from "./grid/FilterInput";
 export type { GraphQLParams } from "./util/graphql";
 export type {
     QueryConfig,

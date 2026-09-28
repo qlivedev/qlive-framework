@@ -136,6 +136,29 @@ export interface DocumentOrSnapshot
 }
 
 /**
+ * What a document that holds its rows itself answers update() with: the page of them the config asks for, and how
+ * many match.
+ *
+ * @internal
+ */
+export type LocalSource<T> = (config: QueryConfig) => { rows: T[], rowCount: number };
+
+/**
+ * The documents that hold their rows themselves, see localDocument(), and how each answers update().
+ */
+const localSources = new WeakMap<QueryDocument<any>, LocalSource<any>>();
+
+/**
+ * Makes the document answer update() from the given source instead of the server.
+ *
+ * @internal
+ */
+export function setLocalSource<T>(document: QueryDocument<T>, source: LocalSource<T>): void
+{
+    localSources.set(document, source);
+}
+
+/**
  * Carries the document a snapshot was taken of. A symbol rather than a property: it must not collide with
  * a field of the result and must not survive a spread into a plain object.
  */
@@ -209,7 +232,8 @@ export class QueryDocument<T> implements ClientQueryDocument<QueryDocumentSnapsh
 
     /**
      * Re-executes the query this document came from with its config changed as given and
-     * updates the document in place.
+     * updates the document in place. A document made by localDocument() applies the config
+     * to the rows it holds instead.
      *
      * An arrow property, not a method: it is handed out on every snapshot, where it is
      * called detached from the document and needs to keep both its "this" and its identity.
@@ -220,8 +244,9 @@ export class QueryDocument<T> implements ClientQueryDocument<QueryDocumentSnapsh
      */
     update = async (newConfig: QueryConfigDelta): Promise<QueryDocumentSnapshot<T>> =>
     {
-        const query = GraphQLQuery.access<QueryDocument<T>>(this);
-        if (!query)
+        const local = localSources.get(this);
+        const query = local ? null : GraphQLQuery.access<QueryDocument<T>>(this);
+        if (!local && !query)
         {
             // Only a document that came out of an execution carries the query update() re-runs.
             throw new Error("QueryDocument has no GraphQLQuery registered - it was not created by executing a query");
@@ -234,10 +259,12 @@ export class QueryDocument<T> implements ClientQueryDocument<QueryDocumentSnapsh
 
         const update = ++this.updates;
 
-        let queryDocument: QueryDocument<T>;
+        let queryDocument: { rows: T[], rowCount: number, config: QueryConfig };
         try
         {
-            queryDocument = await query.execute({config: mergedConfig});
+            queryDocument = local
+                ? {...local(mergedConfig), config: mergedConfig}
+                : await query!.execute({config: mergedConfig});
         }
         catch (e)
         {

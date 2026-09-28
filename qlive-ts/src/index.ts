@@ -28,6 +28,7 @@ export { default as data, injectionSource } from "./data";
 export { GraphQLQuery } from "./GraphQLQuery";
 export { default as graphql, firstValue, GraphQLResponseError, GraphQLTransportError } from "./util/graphql";
 export { QueryDocument } from "./QueryDocument";
+export { localDocument, useLocalDocument } from "./localDocument";
 export { parseQuery } from "./util/parseQuery";
 
 export { loadView, viewNames, routeNames } from "./views";

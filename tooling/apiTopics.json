@@ -130,7 +130,9 @@
         "QueryDocumentSnapshot",
         "ClientQueryDocument",
         "QueryConfig",
-        "QueryConfigDelta"
+        "QueryConfigDelta",
+        "localDocument",
+        "useLocalDocument"
       ]
     },
     {

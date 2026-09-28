@@ -165,7 +165,11 @@
         "FieldPath",
         "resolveColumn",
         "ResolvedColumn",
-        "rowKey"
+        "rowKey",
+        "useGridRows",
+        "GridRows",
+        "GridRowsOptions",
+        "GridRowStatus"
       ]
     },
     {

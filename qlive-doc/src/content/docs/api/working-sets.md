@@ -52,6 +52,10 @@ selected, most of which a view only displays, so the query that reads a lookup t
 not the place to insist -- and the field somebody does try to change still fails long before a merge
 could lose an update.
 
+Registering a document again takes the rows it holds now, after a page turn say. Rows new to the
+working set are a change like any other and reach the subscribers, which is what moves a watch on to
+them -- also where edit() met them first and bound them without telling anyone.
+
 **Parameters**
 
 | | |
@@ -107,6 +111,23 @@ the server has seen any of them -- a new Bar and a new BarLink pointing at it go
 | `values` | field values the row starts with  |
 
 **Returns** the draft of the new row
+
+### WorkingSet.created
+
+```ts
+created<T extends object = any>(type: string): T[];
+```
+
+The drafts of the rows of the given type that were created here and not saved yet, oldest first.
+
+What a list shows above the rows its query returned: a created row is in no query result until a merge
+wrote it.
+
+**Parameters**
+
+| | |
+|---|---|
+| `type` | GraphQL type name |
 
 ### WorkingSet.delete
 
@@ -488,6 +509,10 @@ type MergeAccessor = {
    * into and nothing to choose between, so no field of it carries a conflict.
    */
   gone: boolean;
+  /** true for a row created in the working set and not saved yet */
+  isNew: boolean;
+  /** true for a row marked for deletion, which the next merge deletes */
+  deleted: boolean;
   field(name: string): MergeField;
   /** fields the user changed, alphabetically */
   changedFields(): string[];

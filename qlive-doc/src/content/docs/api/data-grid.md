@@ -21,10 +21,11 @@ A table of a query document's rows, sortable by header, filtered from a filter r
 
     <DataGrid doc={ foos } columns={ ["name", "num", "owner", "created"] }/>
 
-Each column is derived from its field path and the schema, see resolveColumn(). The grid owns a component of the
+Each column is derived from its field path and the schema, see resolveColumn(). Given a working set, the grid shows
+its drafts and marks rows and cells by what happened to them, see useGridRows(). The grid owns a component of the
 document's condition, see useFilters(), so a search form writing a component of its own filters the same rows.
 
-Composed from resolveColumn(), useFilters(), SortHeader, FilterInput and Pager and nothing else. Where it doesn't
+Composed from resolveColumn(), useFilters(), useGridRows(), SortHeader, FilterInput and Pager and nothing else. Where it doesn't
 fit, copying it into the application and changing it is a reasonable answer.
 
 ## DataGridProps
@@ -46,6 +47,16 @@ type DataGridProps<R> = {
    * with another owner gives each owner its own.
    */
   id?: string;
+  /**
+   * Working set the rows are edited in. The grid then shows the drafts, the rows created in the working set on the
+   * first page, and what has happened to each row and cell, see useGridRows().
+   */
+  workingSet?: WorkingSet | null;
+  /**
+   * Whether other people's writes show as they happen, see useGridRows(). Without a working set, the grid offers
+   * to reload once a row it shows changed.
+   */
+  watch?: boolean;
   /**
    * Classes of a row's element.
    */
@@ -272,6 +283,15 @@ name field, `"owner.login"`, not the relation.
 className(row: R): string | undefined;
 ```
 
+### ResolvedColumn.statusField
+
+```ts
+statusField: string | null;
+```
+
+The field of the row whose working set status the cells show: the field itself for a field of the row, the
+foreign key for a relation of it. `null` for a field of a related row and for a computed column.
+
 ### ResolvedColumn.nowrap
 
 ```ts
@@ -307,4 +327,126 @@ The values of a key of several fields are joined with commas.
 |---|---|
 | `type` | row type |
 | `row` | the row |
+
+## useGridRows()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function useGridRows<R>(doc: PageableDocument & {
+  rows: readonly R[];
+}, options?: GridRowsOptions): GridRows<R>;
+```
+
+The rows a list shows, and what has happened to each of them and their fields.
+
+    const {rows, status, fieldClass} = useGridRows(foos, {workingSet: ws, watch: true})
+
+Without a working set the rows are the document's own. With one they are its drafts, so a row being edited
+elsewhere, in a detail pane or a dialog, shows the edits before they are saved; the rows created in the working
+set are listed first on the first page, all of them for now, whether or not the document's condition matches
+them. The document is registered with the working set here, so its rows can be edited without doing that first.
+
+The calling component re-renders with every change to the working set. DataGrid is this plus markup; a table of
+its own gets the same through this hook.
+
+Rules of hooks apply: call it at the top level of a view, unconditionally.
+
+**Parameters**
+
+| | |
+|---|---|
+| `doc` | query document snapshot |
+| `options` | working set and watching, see GridRowsOptions |
+
+## GridRows
+
+<span class="api-kind">interface</span>
+
+```ts
+interface GridRows<R>
+```
+
+The rows of a list and what has happened to them.
+
+### GridRows.rows
+
+```ts
+rows: readonly R[];
+```
+
+The rows to show. Without a working set, the document's rows. With one, the drafts of them, preceded on the
+first page by the rows created in it.
+
+### GridRows.status
+
+```ts
+status(row: R): GridRowStatus;
+```
+
+### GridRows.fieldClass
+
+```ts
+fieldClass(row: R, field: string): string;
+```
+
+What has happened to a field of a row, as the class a cell or input carries (see `MergeField.className`),
+empty for an unchanged field. A new row's fields carry none: the row says it all.
+
+### GridRows.stale
+
+```ts
+stale: boolean;
+```
+
+true once somebody else changed a row shown, when watching the document rather than a working set. The
+document's `update({})` reads the rows again.
+
+## GridRowsOptions
+
+<span class="api-kind">interface</span>
+
+```ts
+interface GridRowsOptions
+```
+
+:::note[Undocumented]
+This export carries no doc comment in the source.
+:::
+
+### GridRowsOptions.workingSet
+
+```ts
+workingSet?: WorkingSet | null;
+```
+
+The working set the rows are edited in. The rows are then its drafts, so unsaved edits show in the list, and
+the rows created in it show on the first page.
+
+### GridRowsOptions.watch
+
+```ts
+watch?: boolean;
+```
+
+Whether other people's writes to the rows show as they happen: through the working set if there is one, see
+`useWorkingSet()`, through `useDocumentWatch()` on the document otherwise. Default false.
+
+## GridRowStatus
+
+<span class="api-kind">type</span>
+
+```ts
+type GridRowStatus = "gone" | "deleted" | "conflict" | "new" | "changed" | "remoteChanged" | "unchanged";
+```
+
+What has happened to a row, the most pressing first:
+
+- `gone` -- somebody else deleted it
+- `deleted` -- marked for deletion, deleted by the next merge
+- `conflict` -- a field of it both writes changed, and nobody decided which value wins
+- `new` -- created in the working set and not saved yet
+- `changed` -- changed in the working set
+- `remoteChanged` -- somebody else changed it, and the working set's user didn't
+- `unchanged` -- none of that
 

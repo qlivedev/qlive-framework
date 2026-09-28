@@ -421,7 +421,7 @@ business: its input loads the label or takes it from the view.
   otherwise the target's primary key. `["owner.name"]` runs as
   `owner.name, owner.id, id`. Without that, rows of two owners sharing a
   name would interleave, and the user couldn't tell which row belongs
-  to which owner. (Not built yet.)
+  to which owner.
 
   The completion goes into the SQL only: the
   config that comes back is the sort that was named, so the headers have
@@ -502,10 +502,8 @@ avoid. Its API shape is worth borrowing.
 
 - Built already: the layer 1 functions above except `resolveColumn()`,
   in `FilterDSL.ts` and `grid/paging.ts`; the server's completion of
-  named sorts over the root type described under "Sorting"; and the
-  `uniqueKeys` type meta (`UniqueKeyProvider`).
-- **Completion of a relation path** toward the related row's identity,
-  in `QueryPlanBuilder.completion()` (see "Sorting").
+  named sorts described under "Sorting", relation paths included; and
+  the `uniqueKeys` type meta (`UniqueKeyProvider`).
 - **Client-side condition evaluation**: a FilterDSL evaluator over
   JavaScript objects that agrees with the SQL path and with
   `PayloadOperators` on equality and ordering per scalar (the planned

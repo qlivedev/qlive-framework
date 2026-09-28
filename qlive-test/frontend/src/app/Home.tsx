@@ -80,6 +80,14 @@ export default function Home() {
                 )
             }
 
+            {
+                // A page turn, a sort or a filter that failed. The grid leaves the rows as they were and the
+                // document keeps the error until an update succeeds; what to show for it is the view's call.
+                foos.error && (
+                    <p className="warning">Couldn't update the list: { foos.error.message }</p>
+                )
+            }
+
             {/* watch: other people's writes to the rows on screen mark them as they happen */}
             <DataGrid
                 doc={ foos }

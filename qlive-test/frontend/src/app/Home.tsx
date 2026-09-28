@@ -1,5 +1,17 @@
-import {DataGrid, FilterInput, operatorFilter, useFilters, useInjection} from "@qlivedev/qlive-ts";
-import {Q_Foo, Q_FooResult} from "./Q_Foo";
+import { useState } from "react";
+import {
+    DataGrid,
+    FilterInput,
+    operatorFilter,
+    Temporal,
+    useFilters,
+    useInjection,
+    useWorkingSet,
+    WorkingSet
+} from "@qlivedev/qlive-ts";
+import { Q_Foo, Q_FooResult } from "./Q_Foo";
+
+type FooRow = Q_FooResult["rows"][number];
 
 /**
  * The search form's filters. Declared once, outside the view: useFilters() goes by their order, and a filter is a
@@ -26,8 +38,14 @@ export default function Home() {
     const search = useFilters(foos, "search", SEARCH);
     const [description, num] = search.columns;
 
+    // The rows are edited in a working set, which lives as long as the editing does. The grid registers the
+    // document with it and shows its drafts: an edit, a deletion or a new row shows before it is saved, and
+    // stays across page turns until it is.
+    const [ws] = useState(() => new WorkingSet());
+    const { dirty, conflicts, merge, undo } = useWorkingSet(ws);
+
     return (
-        <div>
+        <div className="foo-list">
             <h1>Home</h1>
 
             <form className="foo-search" onSubmit={ ev => ev.preventDefault() }>
@@ -44,17 +62,71 @@ export default function Home() {
                 </button>
             </form>
 
+            <div className="toolbar">
+                <button className="btn" type="button" disabled={ !dirty } onClick={ () => merge() }>
+                    Save
+                </button>
+                <button className="btn" type="button" disabled={ !dirty } onClick={ undo }>
+                    Undo
+                </button>
+            </div>
+
+            {
+                conflicts.length > 0 && (
+                    <p className="warning">
+                        Somebody saved rows you changed. Your values are the ones standing -- look at the marked
+                        rows and save again.
+                    </p>
+                )
+            }
+
+            {/* watch: other people's writes to the rows on screen mark them as they happen */}
             <DataGrid
                 doc={ foos }
+                workingSet={ ws }
+                watch
                 columns={ [
-                    "name",
+                    {
+                        field: "name",
+                        // the row is the draft, so the input writes into the working set
+                        render: row => <input value={ row.name } onChange={ ev => { row.name = ev.target.value } }/>
+                    },
                     "num",
                     "flag",
                     "owner",
-                    {field: "created", nowrap: true}
+                    {field: "created", nowrap: true},
+                    {
+                        heading: "",
+                        render: row => <FooActions ws={ ws } row={ row }/>
+                    }
                 ] }
                 className="qlive-grid-striped qlive-grid-hover"
             />
         </div>
+    );
+}
+
+/**
+ * What can be done to one row. A new row is a copy of an existing one, which is where the fields the table
+ * requires and the grid doesn't show come from.
+ */
+function FooActions({ ws, row }: { ws: WorkingSet, row: FooRow })
+{
+    return (
+        <span className="foo-actions">
+            <button className="btn" type="button" onClick={ () => ws.create<FooRow>("Foo", {
+                name: row.name + " (copy)",
+                num: row.num,
+                flag: row.flag,
+                type: row.type,
+                ownerId: row.ownerId,
+                created: Temporal.Now.instant()
+            }) }>
+                Duplicate
+            </button>
+            <button className="btn" type="button" onClick={ () => ws.delete(row) }>
+                Delete
+            </button>
+        </span>
     );
 }

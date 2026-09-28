@@ -36,6 +36,7 @@ export { loadViewForPath, appBase, routeOf, urlOf } from "./router";
 export {
     registerConverter,
     getConverter,
+    formatValue,
     convertToServer,
     convertSelectionFromServer,
     convertResultFromServer,

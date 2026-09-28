@@ -6,6 +6,7 @@ import {
     convertSelectionFromServer,
     convertToServer,
     convertVariablesToServer,
+    formatValue,
     getConverter,
     QueryConversionMap,
     registerConverter
@@ -298,5 +299,24 @@ describe("converter registry", () => {
         expect(convertToServer("whatever", "Timestamp")).toBe("whatever")
 
         registerConverter("Timestamp", previous)
+    })
+})
+
+describe("formatValue", () => {
+
+    it("displays null and undefined as nothing", () => {
+        expect(formatValue(null, "Timestamp")).toBe("")
+        expect(formatValue(undefined, "String")).toBe("")
+    })
+
+    it("uses the converter's format() where there is one", () => {
+        const instant = Temporal.Instant.from("2026-09-04T10:15:30Z")
+        expect(formatValue(instant, "Timestamp")).toBe(instant.toLocaleString())
+    })
+
+    it("displays values of types without a format() as their string", () => {
+        expect(formatValue(12, "Int")).toBe("12")
+        expect(formatValue(false, "Boolean")).toBe("false")
+        expect(formatValue("abc", "SomethingUnknown")).toBe("abc")
     })
 })

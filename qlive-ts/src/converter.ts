@@ -41,6 +41,14 @@ export type Converter<Wire = any, Live = any> = {
      * it are passed through unchanged on the way out.
      */
     toServer?: ConversionFn<Live, Wire>
+
+    /**
+     * Turns a live value into the text a user reads, e.g. in a grid cell. Never
+     * called with null or undefined, which display as nothing.
+     *
+     * Optional: a value of a type without one displays as String(value).
+     */
+    format?: (value: Live, type: string) => string
 }
 
 const converterRegistry: { [type: string]: Converter } = {}
@@ -74,6 +82,25 @@ export function registerConverter<Wire, Live>(type: string, converter: Converter
 export function getConverter(type: string): Converter | null
 {
     return converterRegistry[type] ?? null
+}
+
+/**
+ * The text a user reads for a live value of the given GraphQL type: nothing for null or undefined, what the
+ * type's converter formats it as where it has a format(), String(value) otherwise.
+ *
+ * @param value     live value, as in a query result
+ * @param type      GraphQL type name of the value, e.g. "Timestamp"
+ *
+ * @returns display text
+ */
+export function formatValue(value: unknown, type: string): string
+{
+    if (value === null || value === undefined)
+    {
+        return ""
+    }
+    const format = converterRegistry[type]?.format
+    return format ? format(value, type) : String(value)
 }
 
 /**
@@ -388,13 +415,14 @@ export function convertVariablesToServer(
 }
 
 /**
- * Timestamps are ISO-8601 instants on the wire.
+ * Timestamps are ISO-8601 instants on the wire, and display in the user's time zone and locale.
  */
 registerConverter<string, Temporal.Instant>(
     "Timestamp",
     {
         fromServer: value => Temporal.Instant.from(value),
-        toServer: value => value.toString()
+        toServer: value => value.toString(),
+        format: value => value.toLocaleString()
     }
 )
 

@@ -147,6 +147,23 @@ describe("useFilters", () => {
         expect(conditionsEqual(config.condition, component("grid", field("num").between(value(1), value(5))))).toBe(true);
     });
 
+    it("sends a partial filter once any input is filled", () => {
+        const atLeast: ColumnFilter<(string | null)[]> = {
+            arity: 2,
+            partial: true,
+            toCondition: (path, [from]) => from === null ? null : field(path).ge(value(Number(from))) as FilterExpression
+        };
+        render(null, [{field: "num", filter: atLeast}]);
+
+        type(0, "1", null);
+        wait();
+        expect(conditionsEqual(config.condition, component("grid", field("num").ge(value(1))))).toBe(true);
+
+        type(0, null, null);
+        wait();
+        expect(conditionsEqual(config.condition, component("grid", null))).toBe(true);
+    });
+
     it("keeps what the user typed when its own term comes back", () => {
         render(null, [{field: "name", filter: lower}]);
 

@@ -163,7 +163,7 @@ setValues(values: unknown[]): void;
 ```
 
 Replaces the input values. The document is updated after the delay, once the inputs have stopped changing, and
-only if every input is filled; until then the column filters nothing.
+only if every input is filled, or any for a `partial` filter; until then the column filters nothing.
 
 ### ColumnFilterState.active
 
@@ -223,13 +223,33 @@ arity: number;
 
 Number of inputs.
 
+### ColumnFilter.partial
+
+```ts
+partial?: boolean;
+```
+
+Whether the filter takes effect with some of its inputs empty, like a date range open at one end. Then
+`toCondition` is called once any input is filled, with `null` for the empty ones; otherwise only once every
+input is.
+
+### ColumnFilter.key
+
+```ts
+key?: boolean;
+```
+
+Whether the filter picks the related row of a relation column, and so filters its foreign key (`"ownerId"`)
+rather than its first name field (`"owner.login"`). For a relation whose foreign key is one field.
+
 ### ColumnFilter.toCondition
 
 ```ts
 toCondition(field: string, values: V): FilterExpression | null;
 ```
 
-Builds the term from the input values, `null` for "no filter". Only called once every input is filled.
+Builds the term from the input values, `null` for "no filter". Only called once every input is filled, or with
+`partial` once any is.
 
 **Parameters**
 
@@ -294,6 +314,12 @@ values: FilterInputValues<V>;
 
 ```ts
 setValues(values: FilterInputValues<V>): void;
+```
+
+### ColumnFilterInputProps.filter
+
+```ts
+filter: ColumnFilter<V>;
 ```
 
 ## FilterInputValues
@@ -361,6 +387,227 @@ declare function booleanFilter(): ColumnFilter<string[]>;
 
 The filter of a Boolean column: `eq` on the field, chosen from a select of any, yes and no.
 
+## dateRangeFilter()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function dateRangeFilter(scalarType: "Date" | "Timestamp", options?: DateRangeFilterOptions): ColumnFilter<(string | null)[]>;
+```
+
+The filter of a date or time column: two dates, from and until, both included. Either can stay empty for a range
+open at that end. The inputs hold ISO dates, `"2026-09-28"`, which is what a date input gives.
+
+A **Date** column is compared with the dates as they are: `between`, or `ge` or `le` alone. A **Timestamp**
+column is filtered by the days in a time zone, the user's unless the options name one: from the start of the
+first day, `ge`, to before the start of the day after the last, `lt`, combined with `and()`. It recognizes only
+terms on day starts in that zone, so a term written with other instants shows as unclaimed rather than moved to
+the nearest day.
+
+It is the default filter of Date and Timestamp columns.
+
+**Parameters**
+
+| | |
+|---|---|
+| `scalarType` | "Date" or "Timestamp" |
+| `options` | time zone of a Timestamp column's days |
+
+## DateRangeFilterOptions
+
+<span class="api-kind">interface</span>
+
+```ts
+interface DateRangeFilterOptions
+```
+
+:::note[Undocumented]
+This export carries no doc comment in the source.
+:::
+
+### DateRangeFilterOptions.timeZone
+
+```ts
+timeZone?: string;
+```
+
+Time zone whose days a Timestamp column is filtered by. Default: the user's, `Temporal.Now.timeZoneId()`.
+
+## numberContainsFilter()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function numberContainsFilter(): ColumnFilter<string[]>;
+```
+
+A filter for the digits of a number: `numberContainsFilter()` on an order number finds 12345 for "234". The term
+is `contains` on the field as text, so it works for any scalar with a text form.
+
+## patternFilter()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function patternFilter(scalarType?: string): ColumnFilter<string[]>;
+```
+
+A filter for a search pattern:
+
+- `*` stands for any text, and a word with it matches the whole value: `Foo*` starts with "Foo", `*#1` ends with
+  "#1". A word without it matches anywhere in the value.
+- `&` between words: all of them match. `|` between groups of those: one of the groups matches. `&` binds
+  tighter, and there are no brackets.
+- `!` before a word: the word does not match.
+
+Case doesn't matter. Empty words are left out, so a pattern being typed filters by the words already there:
+`foo &` filters for "foo".
+
+A plain word becomes `containsIgnoreCase`, a word with wildcards a regular expression (`likeRegex`) on the
+lowercased value, and the words of a group are combined with `and()`, the groups with `or()`. A field that isn't
+a String is matched as text.
+
+**Parameters**
+
+| | |
+|---|---|
+| `scalarType` | scalar type of the field. Default "String". |
+
+## pick()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function pick<R = any>(doc: CatalogDocument<R>, options?: PickOptions<R>): ColumnFilter<string[]>;
+```
+
+A filter choosing one row of a catalog: a select of the rows of a query document the view injected, filtering the
+foreign key that points at them.
+
+    const owners = useInjection(Q_OwnerCatalog, {config: {pageSize: 1000}});
+
+    <DataGrid doc={ foos } columns={ ["name", {field: "owner", filter: pick(owners)}] }/>
+
+On a relation column it filters the foreign key (`"ownerId"`, see `ColumnFilter.key`); in a search form, give it
+the foreign key as the field. The term is `eq` on that field with the key of the chosen row, which is its primary
+key from the `uniqueKeys` meta, a single field. A term set from outside shows as the row it names, or as the key
+itself where the catalog doesn't hold that row.
+
+The catalog is the document as it is: all of it for a small catalog, as much as its page holds otherwise. A table
+too large to load whole needs a picker with its own search.
+
+**Parameters**
+
+| | |
+|---|---|
+| `doc` | the catalog's query document |
+| `options` | how an option is labeled |
+
+## CatalogDocument
+
+<span class="api-kind">interface</span>
+
+```ts
+interface CatalogDocument<R = any>
+```
+
+What pick() needs of a query document: its type and its rows. Any snapshot is one.
+
+### CatalogDocument.type
+
+```ts
+type: string;
+```
+
+### CatalogDocument.rows
+
+```ts
+rows: readonly R[];
+```
+
+## PickOptions
+
+<span class="api-kind">interface</span>
+
+```ts
+interface PickOptions<R = any>
+```
+
+:::note[Undocumented]
+This export carries no doc comment in the source.
+:::
+
+### PickOptions.label
+
+```ts
+label?(row: R): string;
+```
+
+The text an option shows for a row. Default: the row's name fields, most significant first, from the
+`nameFields` meta of its type.
+
+## flagSetFilter()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function flagSetFilter(flags: readonly Flag[]): ColumnFilter<string[][]>;
+```
+
+A filter of flags to check: each flag stands for a term, and the rows shown are those matching every flag
+checked. The input is a checkbox per flag, and its value the names of the checked flags.
+
+    const STATE = flagSetFilter([
+        {name: "open", label: "Open", term: path => field(path).isNull()},
+        {name: "mine", label: "Mine", term: () => field("ownerId").eq(value(me))}
+    ]);
+
+A flag's term is up to it: it can test the column's field or any other. The terms of the checked flags are
+combined with `and()`, in the order of the flags, and a term set from outside is recognized when it is such a
+combination.
+
+**Parameters**
+
+| | |
+|---|---|
+| `flags` | the flags, in the order they show |
+
+## Flag
+
+<span class="api-kind">interface</span>
+
+```ts
+interface Flag
+```
+
+One flag of a flag set filter.
+
+### Flag.name
+
+```ts
+name: string;
+```
+
+### Flag.label
+
+```ts
+label: ReactNode;
+```
+
+### Flag.term
+
+```ts
+term(field: string): FilterExpression;
+```
+
+The term the flag stands for.
+
+**Parameters**
+
+| | |
+|---|---|
+| `field` | path of the field the column filters |
+
 ## filled()
 
 <span class="api-kind">function</span>
@@ -370,6 +617,23 @@ declare function filled(values: readonly unknown[]): boolean;
 ```
 
 True if every input of a filter has a value. An empty string counts as no value.
+
+## ready()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function ready(filter: ColumnFilter<any>, values: readonly unknown[]): boolean;
+```
+
+True if a filter's inputs hold enough for it to take effect: all of them, or with `partial` any of them.
+
+**Parameters**
+
+| | |
+|---|---|
+| `filter` | the filter |
+| `values` | its input values |
 
 ## claimTerms()
 

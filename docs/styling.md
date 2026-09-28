@@ -111,7 +111,9 @@ The grid's parts, as far as they exist (see `docs/design/datagrid.md`):
 - `.qlive-grid-filter` around one column's filter inputs, with
   `.qlive-grid-filter-active` while its term is in the condition, and
   `.qlive-grid-filter-input` on each default text input and on the
-  Boolean filter's select.
+  inputs and selects of the shipped filters. A flag set's checkboxes
+  sit in `.qlive-grid-filter-flags`, each in a
+  `.qlive-grid-filter-flag` label.
 - `.qlive-grid` around a `<DataGrid/>`, scrolling a wide table
   sideways, with `.qlive-grid-table` on the table. Its header rows are
   `.qlive-grid-headings` and `.qlive-grid-filters`, and a heading that

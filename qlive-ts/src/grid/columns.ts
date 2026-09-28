@@ -11,6 +11,7 @@ import i18n from "../i18n";
 import type {Temporal} from "../temporal";
 import {isListType, objectFields, unwrapAll} from "../type-utils";
 import {booleanFilter} from "./booleanFilter";
+import {dateRangeFilter} from "./dateRangeFilter";
 import {ColumnFilter, FilterColumn, operatorFilter} from "./filters";
 
 /** values a field path ends at rather than going into */
@@ -117,7 +118,8 @@ export interface ResolvedColumn<R = any>
 
     /**
      * The column's filter and the field it filters, `null` if it has none. For a relation column that is its first
-     * name field, `"owner.login"`, not the relation.
+     * name field, `"owner.login"`, not the relation, or its foreign key, `"ownerId"`, for a filter that picks the
+     * related row (`ColumnFilter.key`).
      */
     filter: FilterColumn | null;
 
@@ -234,6 +236,10 @@ function defaultFilter(scalarType: string): ColumnFilter<any> | null
     {
         return operatorFilter("eq", scalarType);
     }
+    if (scalarType === "Date" || scalarType === "Timestamp")
+    {
+        return dateRangeFilter(scalarType);
+    }
     return null;
 }
 
@@ -242,11 +248,12 @@ function defaultFilter(scalarType: string): ColumnFilter<any> | null
  * the schema where the column doesn't state them.
  *
  * - A **scalar path** shows the value formatted for its type (see `formatValue()`), sorts by the field, and filters
- *   by type: `containsIgnoreCase` for String, a yes/no select for Boolean, `eq` for Int, Short, Byte and Float.
- *   Other types have no default filter.
+ *   by type: `containsIgnoreCase` for String, a yes/no select for Boolean, `eq` for Int, Short, Byte and Float, a
+ *   date range for Date and Timestamp. Other types have no default filter.
  * - A **to-one relation path** (`"owner"`) stands for the related row, named by the target type's `nameFields`
  *   meta: it shows the name fields, most significant first, and sorts and filters by the first one. The query has
- *   to select them (`owner { id login }`).
+ *   to select them (`owner { id login }`). A filter that picks the related row, like `pick()`, filters the foreign
+ *   key instead.
  *
  * The heading is the i18n() of the owning type and the field, `"Foo.name"`, `"AppUser.login"`, so a type's fields
  * are labeled once for every grid showing them.
@@ -307,18 +314,24 @@ export function resolveColumn<R = any>(type: string, column: NoInfer<GridColumn<
     let defaultSort: string;
     let filterField: string;
     let filterType: string;
+    let keyField: string | null = null;
 
     if (target.kind === "scalar")
     {
         scalarType = target.scalarType;
-        defaultSort = filterField = path;
+        defaultSort = filterField = keyField = path;
         filterType = scalarType;
         resolved.render = row => formatValue(valueAt(row, path, path), scalarType);
     }
     else
     {
         const nameFields = config().meta.types[target.targetType]?.meta?.nameFields ?? [];
-        const needsNames = !given.render || given.sort === undefined || given.filter === undefined;
+        const needsNames = !given.render || given.sort === undefined || given.filter === undefined ||
+            given.filter && !given.filter.key;
+        if (target.sourceFields.length === 1)
+        {
+            keyField = path.substring(0, path.length - target.name.length) + target.sourceFields[0];
+        }
         if (needsNames && !nameFields.length)
         {
             throw columnError(
@@ -359,7 +372,11 @@ export function resolveColumn<R = any>(type: string, column: NoInfer<GridColumn<
 
     if (given.filter)
     {
-        resolved.filter = {field: path, filter: given.filter};
+        if (given.filter.key && keyField === null)
+        {
+            throw columnError(path, "the filter picks the related row, and the foreign key isn't one field.");
+        }
+        resolved.filter = {field: given.filter.key ? keyField! : filterField, filter: given.filter};
     }
     else if (given.filter === undefined)
     {

@@ -38,6 +38,9 @@ export interface ColumnFilterInputProps<V extends unknown[] = unknown[]>
 
     /** replaces the values */
     setValues(values: FilterInputValues<V>): void;
+
+    /** the filter the input belongs to, for an input that takes what it offers from it */
+    filter: ColumnFilter<V>;
 }
 
 /**
@@ -53,7 +56,21 @@ export interface ColumnFilter<V extends unknown[] = unknown[]>
     arity: number;
 
     /**
-     * Builds the term from the input values, `null` for "no filter". Only called once every input is filled.
+     * Whether the filter takes effect with some of its inputs empty, like a date range open at one end. Then
+     * `toCondition` is called once any input is filled, with `null` for the empty ones; otherwise only once every
+     * input is.
+     */
+    partial?: boolean;
+
+    /**
+     * Whether the filter picks the related row of a relation column, and so filters its foreign key (`"ownerId"`)
+     * rather than its first name field (`"owner.login"`). For a relation whose foreign key is one field.
+     */
+    key?: boolean;
+
+    /**
+     * Builds the term from the input values, `null` for "no filter". Only called once every input is filled, or with
+     * `partial` once any is.
      *
      * @param field     path of the field the column filters
      * @param values    one value per input
@@ -179,6 +196,17 @@ export function operatorFilter(name: FieldConditionName, scalarType: string = "S
 export function filled(values: readonly unknown[]): boolean
 {
     return values.every(v => v !== null && v !== undefined && v !== "");
+}
+
+/**
+ * True if a filter's inputs hold enough for it to take effect: all of them, or with `partial` any of them.
+ *
+ * @param filter    the filter
+ * @param values    its input values
+ */
+export function ready(filter: ColumnFilter<any>, values: readonly unknown[]): boolean
+{
+    return filter.partial ? values.some(v => filled([v])) : filled(values);
 }
 
 /**

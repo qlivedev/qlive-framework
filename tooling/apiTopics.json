@@ -194,7 +194,17 @@
         "FilterColumn",
         "operatorFilter",
         "booleanFilter",
+        "dateRangeFilter",
+        "DateRangeFilterOptions",
+        "numberContainsFilter",
+        "patternFilter",
+        "pick",
+        "CatalogDocument",
+        "PickOptions",
+        "flagSetFilter",
+        "Flag",
         "filled",
+        "ready",
         "claimTerms",
         "ClaimedTerms"
       ]

@@ -116,10 +116,15 @@ export { usePagination } from "./grid/usePagination";
 export { useSort } from "./grid/useSort";
 export { default as Pager } from "./grid/Pager";
 export { default as SortHeader } from "./grid/SortHeader";
-export { operatorFilter, claimTerms, filled } from "./grid/filters";
+export { operatorFilter, claimTerms, filled, ready } from "./grid/filters";
 export { useFilters } from "./grid/useFilters";
 export { default as FilterInput } from "./grid/FilterInput";
 export { booleanFilter } from "./grid/booleanFilter";
+export { dateRangeFilter } from "./grid/dateRangeFilter";
+export { numberContainsFilter } from "./grid/numberContainsFilter";
+export { patternFilter } from "./grid/patternFilter";
+export { pick } from "./grid/pick";
+export { flagSetFilter } from "./grid/flagSetFilter";
 export { resolveColumn, rowKey } from "./grid/columns";
 export { useGridRows } from "./grid/useGridRows";
 export { default as DataGrid } from "./grid/DataGrid";
@@ -167,6 +172,9 @@ export type {
     ColumnFilterState
 } from "./grid/useFilters";
 export type { FilterInputProps } from "./grid/FilterInput";
+export type { DateRangeFilterOptions } from "./grid/dateRangeFilter";
+export type { CatalogDocument, PickOptions } from "./grid/pick";
+export type { Flag } from "./grid/flagSetFilter";
 export type { FieldPath, DataGridColumn, GridColumn, ResolvedColumn } from "./grid/columns";
 export type { GridRowStatus, GridRowsOptions, GridRows } from "./grid/useGridRows";
 export type { GridDocument, DataGridProps } from "./grid/DataGrid";

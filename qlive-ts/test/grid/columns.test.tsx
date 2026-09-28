@@ -1,5 +1,6 @@
 import {beforeAll, describe, expect, test} from "vitest";
 import {Temporal} from "temporal-polyfill";
+import {field, value} from "../../src/FilterDSL";
 import {FieldPath, resolveColumn, rowKey} from "../../src/grid/columns";
 import {initGridConfig} from "../fixtures/gridConfig";
 
@@ -55,12 +56,15 @@ describe("resolveColumn", () => {
         expect(flag.render(row)).toBe("true");
     });
 
-    test("formats values through their converters, and has no default filter for time", () => {
+    test("formats values through their converters, and filters dates and times by a date range", () => {
         const column = resolveColumn("Foo", "created");
         expect(column.render(row)).toBe(created.toLocaleString());
         expect(column.sort).toBe("created");
-        expect(column.filter).toBeNull();
-        expect(resolveColumn("Foo", "day").filter).toBeNull();
+        expect(column.filter!.field).toBe("created");
+        expect(column.filter!.filter.arity).toBe(2);
+        expect(column.filter!.filter.partial).toBe(true);
+        expect(resolveColumn("Foo", "day").filter!.filter.toCondition("day", ["2026-09-01", null]))
+            .toEqual(field("day").ge(value("2026-09-01", "Date")));
     });
 
     test("shows null as nothing", () => {
@@ -85,9 +89,15 @@ describe("resolveColumn", () => {
         expect(column.filter!.field).toBe("owner.login");
     });
 
-    test("hands a relation column's own filter the relation", () => {
+    test("hands a relation column's own filter the first name field, or the foreign key to one picking the row", () => {
         const filter = {arity: 1, toCondition: () => null};
-        expect(resolveColumn("Foo", {field: "owner", filter}).filter).toEqual({field: "owner", filter});
+        expect(resolveColumn("Foo", {field: "owner", filter}).filter).toEqual({field: "owner.login", filter});
+
+        const picking = {...filter, key: true};
+        expect(resolveColumn("Foo", {field: "owner", filter: picking}).filter).toEqual({field: "ownerId", filter: picking});
+        expect(resolveColumn("Foo", {field: "fooType", filter: picking, render: () => "", sort: false}).filter!.field)
+            .toBe("fooTypeId");
+        expect(resolveColumn("Foo", {field: "name", filter: picking}).filter!.field).toBe("name");
     });
 
     test("names a name field the query doesn't select", () => {

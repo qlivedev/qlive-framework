@@ -32,7 +32,7 @@ export default function FilterInput({column, className}: FilterInputProps): JSX.
         <div className={ classes }>
             {
                 Input
-                    ? <Input field={ field } arity={ arity } values={ values } setValues={ setValues }/>
+                    ? <Input field={ field } arity={ arity } values={ values } setValues={ setValues } filter={ filter }/>
                     : values.map((value, index) => (
                         <input key={ index } type="text" className="qlive-grid-filter-input"
                                aria-label={ i18n("Filter {0}", field) + (arity > 1 ? " " + (index + 1) : "") }

@@ -214,11 +214,12 @@ Completes a grid column: the heading, the display, the sort key and the filter, 
 the schema where the column doesn't state them.
 
 - A **scalar path** shows the value formatted for its type (see `formatValue()`), sorts by the field, and filters
-  by type: `containsIgnoreCase` for String, a yes/no select for Boolean, `eq` for Int, Short, Byte and Float.
-  Other types have no default filter.
+  by type: `containsIgnoreCase` for String, a yes/no select for Boolean, `eq` for Int, Short, Byte and Float, a
+  date range for Date and Timestamp. Other types have no default filter.
 - A **to-one relation path** (`"owner"`) stands for the related row, named by the target type's `nameFields`
   meta: it shows the name fields, most significant first, and sorts and filters by the first one. The query has
-  to select them (`owner { id login }`).
+  to select them (`owner { id login }`). A filter that picks the related row, like `pick()`, filters the foreign
+  key instead.
 
 The heading is the i18n() of the owning type and the field, `"Foo.name"`, `"AppUser.login"`, so a type's fields
 are labeled once for every grid showing them.
@@ -275,7 +276,8 @@ filter: FilterColumn | null;
 ```
 
 The column's filter and the field it filters, `null` if it has none. For a relation column that is its first
-name field, `"owner.login"`, not the relation.
+name field, `"owner.login"`, not the relation, or its foreign key, `"ownerId"`, for a filter that picks the
+related row (`ColumnFilter.key`).
 
 ### ResolvedColumn.className
 

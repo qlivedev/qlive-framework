@@ -424,6 +424,20 @@
     {
         border-color: var(--qlive-color-accent);
     }
+    /* flagSetFilter(): a checkbox per flag, wrapping in a narrow column */
+    .qlive-grid-filter-flags
+    {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--qlive-space-1) var(--qlive-space-2);
+    }
+    .qlive-grid-filter-flag
+    {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--qlive-space-1);
+        white-space: nowrap;
+    }
 
     /*
      * <DataGrid/>. The container scrolls a wide table sideways, so the page

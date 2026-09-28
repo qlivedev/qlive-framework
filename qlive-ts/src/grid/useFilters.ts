@@ -1,7 +1,7 @@
 import {useEffect, useReducer, useRef} from "react";
 import {and, conditionsEqual, FilterExpression, ownedPart, updateComponent} from "../FilterDSL";
 import {QueryConfig, QueryConfigDelta} from "../QueryDocument";
-import {claimTerms, ColumnFilter, FilterColumn, filled} from "./filters";
+import {claimTerms, ColumnFilter, FilterColumn, ready} from "./filters";
 import {unawaited} from "./unawaited";
 
 /**
@@ -38,7 +38,7 @@ export interface ColumnFilterState
 
     /**
      * Replaces the input values. The document is updated after the delay, once the inputs have stopped changing, and
-     * only if every input is filled; until then the column filters nothing.
+     * only if every input is filled, or any for a `partial` filter; until then the column filters nothing.
      */
     setValues(values: unknown[]): void;
 
@@ -179,7 +179,7 @@ export function useFilters(
 
         const terms = columnsRef.current.map(({field, filter}, index) => {
             const {values, sent} = current.columns[index];
-            const term = filled(values) ? filter.toCondition(field, values) : null;
+            const term = ready(filter, values) ? filter.toCondition(field, values) : null;
             if (!conditionsEqual(term, sent[sent.length - 1]))
             {
                 sent.push(term);

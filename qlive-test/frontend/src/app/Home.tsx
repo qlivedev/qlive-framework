@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
     DataGrid,
     FilterInput,
+    GraphQLResponseError,
     operatorFilter,
     Temporal,
     useFilters,
@@ -83,9 +84,7 @@ export default function Home() {
             {
                 // A page turn, a sort or a filter that failed. The grid leaves the rows as they were and the
                 // document keeps the error until an update succeeds; what to show for it is the view's call.
-                foos.error && (
-                    <p className="warning">Couldn't update the list: { foos.error.message }</p>
-                )
+                foos.error && <ListError error={ foos.error }/>
             }
 
             {/* watch: other people's writes to the rows on screen mark them as they happen */}
@@ -112,6 +111,19 @@ export default function Home() {
             />
         </div>
     );
+}
+
+/**
+ * What a failed update of the list says. The server classifies its errors, so an ended session reads
+ * differently from a query the server refused.
+ */
+function ListError({ error }: { error: Error })
+{
+    if (error instanceof GraphQLResponseError && error.hasClassification("UNAUTHENTICATED"))
+    {
+        return <p className="warning">Your session has ended. Log in again to page, sort and filter.</p>;
+    }
+    return <p className="warning">Couldn't update the list: { error.message }</p>;
 }
 
 /**

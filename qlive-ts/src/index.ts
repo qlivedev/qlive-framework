@@ -19,7 +19,7 @@ export { startup } from "./startup";
 // converts Date and Timestamp into it, and generates types that name it. An
 // application declaring temporal-polyfill itself would be free to resolve a
 // second copy, and instants from one do not typecheck against the other.
-export { Temporal } from "temporal-polyfill";
+export { Temporal } from "./temporal";
 export { default as config } from "./config";
 export { default as i18n } from "./i18n";
 

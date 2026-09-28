@@ -1,5 +1,5 @@
 import {ConditionNode, FieldNode, RawValue} from "./FilterDSL"
-import {Temporal} from "temporal-polyfill";
+import {Temporal} from "./temporal";
 
 type Scalar = boolean | number | string | bigint;
 

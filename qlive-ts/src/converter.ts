@@ -2,7 +2,7 @@ import {GraphQLType, GraphQLTypeRef} from "./GraphQLSchema";
 import {findType, isQueryDocumentType, LIST, NON_NULL} from "./type-utils";
 import {QueryDocument} from "./QueryDocument";
 import config from "./config";
-import {Temporal} from "temporal-polyfill";
+import {Temporal} from "./temporal";
 import {GenericScalar} from "./GraphQL";
 
 /**

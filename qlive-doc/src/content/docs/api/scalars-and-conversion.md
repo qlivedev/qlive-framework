@@ -491,7 +491,7 @@ This export carries no doc comment in the source.
 ```ts
 type GenericTimestamp = {
   type: "Timestamp";
-  value: Temporal$1.Instant;
+  value: Temporal.Instant;
 };
 ```
 

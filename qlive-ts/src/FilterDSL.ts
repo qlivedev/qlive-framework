@@ -897,6 +897,130 @@ export function ownedPart(condition: FilterExpression | null, id: string): Filte
 }
 
 
+export type SortDirection = "asc" | "desc";
+
+/**
+ * Where a sort key appears in a sort order.
+ */
+export interface SortMatch
+{
+    /**
+     * Direction the key is sorted in.
+     */
+    direction: SortDirection,
+    /**
+     * Index of the key in the sort order, 0 for the most significant.
+     */
+    index: number
+}
+
+
+/**
+ * The simple string form of a sort field, where it has one: a field sorts as its name, descending with a `!` prefix,
+ * whether it came as a string, a field node or a field in `asc` or `desc`. An expression has no string form and comes
+ * back as it is, unwrapped from an `asc`, which is the default direction anyway.
+ *
+ * @param sortField     sort field, as in a query config
+ */
+export function simplifySortField(sortField: FieldExpression): FieldExpression
+{
+    if (typeof sortField === "string")
+    {
+        return sortField;
+    }
+    if (sortField.type === "Field")
+    {
+        return sortField.name;
+    }
+    if (sortField.type === "Operation" && (sortField.name === "asc" || sortField.name === "desc") &&
+        sortField.operands.length === 1)
+    {
+        const [operand] = sortField.operands;
+        if (operand.type === "Field")
+        {
+            return (sortField.name === "desc" ? "!" : "") + operand.name;
+        }
+        if (sortField.name === "asc")
+        {
+            return operand;
+        }
+    }
+    return sortField;
+}
+
+
+/**
+ * The direction a sort field sorts the given key in, or `null` if it sorts by something else.
+ */
+function sortDirection(sortField: FieldExpression, key: FieldExpression): SortDirection | null
+{
+    const simple = simplifySortField(sortField);
+    if (typeof key === "string")
+    {
+        return simple === key ? "asc" : simple === "!" + key ? "desc" : null;
+    }
+    if (typeof simple === "string")
+    {
+        return null;
+    }
+    if (conditionsEqual(simple, key))
+    {
+        return "asc";
+    }
+    if (simple.type === "Operation" && simple.name === "desc" && simple.operands.length === 1 &&
+        conditionsEqual(simple.operands[0], key))
+    {
+        return "desc";
+    }
+    return null;
+}
+
+
+/**
+ * Finds a column's sort key in a sort order. The key is what the column sorts by -- a field path, or an expression
+ * node for a computed column -- and never carries a direction itself. It matches a sort field sorting by the same
+ * field or a structurally equal expression, in either direction, in any of the forms simplifySortField() accepts.
+ *
+ * @param sortFields    sort order, as in a query config
+ * @param key           field path or expression the column sorts by
+ *
+ * @return direction and position of the key, or `null` if the sort order doesn't contain it
+ */
+export function matchSort(sortFields: readonly FieldExpression[], key: FieldExpression): SortMatch | null
+{
+    const simpleKey = simplifySortField(key);
+    for (let i = 0; i < sortFields.length; i++)
+    {
+        const direction = sortDirection(sortFields[i], simpleKey);
+        if (direction !== null)
+        {
+            return {direction, index: i};
+        }
+    }
+    return null;
+}
+
+
+/**
+ * The sort order a click on a column asks for: the key descending if it already is the whole sort order and
+ * ascending, the key ascending in every other case. The result replaces the whole sort order.
+ *
+ * A field path comes out in its string form, `"name"` or `"!name"`; an expression as itself or wrapped in `desc`.
+ *
+ * @param sortFields    current sort order
+ * @param key           field path or expression the column sorts by
+ */
+export function toggleSort(sortFields: readonly FieldExpression[], key: FieldExpression): FieldExpression[]
+{
+    const simpleKey = simplifySortField(key);
+    const descending = sortFields.length === 1 && sortDirection(sortFields[0], simpleKey) === "asc";
+    if (!descending)
+    {
+        return [simpleKey];
+    }
+    return [typeof simpleKey === "string" ? "!" + simpleKey : operation("desc", [simpleKey])];
+}
+
 /**
  * Converts the given condition graph into simple js objects.
  *

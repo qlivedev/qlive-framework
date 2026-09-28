@@ -6,13 +6,18 @@ import {
     conditionsEqual,
     field,
     isComposedComponentExpression,
+    matchSort,
     now,
+    operation,
     or,
     ownedPart,
     today,
+    simplifySortField,
+    toggleSort,
     updateComponent,
     value,
     values,
+    type CNode,
     type Condition,
     type ConditionNode,
     type FilterExpression,
@@ -234,5 +239,62 @@ describe("component ownership", () => {
         test("reads an empty component as nothing", () => {
             expect(ownedPart(and(component("grid", null), component("search", ownerTerm())), "grid")).toBe(null);
         });
+    });
+});
+
+
+describe("sorting", () => {
+
+    test("simplifies a sort field to its string form where it has one", () => {
+        expect(simplifySortField("!name")).toBe("!name");
+        expect(simplifySortField(field("name"))).toBe("name");
+        expect(simplifySortField(field("owner.name").asc())).toBe("owner.name");
+        expect(simplifySortField(field("name").desc())).toBe("!name");
+
+        const sum = field("a").add(field("b"));
+        expect(simplifySortField(sum)).toBe(sum);
+        expect(simplifySortField(operation("asc", [sum]))).toBe(sum);
+        const desc = operation("desc", [sum]);
+        expect(simplifySortField(desc)).toBe(desc);
+    });
+
+    test("finds a key in either direction and any form", () => {
+        expect(matchSort(["name"], "name")).toEqual({direction: "asc", index: 0});
+        expect(matchSort(["num", "!name"], "name")).toEqual({direction: "desc", index: 1});
+        expect(matchSort([field("a").add(field("b")), field("name").desc()], "name"))
+            .toEqual({direction: "desc", index: 1});
+        expect(matchSort(["num"], "name")).toBe(null);
+        expect(matchSort([], "name")).toBe(null);
+        expect(matchSort(["name"], field("name"))).toEqual({direction: "asc", index: 0});
+    });
+
+    test("finds an expression key structurally", () => {
+        const sum = () => field("a").add(field("b"));
+        expect(matchSort(["name", sum()], sum())).toEqual({direction: "asc", index: 1});
+        expect(matchSort([operation("asc", [sum()])], sum())).toEqual({direction: "asc", index: 0});
+        expect(matchSort(["name", operation("desc", [sum()])], sum())).toEqual({direction: "desc", index: 1});
+        expect(matchSort([field("a").add(field("c"))], sum())).toBe(null);
+        expect(matchSort(["a"], sum())).toBe(null);
+    });
+
+    test("toggles only a sort that is the key alone and ascending", () => {
+        expect(toggleSort(["name"], "name")).toEqual(["!name"]);
+        expect(toggleSort([field("name")], "name")).toEqual(["!name"]);
+        expect(toggleSort(["!name"], "name")).toEqual(["name"]);
+        expect(toggleSort(["name", "num"], "name")).toEqual(["name"]);
+        expect(toggleSort(["num"], "name")).toEqual(["name"]);
+        expect(toggleSort([], "name")).toEqual(["name"]);
+    });
+
+    test("toggles an expression between itself and desc", () => {
+        const sum = field("a").add(field("b"));
+        expect(toggleSort(["name"], sum)).toEqual([sum]);
+
+        const desc = toggleSort([sum], sum);
+        expect(desc).toHaveLength(1);
+        expect(conditionsEqual(desc[0] as CNode, operation("desc", [sum]))).toBe(true);
+
+        expect(toggleSort(desc, sum)).toEqual([sum]);
+        expect(toggleSort([sum, "name"], sum)).toEqual([sum]);
     });
 });

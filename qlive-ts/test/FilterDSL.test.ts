@@ -1,5 +1,19 @@
 import {describe, expect, test} from "vitest";
-import {and, field, or, value, type FilterExpression, type LogicalOperand} from "../src/FilterDSL";
+import {Temporal} from "temporal-polyfill";
+import {
+    and,
+    component,
+    conditionsEqual,
+    field,
+    now,
+    or,
+    today,
+    value,
+    values,
+    type FilterExpression,
+    type LogicalOperand,
+    type RawValue
+} from "../src/FilterDSL";
 
 /**
  * The logical composers are the functional alternative to the fluent style:
@@ -62,5 +76,44 @@ describe("logical composition", () => {
         const fluent: FilterExpression | null = a().and(b());
         expect(composed).not.toBe(undefined);
         expect(fluent).not.toBe(undefined);
+    });
+});
+
+
+describe("conditionsEqual", () => {
+
+    test("compares structure, names and values", () => {
+        expect(conditionsEqual(
+            field("name").eq(value("a")),
+            field("name").eq(value("a"))
+        )).toBe(true);
+        expect(conditionsEqual(field("name").eq(value("a")), field("name").eq(value("b")))).toBe(false);
+        expect(conditionsEqual(field("name").eq(value("a")), field("other").eq(value("a")))).toBe(false);
+        expect(conditionsEqual(field("name").eq(value("a")), field("name").ne(value("a")))).toBe(false);
+        expect(conditionsEqual(field("num").eq(value(1)), field("num").eq(value(1, "Long")))).toBe(false);
+    });
+
+    test("treats null and undefined as no condition", () => {
+        expect(conditionsEqual(null, undefined)).toBe(true);
+        expect(conditionsEqual(null, field("x").isNull())).toBe(false);
+    });
+
+    test("equals the plain JSON the server echoes", () => {
+        const cond = and(component("grid", field("name").containsIgnoreCase(value("x"))), component("search", null))!;
+        expect(conditionsEqual(cond, JSON.parse(JSON.stringify(cond)))).toBe(true);
+    });
+
+    test("compares values by their JSON form", () => {
+        const instant = Temporal.Instant.from("2026-09-28T10:00:00Z");
+        expect(conditionsEqual(
+            field("created").gt(value(instant as unknown as RawValue, "Timestamp")),
+            field("created").gt(value("2026-09-28T10:00:00Z", "Timestamp"))
+        )).toBe(true);
+        expect(conditionsEqual(
+            field("num").in(values("Int", 1, 2)),
+            field("num").in(values("Int", 1, 3))
+        )).toBe(false);
+        expect(conditionsEqual(now(), now())).toBe(true);
+        expect(conditionsEqual(now(), today())).toBe(false);
     });
 });

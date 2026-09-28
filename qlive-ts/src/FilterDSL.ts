@@ -663,6 +663,111 @@ export function findComponentNode(conditionNode: CNode | null, id: string): CNod
 
 
 /**
+ * Returns true if the two conditions are structurally equal: the same nodes in the same order, with equal names,
+ * ids and values. Values compare by their JSON form, which is how they travel, so a Temporal value and the string the
+ * server echoes for it are equal. `null` and `undefined` both mean "no condition" and equal each other.
+ *
+ * A condition that comes back unchanged from an update() is a different object with the same structure; this is how
+ * to tell.
+ *
+ * @param a     condition or null
+ * @param b     condition or null
+ */
+export function conditionsEqual(a: CNode | null | undefined, b: CNode | null | undefined): boolean
+{
+    if (a == null || b == null)
+    {
+        return a == null && b == null;
+    }
+    if (a === b)
+    {
+        return true;
+    }
+    if (a.type !== b.type)
+    {
+        return false;
+    }
+
+    switch (a.type)
+    {
+        case "Field":
+            return a.name === (b as FieldNode).name;
+        case "Condition":
+        case "Operation":
+        {
+            const other = b as ConditionNode | OperationNode;
+            return a.name === other.name &&
+                a.operands.length === other.operands.length &&
+                a.operands.every((operand, i) => conditionsEqual(operand, other.operands[i]));
+        }
+        case "Component":
+        {
+            const other = b as ComponentNode;
+            return a.id === other.id && conditionsEqual(a.condition, other.condition);
+        }
+        case "Value":
+        {
+            const other = b as ValueNode;
+            return a.scalarType === other.scalarType && rawEqual(a.value, other.value);
+        }
+        case "Values":
+        {
+            const other = b as ValuesNode;
+            return a.scalarType === other.scalarType && rawEqual(a.values, other.values);
+        }
+        default:
+            throw new Error("Invalid condition node: " + JSON.stringify(a));
+    }
+}
+
+
+/**
+ * The JSON form of a raw value: what JSON.stringify() would write for it, one level deep.
+ */
+function jsonForm(value: unknown): unknown
+{
+    if (value !== null && typeof value === "object" && typeof (value as { toJSON?: unknown }).toJSON === "function")
+    {
+        return (value as { toJSON: () => unknown }).toJSON();
+    }
+    return value;
+}
+
+
+/**
+ * Deep equality of two raw values by their JSON form. Object keys holding `undefined` count as absent, as they do in
+ * JSON.
+ */
+function rawEqual(a: unknown, b: unknown): boolean
+{
+    a = jsonForm(a);
+    b = jsonForm(b);
+
+    if (a === b)
+    {
+        return true;
+    }
+    if (a === null || b === null || typeof a !== "object" || typeof b !== "object")
+    {
+        return false;
+    }
+
+    if (Array.isArray(a) || Array.isArray(b))
+    {
+        return Array.isArray(a) && Array.isArray(b) &&
+            a.length === b.length &&
+            a.every((element, i) => rawEqual(element, b[i]));
+    }
+
+    const objA = a as Record<string, unknown>;
+    const objB = b as Record<string, unknown>;
+    const keysA = Object.keys(objA).filter(k => objA[k] !== undefined);
+    const keysB = Object.keys(objB).filter(k => objB[k] !== undefined);
+
+    return keysA.length === keysB.length && keysA.every(k => rawEqual(objA[k], objB[k]));
+}
+
+/**
  * Converts the given condition graph into simple js objects.
  *
  * The Filter DSL produces Filter nodes that are in fact instances of the Filter DSL types used to implement to

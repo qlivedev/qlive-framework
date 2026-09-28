@@ -14,6 +14,13 @@
  * followed, or the whole shared half of the surface would silently stop being
  * looked at the moment an entry point is added.
  *
+ * It also reports names the bundler had to make up. Two imports of one package
+ * in different styles (`import * as React` in one file, `import React` in
+ * another) leave it two bindings for one name, and it renames one to
+ * `React$1`; a return type nobody wrote down may come out as an inline
+ * `import("react")`. Both reach an application's editor as they are, so the
+ * sources import named types and give exported components a return type.
+ *
  * Reads the build output, so run `pnpm build` (or `npx tsdown`) first.
  *
  * Usage: node tooling/checkExports.mjs [path/to/index.d.ts]
@@ -62,11 +69,22 @@ function declarationFiles(entry)
     return [entry, ...new Set(chunks)];
 }
 
+/** a binding the bundler renamed to keep two apart, like React$1 */
+const RENAMED = /\b[A-Za-z_][\w]*\$\d+\b/;
+/** a type spelled as an inline import of a package rather than by a name the file imports */
+const INLINE_IMPORT = /\bimport\("[^."]/;
+
 const declared = [];
 const exported = new Set();
+const madeUp = [];
 
 for (const line of declarationFiles(dtsPath).flatMap(file => fs.readFileSync(file, "utf8").split("\n")))
 {
+    if (!line.trimStart().startsWith("*") && (RENAMED.test(line) || INLINE_IMPORT.test(line)))
+    {
+        madeUp.push(line.trim());
+    }
+
     const declaration = DECLARATION.exec(line);
     if (declaration)
     {
@@ -110,6 +128,20 @@ const internal = acknowledgedInternals();
 const leaked = declared.filter(name => !exported.has(name) && !internal.has(name));
 
 const relative = path.relative(process.cwd(), dtsPath);
+
+if (madeUp.length > 0)
+{
+    console.log(`${relative}: ${madeUp.length} declarations use names the bundler made up\n`);
+    for (const line of madeUp)
+    {
+        console.log("  " + line);
+    }
+    console.log(
+        "\nImport types from a package by name (import type {ReactNode} from \"react\"), in the\n" +
+        "same style in every file, and give exported functions an explicit return type."
+    );
+    process.exit(1);
+}
 
 if (leaked.length === 0)
 {

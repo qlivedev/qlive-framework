@@ -98,9 +98,38 @@ type GraphQLResponse = {
  */
 function isGraphQLResponse(d: unknown): d is GraphQLResponse
 {
-    // @ts-ignore
-    const {data, errors} = d;
+    if (!d || typeof d !== "object")
+    {
+        return false
+    }
+    const {data, errors} = d as Partial<GraphQLResponse>;
     return !!data || Array.isArray(errors)
+}
+
+/**
+ * The rejection of a request that got no GraphQL response: the server couldn't be reached, or answered with
+ * something other than a GraphQL response -- an error page, or a 503 while it is starting up.
+ *
+ * Where the server did answer GraphQL, errors and all, the rejection is a GraphQLResponseError instead.
+ */
+export class GraphQLTransportError extends Error
+{
+    /**
+     * HTTP status of the answer, `null` where there was none
+     */
+    readonly status: number | null;
+
+    /**
+     * @param message   what went wrong
+     * @param status    HTTP status of the answer, `null` where there was none
+     * @param cause     the error underneath, e.g. fetch()'s or the JSON parser's
+     */
+    constructor(message: string, status: number | null, cause?: unknown)
+    {
+        super(message, {cause});
+        this.name = "GraphQLTransportError";
+        this.status = status;
+    }
 }
 
 /**
@@ -134,8 +163,9 @@ export type GraphQLParams =
 
 /**
  * Posts the given query to the server's /graphql endpoint and resolves with its
- * data, rejecting on a transport error or on any GraphQL error in the response. The
- * latter rejects with a GraphQLResponseError carrying the errors.
+ * data, rejecting on a transport error or on any GraphQL error in the response: with
+ * a GraphQLTransportError where no GraphQL response came back, with a
+ * GraphQLResponseError carrying the errors where one did.
  *
  * This is the raw call: values go out and come back in their wire format, and the
  * result is the whole data object, keyed by result key. GraphQLQuery.execute()
@@ -179,11 +209,24 @@ export default function graphql<T>(query: GraphQLQuery<T> | string, params: Grap
             })
         }
     )
-        .then(response => response.json())
-        .then(data => {
+        .then(
+            response => response.json().then(
+                data => ({status: response.status, data}),
+                cause => Promise.reject(new GraphQLTransportError(
+                    "The server answered " + response.status + " with something other than JSON",
+                    response.status,
+                    cause
+                ))
+            ),
+            cause => Promise.reject(new GraphQLTransportError("The server could not be reached", null, cause))
+        )
+        .then(({status, data}) => {
             if (!isGraphQLResponse(data))
             {
-                return Promise.reject(new Error("Expected GraphQL response"));
+                return Promise.reject(new GraphQLTransportError(
+                    "The server answered " + status + " without a GraphQL response",
+                    status
+                ));
             }
 
             if (data.errors && data.errors.length > 0)

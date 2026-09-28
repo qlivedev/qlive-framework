@@ -5,7 +5,7 @@ import {GraphQLQuery} from "../src/GraphQLQuery";
 import {QueryDocument} from "../src/QueryDocument";
 import {queryResult, testConfig, testCsrfToken, testAuthentication} from "./fixtures/testConfig";
 import {respondWith, sentVariables} from "./fixtures/graphqlMock";
-import {GraphQLResponseError} from "../src/util/graphql";
+import {GraphQLResponseError, GraphQLTransportError} from "../src/util/graphql";
 
 const Q_Foo = new GraphQLQuery<QueryDocument<any>>(
     `query Q_Foo($config: QueryConfig!, $since: Timestamp) {
@@ -89,5 +89,30 @@ describe("GraphQLQuery", () => {
         expect(error.errors).toEqual(errors)
         expect(error.hasClassification("UNAUTHENTICATED")).toBe(true)
         expect(error.hasClassification("FORBIDDEN")).toBe(false)
+    })
+
+    it("rejects with the status where no GraphQL response came back", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => {})
+        respondWith(null)
+
+        const unreachable = new TypeError("NetworkError when attempting to fetch resource.")
+        vi.stubGlobal("fetch", vi.fn().mockRejectedValue(unreachable))
+        const down = await Q_Foo.execute({config: {}}).catch(e => e)
+        expect(down).toBeInstanceOf(GraphQLTransportError)
+        expect(down.status).toBeNull()
+        expect(down.cause).toBe(unreachable)
+
+        const notJson = new SyntaxError("JSON.parse: unexpected character")
+        vi.stubGlobal("fetch", vi.fn().mockResolvedValue({status: 503, json: () => Promise.reject(notJson)}))
+        const starting = await Q_Foo.execute({config: {}}).catch(e => e)
+        expect(starting).toBeInstanceOf(GraphQLTransportError)
+        expect(starting.status).toBe(503)
+        expect(starting.message).toBe("The server answered 503 with something other than JSON")
+        expect(starting.cause).toBe(notJson)
+
+        vi.stubGlobal("fetch", vi.fn().mockResolvedValue({status: 404, json: () => Promise.resolve({path: "/graphql"})}))
+        const elsewhere = await Q_Foo.execute({config: {}}).catch(e => e)
+        expect(elsewhere).toBeInstanceOf(GraphQLTransportError)
+        expect(elsewhere.status).toBe(404)
     })
 })

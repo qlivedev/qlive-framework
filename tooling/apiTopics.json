@@ -111,6 +111,7 @@
         "graphql",
         "GraphQLParams",
         "GraphQLResponseError",
+        "GraphQLTransportError",
         "GraphQLError",
         "GraphQLErrorLocation",
         "firstValue"

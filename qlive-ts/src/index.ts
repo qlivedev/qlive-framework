@@ -26,7 +26,7 @@ export { default as i18n } from "./i18n";
 export { useInjection } from "./useInjection";
 export { default as data, injectionSource } from "./data";
 export { GraphQLQuery } from "./GraphQLQuery";
-export { default as graphql, firstValue, GraphQLResponseError } from "./util/graphql";
+export { default as graphql, firstValue, GraphQLResponseError, GraphQLTransportError } from "./util/graphql";
 export { QueryDocument } from "./QueryDocument";
 export { parseQuery } from "./util/parseQuery";
 

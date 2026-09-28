@@ -11,6 +11,7 @@ import {vi, type Mock} from "vitest";
 export function respondWith(response: any): Mock
 {
     const fetchMock = vi.fn().mockResolvedValue({
+        status: 200,
         json: () => Promise.resolve(response)
     })
 

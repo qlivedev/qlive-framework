@@ -27,8 +27,9 @@ import static org.hamcrest.Matchers.notNullValue;
  * <p>
  *     The analysis is pushed into the dev provider the way {@code vite dev} pushes it, so what is exercised
  *     here is the path a developer is on. Its content is what {@code vite build} wrote, which is what the
- *     Maven build copies onto the classpath -- so the assertions below describe {@code src/app/Home.tsx} as
- *     it stands, and a change to the query it injects is meant to be visible here.
+ *     Maven build copies onto the classpath -- so the assertions below describe
+ *     {@code src/app/grid/Everything.tsx} as it stands, and a change to the query it injects is meant to be
+ *     visible here.
  * </p>
  */
 @SpringBootTest
@@ -49,12 +50,12 @@ class BootstrapInjectionTest
 
 
     @Test
-    void injectsWhatTheHomeViewDeclares()
+    void injectsWhatTheEverythingViewDeclares()
     {
-        // "/app/home" is the browser's location.pathname, "./app/Home" the module behind it, and Q_Foo and
-        // Q_OwnerCatalog the queries that module injects -- none of which is configured anywhere, all of it
-        // read off the source.
-        final Map<String, Injection> injections = bootstrapService.provideInjectionData("/app/home");
+        // "/app/grid/everything" is the browser's location.pathname, "./app/grid/Everything" the module behind
+        // it, and Q_Foo and Q_OwnerCatalog the queries that module injects -- none of which is configured
+        // anywhere, all of it read off the source.
+        final Map<String, Injection> injections = bootstrapService.provideInjectionData("/app/grid/everything");
 
         assertThat(injections.keySet(), containsInAnyOrder("Q_Foo", "Q_OwnerCatalog"));
 

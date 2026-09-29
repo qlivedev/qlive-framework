@@ -17,8 +17,8 @@ import {
     WorkingSet
 } from "@qlivedev/qlive-ts";
 import { field, value } from "@qlivedev/qlive-ts/filter";
-import { Q_Foo, Q_FooResult } from "./Q_Foo";
-import { Q_OwnerCatalog } from "./Q_OwnerCatalog";
+import { Q_Foo, Q_FooResult } from "../Q_Foo";
+import { Q_OwnerCatalog } from "../Q_OwnerCatalog";
 
 type FooRow = Q_FooResult["rows"][number];
 
@@ -39,7 +39,12 @@ const SEARCH = [
     }
 ];
 
-export default function Home() {
+/**
+ * The features of the other grid examples in one view: a search form beside the grid's filter row, a catalog
+ * filter, a local document, editing, new and deleted rows, watching and errors. Not the place to learn any one of
+ * them -- each has an example of its own -- but the place where they have to work together.
+ */
+export default function Everything() {
 
     // The view subscribes to the injected document here -- the grid and the search form update it, and this
     // re-renders with the new snapshot.
@@ -70,10 +75,10 @@ export default function Home() {
     const { dirty, conflicts, merge, undo } = useWorkingSet(ws);
 
     return (
-        <div className="foo-list">
-            <h1>Home</h1>
+        <div className="grid-example">
+            <h1>Everything at once</h1>
 
-            <form className="foo-search" onSubmit={ ev => ev.preventDefault() }>
+            <form className="grid-example-search" onSubmit={ ev => ev.preventDefault() }>
                 <label>
                     Description matches
                     <FilterInput column={ description }/>
@@ -169,7 +174,7 @@ function ListError({ error }: { error: Error })
 function FooActions({ ws, row }: { ws: WorkingSet, row: FooRow })
 {
     return (
-        <span className="foo-actions">
+        <span className="grid-example-actions">
             <button className="btn" type="button" onClick={ () => ws.create<FooRow>("Foo", {
                 name: row.name + " (copy)",
                 num: row.num,

@@ -220,9 +220,10 @@ body
 }
 
 /*
- * Home's search form: one line of labeled filter inputs above the grid.
+ * The search form of the grid examples: one line of labeled filter inputs
+ * above the grid.
  */
-.foo-search
+.grid-example-search
 {
     display: flex;
     flex-wrap: wrap;
@@ -231,7 +232,7 @@ body
     margin-bottom: 1rem;
 }
 
-.foo-search > label
+.grid-example-search > label
 {
     display: flex;
     flex-direction: column;
@@ -240,17 +241,17 @@ body
 }
 
 /*
- * Home's toolbar, the notice after a merge that met other writes, and the
- * buttons of a row.
+ * The grid examples' toolbar, the notice after a merge that met other writes,
+ * and the buttons of a row.
  */
-.foo-list .toolbar
+.grid-example .toolbar
 {
     display: flex;
     gap: 0.5rem;
     margin: 0 0 1rem;
 }
 
-.foo-list .warning
+.grid-example .warning
 {
     padding: 0.5rem 1rem;
     border-radius: 0.25rem;
@@ -258,8 +259,14 @@ body
     color: var(--qlive-color-fg);
 }
 
-.foo-actions
+.grid-example-actions
 {
     display: flex;
     gap: 0.25rem;
+}
+
+/* a cell whose value the Columns example sets apart */
+.grid-example-large
+{
+    font-weight: bold;
 }

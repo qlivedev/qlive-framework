@@ -544,18 +544,19 @@ avoid. Its API shape is worth borrowing.
    until it comes back, so a slow response overtaken by further typing
    doesn't rewrite the input either.
 4. `<DataGrid/>` composing them, and a qlive-test view that uses it
-   next to a search form owning a second component. Done: Home in
-   qlive-test. `resolveColumn()` and `FieldPath<T>` are in
-   `grid/columns.ts`, with `rowKey()` keying rows by the type's primary
+   next to a search form owning a second component. Done: the grid
+   examples in qlive-test (`app/grid`, `Search.tsx` for the form).
+   `resolveColumn()` and `FieldPath<T>` are in `grid/columns.ts`, with
+   `rowKey()` keying rows by the type's primary
    key from `uniqueKeys` rather than assuming an `id`. Cells display
    through `formatValue()`, the new optional `format()` of a converter.
    Date and time columns have no default filter until the date range
    filter of step 6. Selection (`useSelection()`, `<RowSelector/>`) is
    not built yet.
 5. Working set integration through `useGridRows()`, without created-row
-   filtering. Done: `DataGrid` takes `workingSet` and `watch`, and Home
-   in qlive-test edits, duplicates and deletes rows through a working
-   set. The merge layer gained `WorkingSet.created(type)`, `isNew` and
+   filtering. Done: `DataGrid` takes `workingSet` and `watch`, and the
+   grid examples `Editing.tsx` and `Rows.tsx` in qlive-test edit,
+   duplicate and delete rows through a working set. The merge layer gained `WorkingSet.created(type)`, `isNew` and
    `deleted` on the accessor, drafts of new rows answering `in` for
    every field of their type, and `register()` telling subscribers
    about rows it hadn't announced.
@@ -566,8 +567,8 @@ avoid. Its API shape is worth borrowing.
    time zone), `numberContainsFilter()`, `patternFilter()` (`*`, `&`,
    `|`, `!`, built as `containsIgnoreCase` and `likeRegex` terms rather
    than one regular expression, so reading back is a walk over the
-   term), `pick(doc)` and `flagSetFilter()`. Home in qlive-test uses
-   each. Three additions came with them. `ColumnFilter.partial` lets
+   term), `pick(doc)` and `flagSetFilter()`. The grid examples
+   `Filters.tsx` and `Search.tsx` in qlive-test use each. Three additions came with them. `ColumnFilter.partial` lets
    a filter take effect with some inputs empty, a range open at one
    end. `ColumnFilter.key` marks a filter that picks the related row,
    and `resolveColumn()` hands it the foreign key instead of the first
@@ -591,8 +592,8 @@ avoid. Its API shape is worth borrowing.
    JavaScript regular expression; `now()` and `today()` are the browser's
    clock. Local rows are `localDocument(type, rows, config)` and
    `useLocalDocument()`, a `QueryDocument` whose `update()` evaluates
-   instead of querying, so the grid can't tell the difference. Home in
-   qlive-test lists its owner catalog through one.
+   instead of querying, so the grid can't tell the difference. The grid
+   example `Local.tsx` in qlive-test lists the owner catalog through one.
 
 ## Open
 

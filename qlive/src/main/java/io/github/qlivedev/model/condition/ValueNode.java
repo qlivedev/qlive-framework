@@ -63,7 +63,7 @@ public abstract class ValueNode
     public Condition greaterThan(CNode a) { return Condition.create("greaterThan", this, a); }
     @JSONProperty(ignore = true) public Condition isNotNull() { return Condition.create("isNotNull", this); }
     public Condition notLikeRegex(CNode a) { return Condition.create("notLikeRegex", this, a); }
-    public Condition notBetween(CNode a, CNode b) { return Condition.create("notLikeRegex", this, a, b); }
+    public Condition notBetween(CNode a, CNode b) { return Condition.create("notBetween", this, a, b); }
     public Condition notEqual(CNode a) { return Condition.create("notEqual", this, a); }
     @JSONProperty(ignore = true) public Condition isFalse() { return Condition.create("isFalse", this); }
     public Condition containsIgnoreCase(CNode a) { return Condition.create("containsIgnoreCase", this, a); }

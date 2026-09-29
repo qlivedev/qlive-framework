@@ -7,6 +7,7 @@ import {
     field,
     isComposedComponentExpression,
     matchSort,
+    matchSortPart,
     now,
     operation,
     or,
@@ -275,6 +276,31 @@ describe("sorting", () => {
         expect(matchSort(["name", operation("desc", [sum()])], sum())).toEqual({direction: "desc", index: 1});
         expect(matchSort([field("a").add(field("c"))], sum())).toBe(null);
         expect(matchSort(["a"], sum())).toBe(null);
+    });
+
+    test("finds a key inside an expression sorted by", () => {
+        const lastDigit = field("num").mod(value(10));
+        expect(matchSortPart([lastDigit], "num")).toEqual({direction: "asc", index: 0});
+        expect(matchSortPart(["name", operation("desc", [lastDigit])], "num")).toEqual({direction: "desc", index: 1});
+        expect(matchSortPart([operation("asc", [lastDigit])], field("num"))).toEqual({direction: "asc", index: 0});
+        expect(matchSortPart([field("a").add(field("b").mul(field("num")))], "num")).toEqual({direction: "asc", index: 0});
+        expect(matchSortPart([lastDigit], "name")).toBe(null);
+    });
+
+    test("finds a key once, at the first expression containing it", () => {
+        const sum = field("a").add(field("b"));
+        expect(matchSortPart([sum, field("a").mul(value(2))], "a")).toEqual({direction: "asc", index: 0});
+        expect(matchSortPart([sum], "b")).toEqual({direction: "asc", index: 0});
+    });
+
+    test("finds an expression key inside a larger one", () => {
+        const sum = () => field("a").add(field("b"));
+        expect(matchSortPart([sum().mul(value(2))], sum())).toEqual({direction: "asc", index: 0});
+        expect(matchSortPart([sum()], sum())).toBe(null);
+    });
+
+    test("leaves the key itself to matchSort()", () => {
+        expect(matchSortPart(["num", "!num", field("num"), field("num").desc()], "num")).toBe(null);
     });
 
     test("toggles only a sort that is the key alone and ascending", () => {

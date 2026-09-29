@@ -1019,6 +1019,50 @@ export function matchSort(sortFields: readonly FieldExpression[], key: FieldExpr
 
 
 /**
+ * Finds a sort key inside an expression the sort order sorts by, e.g. `num` in `num % 10`: the order doesn't sort by
+ * the key itself, but the key takes part in it. A sort field that is the key, which matchSort() finds, doesn't count.
+ *
+ * @param sortFields    sort order, as in a query config
+ * @param key           field path or expression the column sorts by
+ *
+ * @return direction of the expression and its position, the first one containing the key, or `null` if none does
+ */
+export function matchSortPart(sortFields: readonly FieldExpression[], key: FieldExpression): SortMatch | null
+{
+    const simpleKey = simplifySortField(key);
+    const keyNode = typeof simpleKey === "string" ? field(simpleKey) : simpleKey;
+    for (let i = 0; i < sortFields.length; i++)
+    {
+        const sortField = sortFields[i];
+        if (typeof sortField === "string")
+        {
+            continue;
+        }
+        const directed = sortField.type === "Operation" && (sortField.name === "asc" || sortField.name === "desc") &&
+            sortField.operands.length === 1;
+        const expression = directed ? sortField.operands[0] : sortField;
+        if (contains(expression, keyNode))
+        {
+            return {direction: directed && sortField.name === "desc" ? "desc" : "asc", index: i};
+        }
+    }
+    return null;
+}
+
+
+/**
+ * Whether the node is found among the operands of the expression, at any depth. The expression itself isn't.
+ */
+function contains(expression: CNode, node: CNode): boolean
+{
+    if (expression.type !== "Condition" && expression.type !== "Operation")
+    {
+        return false;
+    }
+    return expression.operands.some(operand => conditionsEqual(operand, node) || contains(operand, node));
+}
+
+/**
  * The sort order a click on a column asks for: the key descending if it already is the whole sort order and
  * ascending, the key ascending in every other case. The result replaces the whole sort order.
  *

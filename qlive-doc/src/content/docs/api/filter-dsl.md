@@ -432,6 +432,24 @@ field or a structurally equal expression, in either direction, in any of the for
 
 **Returns** direction and position of the key, or `null` if the sort order doesn't contain it
 
+### FilterDSL.matchSortPart()
+
+```ts
+declare function matchSortPart(sortFields: readonly FieldExpression[], key: FieldExpression): SortMatch | null;
+```
+
+Finds a sort key inside an expression the sort order sorts by, e.g. `num` in `num % 10`: the order doesn't sort by
+the key itself, but the key takes part in it. A sort field that is the key, which matchSort() finds, doesn't count.
+
+**Parameters**
+
+| | |
+|---|---|
+| `sortFields` | sort order, as in a query config |
+| `key` | field path or expression the column sorts by  |
+
+**Returns** direction of the expression and its position, the first one containing the key, or `null` if none does
+
 ### FilterDSL.not()
 
 ```ts

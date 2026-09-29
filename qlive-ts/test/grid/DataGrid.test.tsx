@@ -189,6 +189,27 @@ describe("DataGrid", () => {
         expect(failed).toHaveBeenCalledTimes(4);
     });
 
+    it("shows the document's error above the rows", () => {
+        const d = {...doc(), error: new Error("Not authenticated")};
+        const grid = render(<DataGrid doc={ d } columns={ ["name", "num"] }/>);
+
+        const error = grid.firstElementChild as HTMLElement;
+        expect(error.className).toBe("qlive-grid-error");
+        expect(error.getAttribute("role")).toBe("alert");
+        expect(error.textContent).toBe("[Rows not updated:Not authenticated]");
+        expect(grid.querySelectorAll("tbody tr")).toHaveLength(2);
+    });
+
+    it("shows an error without a message all the same", () => {
+        const grid = render(<DataGrid doc={ {...doc(), error: new Error()} } columns={ ["name"] }/>);
+        expect(grid.querySelector(".qlive-grid-error")!.textContent).toBe("[Rows not updated]");
+    });
+
+    it("shows no error line without an error", () => {
+        const grid = render(<DataGrid doc={ {...doc(), error: null} } columns={ ["name"] }/>);
+        expect(grid.querySelector(".qlive-grid-error")).toBeNull();
+    });
+
     it("notes nothing where every sort field and term has its column", () => {
         const term = field("name").containsIgnoreCase(value("x")) as FilterExpression;
         const grid = render(

@@ -33,6 +33,7 @@
         --qlive-color-muted: #6b6b6b;
         --qlive-color-border: #d4d4d4;
         --qlive-color-accent: #2563eb;
+        --qlive-color-error: #dc2626;
 
         /*
          * What a merge marks a field with. Four states, four colors, and the
@@ -79,6 +80,7 @@
             --qlive-color-muted: #9a9a9a;
             --qlive-color-border: #3a3a3a;
             --qlive-color-accent: #60a5fa;
+            --qlive-color-error: #f87171;
 
             --qlive-color-changed: #60a5fa;
             --qlive-color-conflict: #fbbf24;
@@ -485,6 +487,13 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+    .qlive-grid-error
+    {
+        margin: 0 0 var(--qlive-space-2);
+        padding: var(--qlive-space-1) var(--qlive-space-2);
+        border-inline-start: 3px solid var(--qlive-color-error);
+        color: var(--qlive-color-error);
     }
     .qlive-grid-empty td
     {

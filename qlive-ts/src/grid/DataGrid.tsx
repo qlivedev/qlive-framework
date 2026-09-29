@@ -13,12 +13,19 @@ import {GridRowStatus, useGridRows} from "./useGridRows";
 import {PageableDocument} from "./usePagination";
 
 /**
- * What DataGrid needs of a query document: its type, config, rows, row count and update(). A snapshot from
- * useInjection() or useQueryDocument() is one as long as its query selects `type`, `config`, `rows` and `rowCount`.
+ * What DataGrid needs of a query document: its type, config, rows, row count and update(), and its error if it has
+ * one. A snapshot from useInjection() or useQueryDocument() is one as long as its query selects `type`, `config`,
+ * `rows` and `rowCount`.
  */
 export interface GridDocument<R> extends PageableDocument, FilterableDocument
 {
     rows: readonly R[];
+
+    /**
+     * Why the last update() failed, see QueryDocument#error. The grid shows it above the rows, which are still the
+     * ones from before.
+     */
+    error?: Error | null;
 }
 
 export type DataGridProps<R> = {
@@ -100,6 +107,7 @@ function classes(...names: (string | false | null | undefined)[]): string
  * Each column is derived from its field path and the schema, see resolveColumn(). Given a working set, the grid shows
  * its drafts and marks rows and cells by what happened to them, see useGridRows(). The grid owns a component of the
  * document's condition, see useFilters(), so a search form writing a component of its own filters the same rows.
+ * When an update() fails, the grid's own or anyone else's, it says so above the rows, which stay the ones from before.
  *
  * Composed from resolveColumn(), useFilters(), useGridRows(), SortHeader, FilterInput and Pager and nothing else. Where it doesn't
  * fit, copying it into the application and changing it is a reasonable answer.
@@ -119,6 +127,17 @@ export default function DataGrid<R>(props: DataGridProps<R>): JSX.Element
     let filterIndex = 0;
     return (
         <div className={ classes("qlive-grid", className) }>
+            {
+                doc.error && (
+                    <p className="qlive-grid-error" role="alert">
+                        {
+                            doc.error.message
+                                ? i18n("Rows not updated", doc.error.message)
+                                : i18n("Rows not updated")
+                        }
+                    </p>
+                )
+            }
             <table className="qlive-grid-table">
                 <thead>
                     <tr className="qlive-grid-headings">

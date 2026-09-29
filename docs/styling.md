@@ -84,7 +84,7 @@ The `--qlive-*` custom properties are the theming API. An application
 overrides them in its own CSS, at whatever scope it likes, including at
 runtime. There is no theme config format to learn.
 
-Currently defined: `--qlive-color-{bg,fg,muted,border,accent}`,
+Currently defined: `--qlive-color-{bg,fg,muted,border,accent,error}`,
 `--qlive-space-{1,2,3}`, `--qlive-radius-md`, `--qlive-font-sans`, and
 `--qlive-font-size{,-sm,-lg}`. The palette is a skeleton chosen to be
 inoffensive, not a designed one.
@@ -115,7 +115,9 @@ The grid's parts, as far as they exist (see `docs/design/datagrid.md`):
   sit in `.qlive-grid-filter-flags`, each in a
   `.qlive-grid-filter-flag` label.
 - `.qlive-grid` around a `<DataGrid/>`, scrolling a wide table
-  sideways, with `.qlive-grid-table` on the table. Its header rows are
+  sideways, with `.qlive-grid-table` on the table. Above the table,
+  `.qlive-grid-error` says why the last update failed, in
+  `--qlive-color-error`. Its header rows are
   `.qlive-grid-headings` and `.qlive-grid-filters`, and a heading that
   doesn't sort is `.qlive-grid-heading`. Rows are `.qlive-grid-row`,
   with `.qlive-grid-highlighted` on the highlighted one, and

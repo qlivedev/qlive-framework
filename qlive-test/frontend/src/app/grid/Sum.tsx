@@ -1,4 +1,4 @@
-import { dateRangeFilter, DataGrid, FilterInput, useFilters, useInjection } from "@qlivedev/qlive-ts";
+import { dateRangeFilter, DataGrid, FilterInput, operatorFilter, useFilters, useInjection } from "@qlivedev/qlive-ts";
 import { field } from "@qlivedev/qlive-ts/filter";
 import { Q_QuuxList, Q_QuuxListResult } from "./Q_QuuxList";
 
@@ -18,8 +18,9 @@ const SEARCH = [
  * A column computed from two fields, sorted by the expression that computes it, under a date range form.
  *
  * The document starts sorted by the sum, largest first. A click on the sum's header sorts by it ascending, the next
- * one descending again -- an expression toggles like a field. The form narrows the rows to a range of days, from or
- * until alone for a range open at the other end.
+ * one descending again -- an expression toggles like a field. The sum filters like a field too: its filter compares
+ * the expression the column sorts by, so `between` gives a range of sums. The form narrows the rows to a range of
+ * days, from or until alone for a range open at the other end.
  */
 export default function Sum()
 {
@@ -50,13 +51,14 @@ export default function Sum()
                 doc={ quuxes }
                 columns={ [
                     "name",
-                    "numA",
-                    "numB",
-                    // computed in the browser, sorted on the server by the same sum
+                    {field: "numA", filter: operatorFilter("between", "Int")},
+                    {field: "numB", filter: operatorFilter("between", "Int")},
+                    // computed in the browser, sorted and filtered on the server by the same sum
                     {
                         heading: "numA + numB",
                         render: row => row.numA + row.numB,
-                        sort: SUM
+                        sort: SUM,
+                        filter: operatorFilter("between", "Int")
                     },
                     // the form filters it already
                     {field: "created", nowrap: true, filter: false}

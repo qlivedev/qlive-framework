@@ -222,6 +222,16 @@ allowIdentifier?: boolean;
 Enables identifier matching where instead of a static expression, we capture the *name* of an identifier to
 reference some global namespace (or local in some way).
 
+### TrackedFunctionSpec.requireStatic
+
+```ts
+requireStatic?: boolean;
+```
+
+Marks a call the analysis cannot do without: one whose arguments don't evaluate is reported as a warning
+naming the file, the line and the part of the argument that isn't static, where otherwise it is left out
+silently. Right for a call whose absence breaks the page, wrong for one that is often dynamic on purpose.
+
 ## analyzeSourceTree()
 
 <span class="api-kind">function</span>
@@ -280,6 +290,15 @@ debug?: boolean;
 indexes?: boolean;
 ```
 
+### AnalyzeSourceTreeOptions.onSkippedCall
+
+```ts
+onSkippedCall?: (call: SkippedCall) => void;
+```
+
+Receives each call marked `TrackedFunctionSpec.requireStatic` that the analysis leaves out.
+Default: a warning on the console, see `formatSkippedCall`.
+
 ## TrackUsageAnalysis
 
 <span class="api-kind">interface</span>
@@ -296,4 +315,67 @@ relative to `sourceRoot` ("./app/Q_Foo"), which is how the backend addresses a m
 ```ts
 usages: Record<string, unknown>;
 ```
+
+## SkippedCall
+
+<span class="api-kind">interface</span>
+
+```ts
+interface SkippedCall
+```
+
+A tracked call left out of the data because one of its arguments did not evaluate statically. What the
+plugin hands its `onSkippedCall` option.
+
+### SkippedCall.name
+
+```ts
+name: string;
+```
+
+### SkippedCall.filename
+
+```ts
+filename: string;
+```
+
+### SkippedCall.line
+
+```ts
+line: number | null;
+```
+
+### SkippedCall.column
+
+```ts
+column: number | null;
+```
+
+### SkippedCall.argument
+
+```ts
+argument: number;
+```
+
+### SkippedCall.path
+
+```ts
+path: string;
+```
+
+### SkippedCall.code
+
+```ts
+code: string;
+```
+
+## formatSkippedCall()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function formatSkippedCall(call: SkippedCall): string;
+```
+
+The warning about a call the analysis left out, with the file position an editor or terminal can jump to.
 

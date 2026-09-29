@@ -1,4 +1,4 @@
-import { DataGrid, useInjection } from "@qlivedev/qlive-ts";
+import { DataGrid, unawaited, useInjection } from "@qlivedev/qlive-ts";
 import { field, value } from "@qlivedev/qlive-ts/filter";
 import { Q_FooList, Q_FooListResult } from "./Q_FooList";
 
@@ -25,7 +25,7 @@ export default function Sorting()
             <p>
                 <select
                     value=""
-                    onChange={ ev => foos.update({sortFields: ORDERS[Number(ev.target.value)].sortFields, offset: 0}) }
+                    onChange={ ev => unawaited(foos.update({sortFields: ORDERS[Number(ev.target.value)].sortFields, offset: 0})) }
                 >
                     <option value="" disabled>Sort by …</option>
                     { ORDERS.map((order, i) => <option key={ i } value={ i }>{ order.label }</option>) }

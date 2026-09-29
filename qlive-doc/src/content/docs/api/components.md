@@ -157,7 +157,7 @@ This export carries no doc comment in the source.
 <span class="api-kind">function</span>
 
 ```ts
-declare function QuickLogin({ users, url }: QuickLoginProps): JSX.Element;
+declare function QuickLogin({ users, url, rememberMeParameter }: QuickLoginProps): JSX.Element;
 ```
 
 Shows who a page is being served to and offers to become one of a fixed list of other users in a single
@@ -185,6 +185,12 @@ type QuickLoginProps = {
    * what formLogin() answers to whether or not an application customizes loginPage().
    */
   url?: string;
+  /**
+   * Name of the parameter asking for a remember-me login, `null` for a login that ends with the session.
+   * Default "remember-me", Spring Security's default. Remembered, a switch survives a restart of the
+   * development server, which forgets every session it held.
+   */
+  rememberMeParameter?: string | null;
 };
 ```
 

@@ -240,6 +240,13 @@ body
     min-width: 14rem;
 }
 
+/* the two inputs of a range side by side */
+.grid-example-range
+{
+    display: flex;
+    gap: 0.5rem;
+}
+
 /*
  * The grid examples' toolbar, the notice after a merge that met other writes,
  * and the buttons of a row.

@@ -7,6 +7,7 @@ const EXAMPLES = [
     {href: "/app/grid/filters", title: "Filters", text: "the filters QLive ships, one per column"},
     {href: "/app/grid/search", title: "A search form", text: "a form and the grid filtering the same rows"},
     {href: "/app/grid/sorting", title: "Sort orders", text: "several fields and expressions, set from outside"},
+    {href: "/app/grid/sum", title: "Sorted by a sum", text: "a column computed from two fields, under a date range form"},
     {href: "/app/grid/scalars", title: "Scalar types", text: "every scalar type as the grid shows and filters it"},
     {href: "/app/grid/local", title: "Local rows", text: "rows the view holds, filtered and paged in the browser"},
     {href: "/app/grid/editing", title: "Editing", text: "changing values in place through a working set"},

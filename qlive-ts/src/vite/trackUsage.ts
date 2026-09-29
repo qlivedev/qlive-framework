@@ -3,7 +3,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import {pathToFileURL} from "node:url";
 import * as babel from "@babel/core";
-import trackUsageBabelPlugin from "./babel/trackUsagePlugin.js";
+import trackUsageBabelPlugin, {type SkippedCall} from "./babel/trackUsagePlugin.js";
 import trackUsageData from "./babel/trackUsageData.js";
 import deepEqual from "deep-equal";
 import type {Plugin, ResolvedConfig} from "vite";
@@ -36,6 +36,12 @@ export interface TrackedFunctionSpec
      * reference some global namespace (or local in some way).
      */
     allowIdentifier?: boolean;
+    /**
+     * Marks a call the analysis cannot do without: one whose arguments don't evaluate is reported as a warning
+     * naming the file, the line and the part of the argument that isn't static, where otherwise it is left out
+     * silently. Right for a call whose absence breaks the page, wrong for one that is often dynamic on purpose.
+     */
+    requireStatic?: boolean;
 }
 
 /**
@@ -51,13 +57,13 @@ export const QLIVE_TRACKED_FUNCTIONS: Record<string, TrackedFunctionSpec> = {
         varArgs: true
     },
     useInjection: {
-        module: "@qlivedev/qlive-ts", fn: "useInjection", allowIdentifier: true
+        module: "@qlivedev/qlive-ts", fn: "useInjection", allowIdentifier: true, requireStatic: true
     },
     noSchema: {
         module: "@qlivedev/qlive-ts", fn: "noSchema"
     },
     GraphQLQuery: {
-        module: "@qlivedev/qlive-ts", fn: "GraphQLQuery"
+        module: "@qlivedev/qlive-ts", fn: "GraphQLQuery", requireStatic: true
     },
 };
 
@@ -165,6 +171,8 @@ interface ResolvedOptions
     sourceRoot: string;
     debug?: boolean;
     indexes: boolean;
+    /** Receives the calls marked `requireStatic` that the analysis leaves out. */
+    onSkippedCall: (call: SkippedCall) => void;
 }
 
 /**
@@ -221,10 +229,37 @@ function runBabelOnFile(absPath: string, code: string, options: ResolvedOptions)
                     sourceRoot: relativeSourceRoot,
                     debug: options.debug,
                     indexes: options.indexes,
+                    onSkippedCall: (call: SkippedCall) => {
+                        if (options.trackedFunctions[call.name]?.requireStatic)
+                        {
+                            options.onSkippedCall(call);
+                        }
+                    },
                 },
             ],
         ],
     });
+}
+
+/**
+ * The warning about a call the analysis left out, with the file position an editor or terminal can jump to.
+ */
+export function formatSkippedCall(call: SkippedCall): string
+{
+    const where = path.relative(process.cwd(), call.filename) + (call.line !== null ? `:${call.line}:${call.column}` : "");
+    const part = call.path ? ` at ${call.path.replace(/^\./, "")}` : "";
+    const code = call.code.length > 60 ? call.code.slice(0, 57) + "..." : call.code;
+
+    return (
+        `[track-usage] ${where}: ${call.name}() is left out of the analysis, so the server knows nothing of it. ` +
+        `Argument ${call.argument + 1}${part} is \`${code}\`: the analysis evaluates only literals -- strings, ` +
+        `numbers, booleans, null, and arrays and objects of them.`
+    );
+}
+
+function warnSkippedCall(call: SkippedCall): void
+{
+    console.warn(formatSkippedCall(call));
 }
 
 function toRelativeModuleId(absPath: string, sourceRoot: string): string
@@ -263,6 +298,7 @@ function resolveOptions(options: TrackUsagePluginOptions, config: ResolvedConfig
         sourceRoot: sourceRoot.endsWith("/") ? sourceRoot : sourceRoot + "/",
         debug: options.debug,
         indexes: options.indexes ?? true,
+        onSkippedCall: warnSkippedCall,
     };
 }
 
@@ -289,6 +325,11 @@ export interface AnalyzeSourceTreeOptions
     debug?: boolean;
     /** See {@link TrackUsagePluginOptions.indexes}. Default: true. */
     indexes?: boolean;
+    /**
+     * Receives each call marked {@link TrackedFunctionSpec.requireStatic} that the analysis leaves out.
+     * Default: a warning on the console, see {@link formatSkippedCall}.
+     */
+    onSkippedCall?: (call: SkippedCall) => void;
 }
 
 /**
@@ -369,6 +410,7 @@ function resolveScanOptions(options: AnalyzeSourceTreeOptions): ResolvedOptions
         sourceRoot: sourceRoot.endsWith("/") ? sourceRoot : sourceRoot + "/",
         debug: options.debug,
         indexes: options.indexes ?? true,
+        onSkippedCall: options.onSkippedCall ?? warnSkippedCall,
     };
 }
 
@@ -448,6 +490,40 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
     let resync: Promise<void> | undefined;
     /** Rewrites the query result types, or null while they are switched off. Created once per server. */
     let queryTypes: Promise<QueryTypeGenerator | null> = Promise.resolve(null);
+    /**
+     * The warnings about left-out calls each file had when it was last analyzed. One save analyzes a file twice,
+     * through the watcher and the transform, and a warning is news only the first time.
+     */
+    const skippedWarnings = new Map<string, string>();
+
+    /**
+     * Prints a file's warnings about left-out calls, unless they are the ones it had before.
+     */
+    function reportSkipped(file: string, warnings: string[]): void
+    {
+        const joined = warnings.join("\n");
+        if (joined !== (skippedWarnings.get(file) ?? ""))
+        {
+            warnings.forEach((warning) => console.warn(warning));
+        }
+        skippedWarnings.set(file, joined);
+    }
+
+    /**
+     * Runs the analysis over one file, reporting the calls it leaves out.
+     */
+    function analyzeFile(file: string, code: string): void
+    {
+        const warnings: string[] = [];
+        try
+        {
+            runBabelOnFile(file, code, {...resolved, onSkippedCall: (call) => warnings.push(formatSkippedCall(call))});
+        }
+        finally
+        {
+            reportSkipped(file.split("?")[0], warnings);
+        }
+    }
 
 
     /**
@@ -698,7 +774,7 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
             {
                 return null;
             }
-            runBabelOnFile(id, code, resolved);
+            analyzeFile(id, code);
             if (isDevMode && mergeIntoDevData(id))
             {
                 schedulePush();
@@ -732,12 +808,19 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
                 // and the first of them arrives before the browser has asked the dev server for a single
                 // module. A view analyzed only once it is transformed would be served with whatever the
                 // backend had for it before -- nothing, or the injections of an older version of it.
+                const warnings = new Map<string, string[]>();
                 devData = analyzeSourceTree({
                     sourceRoot: resolved.sourceRoot,
                     trackedFunctions: options.trackedFunctions,
                     debug: options.debug,
                     indexes: resolved.indexes,
+                    onSkippedCall: (call) => {
+                        const list = warnings.get(call.filename) ?? [];
+                        list.push(formatSkippedCall(call));
+                        warnings.set(call.filename, list);
+                    },
                 });
+                warnings.forEach((list, file) => reportSkipped(file, list));
             }
             const firstPush = isDevMode ? pushToServer() : Promise.resolve();
 
@@ -776,7 +859,7 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
                 const code = fs.readFileSync(file, "utf-8");
                 try
                 {
-                    runBabelOnFile(file, code, resolved);
+                    analyzeFile(file, code);
                 }
                 catch(e)
                 {

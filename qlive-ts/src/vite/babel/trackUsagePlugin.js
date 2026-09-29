@@ -261,13 +261,23 @@ export default function trackUsage(t) {
                     let allEvaluated = true
                     for (let j = 0; j < argsEnd; j++)
                     {
+                        const failure = {node: null, path: []}
                         const evaluated = staticEval(
                             args[j],
-                            tf.allowIdentifier
+                            tf.allowIdentifier,
+                            failure
                         )
                         if (evaluated === undefined)
                         {
                             allEvaluated = false;
+                            if (data._config.debug)
+                            {
+                                console.log("Value evaluated to undefined");
+                            }
+                            if (pluginOpts.onSkippedCall)
+                            {
+                                reportSkippedCall(pluginOpts.onSkippedCall, path, e.name, j, failure)
+                            }
                             break;
                         }
 
@@ -293,10 +303,6 @@ export default function trackUsage(t) {
                             contextRecord && captureContext(path, tf)
                         );
                     }
-                    else if (data._config.debug)
-                    {
-                        console.log("Value evaluated to undefined");
-                    }
                     // }
                     // else if (data._config.debug)
                     // {
@@ -307,7 +313,33 @@ export default function trackUsage(t) {
         }
     }
 
-    function staticEval(node, allowIdentifier)
+    /**
+     * Reports a tracked call left out of the data because an argument did not evaluate, with the
+     * innermost part of it that did not.
+     */
+    function reportSkippedCall(onSkippedCall, path, name, argument, failure)
+    {
+        const file = path.hub.file
+        const node = failure.node || path.node.arguments[argument]
+        const loc = node.loc || path.node.loc
+
+        onSkippedCall({
+            name: name,
+            filename: file.opts.filename,
+            line: loc ? loc.start.line : null,
+            column: loc ? loc.start.column + 1 : null,
+            argument: argument,
+            path: failure.path.join(""),
+            code: file.code.slice(node.start, node.end)
+        })
+    }
+
+    /**
+     * Evaluates a literal expression to its value, undefined if it is not one. Where it is not, the
+     * failure record, if given, receives the node that stopped the evaluation and the property path
+     * leading to it (".config", ".sortFields", "[0]").
+     */
+    function staticEval(node, allowIdentifier, failure)
     {
         let i, out, evaluatedValue
 
@@ -334,7 +366,7 @@ export default function trackUsage(t) {
             out = new Array(elements.length);
             for (i = 0; i < elements.length; i++)
             {
-                evaluatedValue = staticEval(elements[i], allowIdentifier);
+                evaluatedValue = staticEval(elements[i], allowIdentifier, failure);
 
                 if (evaluatedValue !== undefined)
                 {
@@ -343,6 +375,11 @@ export default function trackUsage(t) {
                 else
                 {
                     // non-literal array element -> bail
+                    if (failure)
+                    {
+                        failure.node = failure.node || elements[i] || node
+                        failure.path.unshift("[" + i + "]")
+                    }
                     return undefined;
                 }
             }
@@ -367,10 +404,14 @@ export default function trackUsage(t) {
                 else
                 {
                     // computed property -> bail
+                    if (failure)
+                    {
+                        failure.node = property
+                    }
                     return undefined;
                 }
 
-                evaluatedValue = staticEval(property.value, allowIdentifier);
+                evaluatedValue = staticEval(property.value, allowIdentifier, failure);
 
                 if (evaluatedValue !== undefined)
                 {
@@ -379,6 +420,10 @@ export default function trackUsage(t) {
                 else
                 {
                     // non-literal value -> bail
+                    if (failure)
+                    {
+                        failure.path.unshift("." + key)
+                    }
                     return undefined;
                 }
             }
@@ -389,6 +434,10 @@ export default function trackUsage(t) {
             return { __identifier: node.name };
         }
 
+        if (failure)
+        {
+            failure.node = node
+        }
         return undefined;
     }
 

@@ -419,7 +419,9 @@
         "TrackedFunctionSpec",
         "analyzeSourceTree",
         "AnalyzeSourceTreeOptions",
-        "TrackUsageAnalysis"
+        "TrackUsageAnalysis",
+        "SkippedCall",
+        "formatSkippedCall"
       ]
     }
   ]

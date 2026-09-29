@@ -4,8 +4,8 @@ import * as os from "node:os";
 import * as path from "node:path";
 import trackUsageData from "../../src/vite/babel/trackUsageData.js";
 import type {Plugin, ResolvedConfig, ViteDevServer} from "vite";
-import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
-import {type TrackUsagePluginOptions, trackUsage} from "../../src/vite/trackUsage";
+import {afterEach, beforeEach, describe, expect, it, type MockInstance, vi} from "vitest";
+import {analyzeSourceTree, type TrackUsagePluginOptions, trackUsage} from "../../src/vite/trackUsage";
 
 /**
  * Covers what the plugin does with a backend: which modules a push carries, and when the browser is told to
@@ -627,6 +627,106 @@ describe("trackUsage", () => {
 
             expect(generatedQuery()).toBe(Q_TYPED);
             errors.mockRestore();
+        });
+    });
+
+
+    describe("left-out calls", () => {
+
+        // An expression the browser builds, which the analysis cannot evaluate
+        const DYNAMIC = `
+            import {useInjection, i18n} from "@qlivedev/qlive-ts";
+            import {field} from "@qlivedev/qlive-ts/filter";
+            import {Q_Foo} from "./Q_Foo";
+
+            export default function Sum({label}) {
+                i18n(label);
+                return useInjection(Q_Foo, {config: {sortFields: [field("num").desc()]}});
+            }
+        `;
+
+        /** 1-based line and column of the first occurrence of `part` in `code`. */
+        function position(code: string, part: string): string
+        {
+            const before = code.slice(0, code.indexOf(part)).split("\n");
+            return `${before.length}:${before[before.length - 1].length + 1}`;
+        }
+
+        let warnings: MockInstance<typeof console.warn>;
+
+        beforeEach(() => {
+            warnings = vi.spyOn(console, "warn").mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            warnings.mockRestore();
+        });
+
+        /** The warnings about left-out calls printed so far. */
+        function skipped(): string[]
+        {
+            return warnings.mock.calls.map(call => String(call[0])).filter(text => text.includes("left out"));
+        }
+
+
+        it("names the call, where it is and what in it isn't static", () => {
+            write("app/Sum.tsx", DYNAMIC);
+            startPlugin(null);
+
+            expect(skipped()).toHaveLength(1);
+            const [warning] = skipped();
+            expect(warning).toContain("app/Sum.tsx:" + position(DYNAMIC, `field("num").desc()`));
+            expect(warning).toContain("useInjection()");
+            expect(warning).toContain("Argument 2 at config.sortFields[0]");
+            expect(warning).toContain('`field("num").desc()`');
+        });
+
+
+        it("says nothing about a call that may be dynamic", () => {
+            // i18n() of a variable is ordinary: the key comes from somewhere else
+            write("app/Sum.tsx", DYNAMIC);
+            startPlugin(null);
+
+            expect(skipped().join(" ")).not.toContain("i18n");
+        });
+
+
+        it("warns once per change, however often the file is analyzed", () => {
+            write("app/Sum.tsx", DYNAMIC);
+            const plugin = startPlugin(null);
+            expect(skipped()).toHaveLength(1);
+
+            // one save reaches the analysis twice, through the watcher and the transform
+            watcher.emit("change", moduleFile("app/Sum.tsx"));
+            plugin.transform(DYNAMIC, moduleFile("app/Sum.tsx"));
+            expect(skipped()).toHaveLength(1);
+
+            // fixed and broken again is news again
+            const fixed = DYNAMIC.replace(`[field("num").desc()]`, `["!num"]`);
+            write("app/Sum.tsx", fixed);
+            watcher.emit("change", moduleFile("app/Sum.tsx"));
+            write("app/Sum.tsx", DYNAMIC);
+            watcher.emit("change", moduleFile("app/Sum.tsx"));
+            expect(skipped()).toHaveLength(2);
+        });
+
+
+        it("hands a scan's left-out calls to the caller", () => {
+            write("app/Sum.tsx", DYNAMIC);
+            const calls: unknown[] = [];
+
+            analyzeSourceTree({sourceRoot, onSkippedCall: (call) => calls.push(call)});
+
+            expect(calls).toEqual([{
+                name: "useInjection",
+                filename: moduleFile("app/Sum.tsx"),
+                line: Number(position(DYNAMIC, `field("num")`).split(":")[0]),
+                column: Number(position(DYNAMIC, `field("num")`).split(":")[1]),
+                argument: 1,
+                path: ".config.sortFields[0]",
+                code: `field("num").desc()`,
+            }]);
+            expect(warnings).not.toHaveBeenCalled();
         });
     });
 });

@@ -116,6 +116,9 @@ class SchemaAssembler
 
     private final Set<GraphQLDirective> additionalDirectives;
 
+    /** the scalars registered with the builder, every one of them in the schema */
+    private final Set<GraphQLScalarType> additionalScalars;
+
     private final Set<Class<?>> additionalInputTypes;
 
     private final List<TypeDoc> typeDocs;
@@ -165,6 +168,7 @@ class SchemaAssembler
         this.metadataProviders = metadataProviders;
 
         this.typeRegistry = new MutableTypeRegistry(additionalScalarTypes, dbFieldLookup);
+        this.additionalScalars = new LinkedHashSet<>(additionalScalarTypes.values());
         this.genericTypes = new ArrayList<>();
         this.deferredDomain = new DeferredDomain();
     }
@@ -303,6 +307,11 @@ class SchemaAssembler
         builder.additionalDirectives(
             additionalDirectives
         );
+
+        // Registered on purpose, so part of the schema whether or not a type refers to them. A scalar used only
+        // inside another scalar's value -- the condition inside a query config -- is referenced by nothing, and a
+        // QLiveDomainAware coercing looking it up in the schema would otherwise find nothing.
+        builder.additionalTypes(new LinkedHashSet<>(additionalScalars));
 
 
         builder.codeRegistry(codeRegistryBuilder.build());

@@ -12,10 +12,11 @@ import io.github.qlivedev.graphql.meta.MetadataProvider;
 import io.github.qlivedev.graphql.scalar.BigDecimalScalar;
 import io.github.qlivedev.graphql.scalar.BigIntegerScalar;
 import io.github.qlivedev.model.QueryConfig;
-import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.runtime.scalar.ComputedValueCoercing;
 import io.github.qlivedev.runtime.scalar.ComputedValue;
+import io.github.qlivedev.runtime.scalar.ConditionScalar;
 import io.github.qlivedev.runtime.scalar.ConditionType;
+import io.github.qlivedev.runtime.scalar.FieldExpressionScalar;
 import io.github.qlivedev.runtime.scalar.FieldExpressionType;
 import io.github.qlivedev.runtime.scalar.QueryConfigCoercing;
 import graphql.schema.GraphQLScalarType;
@@ -46,8 +47,8 @@ public class QLiveDefaultDomain
         return QLiveDomainBuilder.newDomain(dslContext)
             .withAdditionalScalar(DomainObject.class, DomainObjectScalar.newDomainObjectScalar())
             .withAdditionalScalar(JSONB.class, JSONBScalar.newScalar())
-            .withAdditionalScalar(CNode.class, ConditionType.newConditionType())
-            .withAdditionalScalar(CNode.class, FieldExpressionType.newFieldExpressionType())
+            .withAdditionalScalar(ConditionScalar.class, ConditionType.newConditionType())
+            .withAdditionalScalar(FieldExpressionScalar.class, FieldExpressionType.newFieldExpressionType())
             .withAdditionalScalar(GenericScalar.class, GenericScalarType.newGenericScalar())
             .withAdditionalScalar(BigDecimal.class, BigDecimalScalar.newScalar())
             .withAdditionalScalar(BigInteger.class, BigIntegerScalar.newScalar())

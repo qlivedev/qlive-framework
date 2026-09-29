@@ -409,11 +409,23 @@ scalar BigInteger
 "8-bit integer"
 scalar Byte
 
+"Encapsulates a dynamically evaluated FilterDSL value"
+scalar ComputedValue
+
+"Map graph representing JOOQ conditions"
+scalar Condition
+
 "Currency value"
 scalar Currency
 
 "SQL date equivalent"
 scalar Date
+
+"Container for generic domain objects as scalar"
+scalar DomainObject
+
+"Map graph representing a JOOQ node expression"
+scalar FieldExpression
 
 "Container for generic scalar values"
 scalar GenericScalar

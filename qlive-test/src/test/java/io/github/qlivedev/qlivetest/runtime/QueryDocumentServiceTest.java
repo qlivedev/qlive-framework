@@ -174,6 +174,36 @@ class QueryDocumentServiceTest
     }
 
 
+    /// A sort field can be any field expression, not only a field name. It arrives as a node of the condition
+    /// tree, and the config that comes back carries it as it was sent.
+    @Test
+    void sortsByAnExpression()
+    {
+        // num * -1, ascending: the largest num first
+        final Map<String, Object> negated = Map.of(
+            "type", "Operation",
+            "name", "mul",
+            "operands", List.of(
+                Map.of("type", "Field", "name", "num"),
+                Map.of("type", "Value", "scalarType", "Int", "value", -1)
+            )
+        );
+
+        final Map<String, Object> document = queryDocument(
+            "queryFooDocument",
+            "id name",
+            Map.of("pageSize", 0, "offset", 0, "sortFields", List.of(negated), "condition", marked())
+        );
+
+        assertThat(names(document), contains("Charlie", "Bravo", "Alpha"));
+
+        @SuppressWarnings("unchecked")
+        final Map<String, Object> config = (Map<String, Object>) document.get("config");
+
+        assertThat((List<?>) config.get("sortFields"), contains(negated));
+    }
+
+
     /// A condition's values arrive as JSON, where a timestamp is a string. By the time one reaches a
     /// query it is a Timestamp, because the condition scalar converted it with the coercing of the scalar
     /// type the node named.

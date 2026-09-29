@@ -4,6 +4,10 @@ import io.github.qlivedev.graphql.scalar.TimestampScalar;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
+import org.jooq.DSLContext;
+import org.jooq.Record2;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,11 +15,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
+import static io.github.qlivedev.qlivetest.domain.Tables.APP_USER;
+import static io.github.qlivedev.qlivetest.domain.Tables.FOO;
+import static io.github.qlivedev.qlivetest.domain.Tables.FOO_TYPE;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -24,13 +32,55 @@ import static org.hamcrest.Matchers.nullValue;
 /// Runs query documents the way a browser does -- through the schema, against this application's own
 /// database -- because everything this service does only means something at the far end of that.
 ///
-/// The rows are the example database's own. Its many-to-many data is laid out for exactly what is asserted
-/// here: one bar with three links, one with none, and a baz that two bars link to.
+/// The Foo tests make their own rows and look only at those: each carries a marker in its description, and
+/// every condition they query with requires it. What else the table holds -- the seed rows, rows saved in the
+/// browser, a previous run's leftovers -- cannot change their outcome (see docs/design/test-isolation.md).
+///
+/// The Bar, Baz and Qux tests still read the example database's own rows. Its many-to-many data is laid out
+/// for exactly what is asserted there: one bar with three links, one with none, and a baz that two bars link
+/// to.
 @SpringBootTest
 class QueryDocumentServiceTest
 {
     @Autowired
     private GraphQL graphQL;
+
+    @Autowired
+    private DSLContext dslContext;
+
+    /// In the description of every row this test makes, and nowhere else.
+    private final String marker = "QueryDocumentServiceTest " + UUID.randomUUID();
+
+    /// Two users to own the rows, whoever they are.
+    private Record2<String, String> ownerA;
+    private Record2<String, String> ownerB;
+
+
+    /// Alpha and Bravo from 2018, Charlie from 2020; Alpha and Charlie belong to one user, Bravo to another.
+    @BeforeEach
+    void makeRows()
+    {
+        final List<Record2<String, String>> users = dslContext.select(APP_USER.ID, APP_USER.LOGIN)
+            .from(APP_USER)
+            .orderBy(APP_USER.LOGIN)
+            .limit(2)
+            .fetch();
+        ownerA = users.get(0);
+        ownerB = users.get(1);
+
+        final String type = dslContext.select(FOO_TYPE.NAME).from(FOO_TYPE).limit(1).fetchOne(FOO_TYPE.NAME);
+
+        insertFoo("Alpha", 1, ownerA, type, "2018-03-01 12:00:00");
+        insertFoo("Bravo", 2, ownerB, type, "2018-09-01 12:00:00");
+        insertFoo("Charlie", 3, ownerA, type, "2020-06-01 12:00:00");
+    }
+
+
+    @AfterEach
+    void removeRows()
+    {
+        dslContext.deleteFrom(FOO).where(FOO.DESCRIPTION.eq(marker)).execute();
+    }
 
 
     /// A to-one relation comes back with the rows that carry it, out of the one statement that fetched
@@ -40,18 +90,19 @@ class QueryDocumentServiceTest
     {
         final Map<String, Object> document = queryDocument(
             "queryFooDocument",
-            "id name type owner { id login } fooType { name ordinal }",
-            config(2, 0)
+            "id name type ownerId owner { id login } fooType { name ordinal }",
+            Map.of("pageSize", 0, "offset", 0, "condition", marked())
         );
 
         assertThat(document.get("type"), is("Foo"));
 
         final List<Map<String, Object>> rows = rows(document);
-        assertThat(rows, hasSize(2));
+        assertThat(rows, hasSize(3));
 
         for (Map<String, Object> row : rows)
         {
-            assertThat(nested(row, "owner").get("login"), is("admin"));
+            assertThat(nested(row, "owner").get("id"), is(row.get("ownerId")));
+            assertThat(nested(row, "owner").get("login"), is(notNullValue()));
             assertThat(nested(row, "fooType").get("name"), is(row.get("type")));
         }
     }
@@ -62,10 +113,14 @@ class QueryDocumentServiceTest
     @Test
     void countsWhatThePageLeftOut()
     {
-        final Map<String, Object> document = queryDocument("queryFooDocument", "id name", config(2, 0));
+        final Map<String, Object> document = queryDocument(
+            "queryFooDocument",
+            "id name",
+            Map.of("pageSize", 2, "offset", 0, "condition", marked())
+        );
 
         assertThat(rows(document), hasSize(2));
-        assertThat((Integer) document.get("rowCount"), is(greaterThanOrEqualTo(7)));
+        assertThat(document.get("rowCount"), is(3));
     }
 
 
@@ -92,14 +147,10 @@ class QueryDocumentServiceTest
         final Map<String, Object> byName = queryDocument(
             "queryFooDocument",
             "id name",
-            Map.of(
-                "pageSize", 0,
-                "offset", 0,
-                "condition", eq("name", "String", "Foo #1")
-            )
+            Map.of("pageSize", 0, "offset", 0, "condition", marked(eq("name", "String", "Bravo")))
         );
 
-        assertThat(rows(byName).stream().map(row -> row.get("name")).toList(), contains("Foo #1"));
+        assertThat(names(byName), contains("Bravo"));
 
         // through a relation: the condition reads a column of the joined table
         final Map<String, Object> byOwner = queryDocument(
@@ -108,17 +159,18 @@ class QueryDocumentServiceTest
             Map.of(
                 "pageSize", 0,
                 "offset", 0,
-                "condition", eq("owner.login", "String", "admin")
+                "sortFields", List.of("name"),
+                "condition", marked(eq("owner.login", "String", ownerA.value2()))
             )
         );
-        assertThat(rows(byOwner).size(), is(greaterThanOrEqualTo(7)));
+        assertThat(names(byOwner), contains("Alpha", "Charlie"));
 
         final Map<String, Object> sorted = queryDocument(
             "queryFooDocument",
             "id name",
-            Map.of("pageSize", 1, "offset", 0, "sortFields", List.of("!name"))
+            Map.of("pageSize", 1, "offset", 0, "sortFields", List.of("!name"), "condition", marked())
         );
-        assertThat(rows(sorted).get(0).get("name"), is("Foo #8"));
+        assertThat(names(sorted), contains("Charlie"));
     }
 
 
@@ -135,14 +187,11 @@ class QueryDocumentServiceTest
                 "pageSize", 0,
                 "offset", 0,
                 "sortFields", List.of("name"),
-                "condition", comparison("lt", "created", "Timestamp", "2019-01-01T00:00:00.000Z")
+                "condition", marked(comparison("lt", "created", "Timestamp", "2019-01-01T00:00:00.000Z"))
             )
         );
 
-        assertThat(
-            rows(document).stream().map(row -> row.get("name")).toList(),
-            contains("Foo #1", "Foo #22", "Foo #33", "Foo #4")
-        );
+        assertThat(names(document), contains("Alpha", "Bravo"));
     }
 
 
@@ -155,7 +204,7 @@ class QueryDocumentServiceTest
     {
         final Map<String, Object> condition = component(
             "nameFilter",
-            eq("name", "String", "Foo #1")
+            marked(eq("name", "String", "Alpha"))
         );
 
         final Map<String, Object> document = queryDocument(
@@ -164,7 +213,7 @@ class QueryDocumentServiceTest
             Map.of("pageSize", 0, "offset", 0, "condition", condition)
         );
 
-        assertThat(rows(document).stream().map(row -> row.get("name")).toList(), contains("Foo #1"));
+        assertThat(names(document), contains("Alpha"));
 
         @SuppressWarnings("unchecked")
         final Map<String, Object> config = (Map<String, Object>) document.get("config");
@@ -179,11 +228,11 @@ class QueryDocumentServiceTest
     {
         final Map<String, Object> document = queryDocument(
             "queryAppUserDocument",
-            "id login foos { id name }",
+            "id login foos { name description }",
             Map.of(
                 "pageSize", 0,
                 "offset", 0,
-                "condition", eq("login", "String", "admin")
+                "condition", eq("login", "String", ownerA.value2())
             )
         );
 
@@ -192,7 +241,12 @@ class QueryDocumentServiceTest
 
         @SuppressWarnings("unchecked")
         final List<Map<String, Object>> foos = (List<Map<String, Object>>) rows.get(0).get("foos");
-        assertThat(foos.size(), is(greaterThanOrEqualTo(7)));
+        final List<Object> mine = foos.stream()
+            .filter(foo -> marker.equals(foo.get("description")))
+            .map(foo -> foo.get("name"))
+            .sorted()
+            .toList();
+        assertThat(mine, contains("Alpha", "Charlie"));
     }
 
 
@@ -289,6 +343,42 @@ class QueryDocumentServiceTest
     private static Map<String, Object> config(int pageSize, int offset)
     {
         return Map.of("pageSize", pageSize, "offset", offset);
+    }
+
+
+    private void insertFoo(String name, int num, Record2<String, String> owner, String type, String created)
+    {
+        dslContext.insertInto(FOO)
+            .set(FOO.ID, UUID.randomUUID().toString())
+            .set(FOO.NAME, name)
+            .set(FOO.NUM, num)
+            .set(FOO.FLAG, true)
+            .set(FOO.TYPE, type)
+            .set(FOO.OWNER_ID, owner.value1())
+            .set(FOO.CREATED, Timestamp.valueOf(created))
+            .set(FOO.DESCRIPTION, marker)
+            .set(FOO.VERSION, UUID.randomUUID().toString())
+            .execute();
+    }
+
+
+    /// The condition that finds this test's rows and no others.
+    private Map<String, Object> marked()
+    {
+        return eq("description", "String", marker);
+    }
+
+
+    /// The given condition, limited to this test's rows.
+    private Map<String, Object> marked(Map<String, Object> condition)
+    {
+        return Map.of("type", "Condition", "name", "and", "operands", List.of(marked(), condition));
+    }
+
+
+    private static List<Object> names(Map<String, Object> document)
+    {
+        return rows(document).stream().map(row -> row.get("name")).toList();
     }
 
 

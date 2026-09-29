@@ -1,7 +1,8 @@
 # Isolating qlive-test's tests from the database's state
 
-Status: noted, not started. Written 2026-09-29, after UI checks left
-rows in the dev database that made `QueryDocumentServiceTest` fail.
+Status: started. Written 2026-09-29, after UI checks left rows in the
+dev database that made `QueryDocumentServiceTest` fail. Its Foo tests
+follow the direction below; its Bar, Baz and Qux tests don't yet.
 
 ## Problem
 
@@ -19,10 +20,11 @@ Two concerns look alike and aren't:
   ("Foo #1 edited") fails three of them, and the failure says nothing
   about the code under test. This is the one that matters.
 
-`QueryDocumentServiceTest` is the case today: it filters and sorts the
-Foos of the backup and asserts on their names (`"Foo #1"`, `"Foo #22"`,
-...). `MergeServiceTest` shows the other way. It creates its own rows
-under fresh ids, asserts only on those, and removes them afterwards.
+`QueryDocumentServiceTest`'s Bar, Baz and Qux tests are the case
+today: they read the backup's rows and assert on their names and
+values. Its Foo tests show the other way, as does `MergeServiceTest`:
+they create their own rows, assert only on those, and remove them
+afterwards.
 
 ## Direction
 
@@ -42,6 +44,6 @@ Not chosen as the answer on its own:
 
 ## When to do it
 
-With the next change to `QueryDocumentServiceTest`, or earlier if its
-failures keep costing a reset. New tests follow the direction above from
-the start.
+The Bar, Baz and Qux tests with their next change, or earlier if they
+keep costing a reset. New tests follow the direction above from the
+start.

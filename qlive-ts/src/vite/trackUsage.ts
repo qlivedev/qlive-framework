@@ -7,6 +7,7 @@ import trackUsageBabelPlugin from "./babel/trackUsagePlugin.js";
 import trackUsageData from "./babel/trackUsageData.js";
 import deepEqual from "deep-equal";
 import type {Plugin, ResolvedConfig} from "vite";
+import type {IncomingMessage, OutgoingHttpHeaders, ServerResponse} from "node:http";
 
 /**
  * Which calls the analysis records: calls of `fn` on whatever `module` exports, or of the module
@@ -71,6 +72,13 @@ const TRACK_USAGE_DEV_URI = "/_dev/track-usage";
  * needs to start from a known state.
  */
 const FULL_PUSH_QUERY = "?full=true";
+
+/**
+ * Header of the backend's "not ready" answer, and the value naming a backend without the static analysis.
+ * QLive's ViteIndexController spells out the same, so both halves have to agree.
+ */
+const NOT_READY_HEADER = "x-qlive-not-ready";
+const NO_STATIC_ANALYSIS = "static-analysis";
 
 /** How long a starting dev server waits for the backend to take the first push before serving anyway. */
 const FIRST_PUSH_WAIT_MS = 5000;
@@ -436,6 +444,8 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
     let reloadPending = false;
     /** Reloads the browser, once there is a dev server to do it through. */
     let reloadBrowser: (() => void) | undefined;
+    /** The full push sent to a backend that answered without the static analysis, while it is on its way. */
+    let resync: Promise<void> | undefined;
     /** Rewrites the query result types, or null while they are switched off. Created once per server. */
     let queryTypes: Promise<QueryTypeGenerator | null> = Promise.resolve(null);
 
@@ -618,6 +628,39 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
     }
 
     /**
+     * Sends the whole analysis to a backend that has none, which is what a backend started after the dev
+     * server is: the pushes went to the one before it. The browser keeps asking for its bootstrap until the
+     * backend can answer, so there is nothing to reload -- but it asks twice a second, so one resend at a time.
+     */
+    function resyncBackend(): void
+    {
+        if (resync)
+        {
+            return;
+        }
+        needsFullPush = true;
+        resync = pushToServer().finally(() => { resync = undefined; });
+    }
+
+    /**
+     * Watches a response for the backend's answer that it has no static analysis. Only watches: the response
+     * is the proxy's, the browser gets it as it is and retries.
+     */
+    function watchForMissingAnalysis(req: IncomingMessage, res: ServerResponse, next: () => void): void
+    {
+        const writeHead = res.writeHead;
+        res.writeHead = function (this: ServerResponse, ...args: unknown[])
+        {
+            if (lacksAnalysis(this, args))
+            {
+                resyncBackend();
+            }
+            return (writeHead as (...args: unknown[]) => ServerResponse).apply(this, args);
+        } as typeof res.writeHead;
+        next();
+    }
+
+    /**
      * Takes a failed push's modules back into the queue. No retry is scheduled: the backend is unreachable or
      * unhappy, and the next edit is soon enough to try again without hammering it in between.
      */
@@ -675,6 +718,13 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
         async configureServer(server)
         {
             reloadBrowser = () => server.ws.send({type: "full-reload"});
+
+            if (isDevMode && pushUrl)
+            {
+                // Ahead of Vite's own middlewares, the proxy to the backend among them, so that every answer
+                // the backend gives the browser passes by here.
+                server.middlewares.use(watchForMissingAnalysis);
+            }
 
             if (isDevMode)
             {
@@ -777,4 +827,48 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
             clearTimeout(timer);
         },
     };
+}
+
+
+/**
+ * Whether a response about to be written is the backend's answer that it has no static analysis. The header can
+ * have been set on the response or be handed to writeHead(), which takes it as an object or as raw pairs.
+ */
+function lacksAnalysis(res: ServerResponse, writeHeadArgs: unknown[]): boolean
+{
+    const status = typeof writeHeadArgs[0] === "number" ? writeHeadArgs[0] : res.statusCode;
+    if (status !== 503)
+    {
+        return false;
+    }
+    const given = writeHeadArgs.find((arg) => typeof arg === "object" && arg !== null);
+    return headerValue(given, NOT_READY_HEADER) === NO_STATIC_ANALYSIS
+        || String(res.getHeader(NOT_READY_HEADER) ?? "") === NO_STATIC_ANALYSIS;
+}
+
+
+/**
+ * One header of those handed to writeHead(), by lower-case name.
+ */
+function headerValue(headers: unknown, name: string): string | undefined
+{
+    if (Array.isArray(headers))
+    {
+        // [[name, value], ...] or [name, value, name, value, ...]
+        const flat = (headers.length > 0 && Array.isArray(headers[0]) ? headers.flat() : headers) as unknown[];
+        for (let i = 0; i + 1 < flat.length; i += 2)
+        {
+            if (String(flat[i]).toLowerCase() === name)
+            {
+                return String(flat[i + 1]);
+            }
+        }
+        return undefined;
+    }
+    if (headers)
+    {
+        const found = Object.entries(headers as OutgoingHttpHeaders).find(([key]) => key.toLowerCase() === name);
+        return found ? String(found[1]) : undefined;
+    }
+    return undefined;
 }

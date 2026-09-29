@@ -47,6 +47,8 @@ describe("trackUsage", () => {
     /** whether configureServer() has returned, which is when Vite starts serving */
     let serving: boolean;
     let watcher: EventEmitter;
+    /** what the plugin put in front of the dev server's middlewares, if anything */
+    let middleware: ((req: unknown, res: unknown, next: () => void) => void) | undefined;
 
     /** The plugin hooks this test drives, which are declared as plain functions. */
     interface TestPlugin
@@ -110,6 +112,7 @@ describe("trackUsage", () => {
         Promise.resolve(plugin.configureServer({
             watcher,
             ws: {send: () => { reloads++; }},
+            middlewares: {use: (handler: typeof middleware) => { middleware = handler; }},
         } as unknown as ViteDevServer)).then(() => { serving = true; });
 
         return plugin;
@@ -128,6 +131,34 @@ describe("trackUsage", () => {
         } as unknown as ResolvedConfig);
 
         return plugin;
+    }
+
+
+    /**
+     * Passes a response from the backend to the browser through the dev server, the way the proxy writes one:
+     * headers set on the response, or handed to writeHead().
+     */
+    function answerBrowser(status: number, headers: Record<string, string>, set: "setHeader" | "writeHead"): void
+    {
+        const stored: Record<string, string> = {};
+        const res = {
+            statusCode: 200,
+            setHeader(name: string, value: string) { stored[name.toLowerCase()] = value; },
+            getHeader(name: string) { return stored[name.toLowerCase()]; },
+            writeHead(this: unknown) { return this; },
+        };
+        middleware!({}, res, () => {});
+
+        if (set === "setHeader")
+        {
+            res.statusCode = status;
+            Object.entries(headers).forEach(([name, value]) => res.setHeader(name, value));
+            res.writeHead();
+        }
+        else
+        {
+            (res.writeHead as (...args: unknown[]) => unknown)(status, headers);
+        }
     }
 
 
@@ -163,6 +194,7 @@ describe("trackUsage", () => {
         pushes = [];
         reloads = 0;
         watcher = new EventEmitter();
+        middleware = undefined;
 
         // The analysis accumulates in a module-level store of the babel plugin, so one test's modules would
         // otherwise still be in the next one's pushes.
@@ -390,6 +422,62 @@ describe("trackUsage", () => {
         // be touched again.
         expect(pushes).toHaveLength(2);
         expect(Object.keys(pushes[1].usages).sort()).toEqual(["./app/Home", "./app/Q_Foo"]);
+    });
+
+
+    it("sends the whole analysis to a backend started after the dev server", async () => {
+        await startWithBothModulesPushed();
+
+        // The page's bootstrap, answered by a backend that has never been pushed to.
+        answerBrowser(503, {"X-QLive-Not-Ready": "static-analysis"}, "writeHead");
+        await settle();
+
+        expect(pushes).toHaveLength(1);
+        expect(pushes[0].url).toContain("full=true");
+        expect(Object.keys(pushes[0].usages).sort()).toEqual(["./app/Home", "./app/Q_Foo"]);
+
+        // The browser retries its bootstrap by itself, so there is nothing to reload.
+        pushes[0].answer(204);
+        await settle();
+        expect(reloads).toBe(0);
+    });
+
+
+    it("resends once while the browser keeps asking", async () => {
+        await startWithBothModulesPushed();
+
+        answerBrowser(503, {"X-QLive-Not-Ready": "static-analysis"}, "setHeader");
+        answerBrowser(503, {"X-QLive-Not-Ready": "static-analysis"}, "setHeader");
+        await settle();
+        expect(pushes).toHaveLength(1);
+
+        pushes[0].answer(204);
+        await settle();
+
+        // A backend restarted once more is resent to once more.
+        answerBrowser(503, {"X-QLive-Not-Ready": "static-analysis"}, "setHeader");
+        await settle();
+        expect(pushes).toHaveLength(2);
+        expect(pushes[1].url).toContain("full=true");
+    });
+
+
+    it("leaves every other answer alone", async () => {
+        await startWithBothModulesPushed();
+
+        answerBrowser(503, {}, "writeHead");
+        answerBrowser(200, {"X-QLive-Not-Ready": "static-analysis"}, "writeHead");
+        answerBrowser(503, {"X-QLive-Not-Ready": "something-else"}, "setHeader");
+        await settle();
+
+        expect(pushes).toHaveLength(0);
+    });
+
+
+    it("watches nothing without a backend to push to", () => {
+        startPlugin(null);
+
+        expect(middleware).toBeUndefined();
     });
 
 

@@ -288,6 +288,24 @@ sortFields?: FieldExpression[];
 Array of sort field expression which are either column names with optional `!` prefix to describe descending sort
 or a complex field expression like the sum of two fields.
 
+## unawaited()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function unawaited(promise: Promise<unknown>): void;
+```
+
+Lets go of the promise of an update() nobody waits for, a click handler's or a timer's. A query document
+keeps the failure as its `error`, where the view sees it, so catching here hides nothing and leaves no
+unhandled rejection behind.
+
+**Parameters**
+
+| | |
+|---|---|
+| `promise` | the update() or what a hook made of it |
+
 ## localDocument()
 
 <span class="api-kind">function</span>

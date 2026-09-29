@@ -131,6 +131,7 @@
         "ClientQueryDocument",
         "QueryConfig",
         "QueryConfigDelta",
+        "unawaited",
         "localDocument",
         "useLocalDocument"
       ]

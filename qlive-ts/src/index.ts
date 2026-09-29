@@ -132,6 +132,7 @@ export { flagSetFilter } from "./grid/flagSetFilter";
 export { resolveColumn, rowKey } from "./grid/columns";
 export { useGridRows } from "./grid/useGridRows";
 export { default as DataGrid } from "./grid/DataGrid";
+export { unawaited } from "./grid/unawaited";
 
 // ---------------------------------------------------------------------------
 // TYPESCRIPT TYPES

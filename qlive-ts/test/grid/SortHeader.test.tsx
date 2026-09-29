@@ -95,6 +95,13 @@ describe("SortHeader", () => {
         expect(th.textContent).toBe("Num▼2");
     });
 
+    it("puts its title on the header cell", () => {
+        const th = render(<SortHeader doc={ sortedBy("name") } sortKey="name" title="name, ascending">Name</SortHeader>);
+        expect(th.title).toBe("name, ascending");
+        expect(render(<SortHeader doc={ sortedBy("name") } sortKey="name">Name</SortHeader>).hasAttribute("title"))
+            .toBe(false);
+    });
+
     it("toggles on click", () => {
         const doc = sortedBy("name");
         const th = render(<SortHeader doc={ doc } sortKey="name">Name</SortHeader>);

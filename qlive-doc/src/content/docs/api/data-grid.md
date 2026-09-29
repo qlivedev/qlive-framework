@@ -63,6 +63,11 @@ type DataGridProps<R> = {
    */
   rowClassName?: (row: R) => string | undefined;
   /**
+   * Tooltip of a column's header cell, e.g. a description of the sort field its arrow stands for. What that says
+   * and how it's put is the application's; `matchSort()` and `matchSortPart()` find the sort field.
+   */
+  headerTitle?: (column: ResolvedColumn) => string | undefined;
+  /**
    * Key of the row to highlight, e.g. the one open in a detail pane. Rows are keyed as `rowKey()` keys them.
    */
   highlighted?: string | null;

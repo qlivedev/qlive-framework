@@ -382,7 +382,7 @@ by nothing else. Goes back to the first page, since the rows on any other page a
 <span class="api-kind">function</span>
 
 ```ts
-declare function SortHeader({ doc, sortKey, children, className }: SortHeaderProps): JSX.Element;
+declare function SortHeader({ doc, sortKey, children, className, title }: SortHeaderProps): JSX.Element;
 ```
 
 A table header cell that sorts the document by its key when clicked, and shows where the key stands in the
@@ -415,6 +415,10 @@ type SortHeaderProps = {
    * Added to the header cell's own classes.
    */
   className?: string;
+  /**
+   * Tooltip of the header cell, e.g. a description of the sort order the arrow and number stand for.
+   */
+  title?: string;
 };
 ```
 

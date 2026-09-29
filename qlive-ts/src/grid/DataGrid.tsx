@@ -63,6 +63,12 @@ export type DataGridProps<R> = {
     rowClassName?: (row: R) => string | undefined
 
     /**
+     * Tooltip of a column's header cell, e.g. a description of the sort field its arrow stands for. What that says
+     * and how it's put is the application's; `matchSort()` and `matchSortPart()` find the sort field.
+     */
+    headerTitle?: (column: ResolvedColumn) => string | undefined
+
+    /**
      * Key of the row to highlight, e.g. the one open in a detail pane. Rows are keyed as `rowKey()` keys them.
      */
     highlighted?: string | null
@@ -114,7 +120,7 @@ function classes(...names: (string | false | null | undefined)[]): string
  */
 export default function DataGrid<R>(props: DataGridProps<R>): JSX.Element
 {
-    const {doc, id = "grid", workingSet, watch, rowClassName, highlighted, pageSizes, className} = props;
+    const {doc, id = "grid", workingSet, watch, rowClassName, headerTitle, highlighted, pageSizes, className} = props;
 
     const columns = props.columns.map(column => resolveColumn<R>(doc.type, column));
     const filters = useFilters(doc, id, columns.flatMap(column => column.filter ? [column.filter] : []));
@@ -145,8 +151,12 @@ export default function DataGrid<R>(props: DataGridProps<R>): JSX.Element
                     <tr className="qlive-grid-headings">
                         {
                             columns.map((column, index) => column.sort !== null
-                                ? <SortHeader key={ index } doc={ doc } sortKey={ column.sort }>{ column.heading }</SortHeader>
-                                : <th key={ index } className="qlive-grid-heading">{ column.heading }</th>
+                                ? (
+                                    <SortHeader key={ index } doc={ doc } sortKey={ column.sort } title={ headerTitle?.(column) }>
+                                        { column.heading }
+                                    </SortHeader>
+                                )
+                                : <th key={ index } className="qlive-grid-heading" title={ headerTitle?.(column) }>{ column.heading }</th>
                             )
                         }
                     </tr>

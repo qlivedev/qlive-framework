@@ -219,6 +219,16 @@ describe("DataGrid", () => {
         expect(grid.querySelector(".qlive-grid-sorted-partial")!.textContent).toBe("[Foo.num]▲");
     });
 
+    it("titles the header cells as asked", () => {
+        const grid = render(
+            <DataGrid doc={ doc() } columns={ ["name", "num", {heading: "Actions", render: () => null}] }
+                      headerTitle={ column => column.sort === "num" ? undefined : "about " + String(column.heading) }/>
+        );
+
+        const headings = Array.from(grid.querySelectorAll(".qlive-grid-headings th"));
+        expect(headings.map(th => th.getAttribute("title"))).toEqual(["about [Foo.name]", null, "about Actions"]);
+    });
+
     it("notes nothing where every sort field and term has its column", () => {
         const term = field("name").containsIgnoreCase(value("x")) as FilterExpression;
         const grid = render(

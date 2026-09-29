@@ -24,6 +24,11 @@ export type SortHeaderProps = {
      * Added to the header cell's own classes.
      */
     className?: string
+
+    /**
+     * Tooltip of the header cell, e.g. a description of the sort order the arrow and number stand for.
+     */
+    title?: string
 }
 
 const ARROWS = {asc: "▲", desc: "▼"}
@@ -37,7 +42,7 @@ const ARROWS = {asc: "▲", desc: "▼"}
  * Built on useSort() and nothing else, so a header that has to look different, or isn't a table cell, is written
  * the same way.
  */
-export default function SortHeader({doc, sortKey, children, className}: SortHeaderProps): JSX.Element
+export default function SortHeader({doc, sortKey, children, className, title}: SortHeaderProps): JSX.Element
 {
     const {direction, position, partial, toggle} = useSort(doc, sortKey)
 
@@ -52,7 +57,7 @@ export default function SortHeader({doc, sortKey, children, className}: SortHead
     const number = position !== null && doc.config.sortFields.length > 1 ? position + 1 : null
 
     return (
-        <th className={ classes } aria-sort={ ariaSort }>
+        <th className={ classes } aria-sort={ ariaSort } title={ title }>
             <button type="button" onClick={ () => unawaited(toggle()) }>
                 { children }
                 <span className="qlive-grid-sort-indicator" aria-hidden="true">

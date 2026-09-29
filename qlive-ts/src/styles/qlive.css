@@ -33,6 +33,7 @@
         --qlive-color-muted: #6b6b6b;
         --qlive-color-border: #d4d4d4;
         --qlive-color-accent: #2563eb;
+        --qlive-color-secondary: #d97706;
         --qlive-color-error: #dc2626;
 
         /*
@@ -80,6 +81,7 @@
             --qlive-color-muted: #9a9a9a;
             --qlive-color-border: #3a3a3a;
             --qlive-color-accent: #60a5fa;
+            --qlive-color-secondary: #fbbf24;
             --qlive-color-error: #f87171;
 
             --qlive-color-changed: #60a5fa;
@@ -398,6 +400,11 @@
         color: var(--qlive-color-accent);
         font-size: var(--qlive-font-size-sm);
         white-space: nowrap;
+    }
+    /* the column takes part in an expression the rows are sorted by */
+    .qlive-grid-sorted-partial .qlive-grid-sort-indicator
+    {
+        color: var(--qlive-color-secondary);
     }
 
     /*

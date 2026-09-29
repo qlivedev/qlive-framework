@@ -2,7 +2,7 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {act} from "react";
 import {createRoot, Root} from "react-dom/client";
-import {FieldExpression} from "../../src/FilterDSL";
+import {field, FieldExpression, value} from "../../src/FilterDSL";
 import SortHeader from "../../src/grid/SortHeader";
 
 function sortedBy(...sortFields: FieldExpression[])
@@ -63,6 +63,36 @@ describe("SortHeader", () => {
         const second = render(<SortHeader doc={ doc } sortKey="name">Name</SortHeader>);
         expect(second.textContent).toBe("Name▲2");
         expect(second.hasAttribute("aria-sort")).toBe(false);
+    });
+
+    it("marks a key that is part of an expression sorted by", () => {
+        const th = render(
+            <SortHeader doc={ sortedBy(field("num").mod(value(10)).desc()) } sortKey="num">Num</SortHeader>
+        );
+
+        expect(th.className).toBe(
+            "qlive-grid-sort-header qlive-grid-sorted qlive-grid-sorted-desc qlive-grid-sorted-partial"
+        );
+        expect(th.hasAttribute("aria-sort")).toBe(false);
+        expect(th.textContent).toBe("Num▼");
+    });
+
+    it("gives the keys of one expression the same number", () => {
+        const doc = sortedBy("name", field("num").add(field("flag")));
+
+        expect(render(<SortHeader doc={ doc } sortKey="num">Num</SortHeader>).textContent).toBe("Num▲2");
+        expect(render(<SortHeader doc={ doc } sortKey="flag">Flag</SortHeader>).textContent).toBe("Flag▲2");
+        expect(render(<SortHeader doc={ doc } sortKey="name">Name</SortHeader>).className)
+            .not.toContain("qlive-grid-sorted-partial");
+    });
+
+    it("prefers the key itself to an expression containing it", () => {
+        const th = render(
+            <SortHeader doc={ sortedBy(field("num").mod(value(10)), "!num") } sortKey="num">Num</SortHeader>
+        );
+
+        expect(th.className).not.toContain("qlive-grid-sorted-partial");
+        expect(th.textContent).toBe("Num▼2");
     });
 
     it("toggles on click", () => {

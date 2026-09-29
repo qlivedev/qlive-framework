@@ -293,6 +293,8 @@ this shows it.
         Name { sort.direction === "asc" ? "▲" : sort.direction === "desc" ? "▼" : "" }
     </button>
 
+A key the sort order names itself is found first; failing that, a key taking part in an expression it sorts by.
+
 The key is a field path (`"owner.name"`) or a FilterDSL expression node. A key naming a direction (`"!name"`,
 `desc(...)`) is a mistake: the direction is what toggle() changes.
 
@@ -342,7 +344,8 @@ Where one sort key stands in a document's sort order, and the way to sort by it.
 direction: SortDirection | null;
 ```
 
-Direction the document sorts by the key in, `null` if its sort order doesn't name the key.
+Direction the document sorts by the key in, `null` if its sort order doesn't name the key. Where the key is
+only part of a sort field, the direction of that expression.
 
 ### SortState.position
 
@@ -351,7 +354,17 @@ position: number | null;
 ```
 
 Index of the key in the sort order, 0 for the most significant field, `null` if the order doesn't name the
-key. Above 0 only where something other than a header click set a sort of several fields.
+key. Above 0 only where something other than a header click set a sort of several fields. Keys that are part
+of the same expression share its index.
+
+### SortState.partial
+
+```ts
+partial: boolean;
+```
+
+Whether the key is only part of the sort field it was found in, an expression like `num % 10` for the key
+`num`, rather than the sort field itself. See matchSortPart().
 
 ### SortState.toggle
 
@@ -373,7 +386,9 @@ declare function SortHeader({ doc, sortKey, children, className }: SortHeaderPro
 ```
 
 A table header cell that sorts the document by its key when clicked, and shows where the key stands in the
-document's sort order: its direction, and its position where the order has more than one field.
+document's sort order: its direction, and its position where the order has more than one field. A key that is part
+of an expression the document sorts by shows the expression's direction and position, marked
+`qlive-grid-sorted-partial`; several keys in the same expression show the same position.
 
 Built on useSort() and nothing else, so a header that has to look different, or isn't a table cell, is written
 the same way.

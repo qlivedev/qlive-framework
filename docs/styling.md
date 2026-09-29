@@ -84,7 +84,7 @@ The `--qlive-*` custom properties are the theming API. An application
 overrides them in its own CSS, at whatever scope it likes, including at
 runtime. There is no theme config format to learn.
 
-Currently defined: `--qlive-color-{bg,fg,muted,border,accent,error}`,
+Currently defined: `--qlive-color-{bg,fg,muted,border,accent,secondary,error}`,
 `--qlive-space-{1,2,3}`, `--qlive-radius-md`, `--qlive-font-sans`, and
 `--qlive-font-size{,-sm,-lg}`. The palette is a skeleton chosen to be
 inoffensive, not a designed one.
@@ -107,7 +107,10 @@ The grid's parts, as far as they exist (see `docs/design/datagrid.md`):
   `aria-current="page"`, not a class.
 - `.qlive-grid-sort-header` on a `<th>`, with `.qlive-grid-sorted` and
   `.qlive-grid-sorted-{asc,desc}` while the document sorts by its key,
-  and `.qlive-grid-sort-indicator` around the arrow and position.
+  and `.qlive-grid-sort-indicator` around the arrow and position. A
+  key that is only part of an expression the document sorts by adds
+  `.qlive-grid-sorted-partial`, its indicator in
+  `--qlive-color-secondary`.
 - `.qlive-grid-filter` around one column's filter inputs, with
   `.qlive-grid-filter-active` while its term is in the condition, and
   `.qlive-grid-filter-input` on each default text input and on the

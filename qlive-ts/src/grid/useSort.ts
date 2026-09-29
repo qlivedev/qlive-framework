@@ -1,4 +1,4 @@
-import {FieldExpression, matchSort, SortDirection, toggleSort} from "../FilterDSL";
+import {FieldExpression, matchSort, matchSortPart, SortDirection, toggleSort} from "../FilterDSL";
 import {QueryConfig, QueryConfigDelta} from "../QueryDocument";
 
 /**
@@ -17,15 +17,23 @@ export interface SortableDocument
 export interface SortState
 {
     /**
-     * Direction the document sorts by the key in, `null` if its sort order doesn't name the key.
+     * Direction the document sorts by the key in, `null` if its sort order doesn't name the key. Where the key is
+     * only part of a sort field, the direction of that expression.
      */
     direction: SortDirection | null;
 
     /**
      * Index of the key in the sort order, 0 for the most significant field, `null` if the order doesn't name the
-     * key. Above 0 only where something other than a header click set a sort of several fields.
+     * key. Above 0 only where something other than a header click set a sort of several fields. Keys that are part
+     * of the same expression share its index.
      */
     position: number | null;
+
+    /**
+     * Whether the key is only part of the sort field it was found in, an expression like `num % 10` for the key
+     * `num`, rather than the sort field itself. See matchSortPart().
+     */
+    partial: boolean;
 
     /**
      * Sorts the document by the key alone: ascending, or descending if the document sorts by the key ascending and
@@ -48,6 +56,8 @@ export interface SortState
  *         Name { sort.direction === "asc" ? "▲" : sort.direction === "desc" ? "▼" : "" }
  *     </button>
  *
+ * A key the sort order names itself is found first; failing that, a key taking part in an expression it sorts by.
+ *
  * The key is a field path (`"owner.name"`) or a FilterDSL expression node. A key naming a direction (`"!name"`,
  * `desc(...)`) is a mistake: the direction is what toggle() changes.
  *
@@ -57,10 +67,13 @@ export interface SortState
 export function useSort(doc: SortableDocument, key: FieldExpression): SortState
 {
     const match = matchSort(doc.config.sortFields, key);
+    const part = match ? null : matchSortPart(doc.config.sortFields, key);
+    const found = match ?? part;
 
     return {
-        direction: match?.direction ?? null,
-        position: match?.index ?? null,
+        direction: found?.direction ?? null,
+        position: found?.index ?? null,
+        partial: part !== null,
         toggle: () => doc.update({sortFields: toggleSort(doc.config.sortFields, key), offset: 0}).then(() => {})
     };
 }

@@ -210,6 +210,15 @@ describe("DataGrid", () => {
         expect(grid.querySelector(".qlive-grid-error")).toBeNull();
     });
 
+    it("counts an expression over a column's field as shown on that column", () => {
+        const grid = render(
+            <DataGrid doc={ doc({sortFields: [field("num").mod(value(10))]}) } columns={ ["name", "num"] }/>
+        );
+
+        expect(grid.querySelectorAll(".qlive-grid-note")).toHaveLength(0);
+        expect(grid.querySelector(".qlive-grid-sorted-partial")!.textContent).toBe("[Foo.num]▲");
+    });
+
     it("notes nothing where every sort field and term has its column", () => {
         const term = field("name").containsIgnoreCase(value("x")) as FilterExpression;
         const grid = render(

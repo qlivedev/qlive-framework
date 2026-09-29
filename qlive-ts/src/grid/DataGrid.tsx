@@ -1,6 +1,6 @@
 import type {CSSProperties, JSX} from "react";
 
-import {matchSort} from "../FilterDSL";
+import {matchSort, matchSortPart} from "../FilterDSL";
 import i18n from "../i18n";
 import {WorkingSet} from "../merge/WorkingSet";
 import {GridColumn, ResolvedColumn, resolveColumn, rowKey} from "./columns";
@@ -121,7 +121,9 @@ export default function DataGrid<R>(props: DataGridProps<R>): JSX.Element
     const {rows, status, fieldClass, stale} = useGridRows(doc, {workingSet, watch});
 
     const unsorted = doc.config.sortFields.filter(
-        sortField => !columns.some(column => column.sort !== null && matchSort([sortField], column.sort))
+        sortField => !columns.some(column => column.sort !== null &&
+            (matchSort([sortField], column.sort) !== null || matchSortPart([sortField], column.sort) !== null)
+        )
     );
 
     let filterIndex = 0;

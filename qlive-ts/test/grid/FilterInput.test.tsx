@@ -8,7 +8,7 @@ import {ColumnFilterState} from "../../src/grid/useFilters";
 
 function column(filter: ColumnFilter<any>, values: unknown[], active: boolean = false): ColumnFilterState
 {
-    return {field: "name", filter, values, setValues: vi.fn(), active};
+    return {field: "name", label: "name", filter, values, setValues: vi.fn(), active};
 }
 
 let container: HTMLElement;
@@ -71,7 +71,7 @@ describe("FilterInput", () => {
     });
 
     it("uses the filter's own input", () => {
-        const Input = ({field, values}: ColumnFilterInputProps) => <span>{ field }={ String(values[0]) }</span>;
+        const Input = ({label, values}: ColumnFilterInputProps) => <span>{ label }={ String(values[0]) }</span>;
         const div = render(<FilterInput column={ column({...operatorFilter("eq"), Input}, ["x"]) }/>);
         expect(div.textContent).toBe("name=x");
     });

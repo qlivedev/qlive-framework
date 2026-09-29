@@ -1,4 +1,4 @@
-import {condition, field, FilterExpression, operation, value} from "../FilterDSL";
+import {condition, conditionsEqual, FilterExpression, operation, value} from "../FilterDSL";
 import {ColumnFilter} from "./filters";
 
 /**
@@ -10,23 +10,23 @@ export function numberContainsFilter(): ColumnFilter<string[]>
     return {
         arity: 1,
 
-        toCondition(path, [text])
+        toCondition(target, [text])
         {
             const digits = text.trim();
             return digits === ""
                 ? null
-                : condition("contains", [operation("toString", [field(path)]), value(digits)]) as FilterExpression;
+                : condition("contains", [operation("toString", [target]), value(digits)]) as FilterExpression;
         },
 
-        fromCondition(path, term)
+        fromCondition(target, term)
         {
             if (term.type !== "Condition" || term.name !== "contains" || term.operands.length !== 2)
             {
                 return null;
             }
-            const [target, text] = term.operands;
-            return target.type === "Operation" && target.name === "toString" && target.operands.length === 1 &&
-                target.operands[0].type === "Field" && target.operands[0].name === path &&
+            const [digits, text] = term.operands;
+            return digits.type === "Operation" && digits.name === "toString" && digits.operands.length === 1 &&
+                conditionsEqual(digits.operands[0], target) &&
                 text.type === "Value" && typeof text.value === "string"
                 ? [text.value]
                 : null;

@@ -2,6 +2,7 @@ import {beforeAll, describe, expect, test} from "vitest";
 import {Temporal} from "temporal-polyfill";
 import {field, value} from "../../src/FilterDSL";
 import {FieldPath, resolveColumn, rowKey} from "../../src/grid/columns";
+import {operatorFilter} from "../../src/grid/filters";
 import {initGridConfig} from "../fixtures/gridConfig";
 
 beforeAll(initGridConfig);
@@ -29,19 +30,19 @@ describe("resolveColumn", () => {
         expect(column.render(row)).toBe("Foo #1");
         expect(column.sort).toBe("name");
         expect(column.filter!.field).toBe("name");
-        expect(column.filter!.filter.toCondition("name", ["oo"])).toMatchObject({name: "containsIgnoreCase"});
+        expect(column.filter!.filter.toCondition(field("name"), ["oo"])).toMatchObject({name: "containsIgnoreCase"});
         expect(column.nowrap).toBe(false);
         expect(column.className(row)).toBeUndefined();
     });
 
     test("filters numbers by eq, of their type", () => {
         const num = resolveColumn("Foo", "num").filter!;
-        expect(num.filter.toCondition("num", ["12"])).toMatchObject({
+        expect(num.filter.toCondition(field("num"), ["12"])).toMatchObject({
             name: "eq",
             operands: [{type: "Field", name: "num"}, {type: "Value", scalarType: "Int", value: 12}]
         });
         const ratio = resolveColumn("Foo", "ratio").filter!;
-        expect(ratio.filter.toCondition("ratio", ["0.5"])).toMatchObject({
+        expect(ratio.filter.toCondition(field("ratio"), ["0.5"])).toMatchObject({
             operands: [{}, {scalarType: "Float", value: 0.5}]
         });
     });
@@ -49,7 +50,7 @@ describe("resolveColumn", () => {
     test("filters Booleans with a select", () => {
         const flag = resolveColumn("Foo", "flag");
         expect(flag.filter!.filter.Input).toBeDefined();
-        expect(flag.filter!.filter.toCondition("flag", ["true"])).toMatchObject({
+        expect(flag.filter!.filter.toCondition(field("flag"), ["true"])).toMatchObject({
             name: "eq",
             operands: [{}, {scalarType: "Boolean", value: true}]
         });
@@ -63,7 +64,7 @@ describe("resolveColumn", () => {
         expect(column.filter!.field).toBe("created");
         expect(column.filter!.filter.arity).toBe(2);
         expect(column.filter!.filter.partial).toBe(true);
-        expect(resolveColumn("Foo", "day").filter!.filter.toCondition("day", ["2026-09-01", null]))
+        expect(resolveColumn("Foo", "day").filter!.filter.toCondition(field("day"), ["2026-09-01", null]))
             .toEqual(field("day").ge(value("2026-09-01", "Date")));
     });
 
@@ -170,7 +171,20 @@ describe("resolveColumn", () => {
 
         expect(() => resolveColumn("Foo", {heading: "Nothing"})).toThrow("needs a render function");
         expect(() => resolveColumn("Foo", {render: () => "", filter: {arity: 1, toCondition: () => null}}))
-            .toThrow("nothing to filter");
+            .toThrow("filters by what it sorts by");
+    });
+
+    test("filters a computed column by its sort key", () => {
+        const sum = field("num").add(field("num"));
+        const filter = operatorFilter("between", "Int");
+        const column = resolveColumn("Foo", {heading: "Twice", render: () => "", sort: sum, filter});
+        expect(column.filter).toEqual({field: sum, filter, label: "Twice"});
+
+        expect(resolveColumn("Foo", {heading: <b/>, render: () => "", sort: "num", filter}).filter)
+            .toEqual({field: "num", filter, label: undefined});
+        expect(resolveColumn("Foo", {render: () => "", sort: sum}).filter).toBeNull();
+        expect(() => resolveColumn("Foo", {render: () => "", sort: sum, filter: {...filter, key: true}}))
+            .toThrow("no related row");
     });
 
     test("names the field of the row whose status the cells show", () => {

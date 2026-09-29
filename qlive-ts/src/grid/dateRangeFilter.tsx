@@ -1,6 +1,6 @@
 import type {JSX} from "react";
 
-import {and, condition, field, FilterExpression, value} from "../FilterDSL";
+import {and, CNode, condition, conditionsEqual, FilterExpression, value} from "../FilterDSL";
 import i18n from "../i18n";
 import {Temporal} from "../temporal";
 import {ColumnFilter, ColumnFilterInputProps} from "./filters";
@@ -36,33 +36,32 @@ function operandValue(node: unknown, scalarType: string): string | null
 }
 
 /**
- * The operands of a field condition on the path, `null` if the term is something else.
+ * The operands of a condition on the target besides the target, `null` if the term is something else.
  */
-function fieldCondition(term: unknown, name: string, path: string): unknown[] | null
+function fieldCondition(term: CNode, name: string, target: CNode): unknown[] | null
 {
-    const node = term as { type?: string, name?: string, operands?: { type?: string, name?: string }[] };
-    if (node?.type !== "Condition" || node.name !== name || !node.operands?.length)
+    if (term.type !== "Condition" || term.name !== name || !term.operands.length)
     {
         return null;
     }
-    const [target, ...operands] = node.operands;
-    return target.type === "Field" && target.name === path ? operands : null;
+    const [filtered, ...operands] = term.operands;
+    return conditionsEqual(filtered, target) ? operands : null;
 }
 
 /**
  * The two bounds of a range term, `null` where the term doesn't have one: `ge` alone, the bound it names below, the
  * bound it names above alone, or both combined with `and()`.
  */
-function bounds(term: FilterExpression, path: string, below: string, above: string): [unknown[] | null, unknown[] | null] | null
+function bounds(term: FilterExpression, target: CNode, below: string, above: string): [unknown[] | null, unknown[] | null] | null
 {
     if (term.type === "Condition" && term.name === "and" && term.operands.length === 2)
     {
-        const from = fieldCondition(term.operands[0], below, path);
-        const to = fieldCondition(term.operands[1], above, path);
+        const from = fieldCondition(term.operands[0], below, target);
+        const to = fieldCondition(term.operands[1], above, target);
         return from && to ? [from, to] : null;
     }
-    const from = fieldCondition(term, below, path);
-    const to = fieldCondition(term, above, path);
+    const from = fieldCondition(term, below, target);
+    const to = fieldCondition(term, above, target);
     return from || to ? [from, to] : null;
 }
 
@@ -95,7 +94,7 @@ function dayStartingAt(text: string, timeZone: string): Temporal.PlainDate | nul
 /**
  * Two date inputs, from and until.
  */
-function DateRangeInput({field, values, setValues}: ColumnFilterInputProps<(string | null)[]>): JSX.Element
+function DateRangeInput({label, values, setValues}: ColumnFilterInputProps<(string | null)[]>): JSX.Element
 {
     const input = (index: number, label: string) => (
         <input type="date" className="qlive-grid-filter-input" aria-label={ label }
@@ -108,8 +107,8 @@ function DateRangeInput({field, values, setValues}: ColumnFilterInputProps<(stri
     );
     return (
         <>
-            { input(0, i18n("Filter {0} from", field)) }
-            { input(1, i18n("Filter {0} until", field)) }
+            { input(0, i18n("Filter {0} from", label)) }
+            { input(1, i18n("Filter {0} until", label)) }
         </>
     );
 }
@@ -156,7 +155,7 @@ export function dateRangeFilter(
             partial: true,
             Input: DateRangeInput,
 
-            toCondition(path, [fromText, toText])
+            toCondition(target, [fromText, toText])
             {
                 const from = parseDate(fromText);
                 const to = parseDate(toText);
@@ -166,23 +165,23 @@ export function dateRangeFilter(
                 }
                 const date = (d: Temporal.PlainDate) => value(d.toString(), "Date");
                 return (
-                    from && to ? condition("between", [field(path), date(from), date(to)]) :
-                    from ? condition("ge", [field(path), date(from)]) :
-                    to ? condition("le", [field(path), date(to)]) :
+                    from && to ? condition("between", [target, date(from), date(to)]) :
+                    from ? condition("ge", [target, date(from)]) :
+                    to ? condition("le", [target, date(to)]) :
                     null
                 ) as FilterExpression | null;
             },
 
-            fromCondition(path, term)
+            fromCondition(target, term)
             {
-                const between = fieldCondition(term, "between", path);
+                const between = fieldCondition(term, "between", target);
                 if (between)
                 {
                     const from = operandValue(between[0], "Date");
                     const to = operandValue(between[1], "Date");
                     return between.length === 2 && parseDate(from) && parseDate(to) ? [from, to] : null;
                 }
-                const found = bounds(term, path, "ge", "le");
+                const found = bounds(term, target, "ge", "le");
                 if (!found || found[0] && found[1])
                 {
                     return null;
@@ -203,7 +202,7 @@ export function dateRangeFilter(
         partial: true,
         Input: DateRangeInput,
 
-        toCondition(path, [fromText, toText])
+        toCondition(target, [fromText, toText])
         {
             const from = parseDate(fromText);
             const to = parseDate(toText);
@@ -214,14 +213,14 @@ export function dateRangeFilter(
             const zone = timeZone();
             const instant = (d: Temporal.PlainDate) => value(startOf(d, zone).toString(), "Timestamp");
             return and(
-                from && condition("ge", [field(path), instant(from)]) as FilterExpression,
-                to && condition("lt", [field(path), instant(to.add({days: 1}))]) as FilterExpression
+                from && condition("ge", [target, instant(from)]) as FilterExpression,
+                to && condition("lt", [target, instant(to.add({days: 1}))]) as FilterExpression
             );
         },
 
-        fromCondition(path, term)
+        fromCondition(target, term)
         {
-            const found = bounds(term, path, "ge", "lt");
+            const found = bounds(term, target, "ge", "lt");
             if (!found)
             {
                 return null;

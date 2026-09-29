@@ -135,8 +135,10 @@ the condition belongs to the grid depends on the condition's shape.
   operator (`containsIgnoreCase`, `eq`, `between`, …), and the number of
   inputs follows the operator's operand count, so `between` gets two
   inputs.
-- **Filter function.** `(fieldName, ...values) => condition` for
-  anything an operator name can't say, e.g. a range on a computed sum.
+- **Filter function.** `(target, ...values) => condition` for anything
+  an operator name can't say, e.g. a pattern language.
+- **Computed columns filter by their sort expression**, so a range on a
+  computed sum is `between` on the column that sorts by the sum.
 - **Default input by scalar type**: a three-way select for Boolean (any,
   true, false), a date range for date and time types, a typed input for
   everything else.

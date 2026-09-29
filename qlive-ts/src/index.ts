@@ -120,7 +120,7 @@ export { usePagination } from "./grid/usePagination";
 export { useSort } from "./grid/useSort";
 export { default as Pager } from "./grid/Pager";
 export { default as SortHeader } from "./grid/SortHeader";
-export { operatorFilter, claimTerms, filled, ready } from "./grid/filters";
+export { operatorFilter, claimTerms, filled, filterLabel, filterTarget, ready } from "./grid/filters";
 export { useFilters } from "./grid/useFilters";
 export { default as FilterInput } from "./grid/FilterInput";
 export { booleanFilter } from "./grid/booleanFilter";

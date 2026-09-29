@@ -2,7 +2,7 @@ import type {JSX} from "react";
 
 import config from "../config";
 import {formatValue} from "../converter";
-import {condition, field, FilterExpression, value} from "../FilterDSL";
+import {condition, conditionsEqual, FilterExpression, value} from "../FilterDSL";
 import i18n from "../i18n";
 import {objectFields, unwrapAll} from "../type-utils";
 import {ColumnFilter, ColumnFilterInputProps} from "./filters";
@@ -75,13 +75,13 @@ interface PickFilter extends ColumnFilter<string[]>
 /**
  * The select of a pick() filter: any, and the rows of the catalog. A key the catalog doesn't hold shows as itself.
  */
-function PickSelect({field, values, setValues, filter}: ColumnFilterInputProps<string[]>): JSX.Element
+function PickSelect({label, values, setValues, filter}: ColumnFilterInputProps<string[]>): JSX.Element
 {
     const choices = (filter as PickFilter).choices();
     const current = values[0] ?? "";
     const known = current === "" || choices.some(choice => choice.key === current);
     return (
-        <select className="qlive-grid-filter-input" aria-label={ i18n("Filter {0}", field) }
+        <select className="qlive-grid-filter-input" aria-label={ i18n("Filter {0}", label) }
                 value={ current }
                 onChange={ ev => setValues([ev.target.value === "" ? null : ev.target.value]) }>
             <option value="">{ i18n("Any") }</option>
@@ -137,21 +137,21 @@ export function pick<R = any>(doc: CatalogDocument<R>, options: PickOptions<R> =
 
         choices: () => doc.rows.map(row => ({key: String(keyOf(row)), label: label(row)})),
 
-        toCondition(path, [key])
+        toCondition(target, [key])
         {
             const row = doc.rows.find(row => String(keyOf(row)) === key);
             const raw = row ? keyOf(row) : NUMBER_SCALARS.has(keyType) ? Number(key) : key;
-            return condition("eq", [field(path), value(raw, keyType)]) as FilterExpression;
+            return condition("eq", [target, value(raw, keyType)]) as FilterExpression;
         },
 
-        fromCondition(path, term)
+        fromCondition(target, term)
         {
             if (term.type !== "Condition" || term.name !== "eq" || term.operands.length !== 2)
             {
                 return null;
             }
-            const [target, key] = term.operands;
-            return target.type === "Field" && target.name === path && key.type === "Value" && key.value !== null &&
+            const [filtered, key] = term.operands;
+            return conditionsEqual(filtered, target) && key.type === "Value" && key.value !== null &&
                 typeof key.value !== "object"
                 ? [String(key.value)]
                 : null;

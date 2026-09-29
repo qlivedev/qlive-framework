@@ -6,10 +6,10 @@ import {ColumnFilter, ColumnFilterInputProps, operatorFilter} from "./filters";
 /**
  * Three-way select for a Boolean column: any, true, false.
  */
-function BooleanSelect({field, values, setValues}: ColumnFilterInputProps<string[]>): JSX.Element
+function BooleanSelect({label, values, setValues}: ColumnFilterInputProps<string[]>): JSX.Element
 {
     return (
-        <select className="qlive-grid-filter-input" aria-label={ i18n("Filter {0}", field) }
+        <select className="qlive-grid-filter-input" aria-label={ i18n("Filter {0}", label) }
                 value={ values[0] ?? "" }
                 onChange={ ev => setValues([ev.target.value === "" ? null : ev.target.value]) }>
             <option value="">{ i18n("Any") }</option>

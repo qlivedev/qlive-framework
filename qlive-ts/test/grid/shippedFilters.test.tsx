@@ -18,8 +18,8 @@ beforeAll(initGridConfig);
 /** the term, and that the filter reads it back as the values it came from */
 function roundTrip<V extends unknown[]>(filter: ColumnFilter<V>, path: string, values: V): FilterExpression | null
 {
-    const term = filter.toCondition(path, values);
-    expect(term && filter.fromCondition!(path, term)).toEqual(term && values);
+    const term = filter.toCondition(field(path), values);
+    expect(term && filter.fromCondition!(field(path), term)).toEqual(term && values);
     return term;
 }
 
@@ -55,16 +55,16 @@ describe("dateRangeFilter", () => {
     });
 
     it("filters nothing for a date that isn't one", () => {
-        expect(dates.toCondition("day", ["2026-02-30", null])).toBeNull();
-        expect(times.toCondition("created", ["2026-09", "2026-09-30"])).toBeNull();
+        expect(dates.toCondition(field("day"), ["2026-02-30", null])).toBeNull();
+        expect(times.toCondition(field("created"), ["2026-09", "2026-09-30"])).toBeNull();
     });
 
     it("recognizes only its own terms", () => {
-        expect(times.fromCondition!("created", field("created").ge(value("2026-09-01T10:00:00Z", "Timestamp")) as FilterExpression))
+        expect(times.fromCondition!(field("created"), field("created").ge(value("2026-09-01T10:00:00Z", "Timestamp")) as FilterExpression))
             .toBeNull();
-        expect(times.fromCondition!("other", times.toCondition("created", ["2026-09-01", null])!)).toBeNull();
-        expect(dates.fromCondition!("day", field("day").ge(value("2026-09-01", "String")) as FilterExpression)).toBeNull();
-        expect(dates.fromCondition!("day", and(
+        expect(times.fromCondition!(field("other"), times.toCondition(field("created"), ["2026-09-01", null])!)).toBeNull();
+        expect(dates.fromCondition!(field("day"), field("day").ge(value("2026-09-01", "String")) as FilterExpression)).toBeNull();
+        expect(dates.fromCondition!(field("day"), and(
             field("day").ge(value("2026-09-01", "Date")) as FilterExpression,
             field("day").le(value("2026-09-30", "Date")) as FilterExpression
         )!)).toBeNull();
@@ -82,8 +82,8 @@ describe("numberContainsFilter", () => {
     it("finds the digits in the number as text", () => {
         same(roundTrip(digits, "num", ["234"]),
             condition("contains", [operation("toString", [field("num")]), value("234")]) as FilterExpression);
-        expect(digits.toCondition("num", ["  "])).toBeNull();
-        expect(digits.fromCondition!("other", digits.toCondition("num", ["1"])!)).toBeNull();
+        expect(digits.toCondition(field("num"), ["  "])).toBeNull();
+        expect(digits.fromCondition!(field("other"), digits.toCondition(field("num"), ["1"])!)).toBeNull();
     });
 });
 
@@ -101,8 +101,8 @@ describe("patternFilter", () => {
 
     it("matches a word with wildcards against the whole value", () => {
         same(roundTrip(pattern, "name", ["foo*#1"]), regex("^foo.*#1$"));
-        same(pattern.toCondition("name", ["F.o*"]), regex("^f\\.o.*$"));
-        expect(pattern.fromCondition!("name", regex("^f\\.o.*$"))).toEqual(["f.o*"]);
+        same(pattern.toCondition(field("name"), ["F.o*"]), regex("^f\\.o.*$"));
+        expect(pattern.fromCondition!(field("name"), regex("^f\\.o.*$"))).toEqual(["f.o*"]);
     });
 
     it("combines words with & and |, & binding tighter, and negates with !", () => {
@@ -113,22 +113,22 @@ describe("patternFilter", () => {
     });
 
     it("leaves out empty words, so a pattern being typed filters by what is there", () => {
-        same(pattern.toCondition("name", ["foo & "]), contains("foo"));
-        same(pattern.toCondition("name", ["foo | !"]), contains("foo"));
-        expect(pattern.toCondition("name", ["&"])).toBeNull();
+        same(pattern.toCondition(field("name"), ["foo & "]), contains("foo"));
+        same(pattern.toCondition(field("name"), ["foo | !"]), contains("foo"));
+        expect(pattern.toCondition(field("name"), ["&"])).toBeNull();
     });
 
     it("matches another type as text", () => {
-        same(patternFilter("Int").toCondition("num", ["1*"]),
+        same(patternFilter("Int").toCondition(field("num"), ["1*"]),
             condition("likeRegex", [operation("lower", [operation("toString", [field("num")])]), value("^1.*$")]) as FilterExpression);
-        expect(patternFilter("Int").fromCondition!("num", contains("1"))).toBeNull();
+        expect(patternFilter("Int").fromCondition!(field("num"), contains("1"))).toBeNull();
     });
 
     it("recognizes only its own terms", () => {
-        expect(pattern.fromCondition!("name", regex("foo"))).toBeNull();
-        expect(pattern.fromCondition!("name", regex("^fo+$"))).toBeNull();
-        expect(pattern.fromCondition!("name", field("name").eq(value("foo")) as FilterExpression)).toBeNull();
-        expect(pattern.fromCondition!("name", and(contains("foo"), field("num").eq(value(1)) as FilterExpression)!)).toBeNull();
+        expect(pattern.fromCondition!(field("name"), regex("foo"))).toBeNull();
+        expect(pattern.fromCondition!(field("name"), regex("^fo+$"))).toBeNull();
+        expect(pattern.fromCondition!(field("name"), field("name").eq(value("foo")) as FilterExpression)).toBeNull();
+        expect(pattern.fromCondition!(field("name"), and(contains("foo"), field("num").eq(value(1)) as FilterExpression)!)).toBeNull();
     });
 });
 
@@ -143,7 +143,7 @@ describe("pick", () => {
         const owner = pick(owners);
         expect(owner.key).toBe(true);
         same(roundTrip(owner, "ownerId", ["user-2"]), field("ownerId").eq(value("user-2", "String")) as FilterExpression);
-        expect(owner.fromCondition!("other", owner.toCondition("ownerId", ["user-1"])!)).toBeNull();
+        expect(owner.fromCondition!(field("other"), owner.toCondition(field("ownerId"), ["user-1"])!)).toBeNull();
     });
 
     it("needs a key of one field and a label", () => {
@@ -159,19 +159,19 @@ describe("flagSetFilter", () => {
     const open = field("closed").isNull() as FilterExpression;
     const flags = flagSetFilter([
         {name: "open", label: "Open", term: () => open},
-        {name: "big", label: "Big", term: path => field(path).gt(value(100)) as FilterExpression}
+        {name: "big", label: "Big", term: target => target.gt(value(100)) as FilterExpression}
     ]);
 
     it("combines the terms of the checked flags", () => {
         same(roundTrip(flags, "num", [["open"]]), open);
         same(roundTrip(flags, "num", [["open", "big"]]), and(open, field("num").gt(value(100)) as FilterExpression));
-        same(flags.toCondition("num", [["big", "open"]]), flags.toCondition("num", [["open", "big"]]));
-        expect(flags.toCondition("num", [[]])).toBeNull();
+        same(flags.toCondition(field("num"), [["big", "open"]]), flags.toCondition(field("num"), [["open", "big"]]));
+        expect(flags.toCondition(field("num"), [[]])).toBeNull();
     });
 
     it("recognizes only combinations of its flags", () => {
-        expect(flags.fromCondition!("num", and(open, open)!)).toBeNull();
-        expect(flags.fromCondition!("num", field("num").gt(value(5)) as FilterExpression)).toBeNull();
+        expect(flags.fromCondition!(field("num"), and(open, open)!)).toBeNull();
+        expect(flags.fromCondition!(field("num"), field("num").gt(value(5)) as FilterExpression)).toBeNull();
     });
 
     it("wants distinct names", () => {
@@ -189,7 +189,7 @@ describe("the inputs of the shipped filters", () => {
 
     function render(filter: ColumnFilter<any>, values: unknown[])
     {
-        const state: ColumnFilterState = {field: "f", filter, values, setValues: vi.fn(), active: false};
+        const state: ColumnFilterState = {field: "f", label: "f", filter, values, setValues: vi.fn(), active: false};
         act(() => root.render(<FilterInput column={ state }/>));
         return {div: container.firstElementChild as HTMLElement, setValues: state.setValues as ReturnType<typeof vi.fn>};
     }

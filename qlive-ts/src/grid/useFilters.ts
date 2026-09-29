@@ -1,7 +1,7 @@
 import {useEffect, useReducer, useRef} from "react";
-import {and, conditionsEqual, FilterExpression, ownedPart, updateComponent} from "../FilterDSL";
+import {and, conditionsEqual, FieldExpression, FilterExpression, ownedPart, updateComponent} from "../FilterDSL";
 import {QueryConfig, QueryConfigDelta} from "../QueryDocument";
-import {claimTerms, ColumnFilter, FilterColumn, ready} from "./filters";
+import {claimTerms, ColumnFilter, FilterColumn, filterLabel, filterTarget, ready} from "./filters";
 import {unawaited} from "./unawaited";
 
 /**
@@ -27,8 +27,11 @@ export interface FiltersOptions
  */
 export interface ColumnFilterState
 {
-    /** path of the field the column filters */
-    field: string;
+    /** what the column filters: a field path or an expression */
+    field: FieldExpression;
+
+    /** what the inputs' accessible names call it, see `filterLabel()` */
+    label: string;
 
     /** the column's filter */
     filter: ColumnFilter<any>;
@@ -102,7 +105,7 @@ const DEFAULT_DELAY = 300;
  *         {field: "num", filter: operatorFilter("eq", "Int")}
  *     ])
  *
- *     filters.columns.map(column => <FilterInput key={ column.field } column={ column }/>)
+ *     filters.columns.map(column => <FilterInput key={ column.label } column={ column }/>)
  *
  * The owner's part of the condition is its component where the condition is a composition of components, all of it
  * otherwise (see FilterDSL's `ownedPart()` and `updateComponent()`); other owners' components are left as they are.
@@ -179,7 +182,7 @@ export function useFilters(
 
         const terms = columnsRef.current.map(({field, filter}, index) => {
             const {values, sent} = current.columns[index];
-            const term = ready(filter, values) ? filter.toCondition(field, values) : null;
+            const term = ready(filter, values) ? filter.toCondition(filterTarget(field), values) : null;
             if (!conditionsEqual(term, sent[sent.length - 1]))
             {
                 sent.push(term);
@@ -235,6 +238,7 @@ export function useFilters(
         const state = store.columns[index];
         return {
             field: column.field,
+            label: filterLabel(column),
             filter: column.filter,
             values: state.values,
             setValues: (values: unknown[]) => {

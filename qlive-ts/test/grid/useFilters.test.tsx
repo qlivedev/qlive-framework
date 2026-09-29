@@ -147,11 +147,24 @@ describe("useFilters", () => {
         expect(conditionsEqual(config.condition, component("grid", field("num").between(value(1), value(5))))).toBe(true);
     });
 
+    it("filters an expression and reads its term back", () => {
+        const sum = field("num").add(field("other"));
+        const sumTerm = sum.between(value(1), value(5)) as FilterExpression;
+        render(component("grid", sumTerm), [{field: sum, filter: operatorFilter("between", "Int")}]);
+
+        expect(filters.columns[0].values).toEqual(["1", "5"]);
+        expect(filters.columns[0].label).toBe("add(num, other)");
+
+        type(0, "2", "6");
+        wait();
+        expect(conditionsEqual(config.condition, component("grid", sum.between(value(2), value(6))))).toBe(true);
+    });
+
     it("sends a partial filter once any input is filled", () => {
         const atLeast: ColumnFilter<(string | null)[]> = {
             arity: 2,
             partial: true,
-            toCondition: (path, [from]) => from === null ? null : field(path).ge(value(Number(from))) as FilterExpression
+            toCondition: (target, [from]) => from === null ? null : target.ge(value(Number(from))) as FilterExpression
         };
         render(null, [{field: "num", filter: atLeast}]);
 

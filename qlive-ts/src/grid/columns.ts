@@ -73,7 +73,9 @@ export interface DataGridColumn<R = any>
     sort?: FieldExpression | false;
 
     /**
-     * The column's filter in place of the one derived from the field's type; `false` for a column without one.
+     * The column's filter in place of the one derived from the field's type; `false` for a column without one. A
+     * computed column has none unless it names one, and filters by what it sorts by: `between` on a sum, where the
+     * column sorts by the sum.
      */
     filter?: ColumnFilter<any> | false;
 
@@ -119,7 +121,8 @@ export interface ResolvedColumn<R = any>
     /**
      * The column's filter and the field it filters, `null` if it has none. For a relation column that is its first
      * name field, `"owner.login"`, not the relation, or its foreign key, `"ownerId"`, for a filter that picks the
-     * related row (`ColumnFilter.key`).
+     * related row (`ColumnFilter.key`). For a computed column it is the sort key, labeled with the heading where
+     * that is text.
      */
     filter: FilterColumn | null;
 
@@ -291,7 +294,21 @@ export function resolveColumn<R = any>(type: string, column: NoInfer<GridColumn<
         }
         if (given.filter)
         {
-            throw new Error("A column without a field has nothing to filter; give it a field or drop the filter.");
+            if (!given.sort)
+            {
+                throw new Error(
+                    "A column without a field filters by what it sorts by; give it a sort expression or drop the filter."
+                );
+            }
+            if (given.filter.key)
+            {
+                throw new Error("A column without a field has no related row for its filter to pick.");
+            }
+            resolved.filter = {
+                field: given.sort,
+                filter: given.filter,
+                label: typeof given.heading === "string" ? given.heading : undefined
+            };
         }
         const render = given.render;
         resolved.render = row => display(render(row), "");

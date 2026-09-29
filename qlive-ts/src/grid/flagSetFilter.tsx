@@ -1,6 +1,6 @@
 import type {JSX, ReactNode} from "react";
 
-import {and, conditionsEqual, FilterExpression} from "../FilterDSL";
+import {and, conditionsEqual, Field, FilterExpression} from "../FilterDSL";
 import {ColumnFilter, ColumnFilterInputProps} from "./filters";
 
 /**
@@ -17,9 +17,10 @@ export interface Flag
     /**
      * The term the flag stands for.
      *
-     * @param field     path of the field the column filters
+     * @param target    what the column filters: a field node, or the expression of a computed column, either with
+     *                  the builder methods
      */
-    term(field: string): FilterExpression;
+    term(target: Field): FilterExpression;
 }
 
 /** a flag set filter, with its flags for the input */
@@ -59,11 +60,11 @@ function FlagCheckboxes({values, setValues, filter}: ColumnFilterInputProps<stri
  * checked. The input is a checkbox per flag, and its value the names of the checked flags.
  *
  *     const STATE = flagSetFilter([
- *         {name: "open", label: "Open", term: path => field(path).isNull()},
+ *         {name: "open", label: "Open", term: target => target.isNull()},
  *         {name: "mine", label: "Mine", term: () => field("ownerId").eq(value(me))}
  *     ]);
  *
- * A flag's term is up to it: it can test the column's field or any other. The terms of the checked flags are
+ * A flag's term is up to it: it can test what the column filters, or any other field. The terms of the checked flags are
  * combined with `and()`, in the order of the flags, and a term set from outside is recognized when it is such a
  * combination.
  *
@@ -82,14 +83,14 @@ export function flagSetFilter(flags: readonly Flag[]): ColumnFilter<string[][]>
         flags,
         Input: FlagCheckboxes,
 
-        toCondition(path, [checked])
+        toCondition(target, [checked])
         {
-            return and(...flags.filter(flag => checked.includes(flag.name)).map(flag => flag.term(path)));
+            return and(...flags.filter(flag => checked.includes(flag.name)).map(flag => flag.term(target)));
         },
 
-        fromCondition(path, term)
+        fromCondition(target, term)
         {
-            const whole = flags.find(flag => conditionsEqual(flag.term(path), term));
+            const whole = flags.find(flag => conditionsEqual(flag.term(target), term));
             if (whole)
             {
                 return [[whole.name]];
@@ -103,7 +104,7 @@ export function flagSetFilter(flags: readonly Flag[]): ColumnFilter<string[][]>
             let next = 0;
             for (const operand of term.operands)
             {
-                const index = flags.findIndex((flag, i) => i >= next && conditionsEqual(flag.term(path), operand));
+                const index = flags.findIndex((flag, i) => i >= next && conditionsEqual(flag.term(target), operand));
                 if (index < 0)
                 {
                     return null;

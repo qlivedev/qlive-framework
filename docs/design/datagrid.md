@@ -246,7 +246,10 @@ A `DataGridColumn` has:
 - **`sort`**: overrides the derived sort key with another field path or
   an expression node, for a computed column; `false` turns sorting off.
 - **`filter`**: overrides the derived filter (see "Filters"); `false`
-  turns filtering off.
+  turns filtering off. A computed column has no filter unless it names
+  one, and that filter compares the column's sort key: the expression
+  a column sorts by is the value it stands for, so `between` on a sum
+  column filters the sum.
 - **Cell presentation**: width limits, no-wrap, cell classes (fixed or
   from the row).
 
@@ -311,23 +314,30 @@ interface ColumnFilter<V extends unknown[]>
     arity: number
 
     /** Builds the term from the input values; null for "no filter". */
-    toCondition(field: string, values: V): FilterExpression | null
+    toCondition(target: CNode, values: V): FilterExpression | null
 
     /**
      * Recognizes a term as one this filter produced and returns the
      * input values it came from, or null for "not mine".
      */
-    fromCondition?(field: string, term: FilterExpression): V | null
+    fromCondition?(target: CNode, term: FilterExpression): V | null
 
     /** Input component, when the default for the scalar type won't do. */
     Input?: ComponentType<ColumnFilterInputProps<V>>
 }
 ```
 
+- **The target is a node, not a path.** A filter gets what the column
+  filters as a field node or, for a computed column, the expression, and
+  builds its term on that node. It recognizes the node in a term by
+  structure (`conditionsEqual`), which is the same test for a field and
+  an expression, so every filter works on both without knowing which it
+  has. A search form's `FilterColumn` names its target the way a sort
+  key does, a field path or an expression.
 - **Operator filters** (`containsIgnoreCase`, `eq`, `between`, …) are
   made from the operator name. Arity is the operator's operand count,
   and `fromCondition` is derived: the term is that operator applied to
-  the column's field, and the values are the remaining operands in
+  the column's target, and the values are the remaining operands in
   order.
 - **Filter functions** supply `toCondition` and, where they can,
   `fromCondition`. Recognizing a term and inverting it are the same

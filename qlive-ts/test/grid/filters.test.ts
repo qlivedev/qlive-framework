@@ -1,6 +1,6 @@
 import {describe, expect, test} from "vitest";
 import {and, conditionsEqual, field, FilterExpression, value} from "../../src/FilterDSL";
-import {claimTerms, ColumnFilter, FilterColumn, filled, operatorFilter} from "../../src/grid/filters";
+import {claimTerms, ColumnFilter, FilterColumn, filled, filterLabel, filterTarget, operatorFilter} from "../../src/grid/filters";
 
 const contains = operatorFilter("containsIgnoreCase");
 const num = operatorFilter("eq", "Int");
@@ -37,27 +37,65 @@ describe("operatorFilter", () => {
 
     test("builds the condition from typed values", () => {
         expect(conditionsEqual(
-            contains.toCondition("name", ["Foo"]),
+            contains.toCondition(field("name"), ["Foo"]),
             field("name").containsIgnoreCase(value("Foo"))
         )).toBe(true);
         expect(conditionsEqual(
-            operatorFilter("between", "Int").toCondition("num", ["1", " 5 "]),
+            operatorFilter("between", "Int").toCondition(field("num"), ["1", " 5 "]),
             field("num").between(value(1), value(5))
         )).toBe(true);
     });
 
     test("filters nothing for text that isn't a value of the type", () => {
-        expect(num.toCondition("num", ["1x"])).toBeNull();
-        expect(num.toCondition("num", ["1.5"])).toBeNull();
-        expect(operatorFilter("eq", "Float").toCondition("num", ["1.5"])).not.toBeNull();
-        expect(operatorFilter("eq", "Boolean").toCondition("flag", ["maybe"])).toBeNull();
+        expect(num.toCondition(field("num"), ["1x"])).toBeNull();
+        expect(num.toCondition(field("num"), ["1.5"])).toBeNull();
+        expect(operatorFilter("eq", "Float").toCondition(field("num"), ["1.5"])).not.toBeNull();
+        expect(operatorFilter("eq", "Boolean").toCondition(field("flag"), ["maybe"])).toBeNull();
     });
 
     test("reads back exactly what it writes", () => {
-        const term = num.toCondition("num", ["42"])!;
-        expect(num.fromCondition!("num", term)).toEqual(["42"]);
-        expect(num.fromCondition!("other", term)).toBeNull();
-        expect(operatorFilter("ne", "Int").fromCondition!("num", term)).toBeNull();
+        const term = num.toCondition(field("num"), ["42"])!;
+        expect(num.fromCondition!(field("num"), term)).toEqual(["42"]);
+        expect(num.fromCondition!(field("other"), term)).toBeNull();
+        expect(operatorFilter("ne", "Int").fromCondition!(field("num"), term)).toBeNull();
+    });
+
+    test("filters an expression like a field", () => {
+        const between = operatorFilter("between", "Int");
+        const sum = field("numA").add(field("numB"));
+        const term = between.toCondition(sum, ["200", "300"])!;
+        expect(conditionsEqual(term, sum.between(value(200), value(300)))).toBe(true);
+
+        expect(between.fromCondition!(field("numA").add(field("numB")), term)).toEqual(["200", "300"]);
+        expect(between.fromCondition!(field("numA").sub(field("numB")), term)).toBeNull();
+        expect(between.fromCondition!(field("numA"), term)).toBeNull();
+    });
+});
+
+describe("filterTarget", () => {
+
+    test("gives a path, an expression and a plain node the builder methods", () => {
+        expect(conditionsEqual(filterTarget("num").eq(value(1)), field("num").eq(value(1)))).toBe(true);
+
+        const sum = field("numA").add(field("numB"));
+        expect(filterTarget(sum)).toBe(sum);
+
+        const plain = JSON.parse(JSON.stringify(sum));
+        const target = filterTarget(plain);
+        expect(target).not.toBe(plain);
+        expect(conditionsEqual(target, sum)).toBe(true);
+        expect(conditionsEqual(target.between(value(1), value(2)), sum.between(value(1), value(2)))).toBe(true);
+    });
+});
+
+describe("filterLabel", () => {
+
+    test("names a column by its label, its path, or its expression", () => {
+        const filter = operatorFilter("eq", "Int");
+        expect(filterLabel({field: "num", filter, label: "Number"})).toBe("Number");
+        expect(filterLabel({field: "owner.login", filter})).toBe("owner.login");
+        expect(filterLabel({field: field("numA").add(field("numB")), filter})).toBe("add(numA, numB)");
+        expect(filterLabel({field: field("num").mul(value(2)), filter})).toBe("mul(num, 2)");
     });
 });
 
@@ -79,9 +117,9 @@ describe("claimTerms", () => {
         {field: "num", filter: range}
     ];
 
-    const nameTerm = () => contains.toCondition("name", ["foo"])!;
-    const numTerm = () => num.toCondition("num", ["3"])!;
-    const rangeTerm = () => range.toCondition("num", ["1", "5"])!;
+    const nameTerm = () => contains.toCondition(field("name"), ["foo"])!;
+    const numTerm = () => num.toCondition(field("num"), ["3"])!;
+    const rangeTerm = () => range.toCondition(field("num"), ["1", "5"])!;
 
     test("has nothing to hand out for no part", () => {
         expect(claimTerms(null, columns)).toEqual({terms: [null, null, null], values: [null, null, null], unclaimed: []});
@@ -124,7 +162,7 @@ describe("claimTerms", () => {
     });
 
     test("gives a column one term at most", () => {
-        const second = contains.toCondition("name", ["bar"])!;
+        const second = contains.toCondition(field("name"), ["bar"])!;
         const claimed = claimTerms(and(nameTerm(), second), columns);
         expect(claimed.values[0]).toEqual(["foo"]);
         expect(claimed.unclaimed).toEqual([second]);

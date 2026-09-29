@@ -23,7 +23,7 @@ export type FilterInputProps = {
  */
 export default function FilterInput({column, className}: FilterInputProps): JSX.Element
 {
-    const {field, filter, values, setValues, active} = column
+    const {label, filter, values, setValues, active} = column
     const {Input, arity} = filter
 
     const classes = "qlive-grid-filter" + (active ? " qlive-grid-filter-active" : "") + (className ? " " + className : "")
@@ -32,10 +32,10 @@ export default function FilterInput({column, className}: FilterInputProps): JSX.
         <div className={ classes }>
             {
                 Input
-                    ? <Input field={ field } arity={ arity } values={ values } setValues={ setValues } filter={ filter }/>
+                    ? <Input label={ label } arity={ arity } values={ values } setValues={ setValues } filter={ filter }/>
                     : values.map((value, index) => (
                         <input key={ index } type="text" className="qlive-grid-filter-input"
-                               aria-label={ i18n("Filter {0}", field) + (arity > 1 ? " " + (index + 1) : "") }
+                               aria-label={ i18n("Filter {0}", label) + (arity > 1 ? " " + (index + 1) : "") }
                                value={ value == null ? "" : String(value) }
                                onChange={ ev => {
                                    const next = values.slice()

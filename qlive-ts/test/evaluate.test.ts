@@ -150,20 +150,20 @@ describe("conditionPredicate", () => {
 
     it("agrees with what the shipped filters write", () => {
         const pattern = patternFilter();
-        expect(ids(pattern.toCondition("name", ["a*a"]))).toEqual(["foo-1"]);
-        expect(ids(pattern.toCondition("name", ["*a"]))).toEqual(["foo-1", "foo-2", "foo-3"]);
-        expect(ids(pattern.toCondition("name", ["!beta"]))).toEqual(["foo-1", "foo-3"]);
-        expect(ids(pattern.toCondition("name", ["alp|gam"]))).toEqual(["foo-1", "foo-3"]);
-        expect(ids(patternFilter("Int").toCondition("num", ["2*2"]))).toEqual(["foo-2"]);
+        expect(ids(pattern.toCondition(field("name"), ["a*a"]))).toEqual(["foo-1"]);
+        expect(ids(pattern.toCondition(field("name"), ["*a"]))).toEqual(["foo-1", "foo-2", "foo-3"]);
+        expect(ids(pattern.toCondition(field("name"), ["!beta"]))).toEqual(["foo-1", "foo-3"]);
+        expect(ids(pattern.toCondition(field("name"), ["alp|gam"]))).toEqual(["foo-1", "foo-3"]);
+        expect(ids(patternFilter("Int").toCondition(field("num"), ["2*2"]))).toEqual(["foo-2"]);
 
-        expect(ids(numberContainsFilter().toCondition("num", ["22"]))).toEqual(["foo-2"]);
+        expect(ids(numberContainsFilter().toCondition(field("num"), ["22"]))).toEqual(["foo-2"]);
 
         const days = dateRangeFilter("Timestamp", {timeZone: "UTC"});
-        expect(ids(days.toCondition("created", ["2026-09-02", "2026-09-02"]))).toEqual(["foo-2"]);
-        expect(ids(days.toCondition("created", [null, "2026-09-02"]))).toEqual(["foo-1", "foo-2"]);
+        expect(ids(days.toCondition(field("created"), ["2026-09-02", "2026-09-02"]))).toEqual(["foo-2"]);
+        expect(ids(days.toCondition(field("created"), [null, "2026-09-02"]))).toEqual(["foo-1", "foo-2"]);
         const berlin = dateRangeFilter("Timestamp", {timeZone: "Europe/Berlin"});
-        expect(ids(berlin.toCondition("created", ["2026-09-03", null]))).toEqual(["foo-2", "foo-3"]);
-        expect(ids(dateRangeFilter("Date").toCondition("day", ["2026-09-02", null]))).toEqual(["foo-3"]);
+        expect(ids(berlin.toCondition(field("created"), ["2026-09-03", null]))).toEqual(["foo-2", "foo-3"]);
+        expect(ids(dateRangeFilter("Date").toCondition(field("day"), ["2026-09-02", null]))).toEqual(["foo-3"]);
     });
 
     it("refuses at once what it can't evaluate", () => {

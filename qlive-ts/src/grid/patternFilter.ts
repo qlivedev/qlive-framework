@@ -1,4 +1,4 @@
-import {and, CNode, condition, field, FilterExpression, not, operation, or, value} from "../FilterDSL";
+import {and, CNode, condition, conditionsEqual, FilterExpression, not, operation, or, value} from "../FilterDSL";
 import {ColumnFilter} from "./filters";
 
 /** characters with a meaning in a regular expression, the server's as much as JavaScript's */
@@ -6,47 +6,42 @@ const SPECIAL = /[.[\]()*+?{}^$|\\]/g;
 const ESCAPED = /\\([.[\]()*+?{}^$|\\])/g;
 
 /**
- * The expression a pattern matches against: the field, as text for a type that isn't.
+ * The expression a pattern matches against: the target, as text for a type that isn't.
  */
-function subject(path: string, scalarType: string): CNode
+function subject(target: CNode, scalarType: string): CNode
 {
-    return scalarType === "String" ? field(path) : operation("toString", [field(path)]);
+    return scalarType === "String" ? target : operation("toString", [target]);
 }
 
 /**
  * The term of one word of a pattern: `containsIgnoreCase` for a plain word, a regular expression over the whole
  * lowercased value for one with wildcards.
  */
-function wordTerm(path: string, scalarType: string, word: string): FilterExpression
+function wordTerm(target: CNode, scalarType: string, word: string): FilterExpression
 {
     const negated = word.startsWith("!");
     const text = (negated ? word.substring(1) : word).trim();
     const term = text.includes("*")
         ? condition("likeRegex", [
-            operation("lower", [subject(path, scalarType)]),
+            operation("lower", [subject(target, scalarType)]),
             value("^" + text.toLowerCase().split(/\*+/).map(part => part.replace(SPECIAL, "\\$&")).join(".*") + "$")
         ])
-        : condition("containsIgnoreCase", [subject(path, scalarType), value(text)]);
+        : condition("containsIgnoreCase", [subject(target, scalarType), value(text)]);
     return (negated ? not(term) : term) as FilterExpression;
 }
 
 /**
- * Whether a node is the subject of a pattern on the path.
+ * Whether a node is the subject of a pattern on the target.
  */
-function isSubject(node: CNode, path: string, scalarType: string): boolean
+function isSubject(node: CNode, target: CNode, scalarType: string): boolean
 {
-    if (scalarType === "String")
-    {
-        return node.type === "Field" && node.name === path;
-    }
-    return node.type === "Operation" && node.name === "toString" && node.operands.length === 1 &&
-        node.operands[0].type === "Field" && node.operands[0].name === path;
+    return conditionsEqual(node, subject(target, scalarType));
 }
 
 /**
  * The word a term of one was written from, `null` if it isn't one.
  */
-function wordOf(node: CNode, path: string, scalarType: string): string | null
+function wordOf(node: CNode, target: CNode, scalarType: string): string | null
 {
     if (node.type !== "Condition")
     {
@@ -54,22 +49,22 @@ function wordOf(node: CNode, path: string, scalarType: string): string | null
     }
     if (node.name === "not" && node.operands.length === 1)
     {
-        const word = wordOf(node.operands[0], path, scalarType);
+        const word = wordOf(node.operands[0], target, scalarType);
         return word !== null && !word.startsWith("!") ? "!" + word : null;
     }
     if (node.operands.length !== 2 || node.operands[1].type !== "Value" || typeof node.operands[1].value !== "string")
     {
         return null;
     }
-    const [target, {value: text}] = node.operands as [CNode, { value: string }];
+    const [matched, {value: text}] = node.operands as [CNode, { value: string }];
     if (node.name === "containsIgnoreCase")
     {
-        return isSubject(target, path, scalarType) && text !== "" && !/[*&|]/.test(text) && !text.startsWith("!")
+        return isSubject(matched, target, scalarType) && text !== "" && !/[*&|]/.test(text) && !text.startsWith("!")
             ? text
             : null;
     }
-    if (node.name === "likeRegex" && target.type === "Operation" && target.name === "lower" &&
-        target.operands.length === 1 && isSubject(target.operands[0], path, scalarType))
+    if (node.name === "likeRegex" && matched.type === "Operation" && matched.name === "lower" &&
+        matched.operands.length === 1 && isSubject(matched.operands[0], target, scalarType))
     {
         const match = /^\^(.*)\$$/.exec(text);
         if (!match)
@@ -117,18 +112,18 @@ export function patternFilter(scalarType: string = "String"): ColumnFilter<strin
     return {
         arity: 1,
 
-        toCondition(path, [pattern])
+        toCondition(target, [pattern])
         {
             const groups = pattern.split("|").map(group =>
                 and(...group.split("&")
                     .map(word => word.trim())
                     .filter(word => word !== "" && word !== "!")
-                    .map(word => wordTerm(path, scalarType, word)))
+                    .map(word => wordTerm(target, scalarType, word)))
             );
             return or(...groups);
         },
 
-        fromCondition(path, term)
+        fromCondition(target, term)
         {
             const groups: string[] = [];
             for (const group of operandsOf(term, "or"))
@@ -136,7 +131,7 @@ export function patternFilter(scalarType: string = "String"): ColumnFilter<strin
                 const words: string[] = [];
                 for (const node of operandsOf(group, "and"))
                 {
-                    const word = wordOf(node, path, scalarType);
+                    const word = wordOf(node, target, scalarType);
                     if (word === null)
                     {
                         return null;

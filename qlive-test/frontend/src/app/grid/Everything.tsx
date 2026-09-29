@@ -33,7 +33,7 @@ const SEARCH = [
     {
         field: "flag",
         filter: flagSetFilter([
-            {name: "flagged", label: "Flagged", term: path => field(path).isTrue()},
+            {name: "flagged", label: "Flagged", term: target => target.isTrue()},
             {name: "large", label: "Num over 100", term: () => field("num").gt(value(100))}
         ])
     }

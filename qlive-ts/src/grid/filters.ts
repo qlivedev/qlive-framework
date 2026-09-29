@@ -8,9 +8,11 @@ import {
     CNode,
     condition,
     conditionsEqual,
+    Field,
     field,
     fieldConditionArity,
     FieldConditionName,
+    FieldExpression,
     FilterExpression,
     RawValue,
     value
@@ -27,8 +29,8 @@ export type FilterInputValues<V extends unknown[] = unknown[]> = { [K in keyof V
  */
 export interface ColumnFilterInputProps<V extends unknown[] = unknown[]>
 {
-    /** path of the field the column filters */
-    field: string;
+    /** what the inputs filter, for their accessible names: the column's label */
+    label: string;
 
     /** number of inputs */
     arity: number;
@@ -72,19 +74,22 @@ export interface ColumnFilter<V extends unknown[] = unknown[]>
      * Builds the term from the input values, `null` for "no filter". Only called once every input is filled, or with
      * `partial` once any is.
      *
-     * @param field     path of the field the column filters
+     * @param target    what the column filters: a field node, or the expression of a computed column, either with
+     *                  the builder methods, `target.between(from, to)`
      * @param values    one value per input
      */
-    toCondition(field: string, values: V): FilterExpression | null;
+    toCondition(target: Field, values: V): FilterExpression | null;
 
     /**
      * Recognizes a term as one this filter produced and returns the input values it came from, `null` for "not mine".
-     * A filter without it can't take over a term set from outside the owner, which then shows as unclaimed.
+     * A filter without it can't take over a term set from outside the owner, which then shows as unclaimed. The
+     * target is recognized by structure, `conditionsEqual(operand, target)`, which holds for a field and an
+     * expression alike.
      *
-     * @param field     path of the field the column filters
+     * @param target    what the column filters, as `toCondition` gets it
      * @param term      a term of the owner's part of the condition
      */
-    fromCondition?(field: string, term: FilterExpression): V | null;
+    fromCondition?(target: Field, term: FilterExpression): V | null;
 
     /**
      * Input component, where the default text inputs won't do.
@@ -93,15 +98,73 @@ export interface ColumnFilter<V extends unknown[] = unknown[]>
 }
 
 /**
- * A filter on one field, as a filter row or a search form has one per input group.
+ * A filter on one field or expression, as a filter row or a search form has one per input group.
  */
 export interface FilterColumn
 {
-    /** path of the field */
-    field: string;
+    /** what the column filters: a field path, or a FilterDSL expression like `field("numA").add(field("numB"))` */
+    field: FieldExpression;
 
     /** the filter */
     filter: ColumnFilter<any>;
+
+    /** what the inputs' accessible names call it, in place of the field path or the text form of the expression */
+    label?: string;
+}
+
+/** the prototype of field and operation nodes, which holds the builder methods */
+const BUILDERS = Object.getPrototypeOf(field(""));
+
+/**
+ * The node a filter compares, with the builder methods: a field path becomes a field node, an expression built with
+ * the FilterDSL stays as it is, and a plain node like one parsed from JSON gets the methods on a copy.
+ *
+ * An expression has the methods of a field, as the DSL's builders give it, and its type says `Field` for that.
+ *
+ * @param expression    field path or expression
+ */
+export function filterTarget(expression: FieldExpression): Field
+{
+    if (typeof expression === "string")
+    {
+        return field(expression);
+    }
+    return (typeof (expression as Partial<Field>).eq === "function"
+        ? expression
+        : Object.assign(Object.create(BUILDERS), expression)) as Field;
+}
+
+/**
+ * The label of a filter column: the one it states, or else its field path, or a text form of its expression,
+ * `add(numA, numB)`.
+ *
+ * @param column    the filter column
+ */
+export function filterLabel(column: FilterColumn): string
+{
+    return column.label ?? expressionText(column.field);
+}
+
+function expressionText(expression: FieldExpression): string
+{
+    if (typeof expression === "string")
+    {
+        return expression;
+    }
+    switch (expression.type)
+    {
+        case "Field":
+            return expression.name;
+        case "Value":
+            return JSON.stringify(expression.value);
+        case "Values":
+            return JSON.stringify(expression.values);
+        case "Condition":
+        case "Operation":
+            return expression.name + "(" + expression.operands.map(expressionText).join(", ") + ")";
+        case "Component":
+            return expression.condition ? expressionText(expression.condition) : "";
+    }
 }
 
 const INTEGER_SCALARS = new Set(["Int", "Short", "Byte"]);
@@ -132,7 +195,8 @@ function parseValue(text: string, scalarType: string): RawValue | undefined
 /**
  * A filter applying one field condition: `operatorFilter("containsIgnoreCase")` filters the column's field for the
  * text typed, `operatorFilter("between", "Int")` takes two numbers. It has one input per operand besides the field,
- * and it reads back exactly the terms it writes: that condition on that field, with values as operands.
+ * and it reads back exactly the terms it writes: that condition on that field, with values as operands. On a
+ * computed column it applies the condition to the column's expression instead, `between` on a sum.
  *
  * The inputs are text. The filter converts it to the scalar type: a number for Int, Short, Byte and Float, a boolean
  * for "true" and "false" with Boolean, the text as is for everything else. Text that isn't a value of the type
@@ -159,7 +223,7 @@ export function operatorFilter(name: FieldConditionName, scalarType: string = "S
     return {
         arity,
 
-        toCondition(path: string, values: string[]): FilterExpression | null
+        toCondition(target: Field, values: string[]): FilterExpression | null
         {
             const operands: CNode[] = [];
             for (const text of values)
@@ -171,17 +235,17 @@ export function operatorFilter(name: FieldConditionName, scalarType: string = "S
                 }
                 operands.push(value(parsed, scalarType));
             }
-            return condition(name, [field(path), ...operands]) as FilterExpression;
+            return condition(name, [target, ...operands]) as FilterExpression;
         },
 
-        fromCondition(path: string, term: FilterExpression): string[] | null
+        fromCondition(target: Field, term: FilterExpression): string[] | null
         {
             if (term.type !== "Condition" || term.name !== name || term.operands.length !== arity + 1)
             {
                 return null;
             }
-            const [target, ...operands] = term.operands;
-            if (target.type !== "Field" || target.name !== path || !operands.every(o => o.type === "Value"))
+            const [filtered, ...operands] = term.operands;
+            if (!conditionsEqual(filtered, target) || !operands.every(o => o.type === "Value"))
             {
                 return null;
             }
@@ -269,7 +333,7 @@ export function claimTerms(
         }
         const found: { index: number, values: unknown[] | null }[] = [];
         columns.forEach(({field, filter}, index) => {
-            const values = filter.fromCondition?.(field, term);
+            const values = filter.fromCondition?.(filterTarget(field), term);
             if (values)
             {
                 found.push({index, values});
@@ -278,7 +342,7 @@ export function claimTerms(
         if (found.length > 1 && isViteDev())
         {
             console.warn(
-                "Filter columns " + found.map(f => JSON.stringify(columns[f.index].field)).join(" and ") +
+                "Filter columns " + found.map(f => JSON.stringify(filterLabel(columns[f.index]))).join(" and ") +
                 " all recognize the same term, so none of them gets it:", term
             );
         }

@@ -195,6 +195,8 @@
         "ColumnFilterInputProps",
         "FilterInputValues",
         "FilterColumn",
+        "filterTarget",
+        "filterLabel",
         "operatorFilter",
         "booleanFilter",
         "dateRangeFilter",

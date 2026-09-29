@@ -174,7 +174,9 @@ What the column sorts by, a field path or a FilterDSL expression without a direc
 filter?: ColumnFilter<any> | false;
 ```
 
-The column's filter in place of the one derived from the field's type; `false` for a column without one.
+The column's filter in place of the one derived from the field's type; `false` for a column without one. A
+computed column has none unless it names one, and filters by what it sorts by: `between` on a sum, where the
+column sorts by the sum.
 
 ### DataGridColumn.className
 
@@ -293,7 +295,8 @@ filter: FilterColumn | null;
 
 The column's filter and the field it filters, `null` if it has none. For a relation column that is its first
 name field, `"owner.login"`, not the relation, or its foreign key, `"ownerId"`, for a filter that picks the
-related row (`ColumnFilter.key`).
+related row (`ColumnFilter.key`). For a computed column it is the sort key, labeled with the heading where
+that is text.
 
 ### ResolvedColumn.className
 

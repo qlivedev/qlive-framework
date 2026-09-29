@@ -25,7 +25,7 @@ of an owner's filters, because reading a condition back has to see all columns a
         {field: "num", filter: operatorFilter("eq", "Int")}
     ])
 
-    filters.columns.map(column => <FilterInput key={ column.field } column={ column }/>)
+    filters.columns.map(column => <FilterInput key={ column.label } column={ column }/>)
 
 The owner's part of the condition is its component where the condition is a composition of components, all of it
 otherwise (see FilterDSL's `ownedPart()` and `updateComponent()`); other owners' components are left as they are.
@@ -141,7 +141,13 @@ The filter state of one column.
 ### ColumnFilterState.field
 
 ```ts
-field: string;
+field: FieldExpression;
+```
+
+### ColumnFilterState.label
+
+```ts
+label: string;
 ```
 
 ### ColumnFilterState.filter
@@ -245,7 +251,7 @@ rather than its first name field (`"owner.login"`). For a relation whose foreign
 ### ColumnFilter.toCondition
 
 ```ts
-toCondition(field: string, values: V): FilterExpression | null;
+toCondition(target: CNode, values: V): FilterExpression | null;
 ```
 
 Builds the term from the input values, `null` for "no filter". Only called once every input is filled, or with
@@ -255,23 +261,25 @@ Builds the term from the input values, `null` for "no filter". Only called once 
 
 | | |
 |---|---|
-| `field` | path of the field the column filters |
+| `target` | what the column filters: a field node, or the expression of a computed column |
 | `values` | one value per input |
 
 ### ColumnFilter.fromCondition
 
 ```ts
-fromCondition?(field: string, term: FilterExpression): V | null;
+fromCondition?(target: CNode, term: FilterExpression): V | null;
 ```
 
 Recognizes a term as one this filter produced and returns the input values it came from, `null` for "not mine".
-A filter without it can't take over a term set from outside the owner, which then shows as unclaimed.
+A filter without it can't take over a term set from outside the owner, which then shows as unclaimed. The
+target is recognized by structure, `conditionsEqual(operand, target)`, which holds for a field and an
+expression alike.
 
 **Parameters**
 
 | | |
 |---|---|
-| `field` | path of the field the column filters |
+| `target` | what the column filters, as `toCondition` gets it |
 | `term` | a term of the owner's part of the condition |
 
 ### ColumnFilter.Input
@@ -292,10 +300,10 @@ interface ColumnFilterInputProps<V extends unknown[] = unknown[]>
 
 What a filter input component gets.
 
-### ColumnFilterInputProps.field
+### ColumnFilterInputProps.label
 
 ```ts
-field: string;
+label: string;
 ```
 
 ### ColumnFilterInputProps.arity
@@ -340,12 +348,12 @@ Values of a filter's inputs as the inputs hold them: `null` where an input is em
 interface FilterColumn
 ```
 
-A filter on one field, as a filter row or a search form has one per input group.
+A filter on one field or expression, as a filter row or a search form has one per input group.
 
 ### FilterColumn.field
 
 ```ts
-field: string;
+field: FieldExpression;
 ```
 
 ### FilterColumn.filter
@@ -353,6 +361,45 @@ field: string;
 ```ts
 filter: ColumnFilter<any>;
 ```
+
+### FilterColumn.label
+
+```ts
+label?: string;
+```
+
+## filterTarget()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function filterTarget(expression: FieldExpression): CNode;
+```
+
+The node a filter compares: a field path becomes a field node, an expression stays as it is.
+
+**Parameters**
+
+| | |
+|---|---|
+| `expression` | field path or expression |
+
+## filterLabel()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function filterLabel(column: FilterColumn): string;
+```
+
+The label of a filter column: the one it states, or else its field path, or a text form of its expression,
+`add(numA, numB)`.
+
+**Parameters**
+
+| | |
+|---|---|
+| `column` | the filter column |
 
 ## operatorFilter()
 
@@ -364,7 +411,8 @@ declare function operatorFilter(name: FieldConditionName, scalarType?: string): 
 
 A filter applying one field condition: `operatorFilter("containsIgnoreCase")` filters the column's field for the
 text typed, `operatorFilter("between", "Int")` takes two numbers. It has one input per operand besides the field,
-and it reads back exactly the terms it writes: that condition on that field, with values as operands.
+and it reads back exactly the terms it writes: that condition on that field, with values as operands. On a
+computed column it applies the condition to the column's expression instead, `between` on a sum.
 
 The inputs are text. The filter converts it to the scalar type: a number for Int, Short, Byte and Float, a boolean
 for "true" and "false" with Boolean, the text as is for everything else. Text that isn't a value of the type
@@ -558,11 +606,11 @@ A filter of flags to check: each flag stands for a term, and the rows shown are 
 checked. The input is a checkbox per flag, and its value the names of the checked flags.
 
     const STATE = flagSetFilter([
-        {name: "open", label: "Open", term: path => field(path).isNull()},
+        {name: "open", label: "Open", term: target => condition("isNull", [target])},
         {name: "mine", label: "Mine", term: () => field("ownerId").eq(value(me))}
     ]);
 
-A flag's term is up to it: it can test the column's field or any other. The terms of the checked flags are
+A flag's term is up to it: it can test what the column filters, or any other field. The terms of the checked flags are
 combined with `and()`, in the order of the flags, and a term set from outside is recognized when it is such a
 combination.
 
@@ -597,7 +645,7 @@ label: ReactNode;
 ### Flag.term
 
 ```ts
-term(field: string): FilterExpression;
+term(target: CNode): FilterExpression;
 ```
 
 The term the flag stands for.
@@ -606,7 +654,7 @@ The term the flag stands for.
 
 | | |
 |---|---|
-| `field` | path of the field the column filters |
+| `target` | what the column filters: a field node, or the expression of a computed column |
 
 ## filled()
 

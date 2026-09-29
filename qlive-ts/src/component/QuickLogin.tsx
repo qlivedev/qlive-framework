@@ -31,6 +31,13 @@ export type QuickLoginProps = {
      * what formLogin() answers to whether or not an application customizes loginPage().
      */
     url?: string
+
+    /**
+     * Name of the parameter asking for a remember-me login, `null` for a login that ends with the session.
+     * Default "remember-me", Spring Security's default. Remembered, a switch survives a restart of the
+     * development server, which forgets every session it held.
+     */
+    rememberMeParameter?: string | null
 }
 
 /**
@@ -43,7 +50,9 @@ export type QuickLoginProps = {
  * configured success URL -- the point of a one-click switch is staying where you were and seeing it take
  * effect, not being carried off to wherever a real login lands.
  */
-export default function QuickLogin({ users, url = "/login" }: QuickLoginProps): JSX.Element
+export default function QuickLogin(
+    { users, url = "/login", rememberMeParameter = "remember-me" }: QuickLoginProps
+): JSX.Element
 {
     const { csrfToken, authentication } = config()
 
@@ -64,6 +73,10 @@ export default function QuickLogin({ users, url = "/login" }: QuickLoginProps): 
                             body.set(csrfToken!.param, csrfToken!.value)
                             body.set("username", login)
                             body.set("password", password)
+                            if (rememberMeParameter)
+                            {
+                                body.set(rememberMeParameter, "on")
+                            }
 
                             await fetch(url, { method: "POST", body, credentials: "same-origin" })
                             location.reload()

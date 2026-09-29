@@ -76,9 +76,23 @@ renders.
 // works -- the analysis can see this
 const foos = useInjection(Q_Foo, {config: {pageSize: 5}});
 
+// works too -- the analysis runs the FilterDSL's builders
+const foos = useInjection(Q_Foo, {config: {sortFields: [field("num").mod(value(10)).desc()]}});
+
 // does not -- there is nothing to read at build time
 const foos = useInjection(Q_Foo, {config: {pageSize: userPreference}});
 ```
+
+Readable are literals -- strings, numbers, booleans, `null`, and arrays and
+objects of them -- and the FilterDSL's builders: `field()`, `value()`,
+`and()`, `or()` and the rest, with the methods of the nodes they build. The
+analysis makes those calls itself and records the node, which is the same
+data the browser would have sent. A variable is not readable, not even a
+constant one: the analysis does not follow it to its value.
+
+A call with a parameter it cannot read is left out of the analysis, and the
+dev server says so, naming the file, the line and the part that is not
+readable.
 
 The parameters are the query's GraphQL variables, and the server reads them
 out of the analysis to run the query before the page exists. Anything it

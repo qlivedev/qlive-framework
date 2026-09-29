@@ -256,7 +256,9 @@ export default function trackUsage(t) {
                         }
                     }
 
-                    const values = []
+                    let values = []
+
+                    const staticCalls = {scope: path.scope, modules: pluginOpts.staticModules || {}, produced: new WeakSet()}
 
                     let allEvaluated = true
                     for (let j = 0; j < argsEnd; j++)
@@ -265,7 +267,8 @@ export default function trackUsage(t) {
                         const evaluated = staticEval(
                             args[j],
                             tf.allowIdentifier,
-                            failure
+                            failure,
+                            staticCalls
                         )
                         if (evaluated === undefined)
                         {
@@ -290,6 +293,10 @@ export default function trackUsage(t) {
 
                     if (allEvaluated)
                     {
+                        // what a static call produced is an object of the module it came from, recorded as the
+                        // plain data it serializes to
+                        values = JSON.parse(JSON.stringify(values))
+
                         if (data._config.debug)
                         {
                             console.log("Record '" + values + "' for " + e.name);
@@ -311,6 +318,141 @@ export default function trackUsage(t) {
                 }
             }
         }
+    }
+
+    function ownValue(object, key)
+    {
+        return Object.prototype.hasOwnProperty.call(object, key) ? object[key] : undefined
+    }
+
+    /**
+     * What an identifier is imported as, if it is imported from one of the static modules: the export
+     * itself for a named import, all of them for a namespace import. Resolved through the scope, so a local
+     * variable of the same name is not mistaken for it.
+     */
+    function staticImport(name, staticCalls)
+    {
+        const binding = staticCalls.scope.getBinding(name)
+        if (!binding || binding.kind !== "module")
+        {
+            return undefined
+        }
+
+        const specifier = binding.path.node
+        const exports = ownValue(staticCalls.modules, binding.path.parent.source.value)
+        if (!exports)
+        {
+            return undefined
+        }
+
+        if (t.isImportSpecifier(specifier))
+        {
+            return ownValue(exports, t.isIdentifier(specifier.imported) ? specifier.imported.name : specifier.imported.value)
+        }
+        if (t.isImportNamespaceSpecifier(specifier))
+        {
+            return exports
+        }
+        return undefined
+    }
+
+    /**
+     * The function a static call calls, and the receiver to call it on: an imported export, `field(...)`,
+     * a member of an imported object, `FilterDSL.field(...)`, or a method of a value a static call produced,
+     * `field(...).eq(...)`. Only a method of that value's own prototype chain counts, not one every object
+     * has.
+     */
+    function staticCallee(callee, failure, staticCalls)
+    {
+        if (t.isIdentifier(callee))
+        {
+            const fn = staticImport(callee.name, staticCalls)
+            return typeof fn === "function" ? {fn: fn, receiver: undefined} : undefined
+        }
+
+        if (!t.isMemberExpression(callee) || callee.computed || !t.isIdentifier(callee.property))
+        {
+            return undefined
+        }
+
+        const name = callee.property.name
+        if (t.isIdentifier(callee.object))
+        {
+            const imported = staticImport(callee.object.name, staticCalls)
+            if (imported && typeof imported === "object")
+            {
+                const fn = ownValue(imported, name)
+                return typeof fn === "function" ? {fn: fn, receiver: undefined} : undefined
+            }
+        }
+
+        if (!t.isCallExpression(callee.object))
+        {
+            // a variable, say: nothing here knows what it holds
+            failure.node = callee.object
+            return undefined
+        }
+
+        const receiver = staticCall(callee.object, failure, staticCalls)
+        if (!receiver || typeof receiver !== "object" || !staticCalls.produced.has(receiver))
+        {
+            return undefined
+        }
+
+        for (let proto = Object.getPrototypeOf(receiver); proto && proto !== Object.prototype; proto = Object.getPrototypeOf(proto))
+        {
+            const fn = ownValue(proto, name)
+            if (typeof fn === "function" && name !== "constructor")
+            {
+                return {fn: fn, receiver: receiver}
+            }
+        }
+        return undefined
+    }
+
+    /**
+     * Makes a static call and returns its result, undefined if the call is not one: the callee is not one
+     * of the static modules' exports, an argument is not static, or the call throws. The failure record
+     * receives the innermost part that is not static.
+     */
+    function staticCall(node, failure, staticCalls)
+    {
+        const callee = staticCallee(node.callee, failure, staticCalls)
+        if (!callee)
+        {
+            failure.node = failure.node || node
+            return undefined
+        }
+
+        const args = []
+        for (let i = 0; i < node.arguments.length; i++)
+        {
+            const arg = node.arguments[i]
+            const evaluated = t.isSpreadElement(arg) ? undefined : staticEval(arg, false, failure, staticCalls)
+            if (evaluated === undefined)
+            {
+                failure.node = failure.node || arg
+                return undefined
+            }
+            args.push(evaluated)
+        }
+
+        let result
+        try
+        {
+            result = callee.fn.apply(callee.receiver, args)
+        }
+        catch (e)
+        {
+            failure.node = node
+            return undefined
+        }
+
+        if (result && typeof result === "object")
+        {
+            staticCalls.produced.add(result)
+        }
+        return result
     }
 
     /**
@@ -338,8 +480,11 @@ export default function trackUsage(t) {
      * Evaluates a literal expression to its value, undefined if it is not one. Where it is not, the
      * failure record, if given, receives the node that stopped the evaluation and the property path
      * leading to it (".config", ".sortFields", "[0]").
+     *
+     * With staticCalls given, a call of one of its modules' exports counts as static too, and so does a
+     * method call on what such a call produced: the call is made, here and now, and its result is the value.
      */
-    function staticEval(node, allowIdentifier, failure)
+    function staticEval(node, allowIdentifier, failure, staticCalls)
     {
         let i, out, evaluatedValue
 
@@ -366,7 +511,7 @@ export default function trackUsage(t) {
             out = new Array(elements.length);
             for (i = 0; i < elements.length; i++)
             {
-                evaluatedValue = staticEval(elements[i], allowIdentifier, failure);
+                evaluatedValue = staticEval(elements[i], allowIdentifier, failure, staticCalls);
 
                 if (evaluatedValue !== undefined)
                 {
@@ -411,7 +556,7 @@ export default function trackUsage(t) {
                     return undefined;
                 }
 
-                evaluatedValue = staticEval(property.value, allowIdentifier, failure);
+                evaluatedValue = staticEval(property.value, allowIdentifier, failure, staticCalls);
 
                 if (evaluatedValue !== undefined)
                 {
@@ -432,6 +577,10 @@ export default function trackUsage(t) {
         else if (allowIdentifier && t.isIdentifier(node))
         {
             return { __identifier: node.name };
+        }
+        else if (staticCalls && t.isCallExpression(node))
+        {
+            return staticCall(node, failure, staticCalls);
         }
 
         if (failure)

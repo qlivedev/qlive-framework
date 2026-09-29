@@ -6,6 +6,7 @@ import * as babel from "@babel/core";
 import trackUsageBabelPlugin, {type SkippedCall} from "./babel/trackUsagePlugin.js";
 import trackUsageData from "./babel/trackUsageData.js";
 import deepEqual from "deep-equal";
+import {and, component, computedValue, condition, field, not, now, operation, or, today, value, values} from "../FilterDSL";
 import type {Plugin, ResolvedConfig} from "vite";
 import type {IncomingMessage, OutgoingHttpHeaders, ServerResponse} from "node:http";
 
@@ -65,6 +66,23 @@ export const QLIVE_TRACKED_FUNCTIONS: Record<string, TrackedFunctionSpec> = {
     GraphQLQuery: {
         module: "@qlivedev/qlive-ts", fn: "GraphQLQuery", requireStatic: true
     },
+};
+
+/**
+ * The FilterDSL functions that build a node and do nothing else. A tracked call's argument may call them, and chain
+ * the methods of the nodes they build, and still be static: the analysis makes the calls and records the node, which
+ * is the same data the browser would send. `sortFields: [field("numA").add(field("numB")).desc()]` is as static as
+ * `sortFields: ["!name"]`.
+ */
+const FILTER_DSL_BUILDERS = {and, component, computedValue, condition, field, not, now, operation, or, today, value, values};
+
+/**
+ * The imports calls of which the analysis evaluates, by import source: the builders under their own names from the
+ * filter entry, and as members of the FilterDSL namespace from the main one.
+ */
+const STATIC_MODULES: Record<string, Record<string, unknown>> = {
+    "@qlivedev/qlive-ts/filter": FILTER_DSL_BUILDERS,
+    "@qlivedev/qlive-ts": {FilterDSL: FILTER_DSL_BUILDERS},
 };
 
 /**
@@ -229,6 +247,7 @@ function runBabelOnFile(absPath: string, code: string, options: ResolvedOptions)
                     sourceRoot: relativeSourceRoot,
                     debug: options.debug,
                     indexes: options.indexes,
+                    staticModules: STATIC_MODULES,
                     onSkippedCall: (call: SkippedCall) => {
                         if (options.trackedFunctions[call.name]?.requireStatic)
                         {
@@ -253,7 +272,7 @@ export function formatSkippedCall(call: SkippedCall): string
     return (
         `[track-usage] ${where}: ${call.name}() is left out of the analysis, so the server knows nothing of it. ` +
         `Argument ${call.argument + 1}${part} is \`${code}\`: the analysis evaluates only literals -- strings, ` +
-        `numbers, booleans, null, and arrays and objects of them.`
+        `numbers, booleans, null, and arrays and objects of them -- and calls of the FilterDSL's builders.`
     );
 }
 

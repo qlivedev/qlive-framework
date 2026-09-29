@@ -56,6 +56,8 @@ Changed from that commit:
   - the test suite ported from mocha and power-assert to vitest
   - an onSkippedCall option reporting each tracked call left out because
     an argument did not evaluate, with the part of it that did not
+  - a staticModules option, whose exports' calls in an argument are made
+    at build time and recorded by their result
 
 
 spring-jsview

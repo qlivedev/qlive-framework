@@ -5,6 +5,7 @@ import * as path from "node:path";
 import trackUsageData from "../../src/vite/babel/trackUsageData.js";
 import type {Plugin, ResolvedConfig, ViteDevServer} from "vite";
 import {afterEach, beforeEach, describe, expect, it, type MockInstance, vi} from "vitest";
+import {and, field, value} from "../../src/FilterDSL";
 import {analyzeSourceTree, type TrackUsagePluginOptions, trackUsage} from "../../src/vite/trackUsage";
 
 /**
@@ -633,15 +634,17 @@ describe("trackUsage", () => {
 
     describe("left-out calls", () => {
 
-        // An expression the browser builds, which the analysis cannot evaluate
+        // A variable, which the analysis does not follow to its value
         const DYNAMIC = `
             import {useInjection, i18n} from "@qlivedev/qlive-ts";
             import {field} from "@qlivedev/qlive-ts/filter";
             import {Q_Foo} from "./Q_Foo";
 
+            const NUM = field("num");
+
             export default function Sum({label}) {
                 i18n(label);
-                return useInjection(Q_Foo, {config: {sortFields: [field("num").desc()]}});
+                return useInjection(Q_Foo, {config: {sortFields: [NUM.desc()]}});
             }
         `;
 
@@ -675,10 +678,9 @@ describe("trackUsage", () => {
 
             expect(skipped()).toHaveLength(1);
             const [warning] = skipped();
-            expect(warning).toContain("app/Sum.tsx:" + position(DYNAMIC, `field("num").desc()`));
+            expect(warning).toContain("app/Sum.tsx:" + position(DYNAMIC, "NUM.desc()"));
             expect(warning).toContain("useInjection()");
-            expect(warning).toContain("Argument 2 at config.sortFields[0]");
-            expect(warning).toContain('`field("num").desc()`');
+            expect(warning).toContain("Argument 2 at config.sortFields[0] is `NUM`");
         });
 
 
@@ -702,7 +704,7 @@ describe("trackUsage", () => {
             expect(skipped()).toHaveLength(1);
 
             // fixed and broken again is news again
-            const fixed = DYNAMIC.replace(`[field("num").desc()]`, `["!num"]`);
+            const fixed = DYNAMIC.replace("[NUM.desc()]", `["!num"]`);
             write("app/Sum.tsx", fixed);
             watcher.emit("change", moduleFile("app/Sum.tsx"));
             write("app/Sum.tsx", DYNAMIC);
@@ -720,13 +722,102 @@ describe("trackUsage", () => {
             expect(calls).toEqual([{
                 name: "useInjection",
                 filename: moduleFile("app/Sum.tsx"),
-                line: Number(position(DYNAMIC, `field("num")`).split(":")[0]),
-                column: Number(position(DYNAMIC, `field("num")`).split(":")[1]),
+                line: Number(position(DYNAMIC, "NUM.desc()").split(":")[0]),
+                column: Number(position(DYNAMIC, "NUM.desc()").split(":")[1]),
                 argument: 1,
                 path: ".config.sortFields[0]",
-                code: `field("num").desc()`,
+                code: "NUM",
             }]);
             expect(warnings).not.toHaveBeenCalled();
+        });
+    });
+
+
+    describe("FilterDSL in arguments", () => {
+
+        /**
+         * The analysis of a view whose useInjection() config is `config`, with the imports it needs and what the
+         * view does before the call.
+         */
+        function analyze(
+            config: string,
+            imports = `import {and, field, value} from "@qlivedev/qlive-ts/filter";`,
+            before = ""
+        )
+        {
+            write("app/View.tsx", `
+                import {useInjection} from "@qlivedev/qlive-ts";
+                ${imports}
+                import {Q_Foo} from "./Q_Foo";
+
+                export default function View() {
+                    ${before}
+                    return useInjection(Q_Foo, {config: ${config}});
+                }
+            `);
+            const skipped: string[] = [];
+            const {usages} = analyzeSourceTree({sourceRoot, onSkippedCall: (call) => skipped.push(call.code)});
+            const calls = (usages["./app/View"] as {calls: {useInjection?: unknown[][]}}).calls.useInjection ?? [];
+
+            return {config: calls.length ? (calls[0][1] as {config: unknown}).config : undefined, skipped};
+        }
+
+        /** A node as the browser sends it. */
+        function json(node: unknown): unknown
+        {
+            return JSON.parse(JSON.stringify(node));
+        }
+
+
+        it("records a chain of builders as the node it builds", () => {
+            const {config, skipped} = analyze(`{sortFields: [field("numA").add(field("numB")).desc(), "name"]}`);
+
+            expect(skipped).toEqual([]);
+            expect(config).toEqual({sortFields: [json(field("numA").add(field("numB")).desc()), "name"]});
+        });
+
+
+        it("records a condition of values and logical operators", () => {
+            const {config} = analyze(`{condition: and(field("flag").isTrue(), field("num").gt(value(1000)))}`);
+
+            expect(config).toEqual({condition: json(and(field("flag").isTrue(), field("num").gt(value(1000))))});
+        });
+
+
+        it("takes the builders under any name they are imported as", () => {
+            const expected = {sortFields: [json(field("num").desc())]};
+
+            expect(analyze(`{sortFields: [FilterDSL.field("num").desc()]}`,
+                `import {FilterDSL} from "@qlivedev/qlive-ts";`).config).toEqual(expected);
+            expect(analyze(`{sortFields: [F.field("num").desc()]}`,
+                `import * as F from "@qlivedev/qlive-ts/filter";`).config).toEqual(expected);
+            expect(analyze(`{sortFields: [f("num").desc()]}`,
+                `import {field as f} from "@qlivedev/qlive-ts/filter";`).config).toEqual(expected);
+        });
+
+
+        it("leaves out a call that only looks like one", () => {
+            // a builder of the same name from somewhere else, and a local shadowing the import
+            expect(analyze(`{sortFields: [field("num")]}`, `import {field} from "./myFilters";`).skipped)
+                .toEqual([`field("num")`]);
+            expect(analyze(`{sortFields: [field("num")]}`, undefined, `const field = (name) => name;`).skipped)
+                .toEqual([`field("num")`]);
+        });
+
+
+        it("calls only the node's own methods", () => {
+            expect(analyze(`{sortFields: [field("num").hasOwnProperty("name")]}`).skipped)
+                .toEqual([`field("num").hasOwnProperty("name")`]);
+            expect(analyze(`{sortFields: [field("num").constructor("name")]}`).skipped)
+                .toEqual([`field("num").constructor("name")`]);
+        });
+
+
+        it("names the argument of a builder that isn't static", () => {
+            const {config, skipped} = analyze(`{sortFields: [field(name).desc()]}`);
+
+            expect(config).toBeUndefined();
+            expect(skipped).toEqual(["name"]);
         });
     });
 });

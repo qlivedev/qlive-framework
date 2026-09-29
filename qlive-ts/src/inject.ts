@@ -46,7 +46,7 @@ export default function inject<T>(query: GraphQLQuery<T>, params: InjectParams =
             throw new Error(
                 "No injection '" + injectionId + "' in the data of this page. The server injects what the " +
                 "static analysis recorded of the view's useInjection() calls, and it records a call only if " +
-                "its arguments are literals -- the dev server's output names a call it left out."
+                "it can evaluate its arguments -- the dev server's output names a call it left out."
             )
         }
 

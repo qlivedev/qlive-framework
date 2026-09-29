@@ -13,6 +13,7 @@ import io.github.qlivedev.qlivetest.domain.tables.BarLink;
 import io.github.qlivedev.qlivetest.domain.tables.Baz;
 import io.github.qlivedev.qlivetest.domain.tables.Foo;
 import io.github.qlivedev.qlivetest.domain.tables.FooType;
+import io.github.qlivedev.qlivetest.domain.tables.Quux;
 import io.github.qlivedev.qlivetest.domain.tables.Qux;
 
 import java.util.Arrays;
@@ -91,6 +92,11 @@ public class Public extends SchemaImpl {
     public final FooType FOO_TYPE = FooType.FOO_TYPE;
 
     /**
+     * The table <code>public.quux</code>.
+     */
+    public final Quux QUUX = Quux.QUUX;
+
+    /**
      * Every scalar type a column can hold, for exercising the scalar handling
      * end to end
      */
@@ -121,6 +127,7 @@ public class Public extends SchemaImpl {
             Baz.BAZ,
             Foo.FOO,
             FooType.FOO_TYPE,
+            Quux.QUUX,
             Qux.QUX
         );
     }

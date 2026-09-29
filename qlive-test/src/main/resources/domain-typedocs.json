@@ -80,5 +80,31 @@
                 "paramDocs": []
             }
         ]
+    },
+    {
+        "name": "Quux",
+        "description": "Two numbers and a timestamp, for the example of a column computed from two fields and sorted by the expression that computes it.",
+        "fieldDocs": [
+            {
+                "name": "name",
+                "description": "Quux name",
+                "paramDocs": []
+            },
+            {
+                "name": "numA",
+                "description": "First summand",
+                "paramDocs": []
+            },
+            {
+                "name": "numB",
+                "description": "Second summand",
+                "paramDocs": []
+            },
+            {
+                "name": "created",
+                "description": "Quux create timestamp",
+                "paramDocs": []
+            }
+        ]
     }
 ]

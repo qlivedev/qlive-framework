@@ -13,6 +13,7 @@ import io.github.qlivedev.qlivetest.domain.tables.BarLink;
 import io.github.qlivedev.qlivetest.domain.tables.Baz;
 import io.github.qlivedev.qlivetest.domain.tables.Foo;
 import io.github.qlivedev.qlivetest.domain.tables.FooType;
+import io.github.qlivedev.qlivetest.domain.tables.Quux;
 import io.github.qlivedev.qlivetest.domain.tables.Qux;
 
 import javax.annotation.processing.Generated;
@@ -75,6 +76,11 @@ public class Tables {
      * The table <code>public.foo_type</code>.
      */
     public static final FooType FOO_TYPE = FooType.FOO_TYPE;
+
+    /**
+     * The table <code>public.quux</code>.
+     */
+    public static final Quux QUUX = Quux.QUUX;
 
     /**
      * Every scalar type a column can hold, for exercising the scalar handling

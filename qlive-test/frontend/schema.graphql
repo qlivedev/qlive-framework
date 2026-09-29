@@ -330,8 +330,35 @@ type QueryType {
     queryFooDocument(config: QueryConfig!): FooDocument!
     "Queries FooType objects based on the given query config"
     queryFooTypeDocument(config: QueryConfig!): FooTypeDocument!
+    "Queries Quux objects based on the given query config"
+    queryQuuxDocument(config: QueryConfig!): QuuxDocument!
     "Queries Qux objects based on the given query config"
     queryQuxDocument(config: QueryConfig!): QuxDocument!
+}
+
+"Two numbers and a timestamp, for the example of a column computed from two fields and sorted by the expression that computes it."
+type Quux {
+    "Quux create timestamp"
+    created: Timestamp!
+    "DB column 'id'"
+    id: String!
+    "Quux name"
+    name: String!
+    "First summand"
+    numA: Int!
+    "Second summand"
+    numB: Int!
+}
+
+"Container for Quux queries"
+type QuuxDocument {
+    "query config for this document"
+    config: QueryConfig!
+    rowCount: Int
+    "List of Quux objects"
+    rows: [Quux]!
+    "Runtime payload type (always 'Quux')"
+    type: String!
 }
 
 "Every scalar type the framework supports, one column each, and the example of a schema type a handwritten class stands in for -- see io.github.qlivedev.qlivetest.model.types.Qux, which is where the documentation of the fields no column backs would otherwise live."

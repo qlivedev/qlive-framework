@@ -13,6 +13,7 @@ import io.github.qlivedev.qlivetest.domain.tables.BarLink;
 import io.github.qlivedev.qlivetest.domain.tables.Baz;
 import io.github.qlivedev.qlivetest.domain.tables.Foo;
 import io.github.qlivedev.qlivetest.domain.tables.FooType;
+import io.github.qlivedev.qlivetest.domain.tables.Quux;
 import io.github.qlivedev.qlivetest.domain.tables.Qux;
 import io.github.qlivedev.qlivetest.domain.tables.records.AppFieldLayoutRecord;
 import io.github.qlivedev.qlivetest.domain.tables.records.AppLoginRecord;
@@ -23,6 +24,7 @@ import io.github.qlivedev.qlivetest.domain.tables.records.BarRecord;
 import io.github.qlivedev.qlivetest.domain.tables.records.BazRecord;
 import io.github.qlivedev.qlivetest.domain.tables.records.FooRecord;
 import io.github.qlivedev.qlivetest.domain.tables.records.FooTypeRecord;
+import io.github.qlivedev.qlivetest.domain.tables.records.QuuxRecord;
 import io.github.qlivedev.qlivetest.domain.tables.records.QuxRecord;
 
 import javax.annotation.processing.Generated;
@@ -64,6 +66,7 @@ public class Keys {
     public static final UniqueKey<FooRecord> PK_FOO = Internal.createUniqueKey(Foo.FOO, DSL.name("pk_foo"), new TableField[] { Foo.FOO.ID }, true);
     public static final UniqueKey<FooTypeRecord> FOO_TYPE_NAME_KEY = Internal.createUniqueKey(FooType.FOO_TYPE, DSL.name("foo_type_name_key"), new TableField[] { FooType.FOO_TYPE.NAME }, true);
     public static final UniqueKey<FooTypeRecord> PK_FOO_TYPE = Internal.createUniqueKey(FooType.FOO_TYPE, DSL.name("pk_foo_type"), new TableField[] { FooType.FOO_TYPE.ORDINAL }, true);
+    public static final UniqueKey<QuuxRecord> PK_QUUX = Internal.createUniqueKey(Quux.QUUX, DSL.name("pk_quux"), new TableField[] { Quux.QUUX.ID }, true);
     public static final UniqueKey<QuxRecord> PK_QUX = Internal.createUniqueKey(Qux.QUX, DSL.name("pk_qux"), new TableField[] { Qux.QUX.ID }, true);
 
     // -------------------------------------------------------------------------

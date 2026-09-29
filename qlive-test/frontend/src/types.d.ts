@@ -303,8 +303,35 @@ export type QueryType = {
     queryFooDocument: FooDocument
     /** Queries FooType objects based on the given query config */
     queryFooTypeDocument: FooTypeDocument
+    /** Queries Quux objects based on the given query config */
+    queryQuuxDocument: QuuxDocument
     /** Queries Qux objects based on the given query config */
     queryQuxDocument: QuxDocument
+}
+
+/** Two numbers and a timestamp, for the example of a column computed from two fields and sorted by the expression that computes it. */
+export type Quux = {
+    /** Quux create timestamp */
+    created: Temporal.Instant
+    /** DB column 'id' */
+    id: string
+    /** Quux name */
+    name: string
+    /** First summand */
+    numA: number
+    /** Second summand */
+    numB: number
+}
+
+/** Container for Quux queries */
+export type QuuxDocument = {
+    /** query config for this document */
+    config: QueryConfig
+    rowCount?: number
+    /** List of Quux objects */
+    rows: Quux[]
+    /** Runtime payload type (always 'Quux') */
+    type: string
 }
 
 /** Every scalar type the framework supports, one column each, and the example of a schema type a handwritten class stands in for -- see io.github.qlivedev.qlivetest.model.types.Qux, which is where the documentation of the fields no column backs would otherwise live. */
@@ -352,4 +379,4 @@ export type QuxDocument = {
 
 export type DomainObject = AppFieldLayout | AppLogin | AppUser | AppUserDocument | AppVersion | Bar | BarDocument | BarLink |
     Baz | BazDocument | Foo | FooDocument | FooType | FooTypeDocument | MergeConflict | MergeConflictField |
-    MergeResult | MutationType | QueryType | Qux | QuxDocument
+    MergeResult | MutationType | QueryType | Quux | QuuxDocument | Qux | QuxDocument

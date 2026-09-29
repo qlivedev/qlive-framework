@@ -11,6 +11,7 @@ import io.github.qlivedev.qlivetest.domain.tables.pojos.Bar;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Baz;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Foo;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.FooType;
+import io.github.qlivedev.qlivetest.domain.tables.pojos.Quux;
 import io.github.qlivedev.qlivetest.model.types.Qux;
 import graphql.schema.DataFetchingEnvironment;
 import jakarta.validation.constraints.NotNull;
@@ -48,7 +49,8 @@ public class QueryLogic
                 Baz.class,
                 AppUser.class,
                 // the handwritten Qux, which is what puts it in the generated one's place
-                Qux.class
+                Qux.class,
+                Quux.class
             }
         )
         Class<T> type,

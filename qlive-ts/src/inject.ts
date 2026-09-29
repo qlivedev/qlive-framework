@@ -43,7 +43,11 @@ export default function inject<T>(query: GraphQLQuery<T>, params: InjectParams =
         const source = injectionSource(injectionId)
         if (!source)
         {
-            throw new Error("No injection '" + injectionId + "' in the data of this page")
+            throw new Error(
+                "No injection '" + injectionId + "' in the data of this page. The server injects what the " +
+                "static analysis recorded of the view's useInjection() calls, and it records a call only if " +
+                "its arguments are literals -- the dev server's output names a call it left out."
+            )
         }
 
         // The server ships the injection as the JSON it got out of GraphQL. Converting it

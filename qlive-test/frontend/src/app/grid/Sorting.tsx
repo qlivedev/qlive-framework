@@ -7,12 +7,14 @@ import { Q_FooList, Q_FooListResult } from "./Q_FooList";
  *
  * A header click always sorts by that column alone. Anything more -- several fields, an expression -- is set on the
  * document from outside, and the headers show it as well as they can: the direction and the position of each field
- * in the order.
+ * in the order. A column whose field takes part in an expression, like num in its last digit, shows the expression's
+ * direction and position in a color of its own.
  */
 const ORDERS = [
     {label: "Owner, then name", sortFields: ["owner.login", "name"]},
     {label: "Flagged first, then largest num", sortFields: ["!flag", "!num"]},
-    {label: "Last digit of num", sortFields: [field("num").mod(value(10))]}
+    {label: "Last digit of num", sortFields: [field("num").mod(value(10))]},
+    {label: "Owner, then last digit of num", sortFields: ["owner.login", field("num").mod(value(10))]}
 ];
 
 export default function Sorting()

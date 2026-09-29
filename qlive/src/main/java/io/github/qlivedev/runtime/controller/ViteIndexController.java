@@ -38,6 +38,18 @@ public class ViteIndexController
      */
     private final static String INDEX_ENTRY_POINT = "index.html";
 
+    /**
+     * Header of a "not ready" answer, naming what the server is missing. The Vite plugin watches for it: a
+     * backend that started after the dev server has no static analysis, and nothing but the plugin can send it
+     * one. The plugin spells the same name out, so the two have to agree.
+     */
+    public final static String NOT_READY_HEADER = "X-QLive-Not-Ready";
+
+    /**
+     * {@link #NOT_READY_HEADER} value for a server without the frontend's static analysis.
+     */
+    public final static String NO_STATIC_ANALYSIS = "static-analysis";
+
     private final BootstrapService bootstrapService;
 
     private final VitePageRenderer vitePageRenderer;
@@ -64,7 +76,7 @@ public class ViteIndexController
         final QLiveBoostrap bs = bootstrapService.provideConfig(csrfToken, path);
         if (bs == null)
         {
-            return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
+            return noStaticAnalysis();
         }
 
         return new ResponseEntity<>(
@@ -88,13 +100,25 @@ public class ViteIndexController
         final Map<String, Injection> data = bootstrapService.provideInjectionData(path);
         if (data == null)
         {
-            return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
+            return noStaticAnalysis();
         }
 
         return new ResponseEntity<>(
             JSONUtil.DEFAULT_GENERATOR.forValue(data),
             HttpStatus.OK
         );
+    }
+
+
+    /**
+     * The answer while the server has no static analysis to resolve a path with. A 503 the frontend's
+     * bootstrap fetch retries, marked so that the Vite dev server knows to send the analysis it holds.
+     */
+    private static ResponseEntity<String> noStaticAnalysis()
+    {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+            .header(NOT_READY_HEADER, NO_STATIC_ANALYSIS)
+            .build();
     }
 
 

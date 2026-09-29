@@ -17,12 +17,17 @@ const SEARCH = [
 /**
  * A column computed from two fields, sorted by the expression that computes it, under a date range form.
  *
- * A click on the sum's header sorts by it ascending, the next one descending -- an expression toggles like a field.
- * The form narrows the rows to a range of days, from or until alone for a range open at the other end.
+ * The document starts sorted by the sum, largest first. A click on the sum's header sorts by it ascending, the next
+ * one descending again -- an expression toggles like a field. The form narrows the rows to a range of days, from or
+ * until alone for a range open at the other end.
  */
 export default function Sum()
 {
-    const quuxes: Q_QuuxListResult = useInjection(Q_QuuxList, {config: {sortFields: ["name"]}});
+    // written out rather than SUM.desc(): the build reads this call, and it runs FilterDSL builders but does not
+    // follow a variable to its value
+    const quuxes: Q_QuuxListResult = useInjection(Q_QuuxList, {
+        config: {sortFields: [field("numA").add(field("numB")).desc()]}
+    });
 
     const search = useFilters(quuxes, "search", SEARCH);
     const [created] = search.columns;

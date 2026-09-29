@@ -12,6 +12,7 @@ const EXAMPLES = [
     {href: "/app/grid/editing", title: "Editing", text: "changing values in place through a working set"},
     {href: "/app/grid/rows", title: "New and deleted rows", text: "creating and deleting through a working set"},
     {href: "/app/grid/watch", title: "Watching", text: "other people's writes marked as they happen"},
+    {href: "/app/grid/errors", title: "A failing update", text: "what the grid shows when the server refuses an update"},
     {href: "/app/grid/everything", title: "Everything at once", text: "all of the above in one view"}
 ];
 

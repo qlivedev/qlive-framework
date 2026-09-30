@@ -124,12 +124,17 @@ const INLINE_LINK = /\{@link\s+([^\s|}]+)\s*(?:\|\s*([^}]+?))?\s*\}/g;
 /**
  * Strips the comment framing off a JSDoc block, leaving the markdown inside it.
  * The bodies already read as prose and carry their own fenced examples, so the
- * only thing standing between them and a page is the ` * ` down the left.
+ * only thing standing between them and a page is the comment's opening and
+ * closing markers and the ` * ` down the left. A one-line comment has its text
+ * between the two markers.
  */
 function stripComment(lines)
 {
     return lines
-        .slice(1, -1)
+        .join("\n")
+        .replace(/^\s*\/\*\*/, "")
+        .replace(/\s*\*\/\s*$/, "")
+        .split("\n")
         .map(line => line.replace(/^\s*\* ?/, ""))
         .join("\n")
         .replace(INLINE_LINK, (_, target, label) => "`" + (label ?? target) + "`")

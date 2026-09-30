@@ -129,9 +129,7 @@ will fail on its first type lookup without it.
 declare function config(): QLiveConfig;
 ```
 
-:::note[Undocumented]
-This export carries no doc comment in the source.
-:::
+Returns the QLive config for the current application.
 
 ## QLiveConfig
 
@@ -614,9 +612,14 @@ foreign key points to.
 declare function i18n(tag: string, ...args: string[]): string;
 ```
 
-:::note[Undocumented]
-This export carries no doc comment in the source.
-:::
+Internationalization helper function
+
+**Parameters**
+
+| | |
+|---|---|
+| `tag` | translation tag |
+| `args` | non-static arguments |
 
 ## findRoot()
 
@@ -626,7 +629,11 @@ This export carries no doc comment in the source.
 declare function findRoot(id?: string): HTMLElement;
 ```
 
-:::note[Undocumented]
-This export carries no doc comment in the source.
-:::
+Find the root container in a QLive template.
+
+**Parameters**
+
+| | |
+|---|---|
+| `id` | id of element to find, default is "root", used by QLive for the root container |
 

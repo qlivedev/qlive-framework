@@ -22,6 +22,9 @@ import {PageableDocument} from "./usePagination";
  */
 export type GridRowStatus = "gone" | "deleted" | "conflict" | "new" | "changed" | "remoteChanged" | "unchanged";
 
+/**
+ * Options for useGridRows,
+ */
 export interface GridRowsOptions
 {
     /**

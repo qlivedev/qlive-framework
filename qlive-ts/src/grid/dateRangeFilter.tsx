@@ -113,6 +113,9 @@ function DateRangeInput({label, values, setValues}: ColumnFilterInputProps<(stri
     );
 }
 
+/**
+ * Options for the dateRangeFilter.
+ */
 export interface DateRangeFilterOptions
 {
     /**

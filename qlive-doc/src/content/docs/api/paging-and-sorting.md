@@ -79,9 +79,7 @@ update(delta: QueryConfigDelta): Promise<unknown>;
 interface PaginationOptions
 ```
 
-:::note[Undocumented]
-This export carries no doc comment in the source.
-:::
+Options for usePagination.
 
 ### PaginationOptions.pageSizes
 

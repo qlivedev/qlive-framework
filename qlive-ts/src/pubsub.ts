@@ -23,6 +23,9 @@ const RECONNECT_MAX_MS = 30_000
  */
 export type PubSubStatus = "idle" | "connecting" | "connected" | "reconnecting"
 
+/**
+ * Snapshot for a pub sub connection.
+ */
 export interface PubSubConnectionSnapshot
 {
     /**

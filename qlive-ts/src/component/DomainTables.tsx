@@ -496,6 +496,10 @@ export type DomainTablesProps = {
     setFilter : (filter: string) => void
 }
 
+/**
+ * Creates a tables for the current GraphQL schema with cross-linked relations. It is meant for small and medium sized
+ * domains and most likely will not be good if the domain is too large.
+ */
 const DomainTables = ({filter, setFilter} : DomainTablesProps): JSX.Element => {
 
     const { schema, meta } = config();

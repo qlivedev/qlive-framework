@@ -372,9 +372,7 @@ useSyncExternalStore's own change detection needs.
 interface PubSubConnectionSnapshot
 ```
 
-:::note[Undocumented]
-This export carries no doc comment in the source.
-:::
+Snapshot for a pub sub connection.
 
 ### PubSubConnectionSnapshot.status
 

@@ -16,6 +16,9 @@ export interface CatalogDocument<R = any>
     rows: readonly R[];
 }
 
+/**
+ * Options for the pick() filter helper.
+ */
 export interface PickOptions<R = any>
 {
     /**

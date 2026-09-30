@@ -14,6 +14,9 @@ export interface FilterableDocument
     update(delta: QueryConfigDelta): Promise<unknown>;
 }
 
+/**
+ * Options for `useFilter()`
+ */
 export interface FiltersOptions
 {
     /**

@@ -77,9 +77,7 @@ update(delta: QueryConfigDelta): Promise<unknown>;
 interface FiltersOptions
 ```
 
-:::note[Undocumented]
-This export carries no doc comment in the source.
-:::
+Options for `useFilter()`
 
 ### FiltersOptions.delay
 
@@ -502,9 +500,7 @@ It is the default filter of Date and Timestamp columns.
 interface DateRangeFilterOptions
 ```
 
-:::note[Undocumented]
-This export carries no doc comment in the source.
-:::
+Options for the dateRangeFilter.
 
 ### DateRangeFilterOptions.timeZone
 
@@ -614,9 +610,7 @@ rows: readonly R[];
 interface PickOptions<R = any>
 ```
 
-:::note[Undocumented]
-This export carries no doc comment in the source.
-:::
+Options for the pick() filter helper.
 
 ### PickOptions.label
 

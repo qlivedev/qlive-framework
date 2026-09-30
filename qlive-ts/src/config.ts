@@ -499,6 +499,9 @@ export function logStartup(bs : QLiveBoostrap)
     );
 }
 
+/**
+ * Returns the QLive config for the current application.
+ */
 export default function config(): QLiveConfig {
     if (!theConfig)
     {

@@ -36,6 +36,10 @@ export type GraphQLModifiedTypes =
     "LIST" |
     "NON_NULL"
 
+
+/**
+ * All GraphQL type kinds. Named types and modified type wrappers.
+ */
 export type GraphQLTypeKind = GraphQLNamedTypes | GraphQLModifiedTypes
 
 /**

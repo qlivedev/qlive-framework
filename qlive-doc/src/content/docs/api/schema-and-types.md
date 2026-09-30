@@ -328,9 +328,7 @@ NON_NULL modifier wrapping another type reference. Has no name of its own.
 type GraphQLTypeKind = GraphQLNamedTypes | GraphQLModifiedTypes;
 ```
 
-:::note[Undocumented]
-This export carries no doc comment in the source.
-:::
+All GraphQL type kinds. Named types and modified type wrappers.
 
 ## GraphQLNamedTypes
 
@@ -492,9 +490,7 @@ Returns true if the given type name was derived from QueryDocument<T>
 declare const LIST = "LIST";
 ```
 
-:::note[Undocumented]
-This export carries no doc comment in the source.
-:::
+Name of the LIST type modifier
 
 ## NON_NULL
 
@@ -504,7 +500,5 @@ This export carries no doc comment in the source.
 declare const NON_NULL = "NON_NULL";
 ```
 
-:::note[Undocumented]
-This export carries no doc comment in the source.
-:::
+Name of the NON_NULL type modifier
 

@@ -15,6 +15,9 @@ export interface PageableDocument
     update(delta: QueryConfigDelta): Promise<unknown>;
 }
 
+/**
+ * Options for usePagination.
+ */
 export interface PaginationOptions
 {
     /**

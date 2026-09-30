@@ -467,9 +467,7 @@ document's `update({})` reads the rows again.
 interface GridRowsOptions
 ```
 
-:::note[Undocumented]
-This export carries no doc comment in the source.
-:::
+Options for useGridRows,
 
 ### GridRowsOptions.workingSet
 

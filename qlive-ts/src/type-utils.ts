@@ -1,7 +1,13 @@
 import {GraphQLField, GraphQLNamedTypeRef, GraphQLType, GraphQLTypeRef} from "./GraphQLSchema";
 import config from "./config";
 
+/**
+ * Name of the LIST type modifier
+ */
 export const LIST = "LIST"
+/**
+ * Name of the NON_NULL type modifier
+ */
 export const NON_NULL = "NON_NULL"
 
 /**

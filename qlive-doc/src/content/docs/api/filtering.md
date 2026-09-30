@@ -251,7 +251,7 @@ rather than its first name field (`"owner.login"`). For a relation whose foreign
 ### ColumnFilter.toCondition
 
 ```ts
-toCondition(target: CNode, values: V): FilterExpression | null;
+toCondition(target: Field, values: V): FilterExpression | null;
 ```
 
 Builds the term from the input values, `null` for "no filter". Only called once every input is filled, or with
@@ -261,13 +261,13 @@ Builds the term from the input values, `null` for "no filter". Only called once 
 
 | | |
 |---|---|
-| `target` | what the column filters: a field node, or the expression of a computed column |
+| `target` | what the column filters: a field node, or the expression of a computed column, either with the builder methods, `target.between(from, to)` |
 | `values` | one value per input |
 
 ### ColumnFilter.fromCondition
 
 ```ts
-fromCondition?(target: CNode, term: FilterExpression): V | null;
+fromCondition?(target: Field, term: FilterExpression): V | null;
 ```
 
 Recognizes a term as one this filter produced and returns the input values it came from, `null` for "not mine".
@@ -373,10 +373,13 @@ label?: string;
 <span class="api-kind">function</span>
 
 ```ts
-declare function filterTarget(expression: FieldExpression): CNode;
+declare function filterTarget(expression: FieldExpression): Field;
 ```
 
-The node a filter compares: a field path becomes a field node, an expression stays as it is.
+The node a filter compares, with the builder methods: a field path becomes a field node, an expression built with
+the FilterDSL stays as it is, and a plain node like one parsed from JSON gets the methods on a copy.
+
+An expression has the methods of a field, as the DSL's builders give it, and its type says `Field` for that.
 
 **Parameters**
 
@@ -606,7 +609,7 @@ A filter of flags to check: each flag stands for a term, and the rows shown are 
 checked. The input is a checkbox per flag, and its value the names of the checked flags.
 
     const STATE = flagSetFilter([
-        {name: "open", label: "Open", term: target => condition("isNull", [target])},
+        {name: "open", label: "Open", term: target => target.isNull()},
         {name: "mine", label: "Mine", term: () => field("ownerId").eq(value(me))}
     ]);
 
@@ -645,7 +648,7 @@ label: ReactNode;
 ### Flag.term
 
 ```ts
-term(target: CNode): FilterExpression;
+term(target: Field): FilterExpression;
 ```
 
 The term the flag stands for.
@@ -654,7 +657,7 @@ The term the flag stands for.
 
 | | |
 |---|---|
-| `target` | what the column filters: a field node, or the expression of a computed column |
+| `target` | what the column filters: a field node, or the expression of a computed column, either with the builder methods |
 
 ## filled()
 

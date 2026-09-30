@@ -210,11 +210,15 @@ Keeps the cell content on one line.
 minWidth?: string;
 ```
 
+CSS width the column doesn't get narrower than
+
 ### DataGridColumn.maxWidth
 
 ```ts
 maxWidth?: string;
 ```
+
+CSS width the column doesn't get wider than
 
 ## FieldPath
 
@@ -279,6 +283,8 @@ same hooks gets.
 field: string | null;
 ```
 
+the field path, `null` for a computed column
+
 ### ResolvedColumn.heading
 
 ```ts
@@ -291,17 +297,23 @@ heading: ReactNode;
 title?: string;
 ```
 
+tooltip of the header cell, if the column has one
+
 ### ResolvedColumn.render
 
 ```ts
 render(row: R): ReactNode;
 ```
 
+the cell content of a row
+
 ### ResolvedColumn.sort
 
 ```ts
 sort: FieldExpression | null;
 ```
+
+what the column sorts by, `null` if it doesn't sort
 
 ### ResolvedColumn.filter
 
@@ -319,6 +331,8 @@ that is text.
 ```ts
 className(row: R): string | undefined;
 ```
+
+classes of the column's cells for a row
 
 ### ResolvedColumn.statusField
 
@@ -424,6 +438,8 @@ created since.
 ```ts
 status(row: R): GridRowStatus;
 ```
+
+what has happened to a row
 
 ### GridRows.fieldClass
 

@@ -96,6 +96,8 @@ Default: true.
 outputFileName?: string;
 ```
 
+Default: "track-usage.json".
+
 ### TrackUsagePluginOptions.backendOrigin
 
 ```ts
@@ -147,6 +149,8 @@ Where the query result types come from and what they import, for
 schema?: string;
 ```
 
+GraphQL schema the queries are checked against, relative to Vite's `root`. Default: "schema.graphql".
+
 ### QueryTypeOptions.typesModule
 
 ```ts
@@ -189,11 +193,15 @@ below loosen that.
 module: string;
 ```
 
+Import source, relative to `sourceRoot` (e.g. "./service/i18n") or a bare package specifier.
+
 ### TrackedFunctionSpec.fn
 
 ```ts
 fn: string;
 ```
+
+"" if the module itself is called as a function; otherwise the method/export name called on it.
 
 ### TrackedFunctionSpec.varArgs
 
@@ -272,11 +280,15 @@ inside a running Vite.
 sourceRoot: string;
 ```
 
+Absolute path to the directory to analyze, i.e. the `sourceRoot` the plugin would be given.
+
 ### AnalyzeSourceTreeOptions.trackedFunctions
 
 ```ts
 trackedFunctions?: Record<string, TrackedFunctionSpec>;
 ```
+
+Calls to record on top of `QLIVE_TRACKED_FUNCTIONS`, same rules as the plugin's.
 
 ### AnalyzeSourceTreeOptions.debug
 
@@ -284,11 +296,15 @@ trackedFunctions?: Record<string, TrackedFunctionSpec>;
 debug?: boolean;
 ```
 
+See `TrackUsagePluginOptions.debug`. Default: false.
+
 ### AnalyzeSourceTreeOptions.indexes
 
 ```ts
 indexes?: boolean;
 ```
+
+See `TrackUsagePluginOptions.indexes`. Default: true.
 
 ### AnalyzeSourceTreeOptions.onSkippedCall
 
@@ -333,11 +349,15 @@ plugin hands its `onSkippedCall` option.
 name: string;
 ```
 
+symbolic name of the tracked function, its key in `trackedFunctions`
+
 ### SkippedCall.filename
 
 ```ts
 filename: string;
 ```
+
+file the call is in, as babel was given it
 
 ### SkippedCall.line
 
@@ -345,11 +365,15 @@ filename: string;
 line: number | null;
 ```
 
+1-based line of the part that did not evaluate, null where babel has no location
+
 ### SkippedCall.column
 
 ```ts
 column: number | null;
 ```
+
+1-based column of it
 
 ### SkippedCall.argument
 
@@ -357,17 +381,23 @@ column: number | null;
 argument: number;
 ```
 
+0-based index of the argument
+
 ### SkippedCall.path
 
 ```ts
 path: string;
 ```
 
+property path from the argument to the part, like ".config.sortFields[0]", "" for the argument itself
+
 ### SkippedCall.code
 
 ```ts
 code: string;
 ```
+
+source text of the part
 
 ## formatSkippedCall()
 

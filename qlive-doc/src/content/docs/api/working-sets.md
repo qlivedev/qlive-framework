@@ -675,9 +675,13 @@ type: string;
 ids: Set<string>;
 ```
 
+ids of the rows held, a row without one being no row anything can be said about
+
 ### HeldRows.fields
 
 ```ts
 fields: Set<string>;
 ```
+
+the fields the store has of them, which is what the query selected or the form bound
 

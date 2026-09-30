@@ -167,11 +167,15 @@ getSnapshot: () => DocumentWatchSnapshot;
 open: () => void;
 ```
 
+starts watching, and does nothing to a watch that is watching already
+
 ### DocumentWatch.close
 
 ```ts
 close: () => void;
 ```
+
+stops watching, reversibly: open() puts the subscription back
 
 ## DocumentWatchSnapshot
 
@@ -265,6 +269,8 @@ mark it or go and read the row.
 id: string;
 ```
 
+the version the row stands at now
+
 ### EntityVersionMessage.entityType
 
 ```ts
@@ -283,11 +289,15 @@ entityId: string;
 prev: string | null;
 ```
 
+the version the change was made against, null for a row that had none
+
 ### EntityVersionMessage.fieldMask
 
 ```ts
 fieldMask: string | null;
 ```
+
+the fields that changed, as a decimal string: 128 bits is past what a number holds exactly
 
 ### EntityVersionMessage.fieldLayout
 
@@ -295,17 +305,23 @@ fieldMask: string | null;
 fieldLayout: string;
 ```
 
+id of the field layout the mask was written against
+
 ### EntityVersionMessage.ownerId
 
 ```ts
 ownerId: string | null;
 ```
 
+who made the change
+
 ### EntityVersionMessage.created
 
 ```ts
 created: string;
 ```
+
+when, ISO-8601
 
 ## subscribeToTopic()
 

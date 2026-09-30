@@ -63,6 +63,8 @@ config: QueryConfig;
 rowCount?: number;
 ```
 
+optional in the type because a query need not select it, but paging needs it
+
 ### PageableDocument.update
 
 ```ts
@@ -105,17 +107,23 @@ The paging state of a query document, and the ways to change it.
 page: number;
 ```
 
+index of the current page, from 0
+
 ### Pagination.pageCount
 
 ```ts
 pageCount: number;
 ```
 
+number of pages, at least 1
+
 ### Pagination.pageSize
 
 ```ts
 pageSize: number;
 ```
+
+page size of the document's config, 0 for all rows. What the server applied, so possibly capped.
 
 ### Pagination.pageSizes
 

@@ -105,6 +105,8 @@ The filter state of one owner of a condition part.
 columns: ColumnFilterState[];
 ```
 
+per column, in the order given
+
 ### Filters.unclaimed
 
 ```ts
@@ -119,6 +121,8 @@ or recognized by more than one column. They stay in the part until reset().
 ```ts
 active: boolean;
 ```
+
+whether the owner's part filters anything
 
 ### Filters.reset
 
@@ -144,11 +148,15 @@ The filter state of one column.
 field: FieldExpression;
 ```
 
+what the column filters: a field path or an expression
+
 ### ColumnFilterState.label
 
 ```ts
 label: string;
 ```
+
+what the inputs' accessible names call it, see `filterLabel()`
 
 ### ColumnFilterState.filter
 
@@ -156,11 +164,15 @@ label: string;
 filter: ColumnFilter<any>;
 ```
 
+the column's filter
+
 ### ColumnFilterState.values
 
 ```ts
 values: unknown[];
 ```
+
+current input values, `null` for an empty input
 
 ### ColumnFilterState.setValues
 
@@ -176,6 +188,8 @@ only if every input is filled, or any for a `partial` filter; until then the col
 ```ts
 active: boolean;
 ```
+
+whether the column's term is part of the document's condition
 
 ## FilterInput()
 
@@ -306,11 +320,15 @@ What a filter input component gets.
 label: string;
 ```
 
+what the inputs filter, for their accessible names: the column's label
+
 ### ColumnFilterInputProps.arity
 
 ```ts
 arity: number;
 ```
+
+number of inputs
 
 ### ColumnFilterInputProps.values
 
@@ -318,17 +336,23 @@ arity: number;
 values: FilterInputValues<V>;
 ```
 
+current values, `null` for an empty input
+
 ### ColumnFilterInputProps.setValues
 
 ```ts
 setValues(values: FilterInputValues<V>): void;
 ```
 
+replaces the values
+
 ### ColumnFilterInputProps.filter
 
 ```ts
 filter: ColumnFilter<V>;
 ```
+
+the filter the input belongs to, for an input that takes what it offers from it
 
 ## FilterInputValues
 
@@ -356,17 +380,23 @@ A filter on one field or expression, as a filter row or a search form has one pe
 field: FieldExpression;
 ```
 
+what the column filters: a field path, or a FilterDSL expression like `field("numA").add(field("numB"))`
+
 ### FilterColumn.filter
 
 ```ts
 filter: ColumnFilter<any>;
 ```
 
+the filter
+
 ### FilterColumn.label
 
 ```ts
 label?: string;
 ```
+
+what the inputs' accessible names call it, in place of the field path or the text form of the expression
 
 ## filterTarget()
 
@@ -639,11 +669,15 @@ One flag of a flag set filter.
 name: string;
 ```
 
+identifies the flag among the set's, and is what the input values hold
+
 ### Flag.label
 
 ```ts
 label: ReactNode;
 ```
+
+what the checkbox says
 
 ### Flag.term
 
@@ -733,15 +767,21 @@ How the terms of an owner's part of a condition are distributed over its filter 
 terms: (FilterExpression | null)[];
 ```
 
+per column, the term it claimed, or `null`
+
 ### ClaimedTerms.values
 
 ```ts
 values: (unknown[] | null)[];
 ```
 
+per column, the input values its term came from, or `null`, also for a term the column wrote itself
+
 ### ClaimedTerms.unclaimed
 
 ```ts
 unclaimed: FilterExpression[];
 ```
+
+terms no column claimed, or more than one did
 

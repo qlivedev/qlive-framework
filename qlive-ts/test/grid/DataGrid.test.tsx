@@ -229,6 +229,17 @@ describe("DataGrid", () => {
         expect(headings.map(th => th.getAttribute("title"))).toEqual(["about [Foo.name]", null, "about Actions"]);
     });
 
+    it("keeps a column's own title over the grid's", () => {
+        const grid = render(
+            <DataGrid doc={ doc() }
+                      columns={ [{field: "name", title: "the name"}, {field: "num", title: () => undefined}, "flag"] }
+                      headerTitle={ column => "sorts by " + String(column.sort) }/>
+        );
+
+        const headings = Array.from(grid.querySelectorAll(".qlive-grid-headings th"));
+        expect(headings.map(th => th.getAttribute("title"))).toEqual(["the name", "sorts by num", "sorts by flag"]);
+    });
+
     it("notes nothing where every sort field and term has its column", () => {
         const term = field("name").containsIgnoreCase(value("x")) as FilterExpression;
         const grid = render(

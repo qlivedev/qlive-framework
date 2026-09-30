@@ -64,7 +64,8 @@ export type DataGridProps<R> = {
 
     /**
      * Tooltip of a column's header cell, e.g. a description of the sort field its arrow stands for. What that says
-     * and how it's put is the application's; `matchSort()` and `matchSortPart()` find the sort field.
+     * and how it's put is the application's; `matchSort()` and `matchSortPart()` find the sort field. A column with a
+     * `title` of its own keeps that.
      */
     headerTitle?: (column: ResolvedColumn) => string | undefined
 
@@ -132,6 +133,8 @@ export default function DataGrid<R>(props: DataGridProps<R>): JSX.Element
         )
     );
 
+    const title = (column: ResolvedColumn) => column.title ?? headerTitle?.(column);
+
     let filterIndex = 0;
     return (
         <div className={ classes("qlive-grid", className) }>
@@ -152,11 +155,11 @@ export default function DataGrid<R>(props: DataGridProps<R>): JSX.Element
                         {
                             columns.map((column, index) => column.sort !== null
                                 ? (
-                                    <SortHeader key={ index } doc={ doc } sortKey={ column.sort } title={ headerTitle?.(column) }>
+                                    <SortHeader key={ index } doc={ doc } sortKey={ column.sort } title={ title(column) }>
                                         { column.heading }
                                     </SortHeader>
                                 )
-                                : <th key={ index } className="qlive-grid-heading" title={ headerTitle?.(column) }>{ column.heading }</th>
+                                : <th key={ index } className="qlive-grid-heading" title={ title(column) }>{ column.heading }</th>
                             )
                         }
                     </tr>

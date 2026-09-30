@@ -61,6 +61,12 @@ export interface DataGridColumn<R = any>
     heading?: ReactNode;
 
     /**
+     * Tooltip of the header cell, fixed or from the resolved column, e.g. to add what it sorts by. The grid's
+     * `headerTitle` titles only the columns without one.
+     */
+    title?: string | ((column: ResolvedColumn<R>) => string | undefined);
+
+    /**
      * The cell content. An element is used as it is, any other value is formatted like a value of the column's
      * field.
      */
@@ -111,6 +117,9 @@ export interface ResolvedColumn<R = any>
     field: string | null;
 
     heading: ReactNode;
+
+    /** tooltip of the header cell, if the column has one */
+    title?: string;
 
     /** the cell content of a row */
     render(row: R): ReactNode;
@@ -312,7 +321,7 @@ export function resolveColumn<R = any>(type: string, column: NoInfer<GridColumn<
         }
         const render = given.render;
         resolved.render = row => display(render(row), "");
-        return resolved;
+        return withTitle(resolved, given.title);
     }
 
     const target = resolvePath(type, path);
@@ -401,6 +410,15 @@ export function resolveColumn<R = any>(type: string, column: NoInfer<GridColumn<
         resolved.filter = filter && {field: filterField, filter};
     }
 
+    return withTitle(resolved, given.title);
+}
+
+/**
+ * Sets the title of a column resolved but for that, from what the column gives.
+ */
+function withTitle<R>(resolved: ResolvedColumn<R>, title: DataGridColumn<R>["title"]): ResolvedColumn<R>
+{
+    resolved.title = typeof title === "function" ? title(resolved) : title;
     return resolved;
 }
 

@@ -64,7 +64,8 @@ type DataGridProps<R> = {
   rowClassName?: (row: R) => string | undefined;
   /**
    * Tooltip of a column's header cell, e.g. a description of the sort field its arrow stands for. What that says
-   * and how it's put is the application's; `matchSort()` and `matchSortPart()` find the sort field.
+   * and how it's put is the application's; `matchSort()` and `matchSortPart()` find the sort field. A column with a
+   * `title` of its own keeps that.
    */
   headerTitle?: (column: ResolvedColumn) => string | undefined;
   /**
@@ -149,6 +150,15 @@ heading?: ReactNode;
 ```
 
 The heading, in place of the i18n() of `Type.field`.
+
+### DataGridColumn.title
+
+```ts
+title?: string | ((column: ResolvedColumn<R>) => string | undefined);
+```
+
+Tooltip of the header cell, fixed or from the resolved column, e.g. to add what it sorts by. The grid's
+`headerTitle` titles only the columns without one.
 
 ### DataGridColumn.render
 
@@ -273,6 +283,12 @@ field: string | null;
 
 ```ts
 heading: ReactNode;
+```
+
+### ResolvedColumn.title
+
+```ts
+title?: string;
 ```
 
 ### ResolvedColumn.render

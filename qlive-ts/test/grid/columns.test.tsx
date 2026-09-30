@@ -35,6 +35,15 @@ describe("resolveColumn", () => {
         expect(column.className(row)).toBeUndefined();
     });
 
+    test("titles the header only as the column says", () => {
+        expect(resolveColumn("Foo", "name").title).toBeUndefined();
+        expect(resolveColumn("Foo", {field: "name", title: "the name"}).title).toBe("the name");
+        expect(resolveColumn("Foo", {field: "owner", title: column => "by " + String(column.sort)}).title)
+            .toBe("by owner.login");
+        expect(resolveColumn("Foo", {heading: "Actions", render: () => null, title: c => String(c.heading)}).title)
+            .toBe("Actions");
+    });
+
     test("filters numbers by eq, of their type", () => {
         const num = resolveColumn("Foo", "num").filter!;
         expect(num.filter.toCondition(field("num"), ["12"])).toMatchObject({

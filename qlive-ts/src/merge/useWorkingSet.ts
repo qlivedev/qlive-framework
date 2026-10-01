@@ -32,9 +32,8 @@ export type UseWorkingSetOptions = {
  *
  *     const { dirty, conflicts, merge } = useWorkingSet(ws, {watch: true})
  *
- * Rules of hooks apply: call it at the top level of a view, unconditionally. The working set itself is
- * made outside React and lives as long as the editing does. The flag may be turned on and off freely; the
- * watch follows it.
+ * Rules of hooks apply. The working set itself is made outside React and lives as long as the editing does.
+ * The flag may be turned on and off freely; the watch follows it.
  *
  * @param workingSet    the working set to read
  * @param options       see UseWorkingSetOptions

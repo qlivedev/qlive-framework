@@ -22,7 +22,7 @@ import {workingSetOf} from "./WorkingSet";
  * }
  * ```
  *
- * Rules of hooks apply: call it at the top level of a view, unconditionally.
+ * Rules of hooks apply.
  *
  * @param draft     a draft, i.e. what ws.edit() or ws.create() returned. A row that is not one is a
  *                  mistake rather than a silent no-op -- it is what would otherwise show up as a form that

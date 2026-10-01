@@ -118,7 +118,7 @@ function rowStatus(merge: MergeAccessor): GridRowStatus
  * The calling component re-renders with every change to the working set. DataGrid is this plus markup; a table of
  * its own gets the same through this hook.
  *
- * Rules of hooks apply: call it at the top level of a view, unconditionally.
+ * Rules of hooks apply.
  *
  * @param doc       query document snapshot
  * @param options   working set and watching, see GridRowsOptions

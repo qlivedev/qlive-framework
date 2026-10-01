@@ -34,7 +34,7 @@
     {
       "slug": "startup-and-config",
       "title": "Startup and configuration",
-      "description": "Booting the application and reading what the server sent with the page.",
+      "description": "Booting the application, from a server or a fixture, and reading what came with the page.",
       "narrative": {
         "url": "/qlive-framework/how-to/add-an-entry-point/",
         "title": "Add an entry point"
@@ -43,9 +43,12 @@
         "startup",
         "StartupOptions",
         "noSchema",
+        "initFixture",
+        "isFixture",
         "config",
         "QLiveConfig",
         "QLiveBoostrap",
+        "QLiveFixture",
         "Authentication",
         "CSRFToken",
         "DomainMeta",

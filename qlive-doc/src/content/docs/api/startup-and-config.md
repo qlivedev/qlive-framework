@@ -1,6 +1,6 @@
 ---
 title: Startup and configuration
-description: Booting the application and reading what the server sent with the page.
+description: Booting the application, from a server or a fixture, and reading what came with the page.
 editUrl: false
 sidebar:
   order: 1
@@ -101,6 +101,15 @@ strictMode?: boolean;
 
 Whether to wrap the views in React.StrictMode. Default is `true`
 
+### StartupOptions.fixture
+
+```ts
+fixture?: QLiveFixture;
+```
+
+Runs the application on the given fixture instead of on the data a server sends, see initFixture(). Takes
+the place of the bootstrap the page would otherwise read or fetch; everything else is the same.
+
 ## noSchema()
 
 <span class="api-kind">function</span>
@@ -120,6 +129,52 @@ shipping none of it.
 Only for entry points that issue no queries and render no application view: a login page, an error page, a
 public landing page. Anything that resolves a route or reads an injection with a query needs the schema and
 will fail on its first type lookup without it.
+
+## initFixture()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function initFixture(fixture: QLiveFixture): Promise<QLiveConfig>;
+```
+
+Initializes QLive from the given fixture, the way init() does from the bootstrap a server sends, and runs it on
+that fixture from then on.
+
+A view running on a fixture runs unchanged. Its injections come out of the fixture, and its query documents answer
+update() in the browser: they filter, sort and page the rows the fixture holds, as localDocument() does. Nothing
+else goes anywhere -- graphql() rejects, so nothing is written, and subscribeToTopic() subscribes to nothing, so
+nothing is pushed.
+
+This is for whatever renders a view without startup(): a Storybook decorator, a component test, an island on a
+static page. startup({fixture}) runs a whole application on one.
+
+    initFixture(fixture)
+    createRoot(element).render(<FooList/>)
+
+The config and the injections are module state, so one fixture is active at a time: initializing another replaces
+the injections of the last.
+
+**Parameters**
+
+| | |
+|---|---|
+| `fixture` | the fixture, e.g. one recorded from a running application in dev mode  |
+
+**Returns** the initialized config
+
+## isFixture()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function isFixture(): boolean;
+```
+
+Returns true if QLive runs on a fixture, see initFixture().
+
+A view runs the same either way and normally has no reason to ask. Where it shows something only a server makes
+work -- a save button, say -- this is how it can tell.
 
 ## config()
 
@@ -217,6 +272,26 @@ type QLiveBoostrap = {
 ```
 
 Entry-point boostrap data.
+
+## QLiveFixture
+
+<span class="api-kind">type</span>
+
+```ts
+type QLiveFixture = QLiveBoostrap & {
+  /**
+   * The location the fixture was recorded at, where it was recorded. Nothing reads it yet: it says which view the
+   * data is for.
+   */
+  path?: string;
+};
+```
+
+Bootstrap data a view runs on without a server, see initFixture().
+
+A bootstrap like any other but for its query document injections, which hold every row instead of a page of them:
+`rows` is the whole result, `rowCount` its length, and `config` the one the view injected with, so the view opens
+on the page it opens on live.
 
 ## Authentication
 

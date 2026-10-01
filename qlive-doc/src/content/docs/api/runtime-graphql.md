@@ -115,6 +115,8 @@ selection, and is what an application normally wants -- reach for this one when
 the query has several top-level selections, or when the wire format is what you
 are after.
 
+Running on a fixture (see initFixture()), there is no server to post to, and this rejects without trying.
+
 **Parameters**
 
 | | |

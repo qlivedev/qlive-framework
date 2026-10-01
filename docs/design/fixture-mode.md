@@ -1,7 +1,7 @@
 # Fixture mode: views running on given data
 
-Status: fixture mode and the recorder are implemented in qlive-ts
-(2026-10-02). The view's route and showing a view in qlive-doc are
+Status: fixture mode and the recorder are implemented in qlive-ts, and
+qlive-doc runs views on fixtures (2026-10-02). The view's route is
 open.
 
 ## Problem
@@ -176,14 +176,29 @@ instead of throwing.
 
 ## Showing a view in qlive-doc
 
-The fixture covers the data. The view also needs:
+`<QLiveDemo view="grid/Sorting"/>` on a page under
+`qlive-doc/src/content/docs/demo/` runs the view in a `client:only`
+React island, on the fixture at `src/demo/fixtures/grid/Sorting.json`,
+with the view's source in a second tab. qlive-doc's README says how to
+add one.
 
-- **Its modules in qlive-doc's build:** the view, its queries and
-  components, qlive-ts. Either qlive-doc imports from
-  qlive-test/frontend, or demo views live somewhere both can reach.
-- **Whatever the track-usage Babel plugin provides at runtime,** if
-  anything (`i18n`, say). To be checked.
-- **CSS:** qlive-ts's styles and the application's own.
+- **Modules:** qlive-doc compiles qlive-ts and the view from source,
+  with the aliases qlive-test's dev server uses. Their dependencies
+  resolve from the repository's install, so the docs workflow installs
+  the repository too, and React is deduplicated so islands and views
+  share one copy. Views and fixtures are lazy globs, so a page loads
+  only its own.
+- **Babel plugin:** nothing of it is needed at runtime. track-usage
+  only reports calls to the server, and `i18n()` is a plain function.
+- **CSS:** qlive-ts's stylesheet. The demo maps QLive's color tokens to
+  Starlight's, so it follows the site's theme switch rather than
+  `prefers-color-scheme`. qlive-test's own stylesheet styles `body` and
+  stays out.
+
+One demo per page, as the module state allows. A fixture is mostly
+the config's schema (60 of 72 KB compact for the Sorting view);
+stripping its descriptions would be the first thing to try if size
+starts to matter.
 
 ## Not chosen
 
@@ -205,6 +220,5 @@ The fixture covers the data. The view also needs:
 
 ## First step
 
-One Astro island in qlive-doc rendering one qlive-test view, the Foo
-grid, from a recorded fixture, filterable and pageable, with the view's
-code next to it.
+Done: the Sorting view of qlive-test runs on a recorded fixture under
+Demos in qlive-doc, with its source next to it.

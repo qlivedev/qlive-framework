@@ -617,4 +617,33 @@
         cursor: pointer;
     }
 
+
+    /*
+     * The dev-mode button that records the view on screen as a fixture. Pinned to a corner, outside the
+     * application's root, so it covers the least of what the view itself lays out.
+     */
+    .qlive-fixture-recorder
+    {
+        position: fixed;
+        right: var(--qlive-space-2);
+        bottom: var(--qlive-space-2);
+        z-index: 1000;
+        padding: var(--qlive-space-1) var(--qlive-space-2);
+        border: 1px solid var(--qlive-color-border);
+        border-radius: var(--qlive-radius-md);
+        background: var(--qlive-color-bg);
+        color: var(--qlive-color-muted);
+        font: inherit;
+        font-family: var(--qlive-font-sans);
+        font-size: 0.8em;
+        opacity: 0.8;
+        cursor: pointer;
+    }
+
+    .qlive-fixture-recorder:hover,.qlive-fixture-recorder:focus
+    {
+        color: var(--qlive-color-fg);
+        opacity: 1;
+    }
+
 }

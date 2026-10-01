@@ -8,6 +8,7 @@ import findRoot from "./util/findRoot";
 import ErrorBoundary from "./component/ErrorBoundary";
 import {loadViewForPath} from "./router";
 import {initPubSub} from "./pubsub";
+import {keepBootstrap} from "./fixture/notes";
 import {ComponentType, Fragment, FunctionComponent, StrictMode} from "react";
 
 /**
@@ -149,6 +150,13 @@ export async function startup(options: StartupOptions): Promise<Root>
         bsData = await fetchBootstrap(location.pathname);
     }
 
+    // The fixture recorder starts from the bootstrap as received, which init() is about to change.
+    const recording = isViteDev() && !fixture
+    if (recording)
+    {
+        keepBootstrap(structuredClone(bsData))
+    }
+
     const config = await (fixture ? initFixture(fixture) : init(bsData));
 
     // Arms push: clears whatever a previous startup left behind. The socket opens on the first
@@ -204,6 +212,13 @@ export async function startup(options: StartupOptions): Promise<Root>
                 </ErrorBoundary>
             </ViewWrapper>,
         );
+
+        if (recording && Object.keys(bsData.data ?? {}).length)
+        {
+            // Dev tooling, so it is fetched in dev mode alone and a production build never loads it.
+            const {mountRecorder} = await import("./fixture/recorder");
+            mountRecorder();
+        }
     }
 
     return rootContainer

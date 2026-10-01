@@ -5,6 +5,8 @@ import {convertResultFromServer} from "./converter";
 import {QueryDocument} from "./QueryDocument";
 import {isFixture} from "./config";
 import {holdRows} from "./localDocument";
+import {isViteDev} from "./util/viteEnv";
+import {noteInjection} from "./fixture/notes";
 
 /**
  * GraphQL types plus a declarative injection id that is declared with it to disambiguate injection
@@ -38,6 +40,12 @@ export default function inject<T>(query: GraphQLQuery<T>, params: InjectParams =
     const { __id } = params
 
     const injectionId = __id || query.queryName;
+    if (isViteDev())
+    {
+        // what the fixture recorder needs to query the injection again
+        noteInjection(injectionId, query, params)
+    }
+
     let injection = data(injectionId);
 
     if (!injection)

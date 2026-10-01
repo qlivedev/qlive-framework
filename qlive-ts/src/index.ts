@@ -370,6 +370,9 @@ export type {
  *   localDocument.holdRows              what inject() makes of a document a
  *                                       fixture injects. initFixture() is the
  *                                       way in
+ *   fixture/notes, fixture/recorder     the dev-mode fixture recorder, which
+ *                                       startup() loads and mounts itself. It
+ *                                       exists to be clicked, not called
  *   util/delay                          a setTimeout promise, not framework API
  *   util/viteEnv.isViteDev/viteBaseUrl  reads Vite's import.meta.env, which an
  *                                       application has direct access to

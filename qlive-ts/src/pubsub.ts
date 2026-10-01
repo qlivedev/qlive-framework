@@ -1,4 +1,4 @@
-import config from "./config";
+import config, {isFixture} from "./config";
 import {FilterExpression, RawValue, toJSON} from "./FilterDSL";
 
 /**
@@ -358,6 +358,13 @@ export function subscribeToTopic<T>(
     condition: FilterExpression | null = null
 ): () => void
 {
+    if (isFixture())
+    {
+        // Nothing pushes to a fixture, so there is nothing to connect to: the socket stays shut and the connection
+        // idle.
+        return () => {}
+    }
+
     const id = String(++idCounter)
 
     // Uncomment with: import {decompileFilter} from "./util/decompileFilter"

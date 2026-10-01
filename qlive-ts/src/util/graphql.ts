@@ -1,5 +1,5 @@
 import {GraphQLQuery} from "../GraphQLQuery";
-import config from "../config";
+import config, {isFixture} from "../config";
 
 
 /**
@@ -174,6 +174,8 @@ export type GraphQLParams =
  * the query has several top-level selections, or when the wire format is what you
  * are after.
  *
+ * Running on a fixture (see initFixture()), there is no server to post to, and this rejects without trying.
+ *
  * @param query     query to run, as a GraphQLQuery or its source
  * @param params    variables for the query, in wire format
  *
@@ -187,6 +189,16 @@ export default function graphql<T>(query: GraphQLQuery<T> | string, params: Grap
     } else
     {
         queryInstance = query;
+    }
+
+    if (isFixture())
+    {
+        // Rejected here rather than left to fail as a request: a view that queries beyond its injections
+        // shows up as that, not as a network error.
+        return Promise.reject(new Error(
+            "QLive runs on a fixture, which answers no GraphQL requests: " + queryInstance.queryName + " was " +
+            "sent. A view running on a fixture can read its injections and update() their documents, nothing else."
+        ))
     }
 
     const { contextPath, csrfToken } = config()

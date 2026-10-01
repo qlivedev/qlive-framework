@@ -1,6 +1,6 @@
 import {createRoot, Root} from "react-dom/client";
 
-import {init, logStartup, QLiveBoostrap, QLiveConfig} from "./config";
+import {init, initFixture, logStartup, QLiveBoostrap, QLiveConfig, QLiveFixture} from "./config";
 import delay from "./util/delay";
 import {isViteDev, viteBaseUrl} from "./util/viteEnv";
 import {registerViews, ViewModules} from "./views";
@@ -56,6 +56,12 @@ export interface StartupOptions
      * Whether to wrap the views in React.StrictMode. Default is `true` 
      */
     strictMode?: boolean
+
+    /**
+     * Runs the application on the given fixture instead of on the data a server sends, see initFixture(). Takes
+     * the place of the bootstrap the page would otherwise read or fetch; everything else is the same.
+     */
+    fixture?: QLiveFixture
 }
 
 // Server responds 503 while it isn't ready to provide a complete QLiveConfig yet (e.g.
@@ -92,14 +98,15 @@ export async function startup(options: StartupOptions): Promise<Root>
         root,
         render : RenderComponent,
         strictMode = true,
+        fixture
     } = options
 
     registerViews(views ?? {});
 
-    const elem = document.getElementById("root-data");
+    const elem = fixture ? null : document.getElementById("root-data");
     const text = elem?.textContent;
 
-    let bsData: QLiveBoostrap | undefined;
+    let bsData: QLiveBoostrap | undefined = fixture;
 
     // In production, ViteIndexController has spliced the current QLiveConfig into the
     // placeholder. In `vite dev`, nobody touches that placeholder, so it stays empty --
@@ -142,7 +149,7 @@ export async function startup(options: StartupOptions): Promise<Root>
         bsData = await fetchBootstrap(location.pathname);
     }
 
-    const config = await init(bsData);
+    const config = await (fixture ? initFixture(fixture) : init(bsData));
 
     // Arms push: clears whatever a previous startup left behind. The socket opens on the first
     // subscribeToTopic(), so an entry point that subscribes to nothing -- the login page -- opens nothing.

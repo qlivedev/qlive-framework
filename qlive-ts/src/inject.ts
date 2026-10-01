@@ -3,6 +3,8 @@ import {firstValue, GraphQLParams} from "./util/graphql";
 import data, {injectionSource, storeInjection} from "./data";
 import {convertResultFromServer} from "./converter";
 import {QueryDocument} from "./QueryDocument";
+import {isFixture} from "./config";
+import {holdRows} from "./localDocument";
 
 /**
  * GraphQL types plus a declarative injection id that is declared with it to disambiguate injection
@@ -59,6 +61,14 @@ export default function inject<T>(query: GraphQLQuery<T>, params: InjectParams =
             type: source.type,
             meta: source.meta
         }
+
+        const document = firstValue(injection.value)
+        if (isFixture() && document instanceof QueryDocument)
+        {
+            // A fixture's document holds every row, and shows the page its config asks for out of them.
+            holdRows(document)
+        }
+
         storeInjection(injectionId, injection)
     }
 

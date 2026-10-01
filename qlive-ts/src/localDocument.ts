@@ -44,6 +44,26 @@ function localDocumentOf<T extends object>(type: string, rows: () => readonly T[
 }
 
 /**
+ * Turns a document that holds every row of its query into a local one: from then on it shows the page its config
+ * asks for and answers update() from all the rows, as localDocument() does.
+ *
+ * This is what initFixture() makes of the documents a fixture injects.
+ *
+ * @param document  document holding all rows, under the config it is to show them with
+ *
+ * @internal
+ */
+export function holdRows<T extends object>(document: QueryDocument<T>): void
+{
+    const rows = document.rows;
+    const source = (config: QueryConfig) => evaluateQuery(document.type, rows, config);
+    const first = source(document.config);
+    document.rows = first.rows;
+    document.rowCount = first.rowCount;
+    setLocalSource(document, source);
+}
+
+/**
  * A query document over rows the view holds, see localDocument(), and the current snapshot of it.
  *
  *     const foos = useLocalDocument("Foo", rows, {pageSize: 10});

@@ -20,7 +20,7 @@ export { startup } from "./startup";
 // application declaring temporal-polyfill itself would be free to resolve a
 // second copy, and instants from one do not typecheck against the other.
 export { Temporal } from "./temporal";
-export { default as config } from "./config";
+export { default as config, initFixture, isFixture } from "./config";
 export { default as i18n } from "./i18n";
 
 export { useInjection } from "./useInjection";
@@ -142,6 +142,7 @@ export type { StartupOptions } from "./startup";
 
 export type {
     QLiveBoostrap,
+    QLiveFixture,
     QLiveConfig,
     Authentication,
     CSRFToken,
@@ -366,6 +367,9 @@ export type {
  *                                       watches only in some configurations.
  *                                       An application that doesn't want a
  *                                       watch doesn't call useDocumentWatch()
+ *   localDocument.holdRows              what inject() makes of a document a
+ *                                       fixture injects. initFixture() is the
+ *                                       way in
  *   util/delay                          a setTimeout promise, not framework API
  *   util/viteEnv.isViteDev/viteBaseUrl  reads Vite's import.meta.env, which an
  *                                       application has direct access to

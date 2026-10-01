@@ -1,0 +1,207 @@
+# Fixture mode: views running on given data
+
+Status: proposed. Written 2026-10-01. Nothing of it exists yet.
+
+## Problem
+
+Showing QLive to someone takes a running Java server with a Postgres
+database behind it. Bundling one into qlive-test or hosting it would
+work, but it isn't worth it: what a hosted qlive-test shows is mostly a
+datagrid, and QLive isn't the datagrid. What's worth showing is the
+relationship between a view's code and what it renders, and a static
+page can show that next to a live component.
+
+Application authors hit the same wall. A view can't be rendered in
+Storybook, a component test or any other simulated environment without
+a server to answer its injections.
+
+## Direction
+
+A view runs **on a fixture** when QLive was initialized from a
+bootstrap it was handed instead of one a server served. Its injections
+come from the fixture. Query documents in it answer `update()` in the
+browser, filtering, sorting and paging all the rows the fixture holds.
+The view can't tell the difference and runs unchanged.
+
+Where the fixture comes from doesn't matter to QLive: recorded from a
+running application (see [Recorder](#recorder)), written by hand for a
+test, or generated. The name is borrowed from testing, where a fixture
+is the prepared data a test runs on. It says nothing about a server
+and promises no faked behavior, and fixture mode fakes none.
+
+This is library code in qlive-ts, not part of a demo, so that
+applications can do the same in their own simulated environments.
+
+Fixture mode reads data and nothing else:
+
+- **No writes.** `mergeWorkingSet` and every other `graphql()` call
+  throw an error saying the view runs on a fixture. Faking merges,
+  versions and conflicts would cost a lot and add little to what a
+  page can show.
+- **No push.** `subscribeToTopic()` registers nothing, so the socket,
+  which opens on the first subscription, never opens. Document watches
+  stay silent. Faking concurrent edits has the same cost-benefit problem
+  as writes, and adds even less to what the UI can show.
+
+An orchestrated page that wants to show a change does it outside the
+library, by changing the rows it handed over and calling `update()`.
+
+## The fixture
+
+A fixture is a `QLiveBoostrap`, the type `init()` already takes:
+`config`, `csrfToken`, `authentication` and the injections under
+`data`, each in wire format. It differs from what a page gets live in
+one way: **a query document injection holds every row**, not one page.
+`rows` is the whole result and `rowCount` its length. Its `config`
+stays the one the view injected with, so the view opens on its first
+page as it does live.
+
+Injections that aren't query documents are taken as they come.
+
+## API
+
+**`initFixture(bootstrap)`**, next to `init()` in `config.ts`.
+Initializes from the fixture the way `init()` does and marks the config
+as running on a fixture. Astro islands, Storybook decorators and tests
+call this, because none of them go through `startup()`: each renders
+one component into a root it got from somewhere else, while `startup()`
+picks a view from the URL and renders into `#root`.
+
+**`startup({fixture: bootstrap, ...})`** runs a whole application on
+a fixture. It calls `initFixture` instead of reading `#root-data` or
+fetching `/api/bootstrap`, and is otherwise the same.
+
+The mode follows from how QLive was initialized. No flag gets passed
+around, and nothing outside the places below asks for it.
+
+## What changes inside qlive-ts
+
+1. **`inject()`** converts as it does now: `convertResultFromServer` on
+   first use, through the query's conversion map. For a query document
+   it then calls `setLocalSource` with an `evaluateQuery` over all the
+   fixture's rows, instead of `query.register(result)`, and replaces the
+   document's rows with the first page under the injected config, the
+   same way `localDocumentOf()` builds its first result. Everything
+   after that is `localDocument()`'s existing path.
+2. **`subscribeToTopic()`** returns an unsubscribe that does nothing,
+   and registers and connects nothing.
+3. **`graphql()`** throws the "running on a fixture" error before it
+   gets to `fetch()`. A view that queries outside its injections shows
+   up at once, not as a failed network request.
+
+`evaluate.ts` already lists where the browser's evaluation differs from
+the database's: collation, `likeRegex`, the clock. Those apply to
+fixture mode as they do to `localDocument()`, and it adds no new ones.
+
+## The view's route
+
+An island or a story renders the view component directly, so
+`location.pathname` is the page it sits on, not the view's route. A
+view that reads its route, or links to other views, gets the wrong path
+or dead links.
+
+To be decided: either demo views avoid both, or `initFixture` takes the
+view's path and the router reads that instead of the browser's
+location. The recorder knows the path, so a recorded fixture can carry
+it.
+
+## One fixture per page
+
+QLive's config and injections are module state, and `initData()`
+replaces all injections at once. Within one module instance, only one
+fixture is active at a time:
+
+- **Storybook and tests** call `initFixture` per story or test, the
+  same way `startup()` already calls `initPubSub()` to clear what a
+  previous startup left.
+- **Astro islands** on one page share their modules, so a second
+  island's `initFixture` would wipe the first one's injections. A page
+  has one fixture that covers every island on it, initialized once
+  before any island renders. Two islands that need different data
+  under the same query name use `__id`, as two injections in one live
+  view do.
+
+A React provider per island would remove that limit. It would also
+change how `useInjection` finds its data in every mode, so it waits for
+a case that needs it.
+
+## Recorder
+
+Dev tooling: a button or link on a view, shown to a logged-in user in
+a running application, that saves the view's data as a fixture. The
+fixture then has the shapes and wire formats the server really
+produces, which a hand-written one can't promise.
+
+The server turns track-usage's identifiers into query text and
+variables in `InjectionService`, and keeps them there: the bootstrap
+holds results only. The browser, though, sees every `useInjection()`
+call with its `GraphQLQuery` and params while the view renders. So:
+
+1. **`useInjection()` notes** each call's injection id, query and
+   params. Dev only.
+2. **On record**, the recorder takes the untouched bootstrap. For each
+   query document injection it takes the full config the server sent
+   back, sets `pageSize: 0`, runs the query raw through `graphql()`,
+   stores the rows, and puts the injected config back.
+3. **It hands the result over** as a JSON download, with the view's
+   path.
+
+Asked for `pageSize: 0`, the server returns everything unless the type
+has a `maxPageSize` and the result is larger. The recorder compares
+`rowCount` with the number of rows it got and fails, naming the type.
+A cut-off result would page and filter wrong without any sign of it,
+and demo data large enough to hit the limit is a mistake anyway.
+
+What it needs that doesn't exist yet:
+
+- **The untouched bootstrap.** `init()` changes the config object it
+  gets: it adds the CSRF token, the error view and the derived config.
+  `startup()` keeps a copy of the raw JSON, whether it came from
+  `#root-data` or the fetch.
+- **A raw path through `GraphQLQuery`.** Variables other than `config`
+  have to go out in wire format, which `execute()` converts them to,
+  but `execute()` also converts the result, and the recorder needs it
+  raw.
+
+A fixture carries the recording user's `authentication`. Record as a
+demo login, not a personal one.
+
+Later, maybe: the recorder could note `graphql()` calls the view makes
+beyond its injections and save them with their responses, and fixture
+mode would answer exactly those calls (same query, same variables)
+instead of throwing.
+
+## Showing a view in qlive-doc
+
+The fixture covers the data. The view also needs:
+
+- **Its modules in qlive-doc's build:** the view, its queries and
+  components, qlive-ts. Either qlive-doc imports from
+  qlive-test/frontend, or demo views live somewhere both can reach.
+- **Whatever the track-usage Babel plugin provides at runtime,** if
+  anything (`i18n`, say). To be checked.
+- **CSS:** qlive-ts's styles and the application's own.
+
+## Not chosen
+
+- **An embedded database in the jar, or a hosted instance.** Both
+  need a real server. qlive-test is Postgres-bound (jOOQ dialect,
+  JSONB, a `pg_dump` seed), and what a deployment shows is the UI, not
+  QLive.
+- **An in-memory GraphQL executor** behind a swappable transport.
+  Without writes and push it has nothing to do that local documents
+  over the fixture's rows don't already do.
+- **Recording on the server,** with a dev endpoint that builds the
+  bootstrap with `pageSize: 0`. The server knows the injections and
+  their arguments too, but the browser has them already, and dynamic
+  queries a view makes are visible only there.
+- **Other names.** "Static" fits a demo page and nothing else.
+  "Serverless" and "offline" are taken. "Mock" promises faked
+  behavior. "Local" collides with localhost, and "detached" and
+  "isolated" name the missing server rather than the data.
+
+## First step
+
+One Astro island in qlive-doc rendering one qlive-test view, the Foo
+grid, from a recorded fixture, filterable and pageable, with the view's
+code next to it.

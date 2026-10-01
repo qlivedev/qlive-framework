@@ -1,4 +1,4 @@
-#!/usr/bin/zsh
+#!/usr/bin/env zsh
 #
 # Puts the development database back to what qlive-test/qlivetest.backup holds.
 #

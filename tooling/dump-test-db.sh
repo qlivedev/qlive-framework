@@ -1,4 +1,4 @@
-#!/usr/bin/zsh
+#!/usr/bin/env zsh
 #
 # Writes the development database to qlive-test/qlivetest.backup, the counterpart of
 # reset-test-db.sh.

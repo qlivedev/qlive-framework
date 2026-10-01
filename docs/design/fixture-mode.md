@@ -1,6 +1,8 @@
 # Fixture mode: views running on given data
 
-Status: proposed. Written 2026-10-01. Nothing of it exists yet.
+Status: fixture mode and the recorder are implemented in qlive-ts
+(2026-10-02). The view's route and showing a view in qlive-doc are
+open.
 
 ## Problem
 
@@ -35,7 +37,7 @@ applications can do the same in their own simulated environments.
 Fixture mode reads data and nothing else:
 
 - **No writes.** `mergeWorkingSet` and every other `graphql()` call
-  throw an error saying the view runs on a fixture. Faking merges,
+  reject with an error saying the view runs on a fixture. Faking merges,
   versions and conflicts would cost a lot and add little to what a
   page can show.
 - **No push.** `subscribeToTopic()` registers nothing, so the socket,
@@ -58,11 +60,16 @@ page as it does live.
 
 Injections that aren't query documents are taken as they come.
 
+`QLiveFixture` is that bootstrap plus an optional `path`: the location
+the recorder recorded it at. Nothing reads it yet; see
+[The view's route](#the-views-route).
+
 ## API
 
-**`initFixture(bootstrap)`**, next to `init()` in `config.ts`.
-Initializes from the fixture the way `init()` does and marks the config
-as running on a fixture. Astro islands, Storybook decorators and tests
+**`initFixture(fixture)`**, next to `init()` in `config.ts`.
+Initializes from the fixture the way `init()` does and runs QLive on
+it until the next `init()`. `isFixture()` says whether it does, for a
+view that wants to hide what only a server makes work. Astro islands, Storybook decorators and tests
 call this, because none of them go through `startup()`: each renders
 one component into a root it got from somewhere else, while `startup()`
 picks a view from the URL and renders into `#root`.
@@ -78,15 +85,14 @@ around, and nothing outside the places below asks for it.
 
 1. **`inject()`** converts as it does now: `convertResultFromServer` on
    first use, through the query's conversion map. For a query document
-   it then calls `setLocalSource` with an `evaluateQuery` over all the
-   fixture's rows, instead of `query.register(result)`, and replaces the
-   document's rows with the first page under the injected config, the
-   same way `localDocumentOf()` builds its first result. Everything
-   after that is `localDocument()`'s existing path.
+   it then calls `holdRows()` (in `localDocument.ts`), which sets a local
+   source evaluating all the fixture's rows and replaces the document's
+   rows with the page the injected config asks for. Everything after
+   that is `localDocument()`'s existing path.
 2. **`subscribeToTopic()`** returns an unsubscribe that does nothing,
    and registers and connects nothing.
-3. **`graphql()`** throws the "running on a fixture" error before it
-   gets to `fetch()`. A view that queries outside its injections shows
+3. **`graphql()`** rejects with the "running on a fixture" error
+   before it gets to `fetch()`. A view that queries outside its injections shows
    up at once, not as a failed network request.
 
 `evaluate.ts` already lists where the browser's evaluation differs from
@@ -127,8 +133,9 @@ a case that needs it.
 
 ## Recorder
 
-Dev tooling: a button or link on a view, shown to a logged-in user in
-a running application, that saves the view's data as a fixture. The
+Dev tooling: a "Record fixture" button that `startup()` pins to a
+corner of every view with injections in dev mode, and that saves the
+view's data as a fixture. The
 fixture then has the shapes and wire formats the server really
 produces, which a hand-written one can't promise.
 
@@ -137,14 +144,17 @@ variables in `InjectionService`, and keeps them there: the bootstrap
 holds results only. The browser, though, sees every `useInjection()`
 call with its `GraphQLQuery` and params while the view renders. So:
 
-1. **`useInjection()` notes** each call's injection id, query and
-   params. Dev only.
-2. **On record**, the recorder takes the untouched bootstrap. For each
-   query document injection it takes the full config the server sent
-   back, sets `pageSize: 0`, runs the query raw through `graphql()`,
-   stores the rows, and puts the injected config back.
-3. **It hands the result over** as a JSON download, with the view's
-   path.
+1. **`inject()` notes** each call's injection id, query and params in
+   `fixture/notes.ts`, and `startup()` keeps a copy of the bootstrap as
+   received, before `init()` changes its config. Dev only.
+2. **On record**, the recorder takes that copy. For each query document
+   injection it takes the full config the server sent back, sets
+   `offset: 0, pageSize: 0` on the variable typed `QueryConfig`, converts
+   the other params with `convertVariablesToServer`, runs the query raw
+   through `graphql()`, stores the rows, and puts the injected config
+   back. A query document no view read fails the recording.
+3. **It hands the result over** as a JSON download named after the
+   path, with the path in it and the CSRF token blanked.
 
 Asked for `pageSize: 0`, the server returns everything unless the type
 has a `maxPageSize` and the result is larger. The recorder compares
@@ -152,16 +162,9 @@ has a `maxPageSize` and the result is larger. The recorder compares
 A cut-off result would page and filter wrong without any sign of it,
 and demo data large enough to hit the limit is a mistake anyway.
 
-What it needs that doesn't exist yet:
-
-- **The untouched bootstrap.** `init()` changes the config object it
-  gets: it adds the CSRF token, the error view and the derived config.
-  `startup()` keeps a copy of the raw JSON, whether it came from
-  `#root-data` or the fetch.
-- **A raw path through `GraphQLQuery`.** Variables other than `config`
-  have to go out in wire format, which `execute()` converts them to,
-  but `execute()` also converts the result, and the recorder needs it
-  raw.
+The recorder lives in `fixture/recorder.ts`, which `startup()` loads
+with a dynamic import in dev mode only, so it is a chunk of its own
+that a production build never fetches.
 
 A fixture carries the recording user's `authentication`. Record as a
 demo login, not a personal one.

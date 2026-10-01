@@ -54,6 +54,41 @@ when someone actually builds the docs. It is not a Maven module either.
 The cost is one extra `pnpm -C qlive-doc install` before the first
 `pnpm docs:dev`.
 
+The demos (see below) are the one place the two meet: they compile qlive-ts
+and qlive-test's views from source, and those resolve their dependencies from
+the repository's install. So `pnpm install` at the root has to have run as
+well -- it has, in any checkout someone develops QLive in, and the docs
+workflow runs both.
+
+## Demos
+
+A page under `src/content/docs/demo/` can run a view of qlive-test in the
+page, on data recorded from the running application, with the view's source
+in a second tab:
+
+```mdx
+import QLiveDemo from "../../../components/QLiveDemo.astro";
+
+<QLiveDemo view="grid/Sorting"/>
+```
+
+`view` is the path below `qlive-test/frontend/src/app` without extension. The
+view runs on the fixture of the same path below `src/demo/fixtures/`, so
+`grid/Sorting` needs `src/demo/fixtures/grid/Sorting.json`. Nothing answers
+the view but that fixture: it reads its injections and pages, sorts and
+filters their rows in the browser, and anything that would reach a server
+fails.
+
+To record one, run qlive-test in dev mode, log in as one of the seeded
+accounts, open the view, and click "Record fixture" in its bottom right
+corner. Save the download under the view's path. Re-record whenever the
+view's queries or the seeded data change.
+
+One demo per page: QLive's config and injections are module state that every
+island on a page shares, so a page runs one fixture at a time. A view that
+reads its route or links to other views won't work either, since the page it
+runs on is not the application.
+
 ## Colors
 
 `src/styles/qlive.css` is generated -- do not edit it; hand-written rules

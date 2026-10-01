@@ -29,3 +29,22 @@
     max-width: 100%;
     height: auto;
 }
+
+/*
+ * A view running in the page, see components/QLiveDemo.astro. QLive's tokens
+ * follow prefers-color-scheme, the site follows its own theme switch, so the
+ * demo takes the site's colors instead -- otherwise a dark grid would sit on a
+ * light page whenever the two disagree.
+ */
+.qlive-demo {
+    --qlive-color-bg: var(--sl-color-bg);
+    --qlive-color-fg: var(--sl-color-text);
+    --qlive-color-muted: var(--sl-color-gray-3);
+    --qlive-color-border: var(--sl-color-gray-5);
+    --qlive-color-accent: var(--sl-color-text-accent);
+    --qlive-font-sans: var(--sl-font);
+
+    overflow-x: auto;
+    font-size: var(--sl-text-sm);
+    color: var(--qlive-color-fg);
+}

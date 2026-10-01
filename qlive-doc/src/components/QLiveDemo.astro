@@ -1,0 +1,40 @@
+---
+/*
+ * A view of qlive-test, running in the page on its recorded fixture, next to its source.
+ *
+ *     <QLiveDemo view="grid/Sorting"/>
+ *
+ * The view is the path below qlive-test/frontend/src/app without extension, and its fixture the file of the same
+ * path below src/demo/fixtures, recorded with the "Record fixture" button qlive-test shows in dev mode. One per
+ * page: QLive runs one fixture at a time.
+ */
+import {Code, TabItem, Tabs} from "@astrojs/starlight/components";
+import QLiveIsland from "./QLiveIsland";
+
+interface Props
+{
+    view: string
+}
+
+const {view} = Astro.props;
+
+// Read at build time; only the view's own source ends up in the page.
+const sources = import.meta.glob<string>("../../../qlive-test/frontend/src/app/**/*.tsx", {query: "?raw", import: "default"});
+const loadSource = sources["../../../qlive-test/frontend/src/app/" + view + ".tsx"];
+if (!loadSource)
+{
+    throw new Error("No view " + view + " in qlive-test/frontend/src/app");
+}
+const source = await loadSource();
+const fileName = view.split("/").pop() + ".tsx";
+---
+<Tabs>
+    <TabItem label="Demo">
+        <div class="qlive-demo not-content">
+            <QLiveIsland client:only="react" view={ view }/>
+        </div>
+    </TabItem>
+    <TabItem label={ fileName }>
+        <Code code={ source } lang="tsx" title={ "qlive-test/frontend/src/app/" + view + ".tsx" }/>
+    </TabItem>
+</Tabs>

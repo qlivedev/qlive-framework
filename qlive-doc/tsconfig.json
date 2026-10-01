@@ -1,5 +1,13 @@
 {
   "extends": "astro/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"]
+  "exclude": ["dist"],
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "paths": {
+      "@qlivedev/qlive-ts": ["../qlive-ts/src/index.ts"],
+      "@qlivedev/qlive-ts/filter": ["../qlive-ts/src/filter.ts"]
+    }
+  }
 }

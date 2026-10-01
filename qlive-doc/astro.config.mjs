@@ -1,6 +1,8 @@
 // @ts-check
 import {defineConfig} from "astro/config";
 import starlight from "@astrojs/starlight";
+import react from "@astrojs/react";
+import {fileURLToPath} from "node:url";
 
 /*
  * The site is served from GitHub Pages under the repository name, so `base` is
@@ -12,6 +14,23 @@ import starlight from "@astrojs/starlight";
  */
 const base = "/qlive-framework";
 
+/*
+ * The demos run views of qlive-test on recorded fixtures, compiled from source:
+ * qlive-ts the way qlive-test's own dev server aliases it, and the views from
+ * qlive-test/frontend/src/app. Both live outside this workspace, so their
+ * dependencies come from the repository's install -- `pnpm install` at the root
+ * has to have run (see README.md).
+ */
+const repoRoot = fileURLToPath(new URL("..", import.meta.url));
+const qliveTsDir = repoRoot + "qlive-ts/";
+
+// Subpath entries first: a string alias matches on prefix, so the bare one would swallow them.
+const qliveTsAliases = {
+    "@qlivedev/qlive-ts/styles.css": qliveTsDir + "src/styles/qlive.css",
+    "@qlivedev/qlive-ts/filter": qliveTsDir + "src/filter.ts",
+    "@qlivedev/qlive-ts": qliveTsDir + "src/index.ts",
+};
+
 export default defineConfig({
     site: "https://qlivedev.github.io",
     base,
@@ -20,6 +39,17 @@ export default defineConfig({
     // URL instead. The package script passes no --open of its own on purpose: the
     // bare flag is a boolean and would override this string.
     server: {open: `${base}/`},
+    vite: {
+        resolve: {
+            alias: qliveTsAliases,
+            // qlive-ts and the views resolve React from the repository's install, the islands from this
+            // one's. Two copies of React means hooks that fail in the first component that calls one.
+            dedupe: ["react", "react-dom"],
+        },
+        server: {
+            fs: {allow: [repoRoot]},
+        },
+    },
     integrations: [
         starlight({
             title: "QLive",
@@ -59,6 +89,8 @@ export default defineConfig({
                 // regeneration can simply overwrite it.
                 {label: "API", items: [{autogenerate: {directory: "api"}}]},
                 {label: "Reference", items: [{autogenerate: {directory: "reference"}}]},
+                // Views of qlive-test running in the page on recorded fixtures, with their source.
+                {label: "Demos", items: [{autogenerate: {directory: "demo"}}]},
             ],
             editLink: {
                 baseUrl:
@@ -66,5 +98,6 @@ export default defineConfig({
             },
             lastUpdated: true,
         }),
+        react(),
     ],
 });

@@ -1,8 +1,9 @@
 # Builds qlive-doc and publishes it to GitHub Pages.
 #
-# Only runs when the docs or their toolchain change: qlive-doc is outside the
-# pnpm workspace, so nothing else in the repository can affect the output, and
-# the ~270-package install is not worth paying on every push.
+# Only runs when the docs, their toolchain or what the demos compile change:
+# qlive-doc is outside the pnpm workspace, and the ~270-package install is not
+# worth paying on every push. The demos are the exception to "nothing else
+# affects the output" -- they build qlive-ts and qlive-test's views from source.
 name: Documentation
 
 on:
@@ -10,6 +11,8 @@ on:
     branches: [main]
     paths:
       - "qlive-doc/**"
+      - "qlive-ts/src/**"
+      - "qlive-test/frontend/src/app/**"
       - ".github/workflows/docs.yml"
   workflow_dispatch:
 
@@ -38,7 +41,14 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-          cache-dependency-path: qlive-doc/pnpm-lock.yaml
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            qlive-doc/pnpm-lock.yaml
+
+      # The demos compile qlive-ts and qlive-test's views from source, whose
+      # dependencies resolve from the repository's own install.
+      - name: Install repository
+        run: pnpm install --frozen-lockfile
 
       - name: Install
         working-directory: qlive-doc

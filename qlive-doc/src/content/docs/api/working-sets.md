@@ -350,9 +350,8 @@ coming back with conflicts.
 
     const { dirty, conflicts, merge } = useWorkingSet(ws, {watch: true})
 
-Rules of hooks apply: call it at the top level of a view, unconditionally. The working set itself is
-made outside React and lives as long as the editing does. The flag may be turned on and off freely; the
-watch follows it.
+Rules of hooks apply. The working set itself is made outside React and lives as long as the editing does.
+The flag may be turned on and off freely; the watch follows it.
 
 **Parameters**
 
@@ -486,7 +485,7 @@ for (const name of fieldNames)
 }
 ```
 
-Rules of hooks apply: call it at the top level of a view, unconditionally.
+Rules of hooks apply.
 
 **Parameters**
 

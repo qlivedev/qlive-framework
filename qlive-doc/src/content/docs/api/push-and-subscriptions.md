@@ -36,7 +36,7 @@ For rows the user is editing this is the wrong half: a working set holds a draft
 what a change means, so an editing view passes {watch: true} to useWorkingSet() instead. Doing both for
 the same rows asks to be told twice and refetches the document the drafts stand on.
 
-Rules of hooks apply: call it at the top level of a view, unconditionally.
+Rules of hooks apply.
 
 **Parameters**
 

@@ -352,7 +352,7 @@ A query document over rows the view holds, see localDocument(), and the current 
 The config is the initial one; after that it is the document's, changed through update() like any other. New rows
 -- an array that isn't the one before -- are filtered, sorted and paged under the config the document has.
 
-Rules of hooks apply: call it at the top level of a view, unconditionally.
+Rules of hooks apply.
 
 **Parameters**
 

@@ -1,0 +1,18 @@
+---
+title: Sorting
+description: A data grid sorted by header clicks and by orders a header can't express, running in the page.
+sidebar:
+  order: 1
+---
+import QLiveDemo from "../../../components/QLiveDemo.astro";
+
+The view below is `grid/Sorting` from qlive-test, unchanged, running in your
+browser on data recorded from the running application. Click a header to sort
+by that column, or pick an order from the select: several fields at once, or an
+expression such as the last digit of `num`.
+
+There is no server behind it. The view's query document holds all the rows it
+was recorded with and answers `update()` by filtering, sorting and paging them
+in the browser, the way it answers from the server in the application.
+
+<QLiveDemo view="grid/Sorting"/>

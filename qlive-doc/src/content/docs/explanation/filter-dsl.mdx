@@ -4,6 +4,8 @@ description: One condition language, and what it means in each place it lands.
 sidebar:
   order: 6
 ---
+import QLiveDemo from "../../../components/QLiveDemo.astro";
+
 
 The FilterDSL is a fluent TypeScript API that produces JSON-like graphs. To
 enable chaining, it creates instances with a prototype that allows further
@@ -129,6 +131,13 @@ Logically it evaluates as the condition it wraps -- the database has no use
 for the marker. `findComponentNode(condition, id)` finds one again, which
 is how a form reads back the term it contributed.
 
+The view below has two owners of one condition: its search form writes the
+component `search`, the grid's filter row the component `grid`, and the
+document's condition is both joined with `and()`. Each narrows what the other
+shows, and clearing the search leaves the grid's part alone.
+
+<QLiveDemo view="grid/Search"/>
+
 ## Why the operators are not listed here
 
 Every operator is a method on a field, value or condition node, and each is
@@ -160,6 +169,13 @@ foos.update({sortFields: [field("a").plus(field("b"))]})
 
 With no sort fields the primary key is the sort. That is below the config:
 the config that comes back still names none.
+
+An expression sorts like a field, and filters like one. The view below sorts
+by `field("numA").add(field("numB"))`, a column no table has: its header
+toggles the direction, and `between` filters a range of sums. The server
+would run the expression as SQL; this page runs it over recorded rows.
+
+<QLiveDemo view="grid/Sum"/>
 
 ## Nodes are class instances
 

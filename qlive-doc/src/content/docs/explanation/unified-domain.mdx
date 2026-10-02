@@ -4,6 +4,8 @@ description: A look at higher level aspects
 sidebar:
   order: 2
 ---
+import QLiveDemo from "../../../components/QLiveDemo.astro";
+
 
 The unified domain concept of QLive sits somewhere between the technical and purely practical, organizational concerns, 
 and design philosophy.
@@ -53,6 +55,13 @@ If we're filtering pubsub messages on the same server, the conditions are
 translated into a Java predicate tree that can express conditions on Java
 object graphs. Here, the conditions inherit the memory access semantics
 from the use case.
+
+If a document's rows are in the browser already -- a local document over
+rows the view holds, or a page running on recorded data like the one below --
+the conditions are evaluated there, over the rows in memory, with no request
+at all. The grid can't tell the difference.
+
+<QLiveDemo view="grid/Local"/>
 
 One condition graph, written once, therefore does not mean one thing. What
 that costs and what it buys is [Filter DSL](/qlive-framework/explanation/filter-dsl/).

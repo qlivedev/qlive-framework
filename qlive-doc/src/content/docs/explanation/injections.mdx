@@ -4,6 +4,8 @@ description: useInjection() and the rules the static analysis imposes.
 sidebar:
   order: 4
 ---
+import QLiveDemo from "../../../components/QLiveDemo.astro";
+
 
 An injection is a query the server runs **before the page is sent**, whose
 result arrives inside the HTML document. It is what makes a **QLive view**
@@ -45,6 +47,13 @@ your component is subscribed: an `update()` re-renders it. See
 
 Rules of hooks apply -- call it at the top level of a view,
 unconditionally.
+
+The view below injects a query document and hands it to a grid. Sorting,
+filtering and paging are `update()` calls on that document, and each one
+re-renders the view with a new snapshot. The page has no server: the
+document holds the rows it was recorded with.
+
+<QLiveDemo view="grid/Basic"/>
 
 ## The rules
 
@@ -128,7 +137,9 @@ slash, and the GraphQL operation name. `useInjection(Q_FooList)` in
 `app/grid/Sorting.tsx` is `grid/sorting/Q_FooList`. The server takes the
 route from the view module it serves, the browser from its location, so
 neither side needs telling, and views that inject the same query stay apart
-when one page runs several of them.
+when one page runs several of them -- as the
+[Filters demo](/qlive-framework/demo/filters/) does, with `grid/Filters` and
+`grid/Sorting` both injecting `Q_FooList`.
 
 A view injecting the same query twice needs to disambiguate at least one of
 them. `__id` takes the place of the operation name:

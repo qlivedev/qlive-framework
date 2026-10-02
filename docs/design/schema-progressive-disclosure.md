@@ -39,7 +39,10 @@ The path, end to end:
    once, in the constructor, and keeps the result as a `JSONHolder` -- a
    pre-serialized JSON subgraph spliced into the surrounding document
    rather than re-generated per request. Generation is therefore
-   once-per-server-start, not per request.
+   once-per-server-start, not per request. Under the "prod" profile it
+   sets every description to null first: they are for the developer,
+   DomainTables is the only reader, and they make up a quarter of
+   qlive-test's schema (16 of 60 KB).
 2. `provideConfig(csrfToken, path)` returns that same holder for every
    caller. It takes `path`, but only the injection data varies by it;
    the config half is identical for every page and every user.

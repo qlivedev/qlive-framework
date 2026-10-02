@@ -21,6 +21,7 @@ hero:
       icon: external
       variant: minimal
 ---
+import QLiveDemo from "../../components/QLiveDemo.astro";
 
 Your domain is one thing. It starts in the database and reaches the browser
 without being translated on the way.
@@ -33,8 +34,21 @@ the two sides. The common language is a GraphQL schema, and you do not write
 it: it comes from your tables and your server code.
 
 Filters are the same story. One condition, written once, runs as SQL against
-the database or as a predicate over Java objects -- in the semantics of
-wherever it lands, rather than a lowest common denominator.
+the database, as a predicate over Java objects, or in the browser -- in the
+semantics of wherever it lands, rather than a lowest common denominator.
+
+The grid below sorts and filters by a column no table has, the sum of two
+others:
+
+```ts
+const SUM = field("numA").add(field("numB"));
+```
+
+On the server, that expression is SQL. This page has no server: the grid
+runs on recorded rows, and the same expression runs right here. Click the
+sum's header, or give it a range.
+
+<QLiveDemo view="grid/Sum"/>
 
 ## The data is already there
 

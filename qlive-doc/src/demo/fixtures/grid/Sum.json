@@ -1,0 +1,228 @@
+{
+  "description": "Recorded 2026-10-02 21:07 UTC at /app/grid/Sum as admin: Q_QuuxList with 24 Quux rows",
+  "authentication": {
+    "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
+    "login": "admin",
+    "roles": [
+      "ROLE_USER",
+      "ROLE_TEST",
+      "ROLE_ADMIN"
+    ]
+  },
+  "config": null,
+  "csrfToken": {
+    "header": "X-CSRF-TOKEN",
+    "param": "_csrf",
+    "value": ""
+  },
+  "data": {
+    "grid/sum/Q_QuuxList": {
+      "data": {
+        "queryQuuxDocument": {
+          "type": "Quux",
+          "config": {
+            "condition": null,
+            "offset": 0,
+            "pageSize": 5,
+            "sortFields": [
+              {
+                "operands": [
+                  {
+                    "operands": [
+                      {
+                        "name": "numA",
+                        "type": "Field"
+                      },
+                      {
+                        "name": "numB",
+                        "type": "Field"
+                      }
+                    ],
+                    "name": "add",
+                    "type": "Operation"
+                  }
+                ],
+                "name": "desc",
+                "type": "Operation"
+              }
+            ]
+          },
+          "rowCount": 24,
+          "rows": [
+            {
+              "id": "b1e2091b-fe1a-4951-9eaf-3111c7e8c653",
+              "name": "Quux #17",
+              "numA": 929,
+              "numB": 951,
+              "created": "2025-10-17T00:02:48.777Z"
+            },
+            {
+              "id": "9cc68259-a766-4f75-bd56-d69bd59a20cd",
+              "name": "Quux #14",
+              "numA": 920,
+              "numB": 734,
+              "created": "2025-08-26T23:28:03.637Z"
+            },
+            {
+              "id": "bc0acd7a-0564-407e-a307-32dd3a687405",
+              "name": "Quux #18",
+              "numA": 675,
+              "numB": 928,
+              "created": "2025-11-03T06:17:21.027Z"
+            },
+            {
+              "id": "0e6e332b-31c4-4c06-9270-1b20a187a976",
+              "name": "Quux #13",
+              "numA": 586,
+              "numB": 936,
+              "created": "2025-08-10T08:00:47.955Z"
+            },
+            {
+              "id": "ec470d99-55a0-4998-86d6-b44cac655602",
+              "name": "Quux #19",
+              "numA": 490,
+              "numB": 988,
+              "created": "2025-11-20T01:10:34.486Z"
+            },
+            {
+              "id": "74bbde48-658c-49e5-9079-8f5a64a9710a",
+              "name": "Quux #6",
+              "numA": 646,
+              "numB": 828,
+              "created": "2025-04-13T16:01:21.485Z"
+            },
+            {
+              "id": "44e13fb9-5426-4bf5-a8c3-7f0f1db56963",
+              "name": "Quux #9",
+              "numA": 921,
+              "numB": 343,
+              "created": "2025-06-03T20:42:29.979Z"
+            },
+            {
+              "id": "546c71af-fe0c-4c63-9ec8-57ff1446a3e5",
+              "name": "Quux #23",
+              "numA": 533,
+              "numB": 724,
+              "created": "2026-01-27T06:04:18.756Z"
+            },
+            {
+              "id": "3a3cbd14-dffe-4130-897f-02ac57e588f1",
+              "name": "Quux #8",
+              "numA": 981,
+              "numB": 232,
+              "created": "2025-05-17T20:18:46.808Z"
+            },
+            {
+              "id": "71bf2ca5-b39d-42c3-b9cf-cde293467259",
+              "name": "Quux #20",
+              "numA": 989,
+              "numB": 157,
+              "created": "2025-12-07T00:33:13.104Z"
+            },
+            {
+              "id": "70a5b95d-b33a-4198-9104-f5d9cabc8fff",
+              "name": "Quux #11",
+              "numA": 682,
+              "numB": 408,
+              "created": "2025-07-07T05:17:44.766Z"
+            },
+            {
+              "id": "a73f638c-b7a9-4341-b796-bd821c9c026d",
+              "name": "Quux #2",
+              "numA": 606,
+              "numB": 400,
+              "created": "2025-02-04T07:09:16.234Z"
+            },
+            {
+              "id": "9af3a8f0-df61-48d1-bef0-6bc40260796a",
+              "name": "Quux #1",
+              "numA": 250,
+              "numB": 742,
+              "created": "2025-01-18T22:12:47.286Z"
+            },
+            {
+              "id": "a3d1ff65-f568-45ad-8c51-f94b6fd592eb",
+              "name": "Quux #3",
+              "numA": 531,
+              "numB": 415,
+              "created": "2025-02-21T01:12:58.304Z"
+            },
+            {
+              "id": "46c9e45f-4b75-49e6-a785-ffed520f95f8",
+              "name": "Quux #22",
+              "numA": 307,
+              "numB": 625,
+              "created": "2026-01-10T14:53:33.842Z"
+            },
+            {
+              "id": "e4f4d05f-2059-4ff7-98b7-f7f96db3d8fb",
+              "name": "Quux #10",
+              "numA": 400,
+              "numB": 530,
+              "created": "2025-06-20T21:40:13.349Z"
+            },
+            {
+              "id": "dd9b7551-a977-4ffb-92de-788b7f7ee47a",
+              "name": "Quux #16",
+              "numA": 205,
+              "numB": 669,
+              "created": "2025-09-30T02:15:39.093Z"
+            },
+            {
+              "id": "80b09e8c-9d19-4c25-abbd-987547522c94",
+              "name": "Quux #15",
+              "numA": 152,
+              "numB": 714,
+              "created": "2025-09-13T10:55:11.464Z"
+            },
+            {
+              "id": "03b893ef-b0f6-40db-9563-a6f20a04462a",
+              "name": "Quux #24",
+              "numA": 380,
+              "numB": 361,
+              "created": "2026-02-13T04:22:35.511Z"
+            },
+            {
+              "id": "6fbf80b0-83c0-468b-900e-338f9e3ce9d9",
+              "name": "Quux #7",
+              "numA": 245,
+              "numB": 479,
+              "created": "2025-04-30T15:20:46.139Z"
+            },
+            {
+              "id": "293b8eb2-d9e8-4151-8983-fa5484c031a9",
+              "name": "Quux #5",
+              "numA": 154,
+              "numB": 453,
+              "created": "2025-03-27T15:28:51.856Z"
+            },
+            {
+              "id": "c01455d5-0ed8-4eed-a6b3-6e523d85e197",
+              "name": "Quux #12",
+              "numA": 235,
+              "numB": 357,
+              "created": "2025-07-24T02:24:09.455Z"
+            },
+            {
+              "id": "1d032308-2b01-47ca-87d4-e3b1421ef46b",
+              "name": "Quux #21",
+              "numA": 293,
+              "numB": 181,
+              "created": "2025-12-24T14:23:19.470Z"
+            },
+            {
+              "id": "e81d8d49-9b0b-4968-a323-92833e9f74f1",
+              "name": "Quux #4",
+              "numA": 172,
+              "numB": 168,
+              "created": "2025-03-10T22:48:32.725Z"
+            }
+          ]
+        }
+      },
+      "meta": null,
+      "type": "QuuxDocument"
+    }
+  },
+  "route": "grid/sum"
+}

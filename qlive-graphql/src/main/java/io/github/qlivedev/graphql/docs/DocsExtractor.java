@@ -20,8 +20,8 @@ import io.github.qlivedev.graphql.annotation.GraphQLField;
 import io.github.qlivedev.graphql.annotation.GraphQLLogic;
 import io.github.qlivedev.graphql.annotation.GraphQLMutation;
 import io.github.qlivedev.graphql.annotation.GraphQLQuery;
+import io.github.qlivedev.util.JSONUtil;
 import org.apache.commons.io.FileUtils;
-import org.svenson.JSON;
 import org.svenson.JSONParser;
 import org.svenson.tokenize.InputStreamSource;
 import org.svenson.util.IntrospectionUtil;
@@ -451,6 +451,7 @@ public class DocsExtractor
         if (mergeFile != null)
         {
             final JSONParser parser = new JSONParser();
+            parser.setObjectSupport(JSONUtil.OBJECT_SUPPORT);
             parser.addTypeHint("[]", TypeDoc.class);
             otherDocs = parser.parse(
                 List.class,
@@ -473,11 +474,11 @@ public class DocsExtractor
             otherDocs
         );
 
-        String json = JSON.defaultJSON().forValue(typeDocs);
+        String json = JSONUtil.DEFAULT_GENERATOR.forValue(typeDocs);
 
         if (pretty)
         {
-            json = JSON.formatJSON(json);
+            json = JSONUtil.formatJSON(json);
         }
 
         if (targetFile == null || targetFile.length() == 0)

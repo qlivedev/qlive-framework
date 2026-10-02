@@ -62,7 +62,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.svenson.JSON;
 import org.svenson.util.JSONPathUtil;
 
 import java.math.BigDecimal;
@@ -218,7 +217,7 @@ public class QLiveDomainExecutionTest
         ExecutionResult executionResult = graphQL.execute(executionInput);
 
         assertThat(executionResult.getErrors(), is(Collections.emptyList()));
-        assertThat(JSON.defaultJSON().forValue(executionResult.getData()), is("{\"queryTruth\":true}"));
+        assertThat(JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()), is("{\"queryTruth\":true}"));
     }
 
 
@@ -240,7 +239,7 @@ public class QLiveDomainExecutionTest
 
 
         assertThat(executionResult.getErrors(), is(Collections.emptyList()));
-        assertThat(JSON.defaultJSON().forValue(executionResult.getData()), is("{\"mutateString\":\"<<xxx>>\"}"));
+        assertThat(JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()), is("{\"mutateString\":\"<<xxx>>\"}"));
     }
 
 
@@ -260,7 +259,7 @@ public class QLiveDomainExecutionTest
 
         assertThat(executionResult.getErrors(), is(Collections.emptyList()));
         assertThat(
-            JSON.defaultJSON().forValue(executionResult.getData()),
+            JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()),
             is("{\"walkForwardRef\":[{\"id\":\"id1\",\"target\":{\"id\":\"id2\"}}]}")
         );
     }
@@ -282,7 +281,7 @@ public class QLiveDomainExecutionTest
 
         assertThat(executionResult.getErrors(), is(Collections.emptyList()));
         assertThat(
-            JSON.defaultJSON().forValue(executionResult.getData()),
+            JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()),
             is("{\"walkBackOne\":{\"id\":\"target-id\",\"sourceFive\":{\"id\":\"src-id\"}}}")
         );
     }
@@ -304,7 +303,7 @@ public class QLiveDomainExecutionTest
 
         assertThat(executionResult.getErrors(), is(Collections.emptyList()));
         assertThat(
-            JSON.defaultJSON().forValue(executionResult.getData()),
+            JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()),
             is("{\"walkBackMany\":[{\"id\":\"target-id\",\"sourceSixes\":[{\"id\":\"source-id\"}," +
                 "{\"id\":\"source-id2\"}]}]}")
         );
@@ -324,7 +323,7 @@ public class QLiveDomainExecutionTest
 
         ExecutionResult executionResult = graphQL.execute(executionInput);
         assertThat(executionResult.getErrors(), is(Collections.emptyList()));
-        assertThat(JSON.defaultJSON().forValue(executionResult.getData()), is("{\"extraQuery\":\"extra:foo\"}"));
+        assertThat(JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()), is("{\"extraQuery\":\"extra:foo\"}"));
     }
 
 
@@ -344,7 +343,7 @@ public class QLiveDomainExecutionTest
 
         ExecutionResult executionResult = graphQL.execute(executionInput);
         assertThat(executionResult.getErrors(), is(Collections.emptyList()));
-        assertThat(JSON.defaultJSON().forValue(executionResult.getData()), is("{\"extraMutation\":\"mutated:xxx\"}"));
+        assertThat(JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()), is("{\"extraMutation\":\"mutated:xxx\"}"));
     }
 
 
@@ -374,7 +373,7 @@ public class QLiveDomainExecutionTest
         ExecutionResult executionResult = graphQL.execute(executionInput);
         assertThat(executionResult.getErrors(), is(Collections.emptyList()));
         assertThat(
-            JSON.defaultJSON().forValue(executionResult.getData()),
+            JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()),
             is("{\"mutateConverted\":\"qwertz:1970-01-01 00:00:03.6\"}")
         );
     }
@@ -398,7 +397,7 @@ public class QLiveDomainExecutionTest
         ExecutionResult executionResult = graphQL.execute(executionInput);
         assertThat(executionResult.getErrors(), is(Collections.emptyList()));
         assertThat(
-            JSON.defaultJSON().forValue(executionResult.getData()),
+            JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()),
             is("{\"beanWithFetcher\":{\"value\":\"test:Value From Logic\"}}")
         );
     }
@@ -435,7 +434,7 @@ public class QLiveDomainExecutionTest
             ExecutionResult executionResult = graphQL.execute(executionInput);
             assertThat(executionResult.getErrors(), is(Collections.emptyList()));
             assertThat(
-                JSON.defaultJSON().forValue(executionResult.getData()),
+                JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()),
                 is("{\"getterArgBean\":{\"modifiedValue\":\"Value From GetterArgLogic:aaa:12\"}}")
             );
         }
@@ -456,7 +455,7 @@ public class QLiveDomainExecutionTest
             ExecutionResult executionResult = graphQL.execute(executionInput);
             assertThat(executionResult.getErrors(), is(Collections.emptyList()));
             assertThat(
-                JSON.defaultJSON().forValue(executionResult.getData()),
+                JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()),
                 is("{\"getterArgBean\":{\"modifiedValue\":\"Value From GetterArgLogic:bbb:1111\"}}")
             );
         }
@@ -477,7 +476,7 @@ public class QLiveDomainExecutionTest
             ExecutionResult executionResult = graphQL.execute(executionInput);
             assertThat(executionResult.getErrors(), is(Collections.emptyList()));
             assertThat(
-                JSON.defaultJSON().forValue(executionResult.getData()),
+                JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()),
                 is("{\"getterArgBean\":{\"introduced\":{\"name\":\"ccc\"}}}")
             );
         }
@@ -511,7 +510,7 @@ public class QLiveDomainExecutionTest
                 ExecutionResult executionResult = graphQL.execute(executionInput);
                 assertThat(executionResult.getErrors(), is(Collections.emptyList()));
                 assertThat(
-                    JSON.defaultJSON().forValue(executionResult.getData()),
+                    JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()),
                     is("{\"queryWithEnumArg\":\"(C)\"}")
                 );
             }
@@ -533,7 +532,7 @@ public class QLiveDomainExecutionTest
                 ExecutionResult executionResult = graphQL.execute(executionInput);
                 assertThat(executionResult.getErrors(), is(Collections.emptyList()));
                 assertThat(
-                    JSON.defaultJSON().forValue(executionResult.getData()),
+                    JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()),
                     is("{\"queryWithObjectArgWithEnum\":\"BeanWithEnum: anotherEnum = X\"}")
                 );
             }
@@ -553,7 +552,7 @@ public class QLiveDomainExecutionTest
 
                 ExecutionResult executionResult = graphQL.execute(executionInput);
                 assertThat(executionResult.getErrors(), is(Collections.emptyList()));
-                assertThat(JSON.defaultJSON().forValue(executionResult.getData()), is("{\"enumMutation\":\"B\"}"));
+                assertThat(JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()), is("{\"enumMutation\":\"B\"}"));
             }
 
             {
@@ -574,7 +573,7 @@ public class QLiveDomainExecutionTest
                 ExecutionResult executionResult = graphQL.execute(executionInput);
                 assertThat(executionResult.getErrors(), is(Collections.emptyList()));
                 assertThat(
-                    JSON.defaultJSON().forValue(executionResult.getData()),
+                    JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()),
                     is("{\"objectWithEnumMutation\":{\"anotherEnum\":\"Z\"}}")
                 );
             }
@@ -1577,7 +1576,7 @@ public class QLiveDomainExecutionTest
 
         assertThat(executionResult.getErrors(), is(Collections.emptyList()));
         assertThat(
-            JSON.defaultJSON().forValue(executionResult.getData()),
+            JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()),
             is("{\"walkMultiKey\":[{\"id\":\"source-id\",\"targetEight\":{\"id\":\"target-id\",\"name\":\"target-name\",\"num\":123}}]}")
         );
     }
@@ -1598,7 +1597,7 @@ public class QLiveDomainExecutionTest
 
         assertThat(executionResult.getErrors(), is(Collections.emptyList()));
         assertThat(
-            JSON.defaultJSON().forValue(executionResult.getData()),
+            JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()),
             is("{\"walkMultiKeyBackWards\":[{\"id\":\"target-id\",\"name\":\"target-name\",\"num\":345,\"sourceEights\":[{\"id\":\"target-id\"},{\"id\":\"target-id-2\"}]}]}")
         );
     }
@@ -1619,7 +1618,7 @@ public class QLiveDomainExecutionTest
 
         assertThat(executionResult.getErrors(), is(Collections.emptyList()));
         assertThat(
-            JSON.defaultJSON().forValue(executionResult.getData()),
+            JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()),
             is("{\"walkViewPojoRelation\":[{\"count\":123,\"target\":{\"id\":\"target-id\",\"name\":\"target 9 name\"}}]}")
         );
     }
@@ -1640,7 +1639,7 @@ public class QLiveDomainExecutionTest
 
         assertThat(executionResult.getErrors(), is(Collections.emptyList()));
         assertThat(
-            JSON.defaultJSON().forValue(executionResult.getData()),
+            JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()),
             is("{\"walkViewPojoRelationBackwards\":[{\"id\":\"target-id\",\"name\":\"target 9 name\",\"targetNineCounts\":{\"count\":234}}]}")
         );
     }

@@ -88,6 +88,7 @@ public class QLiveDomainBuilder
     static
     {
         typeDocParser = new JSONParser();
+        typeDocParser.setObjectSupport(JSONUtil.OBJECT_SUPPORT);
         typeDocParser.addTypeHint("[]", TypeDoc.class);
     }
 

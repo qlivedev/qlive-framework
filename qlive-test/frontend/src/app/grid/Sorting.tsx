@@ -1,6 +1,7 @@
 import {DataGrid, decompileFilter, i18n, ResolvedColumn, unawaited, useInjection} from "@qlivedev/qlive-ts";
 import {CNode, field, FieldExpression, matchSort, matchSortPart, value} from "@qlivedev/qlive-ts/filter";
 import { Q_FooList, Q_FooListResult } from "./Q_FooList";
+import PrintSortOrder, {sortExpression} from "../../component/PrintSortOrder";
 
 /**
  * Sort orders a header click can't set, offered by a control of the view's own.
@@ -16,44 +17,6 @@ const ORDERS = [
     {label: i18n("Last digit of num"), sortFields: [field("num").mod(value(10))]},
     {label: i18n("Owner, then last digit of num"), sortFields: ["owner.login", field("num").mod(value(10))]}
 ];
-
-function sortOrder(expr: CNode)
-{
-    if (expr.type === "Operation" && expr.name === "desc")
-    {
-        return i18n("descending")
-    }
-
-    return i18n("ascending");
-}
-
-function unwrapSortOrder(expr: CNode)
-{
-    if (expr.type === "Operation" && expr.name === "desc")
-        return expr.operands[0]
-    if (expr.type === "Operation" && expr.name === "asc")
-        return expr.operands[0]
-    return expr;
-}
-
-function sortExpression(expr: FieldExpression)
-{
-    if (typeof expr === "string")
-    {
-        if (expr.charAt(0) === "!")
-        {
-            return expr.substring(1) + ", " + i18n("descending")
-        }
-        else
-        {
-            return expr + ", " + i18n("ascending")
-        }
-    }
-    else
-    {
-        return decompileFilter(unwrapSortOrder(expr)) + ", " + sortOrder(expr);
-    }
-}
 
 export default function Sorting()
 {
@@ -81,26 +44,7 @@ export default function Sorting()
                 </p>
                 <DataGrid doc={ foos } columns={ ["name", "num", "flag", "owner"] } headerTitle={ headerTitle }/>
             </div>
-            {
-                !!foos.config.sortFields.length && (
-                    <>
-                        <p>
-                            { i18n("Current sorting order") }
-                        </p>
-                        <ol>
-                            {
-                                foos.config.sortFields.map((expr,idx) => (
-                                    <li key={idx}>
-                                        {
-                                            sortExpression(expr)
-                                        }
-                                    </li>
-                                ))
-                            }
-                        </ol>
-                    </>
-                )
-            }
+            <PrintSortOrder queryConfig={foos.config}/>
         </>
     );
 }

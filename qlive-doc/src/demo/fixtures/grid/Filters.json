@@ -1,495 +1,418 @@
 {
-  "csrfToken": {
-    "param": "_csrf",
-    "header": "X-CSRF-TOKEN",
-    "value": ""
-  },
-  "data": {
-    "grid/filters/Q_FooList": {
-      "data": {
-        "queryFooDocument": {
-          "type": "Foo",
-          "config": {
-            "condition": null,
-            "offset": 0,
-            "pageSize": 5,
-            "sortFields": []
-          },
-          "rowCount": 23,
-          "rows": [
-            {
-              "id": "00d205ee-371b-4617-9ff9-4dc86c04cca8",
-              "name": "Foo #20",
-              "description": null,
-              "num": 2001,
-              "flag": true,
-              "created": "2022-05-05T10:00:00.000Z",
-              "type": "TYPE_D",
-              "ownerId": "3f7c1a10-0000-4000-8000-00000000000b",
-              "version": "2d2f6295-866e-41f8-b542-4fecc8462708",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-00000000000b",
-                "login": "userB"
-              },
-              "fooType": {
-                "name": "TYPE_D",
-                "ordinal": 3
-              }
-            },
-            {
-              "id": "06568f37-b560-4cd2-8f54-728a365cb254",
-              "name": "Foo #9",
-              "description": "red apple",
-              "num": 42,
-              "flag": true,
-              "created": "2019-05-14T07:12:03.000Z",
-              "type": "TYPE_A",
-              "ownerId": "3f7c1a10-0000-4000-8000-00000000000a",
-              "version": "b4b99f70-60a5-4e9a-ac9e-dec8ce3236f8",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-00000000000a",
-                "login": "userA"
-              },
-              "fooType": {
-                "name": "TYPE_A",
-                "ordinal": 0
-              }
-            },
-            {
-              "id": "130ac390-25cc-4544-9696-c405a50becf1",
-              "name": "Foo #16",
-              "description": "green grape",
-              "num": 5,
-              "flag": true,
-              "created": "2021-02-02T12:13:13.000Z",
-              "type": "TYPE_D",
-              "ownerId": "3f7c1a10-0000-4000-8000-00000000000a",
-              "version": "9f9dda94-cbbe-4776-a68b-1829bec1a527",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-00000000000a",
-                "login": "userA"
-              },
-              "fooType": {
-                "name": "TYPE_D",
-                "ordinal": 3
-              }
-            },
-            {
-              "id": "13a4ad86-e2c3-4979-81e2-a8f102b501c1",
-              "name": "Foo #1",
-              "description": "desc 1",
-              "num": 123456,
-              "flag": true,
-              "created": "2018-11-01T18:58:59.000Z",
-              "type": "TYPE_B",
-              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
-              "version": "b9fe52a9-0f70-4a36-b997-6c8e603f0a96",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
-                "login": "admin"
-              },
-              "fooType": {
-                "name": "TYPE_B",
-                "ordinal": 1
-              }
-            },
-            {
-              "id": "3a20490c-8b33-4c56-85f6-c1a68a46a0ec",
-              "name": "Foo #12",
-              "description": "yellow banana",
-              "num": 2024,
-              "flag": true,
-              "created": "2020-01-08T15:22:31.000Z",
-              "type": "TYPE_D",
-              "ownerId": "3f7c1a10-0000-4000-8000-00000000000b",
-              "version": "f1448375-d3c9-4d14-a8e9-55ea1b76d911",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-00000000000b",
-                "login": "userB"
-              },
-              "fooType": {
-                "name": "TYPE_D",
-                "ordinal": 3
-              }
-            },
-            {
-              "id": "49aa66c0-0a9d-4df4-964f-ea8854f770ea",
-              "name": "Foo #25",
-              "description": "black berry",
-              "num": 120,
-              "flag": false,
-              "created": "2024-02-19T10:59:59.000Z",
-              "type": "TYPE_D",
-              "ownerId": "3f7c1a10-0000-4000-8000-00000000000a",
-              "version": "190a6a60-3190-4f07-b5d2-665d143b8065",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-00000000000a",
-                "login": "userA"
-              },
-              "fooType": {
-                "name": "TYPE_D",
-                "ordinal": 3
-              }
-            },
-            {
-              "id": "51cb3a62-92a6-446d-94ae-5d5d844ea5b5",
-              "name": "Foo #6",
-              "description": "",
-              "num": 123,
-              "flag": true,
-              "created": "2019-03-06T17:19:21.777Z",
-              "type": "TYPE_A",
-              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
-              "version": "cf8458eb-f004-462b-8af8-7bb213c81433",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
-                "login": "admin"
-              },
-              "fooType": {
-                "name": "TYPE_A",
-                "ordinal": 0
-              }
-            },
-            {
-              "id": "5c2b4852-8270-45fb-82e2-a1beb0ef4e0b",
-              "name": "Foo #10",
-              "description": "green pear",
-              "num": 1500,
-              "flag": false,
-              "created": "2019-07-02T12:40:18.000Z",
-              "type": "TYPE_B",
-              "ownerId": "3f7c1a10-0000-4000-8000-00000000000a",
-              "version": "edeb70f8-2e00-49b6-a028-4ff61d98ab2a",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-00000000000a",
-                "login": "userA"
-              },
-              "fooType": {
-                "name": "TYPE_B",
-                "ordinal": 1
-              }
-            },
-            {
-              "id": "6fa9f332-6915-4fba-8042-39fc5c58983e",
-              "name": "Foo #15",
-              "description": null,
-              "num": 318,
-              "flag": false,
-              "created": "2020-10-11T08:30:00.000Z",
-              "type": "TYPE_C",
-              "ownerId": "3f7c1a10-0000-4000-8000-00000000000b",
-              "version": "f3da0dfa-96a0-4fd2-86e9-0c67aa3b9d82",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-00000000000b",
-                "login": "userB"
-              },
-              "fooType": {
-                "name": "TYPE_C",
-                "ordinal": 2
-              }
-            },
-            {
-              "id": "78daccd3-029c-45e7-b0d8-dd2b2cec7abe",
-              "name": "Foo #17",
-              "description": "orange",
-              "num": 1234,
-              "flag": false,
-              "created": "2021-04-20T05:45:09.000Z",
-              "type": "TYPE_A",
-              "ownerId": "3f7c1a10-0000-4000-8000-00000000000b",
-              "version": "4efc4b25-6774-416a-879b-ea3d20c79c1d",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-00000000000b",
-                "login": "userB"
-              },
-              "fooType": {
-                "name": "TYPE_A",
-                "ordinal": 0
-              }
-            },
-            {
-              "id": "7e126c03-a2a0-4bd3-908a-44387828c386",
-              "name": "Foo #19",
-              "description": "yellow lemon",
-              "num": 88,
-              "flag": false,
-              "created": "2022-01-27T14:37:26.000Z",
-              "type": "TYPE_C",
-              "ownerId": "3f7c1a10-0000-4000-8000-00000000000a",
-              "version": "578915cc-0ee3-418f-b33d-f169bf0d828b",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-00000000000a",
-                "login": "userA"
-              },
-              "fooType": {
-                "name": "TYPE_C",
-                "ordinal": 2
-              }
-            },
-            {
-              "id": "8513369a-9605-42cf-ad4f-80e94e050954",
-              "name": "Foo #8",
-              "description": "",
-              "num": 123,
-              "flag": true,
-              "created": "2019-03-06T17:19:56.972Z",
-              "type": "TYPE_C",
-              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
-              "version": "8214ae16-3b44-42d7-9d1c-9260ecf00781",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
-                "login": "admin"
-              },
-              "fooType": {
-                "name": "TYPE_C",
-                "ordinal": 2
-              }
-            },
-            {
-              "id": "9008ff02-a43a-4da0-a04b-f74d10778f20",
-              "name": "Foo #18",
-              "description": "red currant",
-              "num": 612,
-              "flag": true,
-              "created": "2021-08-15T20:10:51.000Z",
-              "type": "TYPE_B",
-              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
-              "version": "de68ce0e-4788-4f50-96da-05652cc6efdb",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
-                "login": "admin"
-              },
-              "fooType": {
-                "name": "TYPE_B",
-                "ordinal": 1
-              }
-            },
-            {
-              "id": "93a6b8c9-8567-42c6-a4ff-c9260076ee68",
-              "name": "Foo #14",
-              "description": "blue plum",
-              "num": 99999,
-              "flag": true,
-              "created": "2020-06-29T17:03:44.000Z",
-              "type": "TYPE_B",
-              "ownerId": "3f7c1a10-0000-4000-8000-00000000000a",
-              "version": "16b77373-8e70-4205-bf85-d1f16faee969",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-00000000000a",
-                "login": "userA"
-              },
-              "fooType": {
-                "name": "TYPE_B",
-                "ordinal": 1
-              }
-            },
-            {
-              "id": "ad696331-9306-4553-813b-cf5d5359acb1",
-              "name": "Foo #23",
-              "description": "green lime",
-              "num": 73,
-              "flag": false,
-              "created": "2023-03-14T08:26:53.000Z",
-              "type": "TYPE_B",
-              "ownerId": "3f7c1a10-0000-4000-8000-00000000000b",
-              "version": "918ac6fc-5e41-4a55-839a-5fb752f014ce",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-00000000000b",
-                "login": "userB"
-              },
-              "fooType": {
-                "name": "TYPE_B",
-                "ordinal": 1
-              }
-            },
-            {
-              "id": "b162d3ac-912b-4f26-a708-20db6e1f12e1",
-              "name": "Foo #24",
-              "description": "red plum",
-              "num": 3050,
-              "flag": true,
-              "created": "2023-08-01T15:05:38.000Z",
-              "type": "TYPE_C",
-              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
-              "version": "14e0ad7a-3ba4-4e27-8651-82190c9dd993",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
-                "login": "admin"
-              },
-              "fooType": {
-                "name": "TYPE_C",
-                "ordinal": 2
-              }
-            },
-            {
-              "id": "bfc5617c-ac04-446b-b4bf-52891c2860f2",
-              "name": "Foo #21",
-              "description": "blue berry",
-              "num": 450,
-              "flag": true,
-              "created": "2022-11-30T17:48:02.000Z",
-              "type": "TYPE_A",
-              "ownerId": "3f7c1a10-0000-4000-8000-00000000000a",
-              "version": "af21deef-2987-4fb7-8b92-20aa4bc0996d",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-00000000000a",
-                "login": "userA"
-              },
-              "fooType": {
-                "name": "TYPE_A",
-                "ordinal": 0
-              }
-            },
-            {
-              "id": "c3e89a90-b616-43c7-b6a0-0fe937898985",
-              "name": "Foo #4",
-              "description": "xxx",
-              "num": 104,
-              "flag": true,
-              "created": "2018-11-16T19:58:59.986Z",
-              "type": "TYPE_D",
-              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
-              "version": "7c7ebf39-51d0-4662-8070-b76fafad952b",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
-                "login": "admin"
-              },
-              "fooType": {
-                "name": "TYPE_D",
-                "ordinal": 3
-              }
-            },
-            {
-              "id": "c45b5ab6-dabf-400e-982f-27f3f4a5291a",
-              "name": "Foo #22",
-              "description": "xxx",
-              "num": 222,
-              "flag": true,
-              "created": "2018-11-16T19:58:59.980Z",
-              "type": "TYPE_B",
-              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
-              "version": "4aced58d-85f3-4f2f-98eb-892ec2053439",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
-                "login": "admin"
-              },
-              "fooType": {
-                "name": "TYPE_B",
-                "ordinal": 1
-              }
-            },
-            {
-              "id": "cb8515fe-22d0-4b29-bb1b-d6a893e6df3a",
-              "name": "Foo #13",
-              "description": "red cherry",
-              "num": 250,
-              "flag": false,
-              "created": "2020-03-17T07:55:12.000Z",
-              "type": "TYPE_A",
-              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
-              "version": "11b1f028-ebeb-4dfa-973e-c7b4d6446df7",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
-                "login": "admin"
-              },
-              "fooType": {
-                "name": "TYPE_A",
-                "ordinal": 0
-              }
-            },
-            {
-              "id": "d57dec43-350d-417a-a374-813770eb06af",
-              "name": "Foo #33",
-              "description": null,
-              "num": 103,
-              "flag": false,
-              "created": "2018-11-16T19:58:59.983Z",
-              "type": "TYPE_C",
-              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
-              "version": "3f6e790c-b9ca-4f9f-92d6-9aa106c455fd",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
-                "login": "admin"
-              },
-              "fooType": {
-                "name": "TYPE_C",
-                "ordinal": 2
-              }
-            },
-            {
-              "id": "d58a89e1-85d6-48e5-b8c9-21df92c98800",
-              "name": "Foo #11",
-              "description": null,
-              "num": 7,
-              "flag": true,
-              "created": "2019-09-23T09:05:47.000Z",
-              "type": "TYPE_C",
-              "ownerId": "3f7c1a10-0000-4000-8000-00000000000b",
-              "version": "5482e8b5-8685-422c-ae69-2671380a3642",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-00000000000b",
-                "login": "userB"
-              },
-              "fooType": {
-                "name": "TYPE_C",
-                "ordinal": 2
-              }
-            },
-            {
-              "id": "db181d0e-b78c-4d81-8f75-4138777028fe",
-              "name": "Foo #7",
-              "description": "",
-              "num": 123,
-              "flag": true,
-              "created": "2019-03-06T17:19:40.966Z",
-              "type": "TYPE_A",
-              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
-              "version": "536d529e-8e48-4b6d-87de-7aa3c2e31460",
-              "owner": {
-                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
-                "login": "admin"
-              },
-              "fooType": {
-                "name": "TYPE_A",
-                "ordinal": 0
-              }
-            }
-          ]
-        }
-      },
-      "type": "FooDocument",
-      "meta": null
-    },
-    "grid/filters/Q_OwnerCatalog": {
-      "data": {
-        "queryAppUserDocument": {
-          "type": "AppUser",
-          "rows": [
-            {
-              "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
-              "login": "admin"
-            },
-            {
-              "id": "3f7c1a10-0000-4000-8000-000000000000",
-              "login": "anonymous"
-            },
-            {
-              "id": "3f7c1a10-0000-4000-8000-00000000000a",
-              "login": "userA"
-            },
-            {
-              "id": "3f7c1a10-0000-4000-8000-00000000000b",
-              "login": "userB"
-            }
-          ],
-          "rowCount": 4
-        }
-      },
-      "type": "AppUserDocument",
-      "meta": null
-    }
+  "authentication": {
+    "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
+    "login": "admin",
+    "roles": [
+      "ROLE_USER",
+      "ROLE_TEST",
+      "ROLE_ADMIN"
+    ]
   },
   "config": {
+    "contextPath": "",
+    "meta": {
+      "genericTypes": [
+        {
+          "genericType": "io.github.qlivedev.model.QueryDocument",
+          "type": "FooDocument",
+          "typeParameters": [
+            "Foo"
+          ]
+        },
+        {
+          "genericType": "io.github.qlivedev.model.QueryDocument",
+          "type": "BazDocument",
+          "typeParameters": [
+            "Baz"
+          ]
+        },
+        {
+          "genericType": "io.github.qlivedev.model.QueryDocument",
+          "type": "FooTypeDocument",
+          "typeParameters": [
+            "FooType"
+          ]
+        },
+        {
+          "genericType": "io.github.qlivedev.model.QueryDocument",
+          "type": "BarDocument",
+          "typeParameters": [
+            "Bar"
+          ]
+        },
+        {
+          "genericType": "io.github.qlivedev.model.QueryDocument",
+          "type": "AppUserDocument",
+          "typeParameters": [
+            "AppUser"
+          ]
+        },
+        {
+          "genericType": "io.github.qlivedev.model.QueryDocument",
+          "type": "QuuxDocument",
+          "typeParameters": [
+            "Quux"
+          ]
+        },
+        {
+          "genericType": "io.github.qlivedev.model.QueryDocument",
+          "type": "QuxDocument",
+          "typeParameters": [
+            "Qux"
+          ]
+        }
+      ],
+      "quickSearchTypes": [
+        "Bar",
+        "Baz",
+        "Foo",
+        "FooType",
+        "Quux",
+        "Qux"
+      ],
+      "relations": [
+        {
+          "id": "Foo-owner",
+          "leftSideObjectName": "owner",
+          "metaTags": [],
+          "rightSideObjectName": "foos",
+          "sourceField": "OBJECT_AND_SCALAR",
+          "sourceFields": [
+            "ownerId"
+          ],
+          "sourceType": "Foo",
+          "targetField": "MANY",
+          "targetFields": [
+            "id"
+          ],
+          "targetType": "AppUser"
+        },
+        {
+          "id": "Foo-fooType",
+          "leftSideObjectName": "fooType",
+          "metaTags": [],
+          "sourceField": "OBJECT_AND_SCALAR",
+          "sourceFields": [
+            "type"
+          ],
+          "sourceType": "Foo",
+          "targetField": "NONE",
+          "targetFields": [
+            "name"
+          ],
+          "targetType": "FooType"
+        },
+        {
+          "id": "BarLink-bar",
+          "leftSideObjectName": "bar",
+          "metaTags": [],
+          "rightSideObjectName": "bazLinks",
+          "sourceField": "OBJECT_AND_SCALAR",
+          "sourceFields": [
+            "barId"
+          ],
+          "sourceType": "BarLink",
+          "targetField": "MANY",
+          "targetFields": [
+            "id"
+          ],
+          "targetType": "Bar"
+        },
+        {
+          "id": "BarLink-baz",
+          "leftSideObjectName": "baz",
+          "metaTags": [],
+          "rightSideObjectName": "bazLinks",
+          "sourceField": "OBJECT_AND_SCALAR",
+          "sourceFields": [
+            "bazId"
+          ],
+          "sourceType": "BarLink",
+          "targetField": "MANY",
+          "targetFields": [
+            "id"
+          ],
+          "targetType": "Baz"
+        }
+      ],
+      "types": {
+        "AppFieldLayout": {
+          "meta": {
+            "uniqueKeys": [
+              {
+                "fields": [
+                  "id"
+                ],
+                "name": "pk_app_field_layout",
+                "nullable": false,
+                "primary": true
+              }
+            ]
+          }
+        },
+        "AppLogin": {
+          "meta": {
+            "uniqueKeys": [
+              {
+                "fields": [
+                  "series"
+                ],
+                "name": "pk_app_login",
+                "nullable": false,
+                "primary": true
+              }
+            ]
+          }
+        },
+        "AppUser": {
+          "meta": {
+            "nameFields": [
+              "login"
+            ],
+            "queryConfig": {
+              "pageSize": 5
+            },
+            "uniqueKeys": [
+              {
+                "fields": [
+                  "id"
+                ],
+                "name": "pk_app_user",
+                "nullable": false,
+                "primary": true
+              },
+              {
+                "fields": [
+                  "login"
+                ],
+                "name": "uc_app_user_login",
+                "nullable": false,
+                "primary": false
+              }
+            ]
+          }
+        },
+        "AppUserDocument": {},
+        "AppVersion": {
+          "meta": {
+            "uniqueKeys": [
+              {
+                "fields": [
+                  "id"
+                ],
+                "name": "pk_app_version",
+                "nullable": false,
+                "primary": true
+              }
+            ]
+          }
+        },
+        "Bar": {
+          "fields": {
+            "name": {
+              "quickSearch": true
+            }
+          },
+          "meta": {
+            "merge": {
+              "resolve": true
+            },
+            "nameFields": [
+              "name"
+            ],
+            "queryConfig": {
+              "pageSize": 5
+            },
+            "uniqueKeys": [
+              {
+                "fields": [
+                  "id"
+                ],
+                "name": "pk_bar",
+                "nullable": false,
+                "primary": true
+              }
+            ]
+          }
+        },
+        "BarDocument": {},
+        "BarLink": {
+          "meta": {
+            "uniqueKeys": [
+              {
+                "fields": [
+                  "id"
+                ],
+                "name": "pk_bar_link",
+                "nullable": false,
+                "primary": true
+              },
+              {
+                "fields": [
+                  "barId",
+                  "bazId"
+                ],
+                "name": "uc_bar_link_bar_baz",
+                "nullable": false,
+                "primary": false
+              }
+            ]
+          }
+        },
+        "Baz": {
+          "fields": {
+            "name": {
+              "quickSearch": true
+            }
+          },
+          "meta": {
+            "merge": {
+              "resolve": true
+            },
+            "nameFields": [
+              "name"
+            ],
+            "queryConfig": {
+              "pageSize": 5
+            },
+            "uniqueKeys": [
+              {
+                "fields": [
+                  "id"
+                ],
+                "name": "pk_baz",
+                "nullable": false,
+                "primary": true
+              }
+            ]
+          }
+        },
+        "BazDocument": {},
+        "Foo": {
+          "fields": {
+            "name": {
+              "quickSearch": true
+            }
+          },
+          "meta": {
+            "merge": {
+              "ignoredFields": [
+                "created"
+              ]
+            },
+            "nameFields": [
+              "name"
+            ],
+            "queryConfig": {
+              "pageSize": 5
+            },
+            "uniqueKeys": [
+              {
+                "fields": [
+                  "id"
+                ],
+                "name": "pk_foo",
+                "nullable": false,
+                "primary": true
+              }
+            ]
+          }
+        },
+        "FooDocument": {},
+        "FooType": {
+          "fields": {
+            "name": {
+              "quickSearch": true
+            }
+          },
+          "meta": {
+            "nameFields": [
+              "name"
+            ],
+            "queryConfig": {
+              "pageSize": 5
+            },
+            "uniqueKeys": [
+              {
+                "fields": [
+                  "ordinal"
+                ],
+                "name": "pk_foo_type",
+                "nullable": false,
+                "primary": true
+              },
+              {
+                "fields": [
+                  "name"
+                ],
+                "name": "foo_type_name_key",
+                "nullable": false,
+                "primary": false
+              }
+            ]
+          }
+        },
+        "FooTypeDocument": {},
+        "MergeConflict": {},
+        "MergeConflictField": {},
+        "MergeResult": {},
+        "Quux": {
+          "fields": {
+            "name": {
+              "quickSearch": true
+            }
+          },
+          "meta": {
+            "nameFields": [
+              "name"
+            ],
+            "queryConfig": {
+              "pageSize": 5
+            },
+            "uniqueKeys": [
+              {
+                "fields": [
+                  "id"
+                ],
+                "name": "pk_quux",
+                "nullable": false,
+                "primary": true
+              }
+            ]
+          }
+        },
+        "QuuxDocument": {},
+        "Qux": {
+          "fields": {
+            "name": {
+              "quickSearch": true
+            },
+            "summary": {
+              "computed": true
+            }
+          },
+          "meta": {
+            "nameFields": [
+              "name"
+            ],
+            "queryConfig": {
+              "pageSize": 5
+            },
+            "uniqueKeys": [
+              {
+                "fields": [
+                  "id"
+                ],
+                "name": "pk_qux",
+                "nullable": false,
+                "primary": true
+              }
+            ]
+          }
+        },
+        "QuxDocument": {}
+      }
+    },
     "schema": {
       "types": [
         {
@@ -498,7 +421,23 @@
           "description": null,
           "fields": [
             {
-              "name": "id",
+              "name": "created",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Timestamp",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "entityType",
               "description": null,
               "args": [],
               "type": {
@@ -530,7 +469,7 @@
               "deprecationReason": null
             },
             {
-              "name": "entityType",
+              "name": "id",
               "description": null,
               "args": [],
               "type": {
@@ -539,22 +478,6 @@
                 "ofType": {
                   "kind": "SCALAR",
                   "name": "String",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "created",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "Timestamp",
                   "ofType": null
                 }
               },
@@ -648,34 +571,6 @@
           "description": null,
           "fields": [
             {
-              "name": "lastLogin",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "Timestamp",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "password",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
               "name": "created",
               "description": null,
               "args": [],
@@ -685,22 +580,6 @@
                 "ofType": {
                   "kind": "SCALAR",
                   "name": "Timestamp",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "roles",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
                   "ofType": null
                 }
               },
@@ -736,7 +615,51 @@
               "deprecationReason": null
             },
             {
+              "name": "lastLogin",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "Timestamp",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "login",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "password",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "roles",
               "description": null,
               "args": [],
               "type": {
@@ -782,6 +705,22 @@
           "name": "AppUserDocument",
           "description": null,
           "fields": [
+            {
+              "name": "config",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "QueryConfig",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
             {
               "name": "rowCount",
               "description": null,
@@ -829,22 +768,6 @@
               },
               "isDeprecated": false,
               "deprecationReason": null
-            },
-            {
-              "name": "config",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "QueryConfig",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
             }
           ],
           "inputFields": null,
@@ -858,7 +781,7 @@
           "description": null,
           "fields": [
             {
-              "name": "fieldMask",
+              "name": "created",
               "description": null,
               "args": [],
               "type": {
@@ -866,7 +789,23 @@
                 "name": null,
                 "ofType": {
                   "kind": "SCALAR",
-                  "name": "BigInteger",
+                  "name": "Timestamp",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "entityId",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
                   "ofType": null
                 }
               },
@@ -890,34 +829,6 @@
               "deprecationReason": null
             },
             {
-              "name": "created",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "Timestamp",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "prev",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
               "name": "fieldLayout",
               "description": null,
               "args": [],
@@ -934,7 +845,7 @@
               "deprecationReason": null
             },
             {
-              "name": "entityId",
+              "name": "fieldMask",
               "description": null,
               "args": [],
               "type": {
@@ -942,7 +853,7 @@
                 "name": null,
                 "ofType": {
                   "kind": "SCALAR",
-                  "name": "String",
+                  "name": "BigInteger",
                   "ofType": null
                 }
               },
@@ -980,6 +891,18 @@
               },
               "isDeprecated": false,
               "deprecationReason": null
+            },
+            {
+              "name": "prev",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
             }
           ],
           "inputFields": null,
@@ -1009,7 +932,19 @@
               "deprecationReason": null
             },
             {
-              "name": "num",
+              "name": "description",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "id",
               "description": null,
               "args": [],
               "type": {
@@ -1017,7 +952,7 @@
                 "name": null,
                 "ofType": {
                   "kind": "SCALAR",
-                  "name": "Int",
+                  "name": "String",
                   "ofType": null
                 }
               },
@@ -1041,19 +976,7 @@
               "deprecationReason": null
             },
             {
-              "name": "description",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "id",
+              "name": "num",
               "description": null,
               "args": [],
               "type": {
@@ -1061,7 +984,7 @@
                 "name": null,
                 "ofType": {
                   "kind": "SCALAR",
-                  "name": "String",
+                  "name": "Int",
                   "ofType": null
                 }
               },
@@ -1112,6 +1035,22 @@
           "description": null,
           "fields": [
             {
+              "name": "config",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "QueryConfig",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "rowCount",
               "description": null,
               "args": [],
@@ -1153,22 +1092,6 @@
                 "ofType": {
                   "kind": "SCALAR",
                   "name": "String",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "config",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "QueryConfig",
                   "ofType": null
                 }
               },
@@ -1306,7 +1229,19 @@
               "deprecationReason": null
             },
             {
-              "name": "num",
+              "name": "description",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "id",
               "description": null,
               "args": [],
               "type": {
@@ -1314,7 +1249,7 @@
                 "name": null,
                 "ofType": {
                   "kind": "SCALAR",
-                  "name": "Int",
+                  "name": "String",
                   "ofType": null
                 }
               },
@@ -1338,19 +1273,7 @@
               "deprecationReason": null
             },
             {
-              "name": "description",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "id",
+              "name": "num",
               "description": null,
               "args": [],
               "type": {
@@ -1358,7 +1281,7 @@
                 "name": null,
                 "ofType": {
                   "kind": "SCALAR",
-                  "name": "String",
+                  "name": "Int",
                   "ofType": null
                 }
               },
@@ -1409,6 +1332,22 @@
           "description": null,
           "fields": [
             {
+              "name": "config",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "QueryConfig",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "rowCount",
               "description": null,
               "args": [],
@@ -1450,22 +1389,6 @@
                 "ofType": {
                   "kind": "SCALAR",
                   "name": "String",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "config",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "QueryConfig",
                   "ofType": null
                 }
               },
@@ -1593,20 +1516,6 @@
               "defaultValue": "null"
             },
             {
-              "name": "new",
-              "description": null,
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "Boolean",
-                  "ofType": null
-                }
-              },
-              "defaultValue": "null"
-            },
-            {
               "name": "id",
               "description": null,
               "type": {
@@ -1615,6 +1524,20 @@
                 "ofType": {
                   "kind": "SCALAR",
                   "name": "String",
+                  "ofType": null
+                }
+              },
+              "defaultValue": "null"
+            },
+            {
+              "name": "new",
+              "description": null,
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Boolean",
                   "ofType": null
                 }
               },
@@ -1656,6 +1579,20 @@
           "fields": null,
           "inputFields": [
             {
+              "name": "id",
+              "description": null,
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "defaultValue": "null"
+            },
+            {
               "name": "type",
               "description": null,
               "type": {
@@ -1676,20 +1613,6 @@
                 "kind": "SCALAR",
                 "name": "String",
                 "ofType": null
-              },
-              "defaultValue": "null"
-            },
-            {
-              "name": "id",
-              "description": null,
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
               },
               "defaultValue": "null"
             }
@@ -1759,22 +1682,6 @@
           "description": null,
           "fields": [
             {
-              "name": "flag",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "Boolean",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
               "name": "created",
               "description": null,
               "args": [],
@@ -1791,7 +1698,19 @@
               "deprecationReason": null
             },
             {
-              "name": "num",
+              "name": "description",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "flag",
               "description": null,
               "args": [],
               "type": {
@@ -1799,7 +1718,23 @@
                 "name": null,
                 "ofType": {
                   "kind": "SCALAR",
-                  "name": "Int",
+                  "name": "Boolean",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "id",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
                   "ofType": null
                 }
               },
@@ -1823,19 +1758,7 @@
               "deprecationReason": null
             },
             {
-              "name": "description",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "id",
+              "name": "num",
               "description": null,
               "args": [],
               "type": {
@@ -1843,7 +1766,7 @@
                 "name": null,
                 "ofType": {
                   "kind": "SCALAR",
-                  "name": "String",
+                  "name": "Int",
                   "ofType": null
                 }
               },
@@ -1938,6 +1861,22 @@
           "description": null,
           "fields": [
             {
+              "name": "config",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "QueryConfig",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "rowCount",
               "description": null,
               "args": [],
@@ -1979,22 +1918,6 @@
                 "ofType": {
                   "kind": "SCALAR",
                   "name": "String",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "config",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "QueryConfig",
                   "ofType": null
                 }
               },
@@ -2056,6 +1979,22 @@
           "description": null,
           "fields": [
             {
+              "name": "config",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "QueryConfig",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "rowCount",
               "description": null,
               "args": [],
@@ -2097,22 +2036,6 @@
                 "ofType": {
                   "kind": "SCALAR",
                   "name": "String",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "config",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "QueryConfig",
                   "ofType": null
                 }
               },
@@ -2208,38 +2131,6 @@
               "deprecationReason": null
             },
             {
-              "name": "id",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "type",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
               "name": "fields",
               "description": null,
               "args": [],
@@ -2260,6 +2151,22 @@
               "deprecationReason": null
             },
             {
+              "name": "id",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "storedVersion",
               "description": null,
               "args": [],
@@ -2267,6 +2174,22 @@
                 "kind": "SCALAR",
                 "name": "String",
                 "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "type",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -2283,13 +2206,17 @@
           "description": null,
           "fields": [
             {
-              "name": "mine",
+              "name": "field",
               "description": null,
               "args": [],
               "type": {
-                "kind": "SCALAR",
-                "name": "GenericScalar",
-                "ofType": null
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -2311,17 +2238,13 @@
               "deprecationReason": null
             },
             {
-              "name": "field",
+              "name": "mine",
               "description": null,
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
+                "kind": "SCALAR",
+                "name": "GenericScalar",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -2736,7 +2659,7 @@
           "description": null,
           "fields": [
             {
-              "name": "numA",
+              "name": "created",
               "description": null,
               "args": [],
               "type": {
@@ -2744,23 +2667,7 @@
                 "name": null,
                 "ofType": {
                   "kind": "SCALAR",
-                  "name": "Int",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "name",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
+                  "name": "Timestamp",
                   "ofType": null
                 }
               },
@@ -2784,7 +2691,7 @@
               "deprecationReason": null
             },
             {
-              "name": "created",
+              "name": "name",
               "description": null,
               "args": [],
               "type": {
@@ -2792,7 +2699,23 @@
                 "name": null,
                 "ofType": {
                   "kind": "SCALAR",
-                  "name": "Timestamp",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "numA",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Int",
                   "ofType": null
                 }
               },
@@ -2826,6 +2749,22 @@
           "name": "QuuxDocument",
           "description": null,
           "fields": [
+            {
+              "name": "config",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "QueryConfig",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
             {
               "name": "rowCount",
               "description": null,
@@ -2873,22 +2812,6 @@
               },
               "isDeprecated": false,
               "deprecationReason": null
-            },
-            {
-              "name": "config",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "QueryConfig",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
             }
           ],
           "inputFields": null,
@@ -2901,30 +2824,6 @@
           "name": "Qux",
           "description": null,
           "fields": [
-            {
-              "name": "summary",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "dateValue",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "Date",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
             {
               "name": "bigDecimalValue",
               "description": null,
@@ -2950,24 +2849,36 @@
               "deprecationReason": null
             },
             {
-              "name": "intValue",
+              "name": "byteValue",
               "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
-                "name": "Int",
+                "name": "Byte",
                 "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
-              "name": "timestampValue",
+              "name": "currencyValue",
               "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
-                "name": "Timestamp",
+                "name": "Currency",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "dateValue",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "Date",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -2980,6 +2891,34 @@
               "type": {
                 "kind": "SCALAR",
                 "name": "Float",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "id",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "intValue",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -3010,30 +2949,6 @@
               "deprecationReason": null
             },
             {
-              "name": "stringValue",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "currencyValue",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "Currency",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
               "name": "name",
               "description": null,
               "args": [],
@@ -3050,28 +2965,36 @@
               "deprecationReason": null
             },
             {
-              "name": "id",
+              "name": "stringValue",
               "description": null,
               "args": [],
               "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
-              "name": "byteValue",
+              "name": "summary",
               "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
-                "name": "Byte",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "timestampValue",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "Timestamp",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -3088,6 +3011,22 @@
           "name": "QuxDocument",
           "description": null,
           "fields": [
+            {
+              "name": "config",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "QueryConfig",
+                  "ofType": null
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
             {
               "name": "rowCount",
               "description": null,
@@ -3130,22 +3069,6 @@
                 "ofType": {
                   "kind": "SCALAR",
                   "name": "String",
-                  "ofType": null
-                }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "config",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "QueryConfig",
                   "ofType": null
                 }
               },
@@ -4091,420 +4014,497 @@
           "possibleTypes": null
         }
       ]
-    },
-    "contextPath": "",
-    "meta": {
-      "types": {
-        "MergeConflict": {},
-        "AppLogin": {
-          "meta": {
-            "uniqueKeys": [
-              {
-                "name": "pk_app_login",
-                "nullable": false,
-                "fields": [
-                  "series"
-                ],
-                "primary": true
-              }
-            ]
-          }
-        },
-        "Quux": {
-          "fields": {
-            "name": {
-              "quickSearch": true
-            }
-          },
-          "meta": {
-            "queryConfig": {
-              "pageSize": 5
-            },
-            "uniqueKeys": [
-              {
-                "name": "pk_quux",
-                "nullable": false,
-                "fields": [
-                  "id"
-                ],
-                "primary": true
-              }
-            ],
-            "nameFields": [
-              "name"
-            ]
-          }
-        },
-        "FooType": {
-          "fields": {
-            "name": {
-              "quickSearch": true
-            }
-          },
-          "meta": {
-            "queryConfig": {
-              "pageSize": 5
-            },
-            "uniqueKeys": [
-              {
-                "name": "pk_foo_type",
-                "nullable": false,
-                "fields": [
-                  "ordinal"
-                ],
-                "primary": true
-              },
-              {
-                "name": "foo_type_name_key",
-                "nullable": false,
-                "fields": [
-                  "name"
-                ],
-                "primary": false
-              }
-            ],
-            "nameFields": [
-              "name"
-            ]
-          }
-        },
-        "FooDocument": {},
-        "BarLink": {
-          "meta": {
-            "uniqueKeys": [
-              {
-                "name": "pk_bar_link",
-                "nullable": false,
-                "fields": [
-                  "id"
-                ],
-                "primary": true
-              },
-              {
-                "name": "uc_bar_link_bar_baz",
-                "nullable": false,
-                "fields": [
-                  "barId",
-                  "bazId"
-                ],
-                "primary": false
-              }
-            ]
-          }
-        },
-        "Foo": {
-          "fields": {
-            "name": {
-              "quickSearch": true
-            }
-          },
-          "meta": {
-            "queryConfig": {
-              "pageSize": 5
-            },
-            "merge": {
-              "ignoredFields": [
-                "created"
-              ]
-            },
-            "uniqueKeys": [
-              {
-                "name": "pk_foo",
-                "nullable": false,
-                "fields": [
-                  "id"
-                ],
-                "primary": true
-              }
-            ],
-            "nameFields": [
-              "name"
-            ]
-          }
-        },
-        "BazDocument": {},
-        "MergeResult": {},
-        "AppUser": {
-          "meta": {
-            "queryConfig": {
-              "pageSize": 5
-            },
-            "uniqueKeys": [
-              {
-                "name": "pk_app_user",
-                "nullable": false,
-                "fields": [
-                  "id"
-                ],
-                "primary": true
-              },
-              {
-                "name": "uc_app_user_login",
-                "nullable": false,
-                "fields": [
-                  "login"
-                ],
-                "primary": false
-              }
-            ],
-            "nameFields": [
-              "login"
-            ]
-          }
-        },
-        "MergeConflictField": {},
-        "FooTypeDocument": {},
-        "AppVersion": {
-          "meta": {
-            "uniqueKeys": [
-              {
-                "name": "pk_app_version",
-                "nullable": false,
-                "fields": [
-                  "id"
-                ],
-                "primary": true
-              }
-            ]
-          }
-        },
-        "Bar": {
-          "fields": {
-            "name": {
-              "quickSearch": true
-            }
-          },
-          "meta": {
-            "queryConfig": {
-              "pageSize": 5
-            },
-            "merge": {
-              "resolve": true
-            },
-            "uniqueKeys": [
-              {
-                "name": "pk_bar",
-                "nullable": false,
-                "fields": [
-                  "id"
-                ],
-                "primary": true
-              }
-            ],
-            "nameFields": [
-              "name"
-            ]
-          }
-        },
-        "AppFieldLayout": {
-          "meta": {
-            "uniqueKeys": [
-              {
-                "name": "pk_app_field_layout",
-                "nullable": false,
-                "fields": [
-                  "id"
-                ],
-                "primary": true
-              }
-            ]
-          }
-        },
-        "BarDocument": {},
-        "AppUserDocument": {},
-        "QuuxDocument": {},
-        "Qux": {
-          "fields": {
-            "summary": {
-              "computed": true
-            },
-            "name": {
-              "quickSearch": true
-            }
-          },
-          "meta": {
-            "queryConfig": {
-              "pageSize": 5
-            },
-            "uniqueKeys": [
-              {
-                "name": "pk_qux",
-                "nullable": false,
-                "fields": [
-                  "id"
-                ],
-                "primary": true
-              }
-            ],
-            "nameFields": [
-              "name"
-            ]
-          }
-        },
-        "QuxDocument": {},
-        "Baz": {
-          "fields": {
-            "name": {
-              "quickSearch": true
-            }
-          },
-          "meta": {
-            "queryConfig": {
-              "pageSize": 5
-            },
-            "merge": {
-              "resolve": true
-            },
-            "uniqueKeys": [
-              {
-                "name": "pk_baz",
-                "nullable": false,
-                "fields": [
-                  "id"
-                ],
-                "primary": true
-              }
-            ],
-            "nameFields": [
-              "name"
-            ]
-          }
-        }
-      },
-      "genericTypes": [
-        {
-          "type": "FooDocument",
-          "typeParameters": [
-            "Foo"
-          ],
-          "genericType": "io.github.qlivedev.model.QueryDocument"
-        },
-        {
-          "type": "BazDocument",
-          "typeParameters": [
-            "Baz"
-          ],
-          "genericType": "io.github.qlivedev.model.QueryDocument"
-        },
-        {
-          "type": "FooTypeDocument",
-          "typeParameters": [
-            "FooType"
-          ],
-          "genericType": "io.github.qlivedev.model.QueryDocument"
-        },
-        {
-          "type": "BarDocument",
-          "typeParameters": [
-            "Bar"
-          ],
-          "genericType": "io.github.qlivedev.model.QueryDocument"
-        },
-        {
-          "type": "AppUserDocument",
-          "typeParameters": [
-            "AppUser"
-          ],
-          "genericType": "io.github.qlivedev.model.QueryDocument"
-        },
-        {
-          "type": "QuuxDocument",
-          "typeParameters": [
-            "Quux"
-          ],
-          "genericType": "io.github.qlivedev.model.QueryDocument"
-        },
-        {
-          "type": "QuxDocument",
-          "typeParameters": [
-            "Qux"
-          ],
-          "genericType": "io.github.qlivedev.model.QueryDocument"
-        }
-      ],
-      "relations": [
-        {
-          "sourceFields": [
-            "ownerId"
-          ],
-          "targetType": "AppUser",
-          "leftSideObjectName": "owner",
-          "sourceField": "OBJECT_AND_SCALAR",
-          "targetField": "MANY",
-          "sourceType": "Foo",
-          "metaTags": [],
-          "rightSideObjectName": "foos",
-          "id": "Foo-owner",
-          "targetFields": [
-            "id"
-          ]
-        },
-        {
-          "sourceFields": [
-            "type"
-          ],
-          "targetType": "FooType",
-          "leftSideObjectName": "fooType",
-          "sourceField": "OBJECT_AND_SCALAR",
-          "targetField": "NONE",
-          "sourceType": "Foo",
-          "metaTags": [],
-          "id": "Foo-fooType",
-          "targetFields": [
-            "name"
-          ]
-        },
-        {
-          "sourceFields": [
-            "barId"
-          ],
-          "targetType": "Bar",
-          "leftSideObjectName": "bar",
-          "sourceField": "OBJECT_AND_SCALAR",
-          "targetField": "MANY",
-          "sourceType": "BarLink",
-          "metaTags": [],
-          "rightSideObjectName": "bazLinks",
-          "id": "BarLink-bar",
-          "targetFields": [
-            "id"
-          ]
-        },
-        {
-          "sourceFields": [
-            "bazId"
-          ],
-          "targetType": "Baz",
-          "leftSideObjectName": "baz",
-          "sourceField": "OBJECT_AND_SCALAR",
-          "targetField": "MANY",
-          "sourceType": "BarLink",
-          "metaTags": [],
-          "rightSideObjectName": "bazLinks",
-          "id": "BarLink-baz",
-          "targetFields": [
-            "id"
-          ]
-        }
-      ],
-      "quickSearchTypes": [
-        "Bar",
-        "Baz",
-        "Foo",
-        "FooType",
-        "Quux",
-        "Qux"
-      ]
     }
   },
-  "authentication": {
-    "login": "admin",
-    "roles": [
-      "ROLE_USER",
-      "ROLE_TEST",
-      "ROLE_ADMIN"
-    ],
-    "id": "3f7c1a10-0000-4000-8000-ffffffffffff"
+  "csrfToken": {
+    "header": "X-CSRF-TOKEN",
+    "param": "_csrf",
+    "value": ""
+  },
+  "data": {
+    "grid/filters/Q_FooList": {
+      "data": {
+        "queryFooDocument": {
+          "type": "Foo",
+          "config": {
+            "condition": null,
+            "offset": 0,
+            "pageSize": 5,
+            "sortFields": []
+          },
+          "rowCount": 23,
+          "rows": [
+            {
+              "id": "00d205ee-371b-4617-9ff9-4dc86c04cca8",
+              "name": "Foo #20",
+              "description": null,
+              "num": 2001,
+              "flag": true,
+              "created": "2022-05-05T10:00:00.000Z",
+              "type": "TYPE_D",
+              "ownerId": "3f7c1a10-0000-4000-8000-00000000000b",
+              "version": "2d2f6295-866e-41f8-b542-4fecc8462708",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-00000000000b",
+                "login": "userB"
+              },
+              "fooType": {
+                "name": "TYPE_D",
+                "ordinal": 3
+              }
+            },
+            {
+              "id": "06568f37-b560-4cd2-8f54-728a365cb254",
+              "name": "Foo #9",
+              "description": "red apple",
+              "num": 42,
+              "flag": true,
+              "created": "2019-05-14T07:12:03.000Z",
+              "type": "TYPE_A",
+              "ownerId": "3f7c1a10-0000-4000-8000-00000000000a",
+              "version": "b4b99f70-60a5-4e9a-ac9e-dec8ce3236f8",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-00000000000a",
+                "login": "userA"
+              },
+              "fooType": {
+                "name": "TYPE_A",
+                "ordinal": 0
+              }
+            },
+            {
+              "id": "130ac390-25cc-4544-9696-c405a50becf1",
+              "name": "Foo #16",
+              "description": "green grape",
+              "num": 5,
+              "flag": true,
+              "created": "2021-02-02T12:13:13.000Z",
+              "type": "TYPE_D",
+              "ownerId": "3f7c1a10-0000-4000-8000-00000000000a",
+              "version": "9f9dda94-cbbe-4776-a68b-1829bec1a527",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-00000000000a",
+                "login": "userA"
+              },
+              "fooType": {
+                "name": "TYPE_D",
+                "ordinal": 3
+              }
+            },
+            {
+              "id": "13a4ad86-e2c3-4979-81e2-a8f102b501c1",
+              "name": "Foo #1",
+              "description": "desc 1",
+              "num": 123456,
+              "flag": true,
+              "created": "2018-11-01T18:58:59.000Z",
+              "type": "TYPE_B",
+              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
+              "version": "b9fe52a9-0f70-4a36-b997-6c8e603f0a96",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
+                "login": "admin"
+              },
+              "fooType": {
+                "name": "TYPE_B",
+                "ordinal": 1
+              }
+            },
+            {
+              "id": "3a20490c-8b33-4c56-85f6-c1a68a46a0ec",
+              "name": "Foo #12",
+              "description": "yellow banana",
+              "num": 2024,
+              "flag": true,
+              "created": "2020-01-08T15:22:31.000Z",
+              "type": "TYPE_D",
+              "ownerId": "3f7c1a10-0000-4000-8000-00000000000b",
+              "version": "f1448375-d3c9-4d14-a8e9-55ea1b76d911",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-00000000000b",
+                "login": "userB"
+              },
+              "fooType": {
+                "name": "TYPE_D",
+                "ordinal": 3
+              }
+            },
+            {
+              "id": "49aa66c0-0a9d-4df4-964f-ea8854f770ea",
+              "name": "Foo #25",
+              "description": "black berry",
+              "num": 120,
+              "flag": false,
+              "created": "2024-02-19T10:59:59.000Z",
+              "type": "TYPE_D",
+              "ownerId": "3f7c1a10-0000-4000-8000-00000000000a",
+              "version": "190a6a60-3190-4f07-b5d2-665d143b8065",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-00000000000a",
+                "login": "userA"
+              },
+              "fooType": {
+                "name": "TYPE_D",
+                "ordinal": 3
+              }
+            },
+            {
+              "id": "51cb3a62-92a6-446d-94ae-5d5d844ea5b5",
+              "name": "Foo #6",
+              "description": "",
+              "num": 123,
+              "flag": true,
+              "created": "2019-03-06T17:19:21.777Z",
+              "type": "TYPE_A",
+              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
+              "version": "cf8458eb-f004-462b-8af8-7bb213c81433",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
+                "login": "admin"
+              },
+              "fooType": {
+                "name": "TYPE_A",
+                "ordinal": 0
+              }
+            },
+            {
+              "id": "5c2b4852-8270-45fb-82e2-a1beb0ef4e0b",
+              "name": "Foo #10",
+              "description": "green pear",
+              "num": 1500,
+              "flag": false,
+              "created": "2019-07-02T12:40:18.000Z",
+              "type": "TYPE_B",
+              "ownerId": "3f7c1a10-0000-4000-8000-00000000000a",
+              "version": "edeb70f8-2e00-49b6-a028-4ff61d98ab2a",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-00000000000a",
+                "login": "userA"
+              },
+              "fooType": {
+                "name": "TYPE_B",
+                "ordinal": 1
+              }
+            },
+            {
+              "id": "6fa9f332-6915-4fba-8042-39fc5c58983e",
+              "name": "Foo #15",
+              "description": null,
+              "num": 318,
+              "flag": false,
+              "created": "2020-10-11T08:30:00.000Z",
+              "type": "TYPE_C",
+              "ownerId": "3f7c1a10-0000-4000-8000-00000000000b",
+              "version": "f3da0dfa-96a0-4fd2-86e9-0c67aa3b9d82",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-00000000000b",
+                "login": "userB"
+              },
+              "fooType": {
+                "name": "TYPE_C",
+                "ordinal": 2
+              }
+            },
+            {
+              "id": "78daccd3-029c-45e7-b0d8-dd2b2cec7abe",
+              "name": "Foo #17",
+              "description": "orange",
+              "num": 1234,
+              "flag": false,
+              "created": "2021-04-20T05:45:09.000Z",
+              "type": "TYPE_A",
+              "ownerId": "3f7c1a10-0000-4000-8000-00000000000b",
+              "version": "4efc4b25-6774-416a-879b-ea3d20c79c1d",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-00000000000b",
+                "login": "userB"
+              },
+              "fooType": {
+                "name": "TYPE_A",
+                "ordinal": 0
+              }
+            },
+            {
+              "id": "7e126c03-a2a0-4bd3-908a-44387828c386",
+              "name": "Foo #19",
+              "description": "yellow lemon",
+              "num": 88,
+              "flag": false,
+              "created": "2022-01-27T14:37:26.000Z",
+              "type": "TYPE_C",
+              "ownerId": "3f7c1a10-0000-4000-8000-00000000000a",
+              "version": "578915cc-0ee3-418f-b33d-f169bf0d828b",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-00000000000a",
+                "login": "userA"
+              },
+              "fooType": {
+                "name": "TYPE_C",
+                "ordinal": 2
+              }
+            },
+            {
+              "id": "8513369a-9605-42cf-ad4f-80e94e050954",
+              "name": "Foo #8",
+              "description": "",
+              "num": 123,
+              "flag": true,
+              "created": "2019-03-06T17:19:56.972Z",
+              "type": "TYPE_C",
+              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
+              "version": "8214ae16-3b44-42d7-9d1c-9260ecf00781",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
+                "login": "admin"
+              },
+              "fooType": {
+                "name": "TYPE_C",
+                "ordinal": 2
+              }
+            },
+            {
+              "id": "9008ff02-a43a-4da0-a04b-f74d10778f20",
+              "name": "Foo #18",
+              "description": "red currant",
+              "num": 612,
+              "flag": true,
+              "created": "2021-08-15T20:10:51.000Z",
+              "type": "TYPE_B",
+              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
+              "version": "de68ce0e-4788-4f50-96da-05652cc6efdb",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
+                "login": "admin"
+              },
+              "fooType": {
+                "name": "TYPE_B",
+                "ordinal": 1
+              }
+            },
+            {
+              "id": "93a6b8c9-8567-42c6-a4ff-c9260076ee68",
+              "name": "Foo #14",
+              "description": "blue plum",
+              "num": 99999,
+              "flag": true,
+              "created": "2020-06-29T17:03:44.000Z",
+              "type": "TYPE_B",
+              "ownerId": "3f7c1a10-0000-4000-8000-00000000000a",
+              "version": "16b77373-8e70-4205-bf85-d1f16faee969",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-00000000000a",
+                "login": "userA"
+              },
+              "fooType": {
+                "name": "TYPE_B",
+                "ordinal": 1
+              }
+            },
+            {
+              "id": "ad696331-9306-4553-813b-cf5d5359acb1",
+              "name": "Foo #23",
+              "description": "green lime",
+              "num": 73,
+              "flag": false,
+              "created": "2023-03-14T08:26:53.000Z",
+              "type": "TYPE_B",
+              "ownerId": "3f7c1a10-0000-4000-8000-00000000000b",
+              "version": "918ac6fc-5e41-4a55-839a-5fb752f014ce",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-00000000000b",
+                "login": "userB"
+              },
+              "fooType": {
+                "name": "TYPE_B",
+                "ordinal": 1
+              }
+            },
+            {
+              "id": "b162d3ac-912b-4f26-a708-20db6e1f12e1",
+              "name": "Foo #24",
+              "description": "red plum",
+              "num": 3050,
+              "flag": true,
+              "created": "2023-08-01T15:05:38.000Z",
+              "type": "TYPE_C",
+              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
+              "version": "14e0ad7a-3ba4-4e27-8651-82190c9dd993",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
+                "login": "admin"
+              },
+              "fooType": {
+                "name": "TYPE_C",
+                "ordinal": 2
+              }
+            },
+            {
+              "id": "bfc5617c-ac04-446b-b4bf-52891c2860f2",
+              "name": "Foo #21",
+              "description": "blue berry",
+              "num": 450,
+              "flag": true,
+              "created": "2022-11-30T17:48:02.000Z",
+              "type": "TYPE_A",
+              "ownerId": "3f7c1a10-0000-4000-8000-00000000000a",
+              "version": "af21deef-2987-4fb7-8b92-20aa4bc0996d",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-00000000000a",
+                "login": "userA"
+              },
+              "fooType": {
+                "name": "TYPE_A",
+                "ordinal": 0
+              }
+            },
+            {
+              "id": "c3e89a90-b616-43c7-b6a0-0fe937898985",
+              "name": "Foo #4",
+              "description": "xxx",
+              "num": 104,
+              "flag": true,
+              "created": "2018-11-16T19:58:59.986Z",
+              "type": "TYPE_D",
+              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
+              "version": "7c7ebf39-51d0-4662-8070-b76fafad952b",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
+                "login": "admin"
+              },
+              "fooType": {
+                "name": "TYPE_D",
+                "ordinal": 3
+              }
+            },
+            {
+              "id": "c45b5ab6-dabf-400e-982f-27f3f4a5291a",
+              "name": "Foo #22",
+              "description": "xxx",
+              "num": 222,
+              "flag": true,
+              "created": "2018-11-16T19:58:59.980Z",
+              "type": "TYPE_B",
+              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
+              "version": "4aced58d-85f3-4f2f-98eb-892ec2053439",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
+                "login": "admin"
+              },
+              "fooType": {
+                "name": "TYPE_B",
+                "ordinal": 1
+              }
+            },
+            {
+              "id": "cb8515fe-22d0-4b29-bb1b-d6a893e6df3a",
+              "name": "Foo #13",
+              "description": "red cherry",
+              "num": 250,
+              "flag": false,
+              "created": "2020-03-17T07:55:12.000Z",
+              "type": "TYPE_A",
+              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
+              "version": "11b1f028-ebeb-4dfa-973e-c7b4d6446df7",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
+                "login": "admin"
+              },
+              "fooType": {
+                "name": "TYPE_A",
+                "ordinal": 0
+              }
+            },
+            {
+              "id": "d57dec43-350d-417a-a374-813770eb06af",
+              "name": "Foo #33",
+              "description": null,
+              "num": 103,
+              "flag": false,
+              "created": "2018-11-16T19:58:59.983Z",
+              "type": "TYPE_C",
+              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
+              "version": "3f6e790c-b9ca-4f9f-92d6-9aa106c455fd",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
+                "login": "admin"
+              },
+              "fooType": {
+                "name": "TYPE_C",
+                "ordinal": 2
+              }
+            },
+            {
+              "id": "d58a89e1-85d6-48e5-b8c9-21df92c98800",
+              "name": "Foo #11",
+              "description": null,
+              "num": 7,
+              "flag": true,
+              "created": "2019-09-23T09:05:47.000Z",
+              "type": "TYPE_C",
+              "ownerId": "3f7c1a10-0000-4000-8000-00000000000b",
+              "version": "5482e8b5-8685-422c-ae69-2671380a3642",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-00000000000b",
+                "login": "userB"
+              },
+              "fooType": {
+                "name": "TYPE_C",
+                "ordinal": 2
+              }
+            },
+            {
+              "id": "db181d0e-b78c-4d81-8f75-4138777028fe",
+              "name": "Foo #7",
+              "description": "",
+              "num": 123,
+              "flag": true,
+              "created": "2019-03-06T17:19:40.966Z",
+              "type": "TYPE_A",
+              "ownerId": "3f7c1a10-0000-4000-8000-ffffffffffff",
+              "version": "536d529e-8e48-4b6d-87de-7aa3c2e31460",
+              "owner": {
+                "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
+                "login": "admin"
+              },
+              "fooType": {
+                "name": "TYPE_A",
+                "ordinal": 0
+              }
+            }
+          ]
+        }
+      },
+      "meta": null,
+      "type": "FooDocument"
+    },
+    "grid/filters/Q_OwnerCatalog": {
+      "data": {
+        "queryAppUserDocument": {
+          "type": "AppUser",
+          "rows": [
+            {
+              "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
+              "login": "admin"
+            },
+            {
+              "id": "3f7c1a10-0000-4000-8000-000000000000",
+              "login": "anonymous"
+            },
+            {
+              "id": "3f7c1a10-0000-4000-8000-00000000000a",
+              "login": "userA"
+            },
+            {
+              "id": "3f7c1a10-0000-4000-8000-00000000000b",
+              "login": "userB"
+            }
+          ],
+          "rowCount": 4
+        }
+      },
+      "meta": null,
+      "type": "AppUserDocument"
+    }
   },
   "route": "grid/filters"
 }

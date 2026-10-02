@@ -215,6 +215,10 @@ describe("sortComparator", () => {
     it("refuses a path through a to-many relation", () => {
         expect(() => sortComparator("Foo", ["tags.name"])).toThrow(/cannot follow a to-many relation/);
     });
+
+    it("says a sort field is wrong, not a condition", () => {
+        expect(() => sortComparator("Foo", ["!nope"])).toThrow('Sort on Foo: Foo has no field "nope".');
+    });
 });
 
 describe("evaluateQuery", () => {

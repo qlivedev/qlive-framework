@@ -52,10 +52,15 @@ interface Operand
     read(scope: Scope): unknown;
 }
 
-/** what a comparison or operation compiles in: the row type, and the to-many relations its fields went through */
+/**
+ * What a comparison, operation or sort field compiles in: the row type, what its errors start with, and the to-many
+ * relations its fields went through.
+ */
 interface Context
 {
     rowType: string;
+    /** "Condition on Foo" or "Sort on Foo" */
+    subject: string;
     scopes: Map<string, ListScope>;
 }
 
@@ -403,14 +408,19 @@ const OPERATIONS: Record<string, OperationImpl> = {
 
 function conditionError(rowType: string, message: string): Error
 {
-    return new Error("Condition on " + rowType + ": " + message);
+    return compileError("Condition on " + rowType, message);
+}
+
+function compileError(subject: string, message: string): Error
+{
+    return new Error(subject + ": " + message);
 }
 
 function checkArity(ctx: Context, name: string, expected: number, actual: number)
 {
     if (expected !== actual)
     {
-        throw conditionError(ctx.rowType, "'" + name + "' takes " + expected + " operand(s), not " + actual + ".");
+        throw compileError(ctx.subject, "'" + name + "' takes " + expected + " operand(s), not " + actual + ".");
     }
 }
 
@@ -418,7 +428,7 @@ function checkArity(ctx: Context, name: string, expected: number, actual: number
  * Reads a path below an object. Null where anything on the way is; a key the object doesn't have is an error, since
  * the query doesn't select it and a condition on it would never match.
  */
-function readPath(start: unknown, segments: readonly string[], path: string, rowType: string): unknown
+function readPath(start: unknown, segments: readonly string[], path: string, subject: string): unknown
 {
     let current = start;
     for (const name of segments)
@@ -429,7 +439,7 @@ function readPath(start: unknown, segments: readonly string[], path: string, row
         }
         if (!(name in (current as object)))
         {
-            throw conditionError(rowType, "the rows have no " + JSON.stringify(path) + ". Select it in the query.");
+            throw compileError(subject, "the rows have no " + JSON.stringify(path) + ". Select it in the query.");
         }
         current = (current as any)[name];
     }
@@ -453,7 +463,7 @@ function compileField(ctx: Context, path: string): Operand
         const field = objectFields(owner).find(f => f.name === name);
         if (!field)
         {
-            throw conditionError(ctx.rowType, owner + " has no field " + JSON.stringify(name) + ".");
+            throw compileError(ctx.subject, owner + " has no field " + JSON.stringify(name) + ".");
         }
         const named = unwrapAll(field.type);
         const last = i === segments.length - 1;
@@ -461,22 +471,22 @@ function compileField(ctx: Context, path: string): Operand
         {
             if (!last)
             {
-                throw conditionError(ctx.rowType, name + " of " + owner + " is a " + named.name + ", with no fields below it.");
+                throw compileError(ctx.subject, name + " of " + owner + " is a " + named.name + ", with no fields below it.");
             }
             if (isListType(field.type))
             {
-                throw conditionError(ctx.rowType, JSON.stringify(path) + " is a list of values, and a condition compares one.");
+                throw compileError(ctx.subject, JSON.stringify(path) + " is a list of values, not one value.");
             }
             const rest = segments.slice(start);
             const from = base;
             return {
                 type: named.name!,
-                read: scope => readPath(scope.get(from), rest, path, ctx.rowType)
+                read: scope => readPath(scope.get(from), rest, path, ctx.subject)
             };
         }
         if (last)
         {
-            throw conditionError(ctx.rowType, JSON.stringify(path) + " is a " + named.name + ", not a value. Name a field of it.");
+            throw compileError(ctx.subject, JSON.stringify(path) + " is a " + named.name + ", not a value. Name a field of it.");
         }
         if (isListType(field.type))
         {
@@ -490,7 +500,7 @@ function compileField(ctx: Context, path: string): Operand
         }
         owner = named.name!;
     }
-    throw conditionError(ctx.rowType, "empty field path.");
+    throw compileError(ctx.subject, "empty field path.");
 }
 
 /**
@@ -532,9 +542,9 @@ function compileOperand(ctx: Context, node: CNode, hint: string | null): Operand
         case "Operation":
             return compileOperation(ctx, node);
         case "Values":
-            throw conditionError(ctx.rowType, "a list of values is only valid as the operand of 'in'.");
+            throw compileError(ctx.subject, "a list of values is only valid as the operand of 'in'.");
         default:
-            throw conditionError(ctx.rowType, "cannot use " + JSON.stringify(node) + " as a value.");
+            throw compileError(ctx.subject, "cannot use " + JSON.stringify(node) + " as a value.");
     }
 }
 
@@ -543,8 +553,8 @@ function compileOperation(ctx: Context, node: OperationNode): Operand
     const op = OPERATIONS[node.name];
     if (!op)
     {
-        throw conditionError(
-            ctx.rowType,
+        throw compileError(
+            ctx.subject,
             CONDITIONS[node.name] ? "'" + node.name + "' produces a condition, not a value." : "invalid filter operator: " + node.name
         );
     }
@@ -567,7 +577,7 @@ function compileOperation(ctx: Context, node: OperationNode): Operand
  */
 function compileComparison(rowType: string, node: ConditionNode): Test
 {
-    const ctx: Context = {rowType, scopes: new Map()};
+    const ctx: Context = {rowType, subject: "Condition on " + rowType, scopes: new Map()};
     const test = compileTest(ctx, node);
 
     const scopes = [...ctx.scopes.values()].sort((a, b) => a.path.split(".").length - b.path.split(".").length);
@@ -582,7 +592,7 @@ function compileComparison(rowType: string, node: ConditionNode): Test
             return test(scope) === true;
         }
         const {path, parent, segments} = scopes[index];
-        const list = readPath(scope.get(parent), segments, path, rowType);
+        const list = readPath(scope.get(parent), segments, path, ctx.subject);
         for (const element of Array.isArray(list) ? list : [])
         {
             scope.set(path, element);
@@ -602,7 +612,7 @@ function compileTest(ctx: Context, node: ConditionNode): (scope: Scope) => Truth
     const {name, operands} = node;
     if (!operands?.length)
     {
-        throw conditionError(ctx.rowType, "'" + name + "' has no operands.");
+        throw compileError(ctx.subject, "'" + name + "' has no operands.");
     }
 
     if (name === "in")
@@ -610,7 +620,7 @@ function compileTest(ctx: Context, node: ConditionNode): (scope: Scope) => Truth
         const [target, list] = operands;
         if (operands.length !== 2 || list.type !== "Values")
         {
-            throw conditionError(ctx.rowType, "'in' takes exactly one list of values.");
+            throw compileError(ctx.subject, "'in' takes exactly one list of values.");
         }
         const receiver = compileOperand(ctx, target, null);
         const candidates = (list.values ?? []).map(raw => liveOf(wireOf(raw), receiver.type));
@@ -630,8 +640,8 @@ function compileTest(ctx: Context, node: ConditionNode): (scope: Scope) => Truth
     if (!op)
     {
         const refused = NOT_CONDITIONS[name];
-        throw conditionError(
-            ctx.rowType,
+        throw compileError(
+            ctx.subject,
             refused ? "'" + name + "' " + refused + "."
                 : OPERATIONS[name] ? "'" + name + "' produces a value, not a condition."
                     : "invalid filter operator: " + name
@@ -741,7 +751,7 @@ export function conditionPredicate<R extends object = any>(type: string, conditi
  */
 function compileSortField(type: string, sortField: FieldExpression): { key: Operand, descending: boolean }
 {
-    const ctx: Context = {rowType: type, scopes: new Map()};
+    const ctx: Context = {rowType: type, subject: "Sort on " + type, scopes: new Map()};
     let key: Operand;
     let descending = false;
     if (typeof sortField === "string")
@@ -761,7 +771,7 @@ function compileSortField(type: string, sortField: FieldExpression): { key: Oper
     }
     if (ctx.scopes.size)
     {
-        throw conditionError(type, "sort fields cannot follow a to-many relation: a set of rows has no one value to sort by.");
+        throw compileError(ctx.subject, "sort fields cannot follow a to-many relation: a set of rows has no one value to sort by.");
     }
     return {key, descending};
 }

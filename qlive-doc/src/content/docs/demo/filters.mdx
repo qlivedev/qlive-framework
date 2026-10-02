@@ -1,0 +1,25 @@
+---
+title: Filters
+description: The filters QLive ships, one per column of a data grid, running in the page next to another view on the same query.
+sidebar:
+  order: 2
+---
+import QLiveDemo from "../../../components/QLiveDemo.astro";
+
+The view below is `grid/Filters` from qlive-test, unchanged, running in your
+browser on data recorded from the running application. Each column has one of
+the filters QLive ships: a name pattern such as `*#2* | *#1*`, an operator on
+`num`, the digits anywhere in it, yes or no for the flag, the owner picked from
+the users, and a range of whole days for the creation date.
+
+<QLiveDemo view="grid/Filters"/>
+
+## Next to another view
+
+`grid/Sorting` runs below on its own fixture. Both views inject the same query,
+`Q_FooList`, each with its own config and rows. They don't mix, because an
+injection is keyed by the route of the view that injects it:
+`grid/filters/Q_FooList` above, `grid/sorting/Q_FooList` here. Filter one, sort
+the other.
+
+<QLiveDemo view="grid/Sorting"/>

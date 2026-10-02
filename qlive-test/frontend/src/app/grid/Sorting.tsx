@@ -25,12 +25,6 @@ export default function Sorting()
     const foos: Q_FooListResult = useInjection(Q_FooList, {config: {pageSize: 5}});
     const {sortFields} = foos.config;
 
-    // the header's tooltip names the sort field its arrow stands for
-    const headerTitle = (column: ResolvedColumn) => {
-        const match = column.sort && (matchSort(sortFields, column.sort) ?? matchSortPart(sortFields, column.sort));
-        return match ? sortExpression(sortFields[match.index]) : undefined;
-    };
-
     return (
         <>
             <div className="grid-example">
@@ -44,7 +38,7 @@ export default function Sorting()
                         { ORDERS.map((order, i) => <option key={ i } value={ i }>{ order.label }</option>) }
                     </select>
                 </p>
-                <DataGrid doc={ foos } columns={ ["name", "num", "flag", "owner"] } headerTitle={ headerTitle }/>
+                <DataGrid doc={ foos } columns={ ["name", "num", "flag", "owner"] } headerTitle={ filterAsTitle(foos.config) }/>
             </div>
 
             <p>

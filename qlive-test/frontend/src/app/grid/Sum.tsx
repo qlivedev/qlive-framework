@@ -1,6 +1,7 @@
 import { dateRangeFilter, DataGrid, FilterInput, operatorFilter, useFilters, useInjection } from "@qlivedev/qlive-ts";
 import { field } from "@qlivedev/qlive-ts/filter";
 import { Q_QuuxList, Q_QuuxListResult } from "./Q_QuuxList";
+import filterAsTitle from "../../util/filterAsTitle";
 
 /**
  * The sum the computed column shows, as the server sorts by it.
@@ -49,6 +50,7 @@ export default function Sum()
             </form>
             <DataGrid
                 doc={ quuxes }
+                headerTitle={ filterAsTitle(quuxes.config)}
                 columns={ [
                     "name",
                     {field: "numA", filter: operatorFilter("between", "Int")},

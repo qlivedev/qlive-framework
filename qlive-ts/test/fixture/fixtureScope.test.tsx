@@ -55,6 +55,7 @@ function fixture(route: string, name: string, cfg: QLiveConfig | null = configOf
                 meta: null
             }
         },
+        description: "One Foo named " + name + " on " + route,
         route
     }
 }

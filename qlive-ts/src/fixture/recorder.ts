@@ -22,6 +22,8 @@ import {routeOf} from "../router";
  *
  * The schema's descriptions are dropped: a quarter of the schema that only DomainTables shows.
  *
+ * The fixture's description says when, where and as whom it was recorded, and how many rows each document holds.
+ *
  * @returns the fixture
  */
 export async function recordFixture(): Promise<QLiveFixture>
@@ -32,7 +34,8 @@ export async function recordFixture(): Promise<QLiveFixture>
         throw new Error("No bootstrap was kept to record a fixture from: the page was not started by startup() in dev mode")
     }
 
-    const fixture: QLiveFixture = {...structuredClone(bootstrap), route: routeOf(location.pathname)}
+    const route = routeOf(location.pathname)
+    const fixture: QLiveFixture = {description: "", ...structuredClone(bootstrap), route}
     // a token for a session that will be long gone by the time the fixture is used
     fixture.csrfToken = {...fixture.csrfToken, value: ""}
     if (fixture.config)
@@ -41,6 +44,7 @@ export async function recordFixture(): Promise<QLiveFixture>
     }
 
     const queryDocumentTypes = config().queryDocumentTypes!
+    const documents: string[] = []
     for (const [injectionId, source] of Object.entries(fixture.data))
     {
         if (!queryDocumentTypes.has(source.type))
@@ -90,7 +94,14 @@ export async function recordFixture(): Promise<QLiveFixture>
         source.data = {
             [key]: {...document, rows: all.rows, rowCount: all.rows.length}
         }
+        documents.push(
+            injectionId.substring(route.length + 1) + " with " + all.rows.length + " " + (document.type ? document.type + " " : "") + "rows"
+        )
     }
+
+    fixture.description = "Recorded " + new Date().toISOString().substring(0, 16).replace("T", " ") + " UTC at " +
+                          location.pathname + " as " + fixture.authentication.login +
+                          (documents.length ? ": " + documents.join(", ") : "")
 
     return fixture
 }

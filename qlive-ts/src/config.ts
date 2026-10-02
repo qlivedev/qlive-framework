@@ -214,6 +214,11 @@ export type QLiveBoostrap = {
  */
 export type QLiveFixture = QLiveBoostrap & {
     /**
+     * What the fixture holds and where it came from, for people: the recorder gives the time, location, login and
+     * rows it recorded; a fixture written by hand or generated says what it is made of.
+     */
+    description: string
+    /**
      * Route of the view the fixture was recorded on, as routeOf() gives it: "grid/sorting". The injection ids in
      * `data` start with it, and FixtureScope renders its view at it. A route rather than the location path, which
      * only resolves under the base of the application it was recorded in.

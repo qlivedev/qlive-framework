@@ -114,6 +114,26 @@ describe("recordFixture", () => {
         expect(fixture.authentication).toEqual(testAuthentication())
     })
 
+    it("describes when, where and as whom it recorded which rows", async () => {
+        vi.useFakeTimers({now: new Date("2026-10-02T13:53:32Z"), toFake: ["Date"]})
+        try
+        {
+            inject(Q_Foo)
+            respondWith(allRows(3))
+
+            const fixture = await recordFixture()
+
+            expect(fixture.description).toBe(
+                "Recorded 2026-10-02 13:53 UTC at " + location.pathname + " as " + testAuthentication().login +
+                ": Q_Foo with 3 Foo rows"
+            )
+        }
+        finally
+        {
+            vi.useRealTimers()
+        }
+    })
+
     it("drops the schema's descriptions", async () => {
         const received = bootstrap()
         received.config!.schema.types[0].description = "a scalar"

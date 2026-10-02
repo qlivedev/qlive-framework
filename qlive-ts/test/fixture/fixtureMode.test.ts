@@ -53,6 +53,7 @@ function fixture(): QLiveFixture
                 meta: null
             }
         },
+        description: "Test fixture of the home route",
         route: "home"
     }
 }

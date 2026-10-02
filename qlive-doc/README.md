@@ -97,6 +97,10 @@ application; `--replace-config` takes it anyway and lists the fixtures to
 record again. Re-record whenever the view's queries or the seeded data
 change.
 
+The demos speak English through `src/demo/translations.ts`: a field's
+tag, `Foo.name`, becomes its name, and every other tag is its own
+translation. A tag that shows up in brackets in a demo is missing there.
+
 A page can show several demos, one per view. Every island adds its fixture
 to the same QLive with `FixtureScope`, and each view reads its injections by
 its route, which the fixture carries. The same view twice on a page shares

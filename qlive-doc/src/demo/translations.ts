@@ -35,6 +35,7 @@ const TAGS = [
     "Last digit of num",
     "Owner, then last digit of num",
     "Owner, then name",
+    "Sort by …",
     "ascending",
     "descending"
 ];

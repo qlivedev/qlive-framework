@@ -11,11 +11,12 @@ import PrintSortOrder, {sortExpression} from "../../component/PrintSortOrder";
  * in the order. A column whose field takes part in an expression, like num in its last digit, shows the expression's
  * direction and position in a color of its own.
  */
+// labels are translated when rendered: at import, the translations may not be there yet
 const ORDERS = [
-    {label: i18n("Owner, then name"), sortFields: ["owner.login", "name"]},
-    {label: i18n("Flagged first, then largest num"), sortFields: ["!flag", "!num"]},
-    {label: i18n("Last digit of num"), sortFields: [field("num").mod(value(10))]},
-    {label: i18n("Owner, then last digit of num"), sortFields: ["owner.login", field("num").mod(value(10))]}
+    {label: () => i18n("Owner, then name"), sortFields: ["owner.login", "name"]},
+    {label: () => i18n("Flagged first, then largest num"), sortFields: ["!flag", "!num"]},
+    {label: () => i18n("Last digit of num"), sortFields: [field("num").mod(value(10))]},
+    {label: () => i18n("Owner, then last digit of num"), sortFields: ["owner.login", field("num").mod(value(10))]}
 ];
 
 export default function Sorting()
@@ -38,8 +39,8 @@ export default function Sorting()
                         value=""
                         onChange={ ev => unawaited(foos.update({sortFields: ORDERS[Number(ev.target.value)].sortFields, offset: 0})) }
                     >
-                        <option value="" disabled>Sort by …</option>
-                        { ORDERS.map((order, i) => <option key={ i } value={ i }>{ order.label }</option>) }
+                        <option value="" disabled>{ i18n("Sort by …") }</option>
+                        { ORDERS.map((order, i) => <option key={ i } value={ i }>{ order.label() }</option>) }
                     </select>
                 </p>
                 <DataGrid doc={ foos } columns={ ["name", "num", "flag", "owner"] } headerTitle={ headerTitle }/>

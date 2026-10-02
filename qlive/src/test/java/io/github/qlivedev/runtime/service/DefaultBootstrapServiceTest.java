@@ -5,6 +5,11 @@ import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.util.JSONUtil;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
@@ -30,6 +35,33 @@ class DefaultBootstrapServiceTest
             "./component/ViteDevHome": { "requires": [], "calls": {} }
         }
         """);
+
+
+    @Test
+    void stripsEveryDescriptionOfAnIntrospectionResult()
+    {
+        final Map<String, Object> arg = new HashMap<>();
+        arg.put("name", "config");
+        arg.put("description", "the config");
+        final Map<String, Object> field = new HashMap<>();
+        field.put("name", "queryFoo");
+        field.put("description", "all the Foos");
+        field.put("args", List.of(arg));
+        final Map<String, Object> type = new HashMap<>();
+        type.put("name", "QueryType");
+        type.put("description", "the queries");
+        type.put("fields", List.of(field));
+
+        final String stripped = JSONUtil.DEFAULT_GENERATOR.forValue(
+            DefaultBootstrapService.withoutDescriptions(Map.of("types", List.of(type)))
+        );
+
+        assertThat(stripped, containsString("\"name\":\"queryFoo\""));
+        assertThat(stripped, containsString("\"name\":\"config\""));
+        assertThat(stripped.contains("the config") || stripped.contains("all the Foos") || stripped.contains("the queries"), is(false));
+        // null rather than absent: what introspection answers where there is no description
+        assertThat(stripped, containsString("\"description\":null"));
+    }
 
 
     @Test

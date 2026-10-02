@@ -21,7 +21,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.svenson.util.JSONPathUtil;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -47,13 +49,16 @@ public class DefaultBootstrapService
 
     private final InjectionService injectionService;
 
+    private final boolean prod;
+
     private final JSONPathUtil pathUtil = new JSONPathUtil(JSONUtil.OBJECT_SUPPORT);
 
     public DefaultBootstrapService(
         ServletContext servletContext,
         QLiveDomain domain,
         GraphQL graphQL,
-        StaticAnalysisProvider staticAnalysisProvider
+        StaticAnalysisProvider staticAnalysisProvider,
+        boolean prod
     )
     {
         this(
@@ -61,24 +66,30 @@ public class DefaultBootstrapService
             domain,
             graphQL,
             staticAnalysisProvider,
-            List.of(new QueryConfigArgumentProcessor(domain))
+            List.of(new QueryConfigArgumentProcessor(domain)),
+            prod
         );
     }
 
 
     /// @param argumentProcessors  what turns the static parameters of an application's `useInjection()` calls
     ///                            into GraphQL variables, see {@link InjectionArgumentProcessor}
+    /// @param prod                true when running in production, where the schema the client gets carries no
+    ///                            descriptions. They document the domain for the developer -- DomainTables shows
+    ///                            them -- and are a quarter of the schema every page would ship otherwise.
     public DefaultBootstrapService(
         ServletContext servletContext,
         QLiveDomain domain,
         GraphQL graphQL,
         StaticAnalysisProvider staticAnalysisProvider,
-        List<InjectionArgumentProcessor> argumentProcessors
+        List<InjectionArgumentProcessor> argumentProcessors,
+        boolean prod
     )
     {
         this.servletContext = servletContext;
         this.domain = domain;
         this.staticAnalysisProvider = staticAnalysisProvider;
+        this.prod = prod;
         this.injectionService = new InjectionService(graphQL, domain, argumentProcessors);
 
         // the whole model just exists to be sent to the client. We only need it in JSON string form,
@@ -121,7 +132,8 @@ public class DefaultBootstrapService
 
         final Map<String, Object> raw = IntrospectionUtil.introspect(domain.getGraphQLSchema());
 
-        final Map<String, Object> schema = (Map<String, Object>) pathUtil.getPropertyPath(raw, "data.__schema");
+        final Map<String, Object> introspected = (Map<String, Object>) pathUtil.getPropertyPath(raw, "data.__schema");
+        final Map<String, Object> schema = prod ? (Map<String, Object>) withoutDescriptions(introspected) : introspected;
         final Map<String, Object> cleaned = new HashMap<>(schema);
 
         cleaned.put("types", schema.get("types"));
@@ -135,6 +147,34 @@ public class DefaultBootstrapService
         qlConfig.setSchema(cleaned);
 
         return qlConfig;
+    }
+
+
+    /// Returns a copy of the given part of an introspection result with every description set to null, which is
+    /// what introspection answers where there is none, so the client reads the result the same either way.
+    ///
+    /// @param value    introspection result, or a part of it
+    static Object withoutDescriptions(Object value)
+    {
+        if (value instanceof Map<?, ?> map)
+        {
+            final Map<Object, Object> copy = new LinkedHashMap<>();
+            for (Map.Entry<?, ?> e : map.entrySet())
+            {
+                copy.put(e.getKey(), "description".equals(e.getKey()) ? null : withoutDescriptions(e.getValue()));
+            }
+            return copy;
+        }
+        if (value instanceof List<?> list)
+        {
+            final List<Object> copy = new ArrayList<>(list.size());
+            for (Object element : list)
+            {
+                copy.add(withoutDescriptions(element));
+            }
+            return copy;
+        }
+        return value;
     }
 
 

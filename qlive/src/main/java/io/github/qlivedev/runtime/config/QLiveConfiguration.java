@@ -37,6 +37,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -85,12 +86,13 @@ public class QLiveConfiguration
         QLiveDomain domain,
         GraphQL graphQL,
         StaticAnalysisProvider staticAnalysis,
-        List<InjectionArgumentProcessor> argumentProcessors
+        List<InjectionArgumentProcessor> argumentProcessors,
+        Environment environment
     )
         throws IOException
     {
         return new DefaultBootstrapService(
-            servletContext, domain, graphQL, staticAnalysis, argumentProcessors
+            servletContext, domain, graphQL, staticAnalysis, argumentProcessors, environment.matchesProfiles("prod")
         );
     }
 

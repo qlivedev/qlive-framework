@@ -1,5 +1,5 @@
 import {type ComponentType, useEffect, useState} from "react";
-import {ErrorBoundary, FixtureScope, type QLiveConfig, type QLiveFixture} from "@qlivedev/qlive-ts";
+import {addFixture, ErrorBoundary, FixtureScope, type QLiveConfig, type QLiveFixture} from "@qlivedev/qlive-ts";
 import "@qlivedev/qlive-ts/styles.css";
 import {translationsFor} from "../demo/translations";
 
@@ -37,9 +37,15 @@ async function load(view: string): Promise<Demo>
         throw new Error("No fixture for " + view + " in qlive-doc/src/demo/fixtures");
     }
 
-    const [module, fixture, config] = await Promise.all([loadView(), loadFixture(), sharedConfig()]);
+    const [loaded, config] = await Promise.all([loadFixture(), sharedConfig()]);
+    const fixture = {...loaded, config: loaded.config ?? config};
 
-    return {View: module.default, fixture: {...fixture, config: fixture.config ?? config}};
+    // In the order startup() keeps: QLive initialized, then the view imported, so that code the view runs on import
+    // finds the config and its translations. FixtureScope adds the fixture again, which changes nothing.
+    await addFixture(fixture);
+    const module = await loadView();
+
+    return {View: module.default, fixture};
 }
 
 /**

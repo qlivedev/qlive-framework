@@ -4,6 +4,8 @@ description: The paged result, the store behind it, and the query plan it comes 
 sidebar:
   order: 5
 ---
+import QLiveDemo from "../../../components/QLiveDemo.astro";
+
 **Query documents** are the central aspect of the data querying in QLive. A query document contains the results of a query
 as well as the **QueryConfig** the query was created with. 
 
@@ -58,6 +60,15 @@ What it takes is a **delta**, spread over the document's current config --
 so `{offset: 5}` changes the offset and leaves the filter, the page size
 and the sort alone. Only a document that came out of an execution can be
 updated; one built by hand carries no query and says so.
+
+The view below sets sort orders a header click can't: several fields, or an
+expression. Each choice in its menu is one `update({sortFields, offset: 0})`,
+and the list under the grid is the `sortFields` of the snapshot that comes
+back. The headers show where each field stands in the order. Here the
+document runs on recorded rows, so `update()` sorts them in the page;
+against a server, it runs the query again.
+
+<QLiveDemo view="grid/Sorting"/>
 
 The config that comes back on the document is **the config the query ran
 with**, not the one you sent. For an injection that is the config the

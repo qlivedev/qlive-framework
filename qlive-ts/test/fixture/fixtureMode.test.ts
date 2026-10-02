@@ -73,6 +73,24 @@ afterEach(() => {
 
 describe("initFixture", () => {
 
+    it("shows all the rows of a document whose query selects no config", async () => {
+        const Q_Names = new GraphQLQuery<QueryDocument<any>>(
+            `query Q_Names($config: QueryConfig!) {
+                xxx: queryFooDocument(config: $config) {
+                    type
+                    rows {
+                        id
+                        name
+                    }
+                }
+            }`
+        )
+        const {config, rowCount, ...doc} = fixture().data["home/Q_Foo"].data.xxx
+        await initFixture({...fixture(), data: {"home/Q_Names": {data: {xxx: doc}, type: "FooDocument", meta: null}}})
+
+        expect(inject(Q_Names).rows.map((row: any) => row.name)).toEqual(NAMES)
+    })
+
     it("runs QLive on the fixture until init() runs it on a server again", async () => {
         expect(isFixture()).toBe(true)
 

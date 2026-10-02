@@ -71,8 +71,9 @@ export async function recordFixture(): Promise<QLiveFixture>
 
         const result = await graphql<any>(query, {
             ...convertVariablesToServer(params, query.conversionMap),
-            // The config the server answered with, which has the type's defaults in it, not the delta the view gave.
-            [configVariable]: {...document.config, offset: 0, pageSize: 0}
+            // The config the server answered with, which has the type's defaults in it, not the delta the view gave --
+            // unless the query selects none, which leaves the delta.
+            [configVariable]: {...(document.config ?? params[configVariable]), offset: 0, pageSize: 0}
         })
         const all = firstValue(result)
 

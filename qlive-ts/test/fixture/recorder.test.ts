@@ -162,7 +162,7 @@ describe("recordFixture", () => {
             }
             keepBootstrap(structuredClone(received))
             await init(received)
-            inject(Q_Names)
+            inject(Q_Names, {config: {sortFields: ["name"]}})
         }
 
         function namesResult(count: number)
@@ -178,6 +178,15 @@ describe("recordFixture", () => {
             const fixture = await recordFixture()
 
             expect(fixture.data["home/Q_Names"].data.xxx.rows).toHaveLength(3)
+        })
+
+        it("queries with the config the view gave, there being none from the server", async () => {
+            await namesPage()
+            const fetchMock = respondWith(namesResult(3))
+
+            await recordFixture()
+
+            expect(sentVariables(fetchMock).config).toEqual({sortFields: ["name"], offset: 0, pageSize: 0})
         })
 
         it("fails where the rows fill the type's maxPageSize", async () => {

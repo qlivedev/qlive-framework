@@ -49,6 +49,8 @@ function localDocumentOf<T extends object>(type: string, rows: () => readonly T[
  *
  * This is what initFixture() makes of the documents a fixture injects.
  *
+ * A document whose query selects no config shows all its rows, in the order they were recorded.
+ *
  * @param document  document holding all rows, under the config it is to show them with
  *
  * @internal
@@ -57,7 +59,7 @@ export function holdRows<T extends object>(document: QueryDocument<T>): void
 {
     const rows = document.rows;
     const source = (config: QueryConfig) => evaluateQuery(document.type, rows, config);
-    const first = source(document.config);
+    const first = source({...DEFAULT_CONFIG, ...document.config});
     document.rows = first.rows;
     document.rowCount = first.rowCount;
     setLocalSource(document, source);

@@ -1,8 +1,7 @@
 # Fixture scope: several views on fixtures at once
 
-Status: built 2026-10-02, but for the page with two demos (step 5),
-which waits on a second recorded fixture. Written out of the one-demo
-limit in qlive-doc. Extends [fixture-mode.md](fixture-mode.md) and
+Status: built 2026-10-02; qlive-doc's Filters page runs two demos.
+Written out of the one-demo limit in qlive-doc. Extends [fixture-mode.md](fixture-mode.md) and
 settles its open question, [The view's route](fixture-mode.md#the-views-route).
 
 ## Problem

@@ -1,15 +1,17 @@
 import {type ComponentType, useEffect, useState} from "react";
-import {ErrorBoundary, FixtureScope, type QLiveFixture} from "@qlivedev/qlive-ts";
+import {ErrorBoundary, FixtureScope, type QLiveConfig, type QLiveFixture} from "@qlivedev/qlive-ts";
 import "@qlivedev/qlive-ts/styles.css";
 
 /*
- * Both globs are lazy: a page fetches the views and fixtures it shows, not every one there is.
+ * Both globs are lazy: a page fetches the views and fixtures it shows, not every one there is. The fixtures come
+ * without config, which all of them share -- see tooling/addFixture.mjs -- and which a page fetches once.
  */
 const VIEW_PREFIX = "../../../qlive-test/frontend/src/app/";
 const views = import.meta.glob<{default: ComponentType}>("../../../qlive-test/frontend/src/app/**/*.tsx");
 
 const FIXTURE_PREFIX = "../demo/fixtures/";
 const fixtures = import.meta.glob<QLiveFixture>("../demo/fixtures/**/*.json", {import: "default"});
+const sharedConfig = () => import("../demo/config.json").then(module => module.default as unknown as QLiveConfig);
 
 type Demo = {
     View: ComponentType
@@ -29,9 +31,9 @@ async function load(view: string): Promise<Demo>
         throw new Error("No fixture for " + view + " in qlive-doc/src/demo/fixtures");
     }
 
-    const [module, fixture] = await Promise.all([loadView(), loadFixture()]);
+    const [module, fixture, config] = await Promise.all([loadView(), loadFixture(), sharedConfig()]);
 
-    return {View: module.default, fixture};
+    return {View: module.default, fixture: {...fixture, config: fixture.config ?? config}};
 }
 
 export interface QLiveIslandProps

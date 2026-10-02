@@ -11,7 +11,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview --open",
-    "check": "astro check"
+    "check": "astro check",
+    "fixture": "node tooling/addFixture.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^7.0.0",

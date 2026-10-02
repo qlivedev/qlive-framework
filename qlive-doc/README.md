@@ -81,8 +81,21 @@ fails.
 
 To record one, run qlive-test in dev mode, log in as one of the seeded
 accounts, open the view, and click "Record fixture" in its bottom right
-corner. Save the download under the view's path. Re-record whenever the
-view's queries or the seeded data change.
+corner. Then add the download:
+
+```sh
+pnpm -C qlive-doc fixture ~/Downloads/fixture-grid-sorting.json
+```
+
+The script finds the view by the route the fixture was recorded on and
+saves the fixture under its path. The config -- the schema and domain meta
+data, more than half of every recording -- goes once into
+`src/demo/config.json`, which every demo shares, and the fixture is saved
+without it. A recording whose config differs from the shared one is
+refused, since the other fixtures may no longer fit the changed
+application; `--replace-config` takes it anyway and lists the fixtures to
+record again. Re-record whenever the view's queries or the seeded data
+change.
 
 A page can show several demos, one per view. Every island adds its fixture
 to the same QLive with `FixtureScope`, and each view reads its injections by

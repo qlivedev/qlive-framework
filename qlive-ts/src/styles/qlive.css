@@ -429,6 +429,20 @@
         color: var(--qlive-color-fg);
         font: inherit;
     }
+    /*
+     * No width of its own for a text input: the default, twenty characters,
+     * would size the column rather than the column the input. Two of them
+     * made a range filter over 400px wide. A select keeps the width of its
+     * options, and a date input the room its date takes.
+     */
+    input.qlive-grid-filter-input
+    {
+        width: 0;
+    }
+    input.qlive-grid-filter-input[type="date"]
+    {
+        min-width: 9em;
+    }
     .qlive-grid-filter-active .qlive-grid-filter-input
     {
         border-color: var(--qlive-color-accent);

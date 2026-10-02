@@ -48,3 +48,10 @@
     font-size: var(--sl-text-sm);
     color: var(--qlive-color-fg);
 }
+
+/* what the demo runs on: when, where and as whom its fixture was recorded */
+.qlive-demo-description {
+    margin-top: 0.75rem;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+}

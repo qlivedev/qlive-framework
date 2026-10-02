@@ -52,9 +52,9 @@ export interface QLiveIslandProps
 }
 
 /**
- * Runs a view of qlive-test on its recorded fixture. Client-only: a view needs QLive initialized, which its
- * FixtureScope does. Every island on a page adds its fixture to the same QLive, each view reading its injections by
- * its route, so a page can show several demos -- one per view.
+ * Runs a view of qlive-test on its recorded fixture, with the fixture's description below it. Client-only: a view
+ * needs QLive initialized, which its FixtureScope does. Every island on a page adds its fixture to the same QLive,
+ * each view reading its injections by its route, so a page can show several demos -- one per view.
  */
 export default function QLiveIsland({view}: QLiveIslandProps)
 {
@@ -87,12 +87,16 @@ export default function QLiveIsland({view}: QLiveIslandProps)
 
     const {View, fixture} = demo;
 
-    // The boundary goes outside the scope: a fixture that doesn't fit the page throws while the scope renders.
+    // The boundary goes outside the scope: a fixture that doesn't fit the page throws while the scope renders. The
+    // description goes outside both, so it still says what the view ran on when the view fails.
     return (
-        <ErrorBoundary>
-            <FixtureScope fixture={ fixture }>
-                <View/>
-            </FixtureScope>
-        </ErrorBoundary>
+        <>
+            <ErrorBoundary>
+                <FixtureScope fixture={ fixture }>
+                    <View/>
+                </FixtureScope>
+            </ErrorBoundary>
+            <p className="qlive-demo-description">{ fixture.description }</p>
+        </>
     );
 }

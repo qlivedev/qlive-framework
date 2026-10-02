@@ -1,4 +1,5 @@
-import {ReactNode, useMemo} from "react";
+import type {JSX, ReactNode} from "react";
+import {useMemo} from "react";
 import {addFixture, QLiveFixture} from "../config";
 import ViewRoute from "./ViewRoute";
 
@@ -28,7 +29,7 @@ export type FixtureScopeProps = {
  *
  * Two scopes with the same fixture share its documents: sort the view in one, and the other sorts with it.
  */
-export default function FixtureScope({fixture, children}: FixtureScopeProps)
+export default function FixtureScope({fixture, children}: FixtureScopeProps): JSX.Element
 {
     // While rendering, not in an effect: the view below reads its injections on its first render. Adding the same
     // fixture again changes nothing, so a second render under StrictMode doesn't either.

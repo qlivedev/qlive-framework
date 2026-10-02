@@ -1,4 +1,5 @@
-import {createContext, ReactNode, useContext} from "react";
+import type {JSX, ReactNode} from "react";
+import {createContext, useContext} from "react";
 import {normalizeRoute, routeOf} from "../router";
 
 /**
@@ -28,7 +29,7 @@ export type ViewRouteProps = {
  *         <Sorting/>
  *     </ViewRoute>
  */
-export default function ViewRoute({route, children}: ViewRouteProps)
+export default function ViewRoute({route, children}: ViewRouteProps): JSX.Element
 {
     return (
         <ViewRouteContext.Provider value={normalizeRoute(route)}>

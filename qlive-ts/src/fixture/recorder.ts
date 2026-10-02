@@ -19,6 +19,8 @@ import {injectionNote, keptBootstrap} from "./notes";
  *
  * The fixture carries the authentication of whoever records it: record as a demo login, not a personal one.
  *
+ * The schema's descriptions are dropped: a quarter of the schema that only DomainTables shows.
+ *
  * @returns the fixture
  */
 export async function recordFixture(): Promise<QLiveFixture>
@@ -33,6 +35,10 @@ export async function recordFixture(): Promise<QLiveFixture>
     // a token for a session that will be long gone by the time the fixture is used
     fixture.csrfToken = {...fixture.csrfToken, value: ""}
     fixture.path = location.pathname
+    if (fixture.config)
+    {
+        stripDescriptions(fixture.config.schema)
+    }
 
     const queryDocumentTypes = config().queryDocumentTypes!
     for (const [injectionId, source] of Object.entries(fixture.data))
@@ -86,6 +92,33 @@ export async function recordFixture(): Promise<QLiveFixture>
     }
 
     return fixture
+}
+
+/**
+ * Sets every description in the given part of the schema to null, which is what the schema says where there is none.
+ *
+ * @param value     schema, or a part of it
+ */
+function stripDescriptions(value: unknown): void
+{
+    if (Array.isArray(value))
+    {
+        value.forEach(stripDescriptions)
+    }
+    else if (value && typeof value === "object")
+    {
+        for (const [key, member] of Object.entries(value))
+        {
+            if (key === "description")
+            {
+                (value as Record<string, unknown>)[key] = null
+            }
+            else
+            {
+                stripDescriptions(member)
+            }
+        }
+    }
 }
 
 /**

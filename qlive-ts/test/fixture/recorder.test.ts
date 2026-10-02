@@ -113,6 +113,21 @@ describe("recordFixture", () => {
         expect(fixture.authentication).toEqual(testAuthentication())
     })
 
+    it("drops the schema's descriptions", async () => {
+        const received = bootstrap()
+        received.config!.schema.types[0].description = "a scalar"
+        keepBootstrap(received)
+
+        inject(Q_Foo)
+        respondWith(allRows(3))
+
+        const fixture = await recordFixture()
+
+        const descriptions = JSON.stringify(fixture.config!.schema).match(/"description":"[^"]*"/g)
+        expect(descriptions).toBeNull()
+        expect(fixture.config!.schema.types[0]).toHaveProperty("description", null)
+    })
+
     it("fails where the server held the rows to a maxPageSize", async () => {
         inject(Q_Foo)
         respondWith(allRows(2))

@@ -1,0 +1,18 @@
+---
+title: Sum
+description: A column computed from two fields, sorted and filtered by the expression that computes it.
+sidebar:
+  order: 4
+---
+import QLiveDemo from "../../../components/QLiveDemo.astro";
+
+The view below is `grid/Sum` from qlive-test, unchanged, running in your
+browser on data recorded from the running application.
+
+The sum column is no field of the table. It renders `numA + numB` and sorts and
+filters by the same expression, `field("numA").add(field("numB"))`: a click on
+its header toggles it like a field, and `between` gives a range of sums. In the
+application the server evaluates the expression in SQL; here the page does.
+The form above narrows the rows to a range of days.
+
+<QLiveDemo view="grid/Sum"/>

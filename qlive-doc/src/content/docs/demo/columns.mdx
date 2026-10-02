@@ -1,0 +1,18 @@
+---
+title: Columns
+description: "What a column can say beyond its field: headings, relation paths, row classes, computed values."
+sidebar:
+  order: 2
+---
+import QLiveDemo from "../../../components/QLiveDemo.astro";
+
+The view below is `grid/Columns` from qlive-test, unchanged, running in your
+browser on data recorded from the running application.
+
+A field path alone is a column; the object form overrides one thing at a time
+and derives the rest. Here: a heading of its own, a path through a relation
+(`fooType.name`) that sorts and filters like a field of the row, a class for
+large numbers, long text cut off at a width, a computed column sorted by the
+expression that computes it, and a column that neither sorts nor filters.
+
+<QLiveDemo view="grid/Columns"/>

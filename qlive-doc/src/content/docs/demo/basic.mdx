@@ -1,0 +1,20 @@
+---
+title: Basic
+description: The least a data grid takes, a query document and the fields to show, running in the page.
+sidebar:
+  order: 1
+---
+import QLiveDemo from "../../../components/QLiveDemo.astro";
+
+The view below is `grid/Basic` from qlive-test, unchanged, running in your
+browser on data recorded from the running application.
+
+Everything else comes from the schema: each value is formatted as its type, a
+header click sorts by the column, the filter row offers what fits the type --
+text contains, yes or no, a number, a date range -- and the pager pages. The
+owner is a relation and shows its name field, the login.
+
+None of it is the grid's own state. Sort, filter and page are the document's
+config, which the grid changes through `update()`.
+
+<QLiveDemo view="grid/Basic"/>

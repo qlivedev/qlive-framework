@@ -1,0 +1,81 @@
+{
+  "description": "Recorded 2026-10-02 21:21 UTC at /app/grid/Scalars as admin: Q_QuxList with 3 Qux rows",
+  "authentication": {
+    "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
+    "login": "admin",
+    "roles": [
+      "ROLE_USER",
+      "ROLE_TEST",
+      "ROLE_ADMIN"
+    ]
+  },
+  "config": null,
+  "csrfToken": {
+    "header": "X-CSRF-TOKEN",
+    "param": "_csrf",
+    "value": ""
+  },
+  "data": {
+    "grid/scalars/Q_QuxList": {
+      "data": {
+        "queryQuxDocument": {
+          "type": "Qux",
+          "config": {
+            "condition": null,
+            "offset": 0,
+            "pageSize": 10,
+            "sortFields": []
+          },
+          "rowCount": 3,
+          "rows": [
+            {
+              "id": "0e9e5f22-4a1d-4a2f-9c9e-6a8d4d59b9a6",
+              "name": "Qux #1",
+              "bool": true,
+              "byteValue": 23,
+              "intValue": 12,
+              "longValue": 12345678901,
+              "doubleValue": 12.34,
+              "bigDecimalValue": "1234567890.1234567890",
+              "currencyValue": 100000,
+              "stringValue": "abc",
+              "dateValue": "2018-11-01",
+              "timestampValue": "2018-11-01T18:58:59.000Z"
+            },
+            {
+              "id": "9a1c0c4b-6ac9-4a2e-9d2b-2f0f3a6d1f77",
+              "name": "Qux #2",
+              "bool": false,
+              "byteValue": -128,
+              "intValue": -1,
+              "longValue": -12345678901,
+              "doubleValue": -0.5,
+              "bigDecimalValue": "-1E-10",
+              "currencyValue": 0,
+              "stringValue": "the other one",
+              "dateValue": "2019-06-21",
+              "timestampValue": "2019-06-21T12:00:00.000Z"
+            },
+            {
+              "id": "f7b1b6c8-3e64-4a63-9a52-1f5f5c2d5a2e",
+              "name": "Qux #3 (nulls)",
+              "bool": null,
+              "byteValue": null,
+              "intValue": null,
+              "longValue": null,
+              "doubleValue": null,
+              "bigDecimalValue": null,
+              "currencyValue": null,
+              "stringValue": null,
+              "dateValue": null,
+              "timestampValue": null
+            }
+          ]
+        }
+      },
+      "meta": null,
+      "type": "QuxDocument"
+    }
+  },
+  "route": "grid/scalars"
+}

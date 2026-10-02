@@ -1,0 +1,49 @@
+{
+  "description": "Recorded 2026-10-02 21:21 UTC at /app/grid/Local as admin: Q_OwnerCatalog with 4 AppUser rows",
+  "authentication": {
+    "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
+    "login": "admin",
+    "roles": [
+      "ROLE_USER",
+      "ROLE_TEST",
+      "ROLE_ADMIN"
+    ]
+  },
+  "config": null,
+  "csrfToken": {
+    "header": "X-CSRF-TOKEN",
+    "param": "_csrf",
+    "value": ""
+  },
+  "data": {
+    "grid/local/Q_OwnerCatalog": {
+      "data": {
+        "queryAppUserDocument": {
+          "type": "AppUser",
+          "rows": [
+            {
+              "id": "3f7c1a10-0000-4000-8000-000000000000",
+              "login": "anonymous"
+            },
+            {
+              "id": "3f7c1a10-0000-4000-8000-00000000000a",
+              "login": "userA"
+            },
+            {
+              "id": "3f7c1a10-0000-4000-8000-00000000000b",
+              "login": "userB"
+            },
+            {
+              "id": "3f7c1a10-0000-4000-8000-ffffffffffff",
+              "login": "admin"
+            }
+          ],
+          "rowCount": 4
+        }
+      },
+      "meta": null,
+      "type": "AppUserDocument"
+    }
+  },
+  "route": "grid/local"
+}

@@ -1,0 +1,17 @@
+---
+title: Search
+description: A search form above a data grid, both narrowing the same rows.
+sidebar:
+  order: 6
+---
+import QLiveDemo from "../../../components/QLiveDemo.astro";
+
+The view below is `grid/Search` from qlive-test, unchanged, running in your
+browser on data recorded from the running application.
+
+The document has one condition with two owners: the form writes its part, the
+grid's filter row its own, and the condition is both joined with `and()`. Each
+narrows what the other shows, and neither touches the other's part -- clear the
+search, and the grid's filters stay.
+
+<QLiveDemo view="grid/Search"/>

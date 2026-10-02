@@ -1,0 +1,18 @@
+---
+title: Local rows
+description: A data grid over rows the view already holds, filtered, sorted and paged in the browser.
+sidebar:
+  order: 8
+---
+import QLiveDemo from "../../../components/QLiveDemo.astro";
+
+The view below is `grid/Local` from qlive-test, unchanged, running in your
+browser on data recorded from the running application.
+
+The view injects every user at once and hands the rows to `useLocalDocument()`.
+That document answers `update()` from its rows, with the same conditions a
+query would send to the server, so the grid can't tell the difference. In the
+application this grid is the one that never asks the server; on this page,
+none of them do.
+
+<QLiveDemo view="grid/Local"/>

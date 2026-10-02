@@ -1,0 +1,16 @@
+---
+title: Scalar types
+description: One column per scalar type, formatted and filtered as the grid does it without being told.
+sidebar:
+  order: 7
+---
+import QLiveDemo from "../../../components/QLiveDemo.astro";
+
+The view below is `grid/Scalars` from qlive-test, unchanged, running in your
+browser on data recorded from the running application.
+
+Each column is just a field name. The formatting comes from the type's
+converter, and the filter from the type's default where there is one; the
+types without a default filter leave the filter cell empty.
+
+<QLiveDemo view="grid/Scalars"/>

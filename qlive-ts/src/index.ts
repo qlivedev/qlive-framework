@@ -20,7 +20,7 @@ export { startup } from "./startup";
 // application declaring temporal-polyfill itself would be free to resolve a
 // second copy, and instants from one do not typecheck against the other.
 export { Temporal } from "./temporal";
-export { default as config, initFixture, isFixture } from "./config";
+export { default as config, initFixture, addFixture, isFixture } from "./config";
 export { default as i18n } from "./i18n";
 
 export { useInjection } from "./useInjection";
@@ -34,6 +34,7 @@ export { parseQuery } from "./util/parseQuery";
 export { loadView, viewNames, routeNames } from "./views";
 export { loadViewForPath, appBase, routeOf, urlOf } from "./router";
 export { default as ViewRoute, useRoute } from "./component/ViewRoute";
+export { default as FixtureScope } from "./component/FixtureScope";
 
 export {
     registerConverter,
@@ -200,6 +201,7 @@ export type { ViewModules } from "./views";
 export type { ErrorViewProps } from "./component/ErrorView";
 export type { ErrorBoundaryProps } from "./component/ErrorBoundary";
 export type { ViewRouteProps } from "./component/ViewRoute";
+export type { FixtureScopeProps } from "./component/FixtureScope";
 
 export type { DomainTablesProps } from "./component/DomainTables";
 export type { LogoutProps } from "./component/Logout";

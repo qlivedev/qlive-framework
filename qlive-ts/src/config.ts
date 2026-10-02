@@ -4,7 +4,7 @@ import type {QueryConfigDelta} from "./QueryDocument";
 import type {MergeTypeMeta} from "./merge/meta";
 
 import {GraphQLSchema, GraphQLType} from "./GraphQLSchema";
-import {initData} from "./data";
+import {addData, initData} from "./data";
 import {initConverters} from "./converter";
 import DefaultErrorView, {ErrorViewProps} from "./component/ErrorView";
 
@@ -427,6 +427,11 @@ let theConfig: QLiveConfig | null = null
  */
 let onFixture = false
 
+/**
+ * Whether QLive was initialized at all, by init() or a fixture.
+ */
+let initialized = false
+
 function logObject(label : string, data: {[key : string] : any}, logger : ((data: {[key : string] : any}, key: string) => void)): void
 {
     console.groupCollapsed(label)
@@ -461,11 +466,24 @@ function initializeDerivedConfig(theConfig: QLiveConfig)
     )
 }
 
+/**
+ * Derives what the rest of QLive reads off the given config, which is the current one.
+ */
+function useConfig(config: QLiveConfig)
+{
+    initializeDerivedConfig(config);
+
+    // the converters for the QueryDocument derived types come out of the config,
+    // and inject() converts with them, so they have to be there before any view reads
+    initConverters()
+}
+
 export function init(bs : QLiveBoostrap): Promise<QLiveConfig>
 {
     const { config, data, csrfToken, authentication } = bs
 
     onFixture = false
+    initialized = true
     theConfig = config
     if (theConfig)
     {
@@ -475,11 +493,7 @@ export function init(bs : QLiveBoostrap): Promise<QLiveConfig>
         // every reader can count on finding one.
         theConfig.errorView = DefaultErrorView
 
-        initializeDerivedConfig(theConfig);
-
-        // the converters for the QueryDocument derived types come out of the config,
-        // and initData() converts, so this has to happen in between
-        initConverters()
+        useConfig(theConfig)
     }
     initData(data)
 
@@ -501,8 +515,8 @@ export function init(bs : QLiveBoostrap): Promise<QLiveConfig>
  *     initFixture(fixture)
  *     createRoot(element).render(<FooList/>)
  *
- * The config and the injections are module state, so one fixture is active at a time: initializing another replaces
- * the injections of the last.
+ * The config and the injections are module state: initializing another fixture replaces the injections of the last.
+ * To run several views on fixtures on one page, add each with addFixture(), or render each in a FixtureScope.
  *
  * @param fixture   the fixture, e.g. one recorded from a running application in dev mode
  *
@@ -513,6 +527,97 @@ export function initFixture(fixture: QLiveFixture): Promise<QLiveConfig>
     const initialized = init(fixture)
     onFixture = true
     return initialized
+}
+
+/**
+ * Adds the given fixture to those the page runs on, for several views on fixtures on one page: a docs page with
+ * several demos, a canvas with several stories. FixtureScope calls it; this is for code that sets up a page without
+ * React.
+ *
+ * The fixture's injections go in next to those already loaded. Injection ids carry the route of their view, so the
+ * fixtures of different views don't clash. Where QLive isn't initialized yet, this initializes it as initFixture()
+ * does. Otherwise the fixture has to fit the page:
+ *
+ *  - The page has to run on fixtures. graphql() and subscribeToTopic() ask isFixture(), which holds for the whole
+ *    page, so a page can't be live in one place and on a fixture in another.
+ *  - Its schema has to have the same types, or its data would convert by the wrong one without any sign of it.
+ *    A reduced config, one without the schema, fits any; where one fixture has the full config and another the
+ *    reduced one, the full one is kept.
+ *  - An injection id already loaded has to come with the same data. Two fixtures for one route can't share a page.
+ *
+ * The authentication and CSRF token stay those of the fixture that initialized the config.
+ *
+ * @param fixture   the fixture
+ *
+ * @returns the config the page runs with
+ */
+export function addFixture(fixture: QLiveFixture): Promise<QLiveConfig>
+{
+    if (!initialized)
+    {
+        return initFixture(fixture)
+    }
+
+    if (!onFixture)
+    {
+        throw new Error(
+            "Can't add the fixture for '" + fixture.route + "' to a page that runs on a server: graphql() and " +
+            "subscribeToTopic() ask isFixture(), which holds for the whole page."
+        )
+    }
+
+    const added = fixture.config
+    if (added && !isReduced(added))
+    {
+        if (!theConfig || isReduced(theConfig))
+        {
+            added.csrfToken = theConfig?.csrfToken ?? fixture.csrfToken
+            added.authentication = theConfig?.authentication ?? fixture.authentication
+            added.errorView = theConfig?.errorView ?? DefaultErrorView
+            theConfig = added
+            useConfig(theConfig)
+        }
+        else
+        {
+            const differs = firstDifferentType(theConfig, added)
+            if (differs)
+            {
+                throw new Error(
+                    "The fixture for '" + fixture.route + "' comes with another schema than the page runs on: " +
+                    "type '" + differs + "' is only in one of them. Fixtures sharing a page have to come from " +
+                    "the same application."
+                )
+            }
+        }
+    }
+
+    addData(fixture.data)
+
+    return Promise.resolve(theConfig!)
+}
+
+/**
+ * Whether the given config is a reduced one, i.e. one without the domain schema, see noSchema().
+ */
+function isReduced(config: QLiveConfig): boolean
+{
+    return !config.schema?.types?.length
+}
+
+/**
+ * The first type name only one of the given configs' schemas has, sorted by name, or null where they have the same.
+ */
+function firstDifferentType(a: QLiveConfig, b: QLiveConfig): string | null
+{
+    const aNames = new Set(a.schema.types.map(t => t.name))
+    const bNames = new Set(b.schema.types.map(t => t.name))
+
+    const onlyInOne = [
+        ...[...aNames].filter(name => !bNames.has(name)),
+        ...[...bNames].filter(name => !aNames.has(name))
+    ].sort()
+
+    return onlyInOne.length ? onlyInOne[0] : null
 }
 
 /**

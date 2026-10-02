@@ -35,12 +35,18 @@ export type InjectParams = GraphQLParams & {
  *
  * @param query     GraphQLQuery
  * @param params    GraphQLParams including __id
+ * @param route     route of the view injecting, the location's by default; useInjection()
+ *                  passes the one a ViewRoute gives
  *
  * @returns the injected value, a QueryDocument where the query selects one
  */
-export default function inject<T>(query: GraphQLQuery<T>, params: InjectParams = {}): T
+export default function inject<T>(
+    query: GraphQLQuery<T>,
+    params: InjectParams = {},
+    route: string = routeOf(location.pathname)
+): T
 {
-    const id = injectionId(routeOf(location.pathname), query, params)
+    const id = injectionId(route, query, params)
     if (isViteDev())
     {
         // what the fixture recorder needs to query the injection again

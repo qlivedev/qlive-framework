@@ -27,9 +27,21 @@ export function routeOf(pathName: string): string
 {
     const base = appBase()
 
-    const relative = pathName.startsWith(base) ? pathName.slice(base.length) : pathName.replace(/^\/+/, "")
+    const relative = pathName.startsWith(base) ? pathName.slice(base.length) : pathName
 
-    return relative.replace(/\/+$/, "").toLowerCase()
+    return normalizeRoute(relative)
+}
+
+
+/**
+ * Brings a route into the form routeOf() gives it, which is the form injection ids are keyed by: no slash at
+ * either end, lower case. "/Grid/Sorting/" -> "grid/sorting".
+ *
+ * @param route     route
+ */
+export function normalizeRoute(route: string): string
+{
+    return route.replace(/^\/+|\/+$/g, "").toLowerCase()
 }
 
 

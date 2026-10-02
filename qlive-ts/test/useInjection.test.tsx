@@ -6,6 +6,7 @@ import {v4 as uuid } from "uuid";
 import {init} from "../src/config";
 import {GraphQLQuery} from "../src/GraphQLQuery";
 import {useInjection} from "../src/useInjection";
+import ViewRoute, {useRoute} from "../src/component/ViewRoute";
 import {QueryDocumentSnapshot} from "../src/QueryDocument";
 import {fooDocument, testConfig, testCsrfToken, testAuthentication, atViewRoute} from "./fixtures/testConfig";
 import {respondWith} from "./fixtures/graphqlMock";
@@ -76,7 +77,8 @@ beforeAll(async () => {
         csrfToken: testCsrfToken(),
         authentication: testAuthentication(),
         data: {
-            "home/Q_Foo": {data: injectionOf("Foo #1"), type: "FooDocument", meta: null}
+            "home/Q_Foo": {data: injectionOf("Foo #1"), type: "FooDocument", meta: null},
+            "grid/sorting/Q_Foo": {data: injectionOf("Sorted Foo"), type: "FooDocument", meta: null}
         }
     })
 })
@@ -108,6 +110,38 @@ describe("useInjection", () => {
 
         expect(container.textContent).toBe("Foo #1")
         expect(rendered.get("one")!.type).toBe("Foo")
+    })
+
+    it("reads the injection of the route a ViewRoute gives, next to one at the location's", () => {
+        render(
+            <>
+                <FooView name="one"/>
+                <ViewRoute route="/Grid/Sorting/">
+                    <FooView name="two"/>
+                </ViewRoute>
+            </>
+        )
+
+        expect(container.textContent).toBe("Foo #1Sorted Foo")
+        expect(rendered.get("one")).not.toBe(rendered.get("two"))
+    })
+
+    it("tells a component its view's route", () => {
+        const routes: string[] = []
+        function RouteOf({name}: {name: string})
+        {
+            routes.push(name + ":" + useRoute())
+            return null
+        }
+
+        render(
+            <>
+                <RouteOf name="location"/>
+                <ViewRoute route="grid/sorting"><RouteOf name="given"/></ViewRoute>
+            </>
+        )
+
+        expect(routes).toEqual(["location:home", "given:grid/sorting"])
     })
 
     it("hands every view the same snapshot of one injection", () => {

@@ -3,6 +3,7 @@ import {GraphQLQuery} from "./GraphQLQuery";
 import inject, {InjectParams} from "./inject";
 import {QueryDocument} from "./QueryDocument";
 import useQueryDocument from "./useQueryDocument";
+import {useRoute} from "./component/ViewRoute";
 
 
 /**
@@ -17,6 +18,9 @@ import useQueryDocument from "./useQueryDocument";
  * We use static analysis to find the useInjection() calls in the code base and ship the
  * data each view needs with the view.
  *
+ * The injection is the one of the view's route: the location's, or the one the nearest
+ * ViewRoute gives, for a view rendered anywhere but at its own URL.
+ *
  * Rules of hooks apply: call it at the top level of a view, unconditionally.
  *
  * @param query     GraphQLQuery the data was injected for
@@ -26,7 +30,7 @@ import useQueryDocument from "./useQueryDocument";
  */
 export function useInjection<T>(query: GraphQLQuery<T>, params: InjectParams = {}): T
 {
-    const value = inject(query, params)
+    const value = inject(query, params, useRoute())
     const document = value instanceof QueryDocument ? value as QueryDocument<unknown> : null
 
     return useQueryDocument(document) as T

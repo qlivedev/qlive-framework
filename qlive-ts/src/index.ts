@@ -33,6 +33,7 @@ export { parseQuery } from "./util/parseQuery";
 
 export { loadView, viewNames, routeNames } from "./views";
 export { loadViewForPath, appBase, routeOf, urlOf } from "./router";
+export { default as ViewRoute, useRoute } from "./component/ViewRoute";
 
 export {
     registerConverter,
@@ -198,6 +199,7 @@ export type { ViewModules } from "./views";
 
 export type { ErrorViewProps } from "./component/ErrorView";
 export type { ErrorBoundaryProps } from "./component/ErrorBoundary";
+export type { ViewRouteProps } from "./component/ViewRoute";
 
 export type { DomainTablesProps } from "./component/DomainTables";
 export type { LogoutProps } from "./component/Logout";

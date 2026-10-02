@@ -44,7 +44,8 @@ export default function Search()
                     Clear search
                 </button>
             </form>
-            <DataGrid doc={ foos } columns={ ["name", "num", "flag", "owner"] }/>
+            {/* the description shows, so a search by it finds what is on screen */}
+            <DataGrid doc={ foos } columns={ ["name", "description", "flag", "num"] }/>
         </div>
     );
 }

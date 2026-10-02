@@ -136,6 +136,65 @@ describe("recordFixture", () => {
         await expect(recordFixture()).rejects.toThrow(/'home\/Q_Foo' got 2 of 3 Foo rows/)
     })
 
+    describe("for a query that selects no rowCount", () => {
+
+        const Q_Names = new GraphQLQuery<QueryDocument<any>>(
+            `query Q_Names($config: QueryConfig!) {
+                xxx: queryFooDocument(config: $config) {
+                    type
+                    rows {
+                        id
+                        name
+                    }
+                }
+            }`
+        )
+
+        /** starts the page over with Q_Names injected, and the given maxPageSize on Foo */
+        async function namesPage(maxPageSize?: number)
+        {
+            const received = bootstrap()
+            const {rowCount, config, ...doc} = received.data["home/Q_Foo"].data.xxx
+            received.data = {"home/Q_Names": {data: {xxx: doc}, type: "FooDocument", meta: null}}
+            if (maxPageSize)
+            {
+                received.config!.meta.types = {Foo: {meta: {maxPageSize}}} as any
+            }
+            keepBootstrap(structuredClone(received))
+            await init(received)
+            inject(Q_Names)
+        }
+
+        function namesResult(count: number)
+        {
+            const {rowCount, config, ...doc} = allRows(count).data.xxx
+            return {data: {xxx: doc}}
+        }
+
+        it("takes the rows as all there are where the type sets no maxPageSize", async () => {
+            await namesPage()
+            respondWith(namesResult(3))
+
+            const fixture = await recordFixture()
+
+            expect(fixture.data["home/Q_Names"].data.xxx.rows).toHaveLength(3)
+        })
+
+        it("fails where the rows fill the type's maxPageSize", async () => {
+            await namesPage(3)
+            respondWith(namesResult(3))
+
+            await expect(recordFixture()).rejects.toThrow(/'home\/Q_Names' got 3 of possibly more Foo rows/)
+        })
+
+        it("takes rows short of the type's maxPageSize", async () => {
+            await namesPage(5)
+            respondWith(namesResult(3))
+
+            await expect(recordFixture()).resolves.toBeDefined()
+        })
+    })
+
     it("fails for a query document no view read", async () => {
         respondWith(allRows(3))
 

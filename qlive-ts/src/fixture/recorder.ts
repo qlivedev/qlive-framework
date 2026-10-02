@@ -76,12 +76,12 @@ export async function recordFixture(): Promise<QLiveFixture>
         })
         const all = firstValue(result)
 
-        if (all.rows.length !== all.rowCount)
+        if (!allRows(all))
         {
             throw new Error(
-                "The injection '" + injectionId + "' got " + all.rows.length + " of " + all.rowCount + " " +
-                document.type + " rows: the type's maxPageSize holds a query for all rows to that. A fixture needs " +
-                "every row, so record from data that fits."
+                "The injection '" + injectionId + "' got " + all.rows.length + " of " +
+                (all.rowCount ?? "possibly more") + " " + document.type + " rows: the type's maxPageSize holds a " +
+                "query for all rows to that. A fixture needs every row, so record from data that fits."
             )
         }
 
@@ -92,6 +92,23 @@ export async function recordFixture(): Promise<QLiveFixture>
     }
 
     return fixture
+}
+
+/**
+ * Whether the given result of a query for all rows holds every row: as many as its rowCount says, or, where the query
+ * selects no rowCount, fewer than the row type's maxPageSize, which is what a query for all rows is held to.
+ *
+ * @param all   query document result, as received
+ */
+function allRows(all: {rows: unknown[], rowCount?: number, type?: string}): boolean
+{
+    if (all.rowCount != null)
+    {
+        return all.rows.length === all.rowCount
+    }
+
+    const maxPageSize = all.type ? config().meta.types[all.type]?.meta?.maxPageSize : undefined
+    return maxPageSize == null ? !!all.type : all.rows.length < maxPageSize
 }
 
 /**

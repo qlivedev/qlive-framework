@@ -1,0 +1,22 @@
+---
+title: Errors
+description: A data grid whose update fails, keeping its rows and showing why, running in the page.
+sidebar:
+  order: 3
+---
+import QLiveDemo from "../../../components/QLiveDemo.astro";
+
+The view below is `grid/Errors` from qlive-test, unchanged, running in your
+browser on data recorded from the running application. Its button asks the
+document to sort by a field Foo doesn't have.
+
+The `update()` fails, and the document doesn't lose anything for it: it keeps
+the rows and the config it had, and carries the error, which the grid shows
+above the rows. The next update that succeeds -- a header click, the pager --
+clears it.
+
+In the application, the server refuses the sort. Here the document answers
+from its recorded rows, so the refusal comes from the browser instead, with its
+own message, and the grid treats it the same way.
+
+<QLiveDemo view="grid/Errors"/>

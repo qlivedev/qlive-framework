@@ -11,6 +11,7 @@ import io.github.qlivedev.graphql.logic.Mutation;
 import io.github.qlivedev.graphql.logic.Query;
 import io.github.qlivedev.graphql.param.ParameterProvider;
 import io.github.qlivedev.graphql.param.ParameterProviderFactory;
+import io.github.qlivedev.graphql.util.MethodOrder;
 import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNonNull;
@@ -98,7 +99,7 @@ class LogicBeanAnalyzer
         final MethodAccess methodAccess = MethodAccess.get(cls);
 
 
-        for (Method method : cls.getMethods())
+        for (Method method : MethodOrder.publicMethods(cls))
         {
             final String methodName = method.getName();
             final Class<?>[] parameterTypes = method.getParameterTypes();

@@ -8,6 +8,7 @@ import io.github.qlivedev.graphql.scalar.DateScalar;
 import io.github.qlivedev.graphql.scalar.TimestampScalar;
 import io.github.qlivedev.graphql.scalar.LongScalar;
 import io.github.qlivedev.graphql.util.DegenerificationUtil;
+import io.github.qlivedev.graphql.util.MethodOrder;
 import io.github.qlivedev.util.JSONUtil;
 import graphql.Scalars;
 import graphql.schema.GraphQLScalarType;
@@ -463,7 +464,7 @@ public class MutableTypeRegistry
             }
         }
 
-        for (Method method : javaType.getMethods())
+        for (Method method : MethodOrder.publicMethods(javaType))
         {
             final Class<?>[] parameterTypes = method.getParameterTypes();
             final GraphQLField annotation = method.getAnnotation(GraphQLField.class);

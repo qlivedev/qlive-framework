@@ -27,6 +27,7 @@ import io.github.qlivedev.graphql.param.ParameterProvider;
 import io.github.qlivedev.graphql.param.ParameterProviderFactory;
 import io.github.qlivedev.graphql.QLiveDomainAware;
 import io.github.qlivedev.graphql.util.DegenerificationUtil;
+import io.github.qlivedev.graphql.util.MethodOrder;
 import io.github.qlivedev.util.JSONUtil;
 import graphql.schema.Coercing;
 import graphql.schema.DataFetcher;
@@ -1469,7 +1470,7 @@ class SchemaAssembler
     {
         MethodAccess methodAccess = null;
 
-        for (Method m : javaType.getMethods())
+        for (Method m : MethodOrder.publicMethods(javaType))
         {
             Class<?>[] parameterTypes = m.getParameterTypes();
             final GraphQLField fieldAnno = m.getAnnotation(GraphQLField.class);

@@ -1,6 +1,8 @@
-import { DataGrid, FilterInput, flagSetFilter, patternFilter, useFilters, useInjection } from "@qlivedev/qlive-ts";
+import {DataGrid, FilterInput, flagSetFilter, i18n, patternFilter, useFilters, useInjection} from "@qlivedev/qlive-ts";
 import { field, value } from "@qlivedev/qlive-ts/filter";
 import { Q_FooList, Q_FooListResult } from "./Q_FooList";
+import FilterDSLPrinter from "../../component/FilterDSLPrinter";
+import React from "react";
 
 /**
  * The search form's filters. Declared outside the view: useFilters() goes by their order, and a filter is a value
@@ -46,6 +48,20 @@ export default function Search()
             </form>
             {/* the description shows, so a search by it finds what is on screen */}
             <DataGrid doc={ foos } columns={ ["name", "description", "flag", "num"] }/>
+
+            <dl>
+                <dt>
+                    { i18n("Current Filter") }
+
+                </dt>
+                <dd>
+                    <pre>
+                        <FilterDSLPrinter value={ foos.config.condition }/>
+                    </pre>
+                </dd>
+
+            </dl>
+
         </div>
     );
 }

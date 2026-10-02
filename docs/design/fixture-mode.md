@@ -196,9 +196,10 @@ add one.
   stays out.
 
 One demo per page, as the module state allows. A fixture is mostly
-the config's schema (60 of 72 KB compact for the Sorting view);
-stripping its descriptions would be the first thing to try if size
-starts to matter.
+the config's schema. The recorder sets the schema's descriptions to
+null, which only DomainTables shows; that took the Sorting fixture from
+72 to 57 KB compact, 44 of them still schema. Pruning the schema to the
+types a view reaches would be the next step if size starts to matter.
 
 ## Not chosen
 

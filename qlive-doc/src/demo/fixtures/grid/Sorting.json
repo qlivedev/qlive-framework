@@ -467,11 +467,11 @@
         {
           "kind": "OBJECT",
           "name": "AppFieldLayout",
-          "description": "The ordered field-name list one field mask was written against, under the hash of that list. A version record names its layout, so a mask written before a deployment that reordered a type's fields is permuted back into today's positions instead of being read as a different set of fields. Written idempotently -- the id being the hash makes it an upsert -- and swept by the same task that prunes version records, minus the layout currently in use and minus anything stored too recently to have been used yet.",
+          "description": null,
           "fields": [
             {
               "name": "id",
-              "description": "SHA-256 of the type name and the ordered field names, which is what makes writing a layout an upsert rather than a decision",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -487,7 +487,7 @@
             },
             {
               "name": "fields",
-              "description": "The field names in the order that assigns the mask bit indices, joined by a character no GraphQL name can contain. Kept rather than only hashed: a hash detects that the bits moved, the list is what moves them back.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -503,7 +503,7 @@
             },
             {
               "name": "entityType",
-              "description": "GraphQL name of the type the layout belongs to. In the hashed input as well, so that two types whose field lists happen to be identical do not share a row and \"what did this type look like then\" stays answerable.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -519,7 +519,7 @@
             },
             {
               "name": "created",
-              "description": "When this layout was first stored in this database. What keeps the sweep from taking a layout a node of a rolling deployment has stored but not yet written a record against, and the only account of when a layout appeared once the records naming it have been pruned.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -542,11 +542,11 @@
         {
           "kind": "OBJECT",
           "name": "AppLogin",
-          "description": "Database storage for spring security's remember-me feature",
+          "description": null,
           "fields": [
             {
               "name": "lastUsed",
-              "description": "Last access of the login",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -562,7 +562,7 @@
             },
             {
               "name": "series",
-              "description": "Token series",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -578,7 +578,7 @@
             },
             {
               "name": "token",
-              "description": "Token",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -594,7 +594,7 @@
             },
             {
               "name": "username",
-              "description": "User name of the login",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -617,11 +617,11 @@
         {
           "kind": "OBJECT",
           "name": "AppUser",
-          "description": "Application users. Used to authenticate users by spring security. Can have additional fields/relations (See UserInfoService)",
+          "description": null,
           "fields": [
             {
               "name": "lastLogin",
-              "description": "last login of the user",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -633,7 +633,7 @@
             },
             {
               "name": "password",
-              "description": "encrypted password",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -649,7 +649,7 @@
             },
             {
               "name": "created",
-              "description": "Creation date of the user entry",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -665,7 +665,7 @@
             },
             {
               "name": "roles",
-              "description": "Spring security roles of the user within the application",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -681,7 +681,7 @@
             },
             {
               "name": "disabled",
-              "description": "true if the user account was disabled",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -693,7 +693,7 @@
             },
             {
               "name": "id",
-              "description": "user database id",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -709,7 +709,7 @@
             },
             {
               "name": "login",
-              "description": "User name / login",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -725,7 +725,7 @@
             },
             {
               "name": "foos",
-              "description": "Many-to-many objects from foo.owner_id",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -752,11 +752,11 @@
         {
           "kind": "OBJECT",
           "name": "AppUserDocument",
-          "description": "Container for AppUser queries",
+          "description": null,
           "fields": [
             {
               "name": "rowCount",
-              "description": "",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -768,7 +768,7 @@
             },
             {
               "name": "type",
-              "description": "Runtime payload type (always 'AppUser')",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -784,7 +784,7 @@
             },
             {
               "name": "rows",
-              "description": "List of AppUser objects",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -804,7 +804,7 @@
             },
             {
               "name": "config",
-              "description": "query config for this document",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -827,11 +827,11 @@
         {
           "kind": "OBJECT",
           "name": "AppVersion",
-          "description": "One recorded change to a row of a versioned type: who made it, when, and which fields it touched. A row's version column names the record describing the state it is in now, and prev chains that record to the one before it, so the fields changed between any two versions are the union of the masks in between. Written only by the merge, pruned after the version record lifetime -- which is why nothing has a foreign key onto it: a row outlives the records describing how it got here.",
+          "description": null,
           "fields": [
             {
               "name": "fieldMask",
-              "description": "Bit per field of the type, set for the fields this change touched. The bit index is the position of the field in the type's alphabetically sorted field list, and fieldLayout is what makes reading that back safe.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -847,7 +847,7 @@
             },
             {
               "name": "entityType",
-              "description": "GraphQL name of the type whose row changed",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -863,7 +863,7 @@
             },
             {
               "name": "created",
-              "description": "When the change was made. What the cleanup of expired version records goes by.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -879,7 +879,7 @@
             },
             {
               "name": "prev",
-              "description": "The version this change was made against, or null for the first recorded change of the row. Best-effort: the record it names may have been pruned, which reads as \"assume every field changed\" rather than as an error.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -891,7 +891,7 @@
             },
             {
               "name": "fieldLayout",
-              "description": "Hash of the field-name list the mask was written against. A record whose layout does not match the schema in front of us has its mask read as unknown, so a deployment that reorders fields makes a mask conservative rather than wrong.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -907,7 +907,7 @@
             },
             {
               "name": "entityId",
-              "description": "Id of the row that changed",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -923,7 +923,7 @@
             },
             {
               "name": "id",
-              "description": "Version id, and what the version column of the changed row holds",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -939,7 +939,7 @@
             },
             {
               "name": "ownerId",
-              "description": "The user who made the change. What lets a subscriber filter out its own writes.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -962,11 +962,11 @@
         {
           "kind": "OBJECT",
           "name": "Bar",
-          "description": "Generated from public.bar",
+          "description": null,
           "fields": [
             {
               "name": "created",
-              "description": "DB column 'created'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -982,7 +982,7 @@
             },
             {
               "name": "num",
-              "description": "DB column 'num'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -998,7 +998,7 @@
             },
             {
               "name": "name",
-              "description": "DB column 'name'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1014,7 +1014,7 @@
             },
             {
               "name": "description",
-              "description": "DB column 'description'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1026,7 +1026,7 @@
             },
             {
               "name": "id",
-              "description": "DB column 'id'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1042,7 +1042,7 @@
             },
             {
               "name": "version",
-              "description": "DB column 'version'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1054,7 +1054,7 @@
             },
             {
               "name": "bazLinks",
-              "description": "Many-to-many objects from bar_link.bar_id",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1081,11 +1081,11 @@
         {
           "kind": "OBJECT",
           "name": "BarDocument",
-          "description": "Container for Bar queries",
+          "description": null,
           "fields": [
             {
               "name": "rowCount",
-              "description": "",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1097,7 +1097,7 @@
             },
             {
               "name": "type",
-              "description": "Runtime payload type (always 'Bar')",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1113,7 +1113,7 @@
             },
             {
               "name": "rows",
-              "description": "List of Bar objects",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1133,7 +1133,7 @@
             },
             {
               "name": "config",
-              "description": "query config for this document",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1156,11 +1156,11 @@
         {
           "kind": "OBJECT",
           "name": "BarLink",
-          "description": "Generated from public.bar_link",
+          "description": null,
           "fields": [
             {
               "name": "id",
-              "description": "DB column 'id'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1176,7 +1176,7 @@
             },
             {
               "name": "version",
-              "description": "DB column 'version'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1188,7 +1188,7 @@
             },
             {
               "name": "barId",
-              "description": "DB foreign key column 'bar_id'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1204,7 +1204,7 @@
             },
             {
               "name": "bar",
-              "description": "Target of 'bar_id'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1220,7 +1220,7 @@
             },
             {
               "name": "bazId",
-              "description": "DB foreign key column 'baz_id'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1236,7 +1236,7 @@
             },
             {
               "name": "baz",
-              "description": "Target of 'baz_id'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1259,11 +1259,11 @@
         {
           "kind": "OBJECT",
           "name": "Baz",
-          "description": "Generated from public.baz",
+          "description": null,
           "fields": [
             {
               "name": "created",
-              "description": "DB column 'created'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1279,7 +1279,7 @@
             },
             {
               "name": "num",
-              "description": "DB column 'num'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1295,7 +1295,7 @@
             },
             {
               "name": "name",
-              "description": "DB column 'name'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1311,7 +1311,7 @@
             },
             {
               "name": "description",
-              "description": "DB column 'description'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1323,7 +1323,7 @@
             },
             {
               "name": "id",
-              "description": "DB column 'id'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1339,7 +1339,7 @@
             },
             {
               "name": "version",
-              "description": "DB column 'version'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1351,7 +1351,7 @@
             },
             {
               "name": "bazLinks",
-              "description": "Many-to-many objects from bar_link.baz_id",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1378,11 +1378,11 @@
         {
           "kind": "OBJECT",
           "name": "BazDocument",
-          "description": "Container for Baz queries",
+          "description": null,
           "fields": [
             {
               "name": "rowCount",
-              "description": "",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1394,7 +1394,7 @@
             },
             {
               "name": "type",
-              "description": "Runtime payload type (always 'Baz')",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1410,7 +1410,7 @@
             },
             {
               "name": "rows",
-              "description": "List of Baz objects",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1430,7 +1430,7 @@
             },
             {
               "name": "config",
-              "description": "query config for this document",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1453,7 +1453,7 @@
         {
           "kind": "SCALAR",
           "name": "BigDecimal",
-          "description": "BigDecimal wrapped as string",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -1463,7 +1463,7 @@
         {
           "kind": "SCALAR",
           "name": "BigInteger",
-          "description": "BigInteger wrapped as string",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -1473,7 +1473,7 @@
         {
           "kind": "SCALAR",
           "name": "Boolean",
-          "description": "Built-in Boolean",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -1483,7 +1483,7 @@
         {
           "kind": "SCALAR",
           "name": "Byte",
-          "description": "8-bit integer",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -1493,7 +1493,7 @@
         {
           "kind": "SCALAR",
           "name": "ComputedValue",
-          "description": "Encapsulates a dynamically evaluated FilterDSL value",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -1503,7 +1503,7 @@
         {
           "kind": "SCALAR",
           "name": "Condition",
-          "description": "Map graph representing JOOQ conditions",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -1513,7 +1513,7 @@
         {
           "kind": "SCALAR",
           "name": "Currency",
-          "description": "Currency value",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -1523,7 +1523,7 @@
         {
           "kind": "SCALAR",
           "name": "Date",
-          "description": "SQL date equivalent",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -1533,7 +1533,7 @@
         {
           "kind": "SCALAR",
           "name": "DomainObject",
-          "description": "Container for generic domain objects as scalar",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -1543,12 +1543,12 @@
         {
           "kind": "INPUT_OBJECT",
           "name": "EntityChangeInput",
-          "description": "Everything one row of one type changed by, as a working set hands it over.\n\nA change names the row, the base it was read at and the fields that changed -- never the whole row. What\nthe user did not touch is not in here, which is what makes a concurrent change to a different field\nmergeable rather than a clash.",
+          "description": null,
           "fields": null,
           "inputFields": [
             {
               "name": "changes",
-              "description": "The fields that changed, one entry each.",
+              "description": null,
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -1566,7 +1566,7 @@
             },
             {
               "name": "new",
-              "description": "true if the row does not exist yet and the change is an insert. The client says so rather than the\nserver guessing: an unversioned type has no version to read the answer off, and a row that was deleted\nelsewhere must not be silently recreated by an update that found nothing.",
+              "description": null,
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -1580,7 +1580,7 @@
             },
             {
               "name": "id",
-              "description": "Id of the row. Generated by the client for a new row, so that changes can refer to each other before\nthe server has seen any of them.",
+              "description": null,
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -1594,7 +1594,7 @@
             },
             {
               "name": "type",
-              "description": "GraphQL name of the type whose row this is.",
+              "description": null,
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -1608,7 +1608,7 @@
             },
             {
               "name": "version",
-              "description": "The version the row was read at, and the whole of the optimistic lock: the write only lands while the\nstored version is still this one. Null for a new row and for a type that carries no version field.",
+              "description": null,
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -1624,12 +1624,12 @@
         {
           "kind": "INPUT_OBJECT",
           "name": "EntityDeletionInput",
-          "description": "One row to remove.\n\nThe same optimistic lock as a change and for the same reason: a row that changed since it was read may\nnot be the row the user meant to delete, and a delete that quietly removed it anyway would be the\nworst-behaved lost update of the lot.",
+          "description": null,
           "fields": null,
           "inputFields": [
             {
               "name": "type",
-              "description": "GraphQL name of the type whose row this is.",
+              "description": null,
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -1643,7 +1643,7 @@
             },
             {
               "name": "version",
-              "description": "The version the row was read at. Null for a type that carries no version field, where the delete runs\nunconditionally.",
+              "description": null,
               "type": {
                 "kind": "SCALAR",
                 "name": "String",
@@ -1653,7 +1653,7 @@
             },
             {
               "name": "id",
-              "description": "Id of the row to remove.",
+              "description": null,
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -1673,12 +1673,12 @@
         {
           "kind": "INPUT_OBJECT",
           "name": "FieldChangeInput",
-          "description": "One field of one row set to one value.\n\nThe value travels as a GenericScalar, i.e. as the name of a scalar type plus a value that type's coercing\nunderstands. That is what lets one mutation write any type: the value arrives already converted to the\nJava type the column has, and no application ever declares an input type for it.",
+          "description": null,
           "fields": null,
           "inputFields": [
             {
               "name": "field",
-              "description": "Name of the field, as the GraphQL type spells it. Not the column name -- the domain is what says which\ncolumn that is.",
+              "description": null,
               "type": {
                 "kind": "NON_NULL",
                 "name": null,
@@ -1692,7 +1692,7 @@
             },
             {
               "name": "value",
-              "description": "The value to write, or null to write null. A GenericScalar whose own value is null means the same\nthing, so a client that has a type name at hand may say it either way.",
+              "description": null,
               "type": {
                 "kind": "SCALAR",
                 "name": "GenericScalar",
@@ -1708,7 +1708,7 @@
         {
           "kind": "SCALAR",
           "name": "FieldExpression",
-          "description": "Map graph representing a JOOQ node expression",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -1718,7 +1718,7 @@
         {
           "kind": "SCALAR",
           "name": "Float",
-          "description": "Built-in Float",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -1728,11 +1728,11 @@
         {
           "kind": "OBJECT",
           "name": "Foo",
-          "description": "Example domain type",
+          "description": null,
           "fields": [
             {
               "name": "flag",
-              "description": "Boolean example",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1748,7 +1748,7 @@
             },
             {
               "name": "created",
-              "description": "Foo create timestamp",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1764,7 +1764,7 @@
             },
             {
               "name": "num",
-              "description": "Number example",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1780,7 +1780,7 @@
             },
             {
               "name": "name",
-              "description": "Foo name",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1796,7 +1796,7 @@
             },
             {
               "name": "description",
-              "description": "Foo description'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1808,7 +1808,7 @@
             },
             {
               "name": "id",
-              "description": "",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1824,7 +1824,7 @@
             },
             {
               "name": "version",
-              "description": "Id of the app_version record describing the state this row is in now. Selected by any query whose rows are to be edited -- the merge checks its write against it, and a working set cannot register a row without one.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1836,7 +1836,7 @@
             },
             {
               "name": "ownerId",
-              "description": "DB foreign key column 'owner_id'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1852,7 +1852,7 @@
             },
             {
               "name": "owner",
-              "description": "Target of 'owner_id'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1868,7 +1868,7 @@
             },
             {
               "name": "type",
-              "description": "DB foreign key column 'type'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1884,7 +1884,7 @@
             },
             {
               "name": "fooType",
-              "description": "Target of 'type'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1907,11 +1907,11 @@
         {
           "kind": "OBJECT",
           "name": "FooDocument",
-          "description": "Container for Foo queries",
+          "description": null,
           "fields": [
             {
               "name": "rowCount",
-              "description": "",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -1923,7 +1923,7 @@
             },
             {
               "name": "type",
-              "description": "Runtime payload type (always 'Foo')",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1939,7 +1939,7 @@
             },
             {
               "name": "rows",
-              "description": "List of Foo objects",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1959,7 +1959,7 @@
             },
             {
               "name": "config",
-              "description": "query config for this document",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -1982,11 +1982,11 @@
         {
           "kind": "OBJECT",
           "name": "FooType",
-          "description": "Generated from public.foo_type",
+          "description": null,
           "fields": [
             {
               "name": "name",
-              "description": "DB column 'name'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2002,7 +2002,7 @@
             },
             {
               "name": "ordinal",
-              "description": "DB column 'ordinal'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2025,11 +2025,11 @@
         {
           "kind": "OBJECT",
           "name": "FooTypeDocument",
-          "description": "Container for FooType queries",
+          "description": null,
           "fields": [
             {
               "name": "rowCount",
-              "description": "",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2041,7 +2041,7 @@
             },
             {
               "name": "type",
-              "description": "Runtime payload type (always 'FooType')",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2057,7 +2057,7 @@
             },
             {
               "name": "rows",
-              "description": "List of FooType objects",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2077,7 +2077,7 @@
             },
             {
               "name": "config",
-              "description": "query config for this document",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2100,7 +2100,7 @@
         {
           "kind": "SCALAR",
           "name": "GenericScalar",
-          "description": "Container for generic scalar values",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -2110,7 +2110,7 @@
         {
           "kind": "SCALAR",
           "name": "Int",
-          "description": "Built-in Int",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -2120,7 +2120,7 @@
         {
           "kind": "SCALAR",
           "name": "JSONB",
-          "description": "Postgresql jsonb type equivalent",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -2130,7 +2130,7 @@
         {
           "kind": "SCALAR",
           "name": "Long",
-          "description": "64-bit/53-bit integer",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -2140,12 +2140,12 @@
         {
           "kind": "INPUT_OBJECT",
           "name": "MergeConfigInput",
-          "description": "What the caller of a merge says about itself.\n\nEverything a type decides about merging is type meta data and is declared once, in the\napplication's MergeMetadataProvider. What is in here is the other half: the same working set can be\nsubmitted by a form with a user in front of it and by a service with nobody there, and the two want\ndifferent things back from a conflict.",
+          "description": null,
           "fields": null,
           "inputFields": [
             {
               "name": "conflictValues",
-              "description": "true if the caller can put a conflict in front of a user and take a decision back. Only then does a\nconflict come back carrying both values per field; otherwise it names the fields that clashed and\nnothing else.\n\nNothing else about the merge turns on this. The conflict is detected either way, the write fails\neither way, and the fields that clashed are named either way -- what it decides is whether the other\nuser's values travel. A caller that cannot show two values has no use for the stored row and every\nreason not to be handed a copy of it.\n\nThe type has to agree: values travel where this is set and the type declared that it resolves\nconflicts in the view.",
+              "description": null,
               "type": {
                 "kind": "SCALAR",
                 "name": "Boolean",
@@ -2161,11 +2161,11 @@
         {
           "kind": "OBJECT",
           "name": "MergeConflict",
-          "description": "One row the merge could not write, and why.\n\nA conflict is data. The framework ships no dialog and nothing here blocks: the merge rolled back, the user\nstill has everything they typed, and the form they were editing is where they decide what to do about it.",
+          "description": null,
           "fields": [
             {
               "name": "deleted",
-              "description": "true if the row is not there at all -- removed by somebody else, or never created. There is nothing to\nmerge into and nothing to choose between, so no fields come with it.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2181,7 +2181,7 @@
             },
             {
               "name": "id",
-              "description": "Id of the row.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2197,7 +2197,7 @@
             },
             {
               "name": "fields",
-              "description": "The fields that clashed. Empty for a deletion, which touches no fields, and empty where the row is\ngone.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2217,7 +2217,7 @@
             },
             {
               "name": "type",
-              "description": "GraphQL name of the type whose row this is.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2233,7 +2233,7 @@
             },
             {
               "name": "storedVersion",
-              "description": "The version standing in the database now, and the base a second attempt has to be made against. Null\nwhere the row is gone, and null for a type that carries no version field.\n\nNot called \"version\", and it cannot be: a type with a field of that name is a versioned type, on this\nend and on the client, and that rule is what makes the two ends unable to disagree about who takes\npart. A conflict is not a row and does not take part. The name it has instead is the one\nMergeConflictField already uses for the value that is in the database.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2252,11 +2252,11 @@
         {
           "kind": "OBJECT",
           "name": "MergeConflictField",
-          "description": "One field of a row that could not be written as asked.\n\nThe vocabulary is deliberately not \"ours\" and \"theirs\". Whoever wrote first is gone; the only person still\nhere is the one whose save just bounced, and what they are choosing between is the value they typed and the\nvalue that is in the database. So: mine and stored.\n\nNot every field in here is a decision. A field the other write touched and this one did not is attached\nas informational, so that a form can show what changed under the user rather than only what clashed.",
+          "description": null,
           "fields": [
             {
               "name": "mine",
-              "description": "The value the user meant to write, echoed back. Null where the conflict carries no values, i.e. where\neither the type or the caller did not ask to resolve conflicts.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2268,7 +2268,7 @@
             },
             {
               "name": "informational",
-              "description": "true if the field is here to be seen rather than decided about: the other write changed it, this one\ndid not, and the merge takes their value silently. Catching up on a field nobody here has an opinion\nabout is not a decision anybody needs to make.\n\nAn informational field carries no mine, there being no value of ours to carry.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2284,7 +2284,7 @@
             },
             {
               "name": "field",
-              "description": "Name of the field, as the GraphQL type spells it.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2300,7 +2300,7 @@
             },
             {
               "name": "stored",
-              "description": "The value that is in the database. Null where the conflict carries no values, and null as a value in\nits own right where the stored value is null -- the GenericScalar is there either way when values are\ncarried at all.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2319,11 +2319,11 @@
         {
           "kind": "OBJECT",
           "name": "MergeResult",
-          "description": "What came of one merge.\n\nAll or nothing: either every change and every deletion landed, or none of them did and the conflicts say\nwhich rows stood in the way. There is no partial success to reconcile, which is what lets a working set\nkeep holding exactly what the user has not saved yet.",
+          "description": null,
           "fields": [
             {
               "name": "conflicts",
-              "description": "One entry per row that could not be written. Empty when the merge is done.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2343,7 +2343,7 @@
             },
             {
               "name": "status",
-              "description": "Whether the merge landed.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2366,20 +2366,20 @@
         {
           "kind": "ENUM",
           "name": "MergeStatus",
-          "description": "How a merge ended.\n\nTwo outcomes and no third one. Everything that is neither -- a type nobody exposes, a field name that\nmatches no column, a foreign key pointing at nothing -- is a programming error rather than a state of the\ndata, and comes back as a GraphQL error instead of as a status a caller has to branch on.\n\nA unique constraint is the one refusal that is not in that list. A row refused for being a duplicate of\none already there is somebody else having got in first, which is the same thing every other conflict is,\nand it comes back as one.",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
           "enumValues": [
             {
               "name": "DONE",
-              "description": "Everything in the working set landed. Nothing else is written, and the transaction committed.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "CONFLICT",
-              "description": "At least one row could not be written as asked, and nothing was written at all. The result carries one\nconflict per row that stood in the way.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             }
@@ -2389,11 +2389,11 @@
         {
           "kind": "OBJECT",
           "name": "MutationType",
-          "description": "Auto-generated from QueryLogic, MergeLogic",
+          "description": null,
           "fields": [
             {
               "name": "mergeWorkingSet",
-              "description": "",
+              "description": null,
               "args": [
                 {
                   "name": "changes",
@@ -2467,7 +2467,7 @@
         {
           "kind": "SCALAR",
           "name": "QueryConfig",
-          "description": "Generalized query configuration",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -2477,11 +2477,11 @@
         {
           "kind": "OBJECT",
           "name": "QueryType",
-          "description": "Auto-generated from QueryLogic, MergeLogic",
+          "description": null,
           "fields": [
             {
               "name": "queryFooDocument",
-              "description": "Queries Foo objects based on the given query config",
+              "description": null,
               "args": [
                 {
                   "name": "config",
@@ -2512,7 +2512,7 @@
             },
             {
               "name": "queryFooTypeDocument",
-              "description": "Queries FooType objects based on the given query config",
+              "description": null,
               "args": [
                 {
                   "name": "config",
@@ -2543,7 +2543,7 @@
             },
             {
               "name": "queryBarDocument",
-              "description": "Queries Bar objects based on the given query config",
+              "description": null,
               "args": [
                 {
                   "name": "config",
@@ -2574,7 +2574,7 @@
             },
             {
               "name": "queryBazDocument",
-              "description": "Queries Baz objects based on the given query config",
+              "description": null,
               "args": [
                 {
                   "name": "config",
@@ -2605,7 +2605,7 @@
             },
             {
               "name": "queryAppUserDocument",
-              "description": "Queries AppUser objects based on the given query config",
+              "description": null,
               "args": [
                 {
                   "name": "config",
@@ -2636,7 +2636,7 @@
             },
             {
               "name": "queryQuxDocument",
-              "description": "Queries Qux objects based on the given query config",
+              "description": null,
               "args": [
                 {
                   "name": "config",
@@ -2667,7 +2667,7 @@
             },
             {
               "name": "queryQuuxDocument",
-              "description": "Queries Quux objects based on the given query config",
+              "description": null,
               "args": [
                 {
                   "name": "config",
@@ -2705,11 +2705,11 @@
         {
           "kind": "OBJECT",
           "name": "Quux",
-          "description": "Two numbers and a timestamp, for the example of a column computed from two fields and sorted by the expression that computes it.",
+          "description": null,
           "fields": [
             {
               "name": "name",
-              "description": "Quux name",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2725,7 +2725,7 @@
             },
             {
               "name": "numA",
-              "description": "First summand",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2741,7 +2741,7 @@
             },
             {
               "name": "id",
-              "description": "DB column 'id'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2757,7 +2757,7 @@
             },
             {
               "name": "created",
-              "description": "Quux create timestamp",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2773,7 +2773,7 @@
             },
             {
               "name": "numB",
-              "description": "Second summand",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2796,11 +2796,11 @@
         {
           "kind": "OBJECT",
           "name": "QuuxDocument",
-          "description": "Container for Quux queries",
+          "description": null,
           "fields": [
             {
               "name": "rowCount",
-              "description": "",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2812,7 +2812,7 @@
             },
             {
               "name": "type",
-              "description": "Runtime payload type (always 'Quux')",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2828,7 +2828,7 @@
             },
             {
               "name": "rows",
-              "description": "List of Quux objects",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2848,7 +2848,7 @@
             },
             {
               "name": "config",
-              "description": "query config for this document",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -2871,11 +2871,11 @@
         {
           "kind": "OBJECT",
           "name": "Qux",
-          "description": "Every scalar type the framework supports, one column each, and the example of a schema type a handwritten class stands in for -- see io.github.qlivedev.qlivetest.model.types.Qux, which is where the documentation of the fields no column backs would otherwise live.",
+          "description": null,
           "fields": [
             {
               "name": "summary",
-              "description": "Name and string value of the row, computed on read. No column backs it, so nothing fetches one on its account: a query wanting this should select the fields it is computed from as well.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2887,7 +2887,7 @@
             },
             {
               "name": "dateValue",
-              "description": "DB column 'date_value'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2899,7 +2899,7 @@
             },
             {
               "name": "bigDecimalValue",
-              "description": "DB column 'big_decimal_value'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2911,7 +2911,7 @@
             },
             {
               "name": "bool",
-              "description": "DB column 'bool'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2923,7 +2923,7 @@
             },
             {
               "name": "intValue",
-              "description": "DB column 'int_value'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2935,7 +2935,7 @@
             },
             {
               "name": "timestampValue",
-              "description": "DB column 'timestamp_value'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2947,7 +2947,7 @@
             },
             {
               "name": "doubleValue",
-              "description": "DB column 'double_value'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2959,7 +2959,7 @@
             },
             {
               "name": "jsonbValue",
-              "description": "JSONB example. An object, so that what comes back is read as one and not as the string it travels as.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2971,7 +2971,7 @@
             },
             {
               "name": "longValue",
-              "description": "DB column 'long_value'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2983,7 +2983,7 @@
             },
             {
               "name": "stringValue",
-              "description": "DB column 'string_value'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -2995,7 +2995,7 @@
             },
             {
               "name": "currencyValue",
-              "description": "DB column 'currency_value'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -3007,7 +3007,7 @@
             },
             {
               "name": "name",
-              "description": "Qux name",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -3023,7 +3023,7 @@
             },
             {
               "name": "id",
-              "description": "DB column 'id'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -3039,7 +3039,7 @@
             },
             {
               "name": "byteValue",
-              "description": "DB column 'byte_value'",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -3058,11 +3058,11 @@
         {
           "kind": "OBJECT",
           "name": "QuxDocument",
-          "description": "Container for Qux queries",
+          "description": null,
           "fields": [
             {
               "name": "rowCount",
-              "description": "",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -3074,7 +3074,7 @@
             },
             {
               "name": "type",
-              "description": "Runtime payload type (always 'Qux')",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -3090,7 +3090,7 @@
             },
             {
               "name": "rows",
-              "description": "List of Qux objects",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -3110,7 +3110,7 @@
             },
             {
               "name": "config",
-              "description": "query config for this document",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -3133,7 +3133,7 @@
         {
           "kind": "SCALAR",
           "name": "String",
-          "description": "Built-in String",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -3143,7 +3143,7 @@
         {
           "kind": "SCALAR",
           "name": "Timestamp",
-          "description": "SQL timestamp equivalent",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -3157,7 +3157,7 @@
           "fields": [
             {
               "name": "name",
-              "description": "The __Directive type represents a Directive that a server supports.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -3265,122 +3265,122 @@
         {
           "kind": "ENUM",
           "name": "__DirectiveLocation",
-          "description": "An enum describing valid locations where a directive can be placed",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
           "enumValues": [
             {
               "name": "QUERY",
-              "description": "Indicates the directive is valid on queries.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "MUTATION",
-              "description": "Indicates the directive is valid on mutations.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "SUBSCRIPTION",
-              "description": "Indicates the directive is valid on subscriptions.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "FIELD",
-              "description": "Indicates the directive is valid on fields.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "FRAGMENT_DEFINITION",
-              "description": "Indicates the directive is valid on fragment definitions.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "FRAGMENT_SPREAD",
-              "description": "Indicates the directive is valid on fragment spreads.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "INLINE_FRAGMENT",
-              "description": "Indicates the directive is valid on inline fragments.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "VARIABLE_DEFINITION",
-              "description": "Indicates the directive is valid on variable definitions.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "SCHEMA",
-              "description": "Indicates the directive is valid on a schema SDL definition.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "SCALAR",
-              "description": "Indicates the directive is valid on a scalar SDL definition.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "OBJECT",
-              "description": "Indicates the directive is valid on an object SDL definition.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "FIELD_DEFINITION",
-              "description": "Indicates the directive is valid on a field SDL definition.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "ARGUMENT_DEFINITION",
-              "description": "Indicates the directive is valid on a field argument SDL definition.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "INTERFACE",
-              "description": "Indicates the directive is valid on an interface SDL definition.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "UNION",
-              "description": "Indicates the directive is valid on an union SDL definition.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "ENUM",
-              "description": "Indicates the directive is valid on an enum SDL definition.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "ENUM_VALUE",
-              "description": "Indicates the directive is valid on an enum value SDL definition.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "INPUT_OBJECT",
-              "description": "Indicates the directive is valid on an input object SDL definition.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "INPUT_FIELD_DEFINITION",
-              "description": "Indicates the directive is valid on an input object field SDL definition.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             }
@@ -3665,7 +3665,7 @@
         {
           "kind": "OBJECT",
           "name": "__Schema",
-          "description": "A GraphQL Introspection defines the capabilities of a GraphQL server. It exposes all available types and directives on the server, the entry points for query, mutation, and subscription operations.",
+          "description": null,
           "fields": [
             {
               "name": "description",
@@ -3681,7 +3681,7 @@
             },
             {
               "name": "types",
-              "description": "A list of all types supported by this server.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -3704,7 +3704,7 @@
             },
             {
               "name": "queryType",
-              "description": "The type that query operations will be rooted at.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -3720,7 +3720,7 @@
             },
             {
               "name": "mutationType",
-              "description": "If this server supports mutation, the type that mutation operations will be rooted at.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "OBJECT",
@@ -3732,7 +3732,7 @@
             },
             {
               "name": "directives",
-              "description": "A list of all directives supported by this server.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -3755,7 +3755,7 @@
             },
             {
               "name": "subscriptionType",
-              "description": "If this server support subscription, the type that subscription operations will be rooted at.",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "OBJECT",
@@ -3963,7 +3963,7 @@
             },
             {
               "name": "isOneOf",
-              "description": "This field is considered experimental because it has not yet been ratified in the graphql specification",
+              "description": null,
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -4006,56 +4006,56 @@
         {
           "kind": "ENUM",
           "name": "__TypeKind",
-          "description": "An enum describing what kind of type a given __Type is",
+          "description": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
           "enumValues": [
             {
               "name": "SCALAR",
-              "description": "Indicates this type is a scalar. `specifiedByURL` is a valid field",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "OBJECT",
-              "description": "Indicates this type is an object. `fields` and `interfaces` are valid fields.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "INTERFACE",
-              "description": "Indicates this type is an interface. `fields` and `possibleTypes` are valid fields.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "UNION",
-              "description": "Indicates this type is a union. `possibleTypes` is a valid field.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "ENUM",
-              "description": "Indicates this type is an enum. `enumValues` is a valid field.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "INPUT_OBJECT",
-              "description": "Indicates this type is an input object. `inputFields` is a valid field.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "LIST",
-              "description": "Indicates this type is a list. `ofType` is a valid field.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "NON_NULL",
-              "description": "Indicates this type is a non-null. `ofType` is a valid field.",
+              "description": null,
               "isDeprecated": false,
               "deprecationReason": null
             }

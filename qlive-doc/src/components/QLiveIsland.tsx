@@ -42,6 +42,25 @@ async function load(view: string): Promise<Demo>
     return {View: module.default, fixture: {...fixture, config: fixture.config ?? config}};
 }
 
+/**
+ * What the given fixture holds, for the page: its route and the rows of each document,
+ * "grid/filters: Q_FooList with 23 Foo rows". The fixture's description says more -- when it was recorded, where and
+ * as whom -- which is for whoever finds the file, not for a reader of the docs.
+ */
+function captionOf(fixture: QLiveFixture): string
+{
+    const documents = Object.entries(fixture.data).flatMap(([injectionId, source]) => {
+        const document = Object.values(source.data ?? {})[0] as {type?: string, rows?: unknown[]} | null;
+        if (!Array.isArray(document?.rows))
+        {
+            return [];
+        }
+        const name = injectionId.substring(fixture.route.length + 1);
+        return [name + " with " + document.rows.length + " " + (document.type ? document.type + " " : "") + "rows"];
+    });
+    return fixture.route + (documents.length ? ": " + documents.join(", ") : "");
+}
+
 export interface QLiveIslandProps
 {
     /**
@@ -52,7 +71,7 @@ export interface QLiveIslandProps
 }
 
 /**
- * Runs a view of qlive-test on its recorded fixture, with the fixture's description below it. Client-only: a view
+ * Runs a view of qlive-test on its recorded fixture, with what the fixture holds below it. Client-only: a view
  * needs QLive initialized, which its FixtureScope does. Every island on a page adds its fixture to the same QLive,
  * each view reading its injections by its route, so a page can show several demos -- one per view.
  */
@@ -88,7 +107,7 @@ export default function QLiveIsland({view}: QLiveIslandProps)
     const {View, fixture} = demo;
 
     // The boundary goes outside the scope: a fixture that doesn't fit the page throws while the scope renders. The
-    // description goes outside both, so it still says what the view ran on when the view fails.
+    // caption goes outside both, so it still says what the view ran on when the view fails.
     return (
         <>
             <ErrorBoundary>
@@ -96,7 +115,7 @@ export default function QLiveIsland({view}: QLiveIslandProps)
                     <View/>
                 </FixtureScope>
             </ErrorBoundary>
-            <p className="qlive-demo-description">{ fixture.description }</p>
+            <p className="qlive-demo-description">{ captionOf(fixture) }</p>
         </>
     );
 }

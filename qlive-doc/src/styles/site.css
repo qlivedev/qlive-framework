@@ -49,7 +49,7 @@
     color: var(--qlive-color-fg);
 }
 
-/* what the demo runs on: when, where and as whom its fixture was recorded */
+/* what the demo runs on: its route and the rows of each document */
 .qlive-demo-description {
     margin-top: 0.75rem;
     font-size: var(--sl-text-xs);

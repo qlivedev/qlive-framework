@@ -123,7 +123,8 @@ public class QLiveDomainBuilder
 
     private Set<String> nameFieldsByName = new HashSet<>();
 
-    private Set<MetadataProvider> metadataProviders = new HashSet<>();
+    /// In the order the application registered them, which is the order they run in after QLive's own.
+    private Set<MetadataProvider> metadataProviders = new LinkedHashSet<>();
 
 
     /**
@@ -177,10 +178,13 @@ public class QLiveDomainBuilder
             .collect(Collectors.toList());
 
 
-        final HashSet<MetadataProvider> effectiveMetadataProviders = new HashSet<>(new HashSet<>(metadataProviders));
+        // QLive's own first, so that an application's provider writing the same key has the last word -- and in a
+        // fixed order either way, which is what keeps the meta data the same from one start to the next
+        final Set<MetadataProvider> effectiveMetadataProviders = new LinkedHashSet<>();
         effectiveMetadataProviders.add(new NameFieldProvider(nameFields, nameFieldsByName));
         effectiveMetadataProviders.add(new ComputedMetadataProvider());
         effectiveMetadataProviders.add(new UniqueKeyProvider());
+        effectiveMetadataProviders.addAll(metadataProviders);
 
         final QLiveDomainImpl domain = new SchemaAssembler(
             dslContext,

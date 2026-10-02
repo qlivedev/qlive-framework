@@ -5,9 +5,9 @@ import io.github.qlivedev.graphql.config.RelationModel;
 import io.github.qlivedev.util.JSONUtil;
 import org.svenson.JSONable;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Schema meta data on the server-side. Basically a data map with named keys, "types" being special and containing the
@@ -43,7 +43,7 @@ public class DomainMeta
     public DomainMeta(Map<String, DomainTypeMeta> types)
     {
 
-        data = new HashMap<>();
+        data = new TreeMap<>();
         addAddendum("types", types);
     }
 

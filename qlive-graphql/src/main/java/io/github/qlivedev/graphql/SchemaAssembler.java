@@ -81,6 +81,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -212,7 +213,7 @@ class SchemaAssembler
      */
     private DomainMeta buildMetaData(GraphQLSchema graphQLSchema)
     {
-        final Map<String, DomainTypeMeta> types = new HashMap<>();
+        final Map<String, DomainTypeMeta> types = new TreeMap<>();
 
         for (OutputType outputType : typeRegistry.getOutputTypes())
         {

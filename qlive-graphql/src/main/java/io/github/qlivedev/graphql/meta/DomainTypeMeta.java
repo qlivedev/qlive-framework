@@ -3,7 +3,7 @@ package io.github.qlivedev.graphql.meta;
 import org.svenson.JSONProperty;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,9 +14,10 @@ import java.util.Set;
 public class DomainTypeMeta
 {
 
-    private final Map<String, Object> meta = new HashMap<>();
+    // in name order, so the meta data comes out the same whatever order the providers wrote it in
+    private final Map<String, Object> meta = new TreeMap<>();
     private final Map<String, Object> metaRO = Collections.unmodifiableMap(meta);
-    private final Map<String, Map<String,Object>> fields = new HashMap<>();
+    private final Map<String, Map<String,Object>> fields = new TreeMap<>();
     private final Map<String, Map<String,Object>> fieldsRO = Collections.unmodifiableMap(fields);
 
 
@@ -59,7 +60,7 @@ public class DomainTypeMeta
      */
     public <T> void setFieldMeta(String fieldName, String meta, T value)
     {
-        Map<String, Object> map = fields.computeIfAbsent(fieldName, k -> new HashMap<>());
+        Map<String, Object> map = fields.computeIfAbsent(fieldName, k -> new TreeMap<>());
         map.put(meta, value);
     }
 

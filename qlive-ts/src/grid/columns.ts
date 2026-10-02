@@ -130,8 +130,8 @@ export interface ResolvedColumn<R = any>
     /**
      * The column's filter and the field it filters, `null` if it has none. For a relation column that is its first
      * name field, `"owner.login"`, not the relation, or its foreign key, `"ownerId"`, for a filter that picks the
-     * related row (`ColumnFilter.key`). For a computed column it is the sort key, labeled with the heading where
-     * that is text.
+     * related row (`ColumnFilter.key`). For a computed column it is the sort key. The filter is labeled with the
+     * heading where that is text, so its inputs are called what the header says.
      */
     filter: FilterColumn | null;
 
@@ -313,11 +313,7 @@ export function resolveColumn<R = any>(type: string, column: NoInfer<GridColumn<
             {
                 throw new Error("A column without a field has no related row for its filter to pick.");
             }
-            resolved.filter = {
-                field: given.sort,
-                filter: given.filter,
-                label: typeof given.heading === "string" ? given.heading : undefined
-            };
+            resolved.filter = {field: given.sort, filter: given.filter, label: headingText(resolved)};
         }
         const render = given.render;
         resolved.render = row => display(render(row), "");
@@ -402,15 +398,27 @@ export function resolveColumn<R = any>(type: string, column: NoInfer<GridColumn<
         {
             throw columnError(path, "the filter picks the related row, and the foreign key isn't one field.");
         }
-        resolved.filter = {field: given.filter.key ? keyField! : filterField, filter: given.filter};
+        resolved.filter = {
+            field: given.filter.key ? keyField! : filterField,
+            filter: given.filter,
+            label: headingText(resolved)
+        };
     }
     else if (given.filter === undefined)
     {
         const filter = defaultFilter(filterType);
-        resolved.filter = filter && {field: filterField, filter};
+        resolved.filter = filter && {field: filterField, filter, label: headingText(resolved)};
     }
 
     return withTitle(resolved, given.title);
+}
+
+/**
+ * The heading of a column, where it is text to name the column's filter inputs by.
+ */
+function headingText(resolved: ResolvedColumn<any>): string | undefined
+{
+    return typeof resolved.heading === "string" && resolved.heading ? resolved.heading : undefined;
 }
 
 /**

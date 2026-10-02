@@ -101,13 +101,20 @@ describe("resolveColumn", () => {
 
     test("hands a relation column's own filter the first name field, or the foreign key to one picking the row", () => {
         const filter = {arity: 1, toCondition: () => null};
-        expect(resolveColumn("Foo", {field: "owner", filter}).filter).toEqual({field: "owner.login", filter});
+        expect(resolveColumn("Foo", {field: "owner", filter}).filter).toEqual({field: "owner.login", filter, label: "[Foo.owner]"});
 
         const picking = {...filter, key: true};
-        expect(resolveColumn("Foo", {field: "owner", filter: picking}).filter).toEqual({field: "ownerId", filter: picking});
+        expect(resolveColumn("Foo", {field: "owner", filter: picking}).filter).toEqual({field: "ownerId", filter: picking, label: "[Foo.owner]"});
         expect(resolveColumn("Foo", {field: "fooType", filter: picking, render: () => "", sort: false}).filter!.field)
             .toBe("fooTypeId");
         expect(resolveColumn("Foo", {field: "name", filter: picking}).filter!.field).toBe("name");
+    });
+
+    test("labels the filter with the heading where that is text", () => {
+        const picking = {arity: 1, toCondition: () => null, key: true};
+        expect(resolveColumn("Foo", {field: "owner", heading: "Owner", filter: picking}).filter!.label).toBe("Owner");
+        expect(resolveColumn("Foo", "name").filter!.label).toBe("[Foo.name]");
+        expect(resolveColumn("Foo", {field: "name", heading: <b>Name</b>}).filter!.label).toBeUndefined();
     });
 
     test("names a name field the query doesn't select", () => {

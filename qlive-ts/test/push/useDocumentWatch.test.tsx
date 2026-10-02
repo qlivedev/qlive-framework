@@ -11,7 +11,7 @@ import {DocumentWatchSnapshot} from "../../src/push/entityVersion";
 import {useDocumentWatch} from "../../src/push/useDocumentWatch";
 import {connected, FakeWebSocket, lastSocket} from "../fixtures/fakeWebSocket";
 import {barDocument, mergeConfig} from "../fixtures/mergeConfig";
-import {testAuthentication} from "../fixtures/testConfig";
+import {testAuthentication, atViewRoute} from "../fixtures/testConfig";
 
 /**
  * The live view's query: the two fields it shows and nothing else, as qlive-test's Q_BarNames has them.
@@ -87,6 +87,7 @@ let root: Root
 
 
 beforeEach(async () => {
+    atViewRoute()
     vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true)
 
     FakeWebSocket.instances = []
@@ -97,7 +98,7 @@ beforeEach(async () => {
         csrfToken: mergeConfig.csrfToken!,
         authentication: testAuthentication(),
         data: {
-            Q_BarNames: {data: {queryBarDocument: barDocument()}, type: "BarDocument", meta: null}
+            "home/Q_BarNames": {data: {queryBarDocument: barDocument()}, type: "BarDocument", meta: null}
         }
     })
 

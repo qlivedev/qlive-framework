@@ -1,10 +1,11 @@
+// @vitest-environment jsdom
 import {beforeAll, describe, expect, it} from "vitest";
 import {Temporal} from "temporal-polyfill";
 import {init} from "../src/config";
 import {GraphQLQuery} from "../src/GraphQLQuery";
 import inject from "../src/inject";
 import {QueryDocument} from "../src/QueryDocument";
-import {queryResult, testConfig, testCsrfToken, testAuthentication} from "./fixtures/testConfig";
+import {queryResult, testConfig, testCsrfToken, testAuthentication, atViewRoute} from "./fixtures/testConfig";
 
 /** T of a query is what one execution of it yields: the value of its one selection */
 const Q_Foo = new GraphQLQuery<QueryDocument<any>>(
@@ -29,13 +30,14 @@ const Q_Foo = new GraphQLQuery<QueryDocument<any>>(
 )
 
 beforeAll(async () => {
+    atViewRoute()
     await init({
         config: testConfig,
         csrfToken: testCsrfToken(),
         authentication: testAuthentication(),
         data: {
-            Q_Foo: {data: queryResult(), type: "FooDocument", meta: null},
-            Second: {data: queryResult(), type: "FooDocument", meta: null}
+            "home/Q_Foo": {data: queryResult(), type: "FooDocument", meta: null},
+            "home/Second": {data: queryResult(), type: "FooDocument", meta: null}
         }
     })
 })
@@ -76,6 +78,18 @@ describe("inject", () => {
         expect(doc).not.toBe(inject(Q_Foo))
     })
 
+    it("keys the injection by the route of the view, which is the location's", () => {
+        history.replaceState(null, "", "/grid/sorting/")
+        try
+        {
+            expect(() => inject(Q_Foo)).toThrow(/'grid\/sorting\/Q_Foo'/)
+        }
+        finally
+        {
+            atViewRoute()
+        }
+    })
+
     it("fails on an injection id the page came without", () => {
         expect(() => inject(Q_Foo, {__id: "Third"})).toThrow(/Third/)
     })
@@ -91,7 +105,7 @@ describe("inject", () => {
             csrfToken: testCsrfToken(),
             authentication: testAuthentication(),
             data: {
-                Q_Foo: {data: next, type: "FooDocument", meta: null}
+                "home/Q_Foo": {data: next, type: "FooDocument", meta: null}
             }
         })
 

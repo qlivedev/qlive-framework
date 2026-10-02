@@ -7,7 +7,7 @@ import {init} from "../src/config";
 import {GraphQLQuery} from "../src/GraphQLQuery";
 import {useInjection} from "../src/useInjection";
 import {QueryDocumentSnapshot} from "../src/QueryDocument";
-import {fooDocument, testConfig, testCsrfToken, testAuthentication} from "./fixtures/testConfig";
+import {fooDocument, testConfig, testCsrfToken, testAuthentication, atViewRoute} from "./fixtures/testConfig";
 import {respondWith} from "./fixtures/graphqlMock";
 
 type Row = { id: string, name: string }
@@ -70,12 +70,13 @@ function render(element: React.ReactNode)
 
 
 beforeAll(async () => {
+    atViewRoute()
     await init({
         config: testConfig,
         csrfToken: testCsrfToken(),
         authentication: testAuthentication(),
         data: {
-            Q_Foo: {data: injectionOf("Foo #1"), type: "FooDocument", meta: null}
+            "home/Q_Foo": {data: injectionOf("Foo #1"), type: "FooDocument", meta: null}
         }
     })
 })

@@ -192,3 +192,16 @@ export function queryResult()
         xxx: fooDocument()
     }
 }
+
+/**
+ * The route the tests' views run at. Bootstrap data is keyed by it, as the server keys it: "home/Q_Foo".
+ */
+export const VIEW_ROUTE = "home"
+
+/**
+ * Puts the jsdom location on {@link VIEW_ROUTE}, which is where inject() takes the route of an injection id from.
+ */
+export function atViewRoute(): void
+{
+    history.replaceState(null, "", "/" + VIEW_ROUTE + "/")
+}

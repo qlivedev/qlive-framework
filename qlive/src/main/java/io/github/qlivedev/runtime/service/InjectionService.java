@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -48,8 +49,11 @@ import java.util.concurrent.ConcurrentHashMap;
 /// records is a call with the *identifier* the view used, so the query it refers to is looked up here the
 /// same way the bundler resolves it -- in the module making the call and in the modules it imports.
 ///
-/// The result goes out under the injection id the client reads it back with: the `__id` of the call where it
-/// has one, and otherwise the name of the GraphQL operation, which is what `inject()` falls back to.
+/// The result goes out under the injection id the client reads it back with: the route of the view, a slash,
+/// and the `__id` of the call where it has one, otherwise the name of the GraphQL operation --
+/// `grid/sorting/Q_FooList`. The route is what the client computes from its location, so both sides arrive
+/// at the same id without either naming it, and views that inject the same query keep apart on a page that
+/// holds several of them.
 ///
 /// Only the view being served is read, and only its own calls. A component cannot inject: what runs for a
 /// page would otherwise depend on what that page happens to import, and a component would quietly cost a
@@ -103,7 +107,7 @@ public class InjectionService
     /// @param module       track-usage module name of the view or entry point being served, or `null` for a
     ///                     path that resolves to no module of the application
     ///
-    /// @return injections by injection id, empty where the module declares none
+    /// @return injections by route-keyed injection id, empty where the module declares none
     public Map<String, Injection> provideInjections(TrackUsageData analysis, String module)
     {
         final List<InjectionPlan> plans = plansFor(analysis, module);
@@ -112,6 +116,7 @@ public class InjectionService
             return Map.of();
         }
 
+        final String prefix = routeOf(module) + "/";
         final Map<String, Injection> injections = LinkedHashMap.newLinkedHashMap(plans.size());
         for (InjectionPlan plan : plans)
         {
@@ -119,12 +124,28 @@ public class InjectionService
 
             log.debug("INJECTION: {} = {}", plan,  injection);
 
-            injections.put(plan.injectionId(), injection);
+            injections.put(prefix + plan.injectionId(), injection);
         }
 
         log.debug("Injections for module {}: {}", module, injections.keySet());
 
         return injections;
+    }
+
+
+    /// The route a view module is served at, which is the first part of its injection ids: the module name
+    /// below {@link QLivePaths#VIEW_ROOT}, lowercased -- "./app/grid/Sorting" is "grid/sorting". The client's
+    /// `routeOf()` arrives at the same string from the location.
+    ///
+    /// Only views inject, so only views get here; {@link #injectionsOutsideViews(TrackUsageData)} sees to
+    /// that.
+    static String routeOf(String module)
+    {
+        final String route = module.startsWith(QLivePaths.VIEW_ROOT)
+            ? module.substring(QLivePaths.VIEW_ROOT.length())
+            : module.substring(module.startsWith("./") ? 2 : 0);
+
+        return route.toLowerCase(Locale.ROOT);
     }
 
 

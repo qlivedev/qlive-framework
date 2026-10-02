@@ -10,7 +10,7 @@ import {initPubSub} from "../../src/pubsub";
 import {useInjection} from "../../src/useInjection";
 import {connected, FakeWebSocket, lastSocket} from "../fixtures/fakeWebSocket";
 import {barDocument, mergeConfig} from "../fixtures/mergeConfig";
-import {testAuthentication} from "../fixtures/testConfig";
+import {testAuthentication, atViewRoute} from "../fixtures/testConfig";
 
 /**
  * A grid without a working set, watching its document: other people's writes mark rows and cells, and the grid
@@ -72,6 +72,7 @@ let container: HTMLElement;
 let root: Root;
 
 beforeEach(async () => {
+    atViewRoute()
     vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
     FakeWebSocket.instances = [];
     vi.stubGlobal("WebSocket", FakeWebSocket);
@@ -81,7 +82,7 @@ beforeEach(async () => {
         csrfToken: mergeConfig.csrfToken!,
         authentication: testAuthentication(),
         data: {
-            Q_Bars: {data: {queryBarDocument: barDocument()}, type: "BarDocument", meta: null}
+            "home/Q_Bars": {data: {queryBarDocument: barDocument()}, type: "BarDocument", meta: null}
         }
     });
     initPubSub();

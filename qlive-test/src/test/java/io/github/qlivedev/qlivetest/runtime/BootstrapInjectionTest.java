@@ -54,12 +54,15 @@ class BootstrapInjectionTest
     {
         // "/app/grid/everything" is the browser's location.pathname, "./app/grid/Everything" the module behind
         // it, and Q_Foo and Q_OwnerCatalog the queries that module injects -- none of which is configured
-        // anywhere, all of it read off the source.
+        // anywhere, all of it read off the source. The ids carry the route, as the client's inject() reads them.
         final Map<String, Injection> injections = bootstrapService.provideInjectionData("/app/grid/everything");
 
-        assertThat(injections.keySet(), containsInAnyOrder("Q_Foo", "Q_OwnerCatalog"));
+        assertThat(
+            injections.keySet(),
+            containsInAnyOrder("grid/everything/Q_Foo", "grid/everything/Q_OwnerCatalog")
+        );
 
-        final Injection injection = injections.get("Q_Foo");
+        final Injection injection = injections.get("grid/everything/Q_Foo");
         assertThat(injection.getType(), is("FooDocument"));
 
         // The client reads the injection as the GraphQL result it is, keyed by result key -- "xxx" being the

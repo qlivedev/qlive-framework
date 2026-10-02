@@ -38,7 +38,7 @@ function requireInit()
  * documents are still plain objects. inject() is what turns one of these into an
  * Injection.
  *
- * @param injectionId   injection id, normally the query name
+ * @param injectionId   injection id with its route, e.g. "grid/sorting/Q_FooList"
  */
 export function injectionSource(injectionId : string): InjectionSource | undefined
 {
@@ -51,7 +51,7 @@ export function injectionSource(injectionId : string): InjectionSource | undefin
  * Stores the injection converted for the given id, so that every later read of that id
  * gets the same value. Called by inject(), which is the only place a conversion happens.
  *
- * @param injectionId   injection id, normally the query name
+ * @param injectionId   injection id with its route, e.g. "grid/sorting/Q_FooList"
  * @param injection     the converted injection
  */
 export function storeInjection(injectionId : string, injection : Injection)
@@ -69,7 +69,7 @@ export function storeInjection(injectionId : string, injection : Injection)
  * the type or the meta alongside the value. An id the page shipped but no view has claimed
  * is undefined here and readable with injectionSource().
  *
- * @param injectionId   injection id, normally the query name
+ * @param injectionId   injection id with its route, e.g. "grid/sorting/Q_FooList"
  */
 export default function data(injectionId : string): Injection | undefined
 {

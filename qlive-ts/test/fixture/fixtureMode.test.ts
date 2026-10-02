@@ -10,7 +10,7 @@ import {QueryDocument} from "../../src/QueryDocument";
 import graphql from "../../src/util/graphql";
 import {FakeWebSocket} from "../fixtures/fakeWebSocket";
 import {respondWith} from "../fixtures/graphqlMock";
-import {fooDocument, testAuthentication, testConfig, testCsrfToken} from "../fixtures/testConfig";
+import {fooDocument, testAuthentication, testConfig, testCsrfToken, atViewRoute} from "../fixtures/testConfig";
 
 const Q_Foo = new GraphQLQuery<QueryDocument<any>>(
     `query Q_Foo($config: QueryConfig!) {
@@ -40,7 +40,7 @@ function fixture(): QLiveFixture
         csrfToken: testCsrfToken(),
         authentication: testAuthentication(),
         data: {
-            Q_Foo: {
+            "home/Q_Foo": {
                 data: {
                     xxx: {
                         ...doc,
@@ -57,6 +57,7 @@ function fixture(): QLiveFixture
 }
 
 beforeEach(async () => {
+    atViewRoute()
     FakeWebSocket.instances = []
     vi.stubGlobal("WebSocket", FakeWebSocket)
 

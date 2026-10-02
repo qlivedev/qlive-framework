@@ -119,9 +119,9 @@ class InjectionServiceTest
             "./app/Home"
         );
 
-        assertThat(injections.keySet(), contains("Q_Test"));
+        assertThat(injections.keySet(), contains("home/Q_Test"));
 
-        final Injection injection = injections.get("Q_Test");
+        final Injection injection = injections.get("home/Q_Test");
 
         // the GraphQL type of the injected value, for the client to log next to it
         assertThat(injection.getType(), is("TestFooDocument"));
@@ -136,6 +136,31 @@ class InjectionServiceTest
         // The parameters of the call reached the query as its variables. They come out of JSON, so 5 arrives
         // as a Long where QueryConfig wants an int.
         assertThat(pageSizeOf(injection), is(5));
+    }
+
+
+    @Test
+    void keysInjectionsByTheRouteOfTheView()
+    {
+        // "./app/grid/Sorting" is served at /app/grid/sorting, and the client's routeOf() makes "grid/sorting"
+        // of that location -- the same string, which is what lets two views injecting one query share a page.
+        final Map<String, Injection> injections = injectionService.provideInjections(
+            analysis("""
+                {
+                    "./app/grid/Sorting": {
+                        "requires": [ "./app/Q_Test" ],
+                        "calls": { "useInjection": [ [ { "__identifier": "Q_Test" } ] ] }
+                    },
+                    "./app/Q_Test": {
+                        "requires": [],
+                        "calls": { "GraphQLQuery": [ [ "%s" ] ] }
+                    }
+                }
+                """.formatted(Q_TEST)),
+            "./app/grid/Sorting"
+        );
+
+        assertThat(injections.keySet(), contains("grid/sorting/Q_Test"));
     }
 
 
@@ -200,10 +225,10 @@ class InjectionServiceTest
             "./app/Home"
         );
 
-        assertThat(injections.keySet(), contains("Q_Test"));
+        assertThat(injections.keySet(), contains("home/Q_Test"));
 
         // nothing said about the page size, so the config arrives at its meta config defaults
-        assertThat(pageSizeOf(injections.get("Q_Test")), is(5));
+        assertThat(pageSizeOf(injections.get("home/Q_Test")), is(5));
     }
 
 
@@ -230,8 +255,8 @@ class InjectionServiceTest
             "./app/Home"
         );
 
-        assertThat(configOf(injections.get("Q_Test")).get("offset"), is(2));
-        assertThat(configOf(injections.get("Q_Test")).get("pageSize"), is(5));
+        assertThat(configOf(injections.get("home/Q_Test")).get("offset"), is(2));
+        assertThat(configOf(injections.get("home/Q_Test")).get("pageSize"), is(5));
     }
 
 
@@ -291,11 +316,11 @@ class InjectionServiceTest
         );
 
         // read back under the same id the client's inject() looks it up with
-        assertThat(injections.keySet(), contains("second"));
+        assertThat(injections.keySet(), contains("home/second"));
 
         // __id disambiguates the injection, it is not a variable of the query -- one it does not declare
         // would have failed the execution
-        assertThat(pageSizeOf(injections.get("second")), is(3));
+        assertThat(pageSizeOf(injections.get("home/second")), is(3));
     }
 
 
@@ -380,10 +405,10 @@ class InjectionServiceTest
 
         final Map<String, Injection> injections = injectionService.provideInjections(analysis, "./app/Home");
 
-        assertThat(injections.keySet(), contains("Q_Test"));
+        assertThat(injections.keySet(), contains("home/Q_Test"));
 
         // we get the pageSize from the meta config
-        assertThat(pageSizeOf(injections.get("Q_Test")), is(5));
+        assertThat(pageSizeOf(injections.get("home/Q_Test")), is(5));
     }
 
 
@@ -419,7 +444,7 @@ class InjectionServiceTest
 
         assertThat(
             injectionService.provideInjections(provider.getTrackUsageData(), "./app/Home").keySet(),
-            contains("Q_Test")
+            contains("home/Q_Test")
         );
 
         // ./app/Home is not in this push and keeps its references: what changed is the module it imports
@@ -434,7 +459,7 @@ class InjectionServiceTest
 
         assertThat(
             injectionService.provideInjections(provider.getTrackUsageData(), "./app/Home").keySet(),
-            contains("Q_Renamed")
+            contains("home/Q_Renamed")
         );
     }
 
@@ -465,7 +490,7 @@ class InjectionServiceTest
             injectionService.provideInjections(provider.getTrackUsageData(), "./app/Home");
 
         assertThat(after.keySet(), is(before.keySet()));
-        assertThat(pageSizeOf(after.get("Q_Test")), is(pageSizeOf(before.get("Q_Test"))));
+        assertThat(pageSizeOf(after.get("home/Q_Test")), is(pageSizeOf(before.get("home/Q_Test"))));
     }
 
 
@@ -497,7 +522,7 @@ class InjectionServiceTest
             "./app/Home"
         );
 
-        assertThat(pageSizesOf(injections.get("Q_Sizes")), contains(7, 0));
+        assertThat(pageSizesOf(injections.get("home/Q_Sizes")), contains(7, 0));
     }
 
 
@@ -518,7 +543,7 @@ class InjectionServiceTest
         final Map<String, Injection> injections = service.provideInjections(VIEW_INJECTS, "./app/Home");
 
         // the call said 7, the processor says otherwise
-        assertThat(pageSizeOf(injections.get("Q_Test")), is(42));
+        assertThat(pageSizeOf(injections.get("home/Q_Test")), is(42));
     }
 
 
@@ -568,9 +593,9 @@ class InjectionServiceTest
             { "offset": 2 }
             """);
 
-        assertThat(configOf(injections.get("Q_Test")).get("offset"), is(2));
-        assertThat(configOf(injections.get("Q_Test")).get("pageSize"), is(20));
-        assertThat(sortFieldsOf(injections.get("Q_Test")), contains("name"));
+        assertThat(configOf(injections.get("home/Q_Test")).get("offset"), is(2));
+        assertThat(configOf(injections.get("home/Q_Test")).get("pageSize"), is(20));
+        assertThat(sortFieldsOf(injections.get("home/Q_Test")), contains("name"));
     }
 
 
@@ -583,10 +608,10 @@ class InjectionServiceTest
             { "pageSize": 7 }
             """);
 
-        assertThat(configOf(injections.get("Q_Test")).get("pageSize"), is(7));
+        assertThat(configOf(injections.get("home/Q_Test")).get("pageSize"), is(7));
 
         // and what the call left out still comes from the type
-        assertThat(sortFieldsOf(injections.get("Q_Test")), contains("name"));
+        assertThat(sortFieldsOf(injections.get("home/Q_Test")), contains("name"));
     }
 
 

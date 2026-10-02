@@ -123,9 +123,15 @@ query, are
 
 ## Injection ids and `__id`
 
-The result goes out under an **injection id**, which is the GraphQL
-operation name by default. A view injecting the same query twice needs to
-disambiguate at least one of them:
+The result goes out under an **injection id**: the route of the view, a
+slash, and the GraphQL operation name. `useInjection(Q_FooList)` in
+`app/grid/Sorting.tsx` is `grid/sorting/Q_FooList`. The server takes the
+route from the view module it serves, the browser from its location, so
+neither side needs telling, and views that inject the same query stay apart
+when one page runs several of them.
+
+A view injecting the same query twice needs to disambiguate at least one of
+them. `__id` takes the place of the operation name:
 
 ```tsx
 const first  = useInjection(Q_Foo, {__id: "first",  config: {pageSize: 5}});
@@ -206,12 +212,13 @@ it per type rather than declaring the same type twice.
 ```ts
 import {data} from "@qlivedev/qlive-ts";
 
-const {value, type, meta} = data("Q_Foo");
+const {value, type, meta} = data("grid/sorting/Q_Foo");
 ```
 
 `useInjection()` is the normal way in. `data()` is for the cases that want
 the GraphQL type or the meta alongside the value, or the id of an injection
-no view claimed. It gives you the value in whatever state it is in -- raw
+no view claimed. It takes the full injection id, route included. It gives
+you the value in whatever state it is in -- raw
 as received until the first read converts it -- and subscribes to nothing.
 
 Both, and the query and parameter types they are spelled with, are

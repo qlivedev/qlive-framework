@@ -7,7 +7,7 @@ import {GraphQLQuery} from "../../src/GraphQLQuery";
 import inject from "../../src/inject";
 import {QueryDocument} from "../../src/QueryDocument";
 import {respondWith, sentVariables} from "../fixtures/graphqlMock";
-import {fooDocument, testAuthentication, testConfig, testCsrfToken} from "../fixtures/testConfig";
+import {fooDocument, testAuthentication, testConfig, testCsrfToken, atViewRoute} from "../fixtures/testConfig";
 
 /** names its config variable something other than "config", which the recorder has to find by type */
 const Q_Foo = new GraphQLQuery<QueryDocument<any>>(
@@ -38,12 +38,12 @@ function bootstrap(): QLiveBoostrap
         csrfToken: testCsrfToken(),
         authentication: testAuthentication(),
         data: {
-            Q_Foo: {
+            "home/Q_Foo": {
                 data: {xxx: {...doc, config: INJECTED_CONFIG, rowCount: 3}},
                 type: "FooDocument",
                 meta: null
             },
-            Q_Count: {data: {countFoos: 3}, type: "Int", meta: null}
+            "home/Q_Count": {data: {countFoos: 3}, type: "Int", meta: null}
         }
     }
 }
@@ -67,6 +67,7 @@ function allRows(count: number)
 }
 
 beforeEach(async () => {
+    atViewRoute()
     const received = bootstrap()
     keepBootstrap(structuredClone(received))
     await init(received)
@@ -87,7 +88,7 @@ describe("recordFixture", () => {
         // the config the server answered with, not the delta the view gave -- all rows from the start
         expect(sentVariables(fetchMock)).toEqual({cfg: {...INJECTED_CONFIG, pageSize: 0}})
 
-        const doc = fixture.data.Q_Foo.data.xxx
+        const doc = fixture.data["home/Q_Foo"].data.xxx
         expect(doc.rows.map((row: any) => row.id)).toEqual(["foo-0", "foo-1", "foo-2"])
         expect(doc.rowCount).toBe(3)
         expect(doc.config).toEqual(INJECTED_CONFIG)
@@ -99,7 +100,7 @@ describe("recordFixture", () => {
 
         const fixture = await recordFixture()
 
-        expect(fixture.data.Q_Count).toEqual(bootstrap().data.Q_Count)
+        expect(fixture.data["home/Q_Count"]).toEqual(bootstrap().data["home/Q_Count"])
     })
 
     it("records the location and drops the session's CSRF token", async () => {
@@ -132,12 +133,12 @@ describe("recordFixture", () => {
         inject(Q_Foo)
         respondWith(allRows(2))
 
-        await expect(recordFixture()).rejects.toThrow(/'Q_Foo' got 2 of 3 Foo rows/)
+        await expect(recordFixture()).rejects.toThrow(/'home\/Q_Foo' got 2 of 3 Foo rows/)
     })
 
     it("fails for a query document no view read", async () => {
         respondWith(allRows(3))
 
-        await expect(recordFixture()).rejects.toThrow(/No view read the injection 'Q_Foo'/)
+        await expect(recordFixture()).rejects.toThrow(/No view read the injection 'home\/Q_Foo'/)
     })
 })

@@ -152,8 +152,8 @@ static page. startup({fixture}) runs a whole application on one.
     initFixture(fixture)
     createRoot(element).render(<FooList/>)
 
-The config and the injections are module state, so one fixture is active at a time: initializing another replaces
-the injections of the last.
+The config and the injections are module state: initializing another fixture replaces the injections of the last.
+To run several views on fixtures on one page, add each with addFixture(), or render each in a FixtureScope.
 
 **Parameters**
 
@@ -162,6 +162,82 @@ the injections of the last.
 | `fixture` | the fixture, e.g. one recorded from a running application in dev mode  |
 
 **Returns** the initialized config
+
+## addFixture()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function addFixture(fixture: QLiveFixture): Promise<QLiveConfig>;
+```
+
+Adds the given fixture to those the page runs on, for several views on fixtures on one page: a docs page with
+several demos, a canvas with several stories. FixtureScope calls it; this is for code that sets up a page without
+React.
+
+The fixture's injections go in next to those already loaded. Injection ids carry the route of their view, so the
+fixtures of different views don't clash. Where QLive isn't initialized yet, this initializes it as initFixture()
+does. Otherwise the fixture has to fit the page:
+
+ - The page has to run on fixtures. graphql() and subscribeToTopic() ask isFixture(), which holds for the whole
+   page, so a page can't be live in one place and on a fixture in another.
+ - Its schema has to have the same types, or its data would convert by the wrong one without any sign of it.
+   A reduced config, one without the schema, fits any; where one fixture has the full config and another the
+   reduced one, the full one is kept.
+ - An injection id already loaded has to come with the same data. Two fixtures for one route can't share a page.
+
+The authentication and CSRF token stay those of the fixture that initialized the config.
+
+**Parameters**
+
+| | |
+|---|---|
+| `fixture` | the fixture  |
+
+**Returns** the config the page runs with
+
+## FixtureScope()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function FixtureScope({ fixture, children }: FixtureScopeProps): JSX.Element;
+```
+
+Runs the view below on the given fixture, at the fixture's route. For whatever renders a view without startup():
+an island on a static page, a Storybook story, a component test.
+
+    <FixtureScope fixture={sortingFixture}>
+        <Sorting/>
+    </FixtureScope>
+    <FixtureScope fixture={filtersFixture}>
+        <Filters/>
+    </FixtureScope>
+
+Any number of scopes can share a page, one per route: the fixture goes in next to the others with addFixture(),
+and the view reads its injections by the route a ViewRoute gives it. A fixture that doesn't fit the page -- another
+application's, another recording for a route already there, a page running on a server -- throws while rendering,
+for the nearest ErrorBoundary to show.
+
+Two scopes with the same fixture share its documents: sort the view in one, and the other sorts with it.
+
+## FixtureScopeProps
+
+<span class="api-kind">type</span>
+
+```ts
+type FixtureScopeProps = {
+  /**
+   * The fixture the view below runs on, e.g. one recorded from a running application in dev mode
+   */
+  fixture: QLiveFixture;
+  children: ReactNode;
+};
+```
+
+:::note[Undocumented]
+This export carries no doc comment in the source.
+:::
 
 ## isFixture()
 
@@ -280,10 +356,11 @@ Entry-point boostrap data.
 ```ts
 type QLiveFixture = QLiveBoostrap & {
   /**
-   * The location the fixture was recorded at, where it was recorded. Nothing reads it yet: it says which view the
-   * data is for.
+   * Route of the view the fixture was recorded on, as routeOf() gives it: "grid/sorting". The injection ids in
+   * `data` start with it, and FixtureScope renders its view at it. A route rather than the location path, which
+   * only resolves under the base of the application it was recorded in.
    */
-  path?: string;
+  route: string;
 };
 ```
 

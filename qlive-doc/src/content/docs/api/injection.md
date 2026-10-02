@@ -32,6 +32,9 @@ The injection itself has already been prepared on the server side by the time th
 We use static analysis to find the useInjection() calls in the code base and ship the
 data each view needs with the view.
 
+The injection is the one of the view's route: the location's, or the one the nearest
+ViewRoute gives, for a view rendered anywhere but at its own URL.
+
 Rules of hooks apply: call it at the top level of a view, unconditionally.
 
 **Parameters**
@@ -78,7 +81,7 @@ is undefined here and readable with injectionSource().
 
 | | |
 |---|---|
-| `injectionId` | injection id, normally the query name |
+| `injectionId` | injection id with its route, e.g. "grid/sorting/Q_FooList" |
 
 ## injectionSource()
 
@@ -99,7 +102,7 @@ Injection.
 
 | | |
 |---|---|
-| `injectionId` | injection id, normally the query name |
+| `injectionId` | injection id with its route, e.g. "grid/sorting/Q_FooList" |
 
 ## Injection
 

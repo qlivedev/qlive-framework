@@ -1,11 +1,8 @@
 import React from "react"
 import {decompileFilter, i18n, QueryConfig, ResolvedColumn, unawaited, useInjection} from "@qlivedev/qlive-ts";
 import {Q_FooList, Q_FooListResult} from "../app/grid/Q_FooList";
-import {CNode, FieldExpression, matchSort, matchSortPart} from "@qlivedev/qlive-ts/filter";
+import {CNode, FieldExpression, FilterExpression, matchSort, matchSortPart} from "@qlivedev/qlive-ts/filter";
 
-export type PrintSortOrderProps = {
-    queryConfig: QueryConfig
-}
 
 function sortOrder(expr: CNode)
 {
@@ -45,19 +42,20 @@ export function sortExpression(expr: FieldExpression)
     }
 }
 
-const PrintSortOrder = ({ queryConfig } : PrintSortOrderProps) => {
+export type FilterDSLPrinterProps = {
+    value: CNode | FieldExpression[] | null;
+}
 
-    return (
-        <>
-            {
-                !!queryConfig.sortFields.length && (
-                    <>
-                        <p>
-                            { i18n("Current sorting order") }
-                        </p>
+const FilterDSLPrinter = ({ value } : FilterDSLPrinterProps) => {
+
+    if (Array.isArray(value)) {
+        return (
+            <>
+                {
+                    !!value.length && (
                         <ol>
                             {
-                                queryConfig.sortFields.map((expr,idx) => (
+                                value.map((expr,idx) => (
                                     <li key={idx}>
                                         {
                                             sortExpression(expr)
@@ -66,12 +64,22 @@ const PrintSortOrder = ({ queryConfig } : PrintSortOrderProps) => {
                                 ))
                             }
                         </ol>
-                    </>
-                )
-            }
+                    )
+                }
 
-        </>
-    );
+            </>
+        );
+    }
+    else
+    {
+        return (
+            <>
+                {
+                    value ? decompileFilter(value) : "<none>"
+                }
+            </>
+        );
+    }
 };
 
-export default PrintSortOrder;
+export default FilterDSLPrinter;

@@ -1,7 +1,9 @@
 import {DataGrid, decompileFilter, i18n, ResolvedColumn, unawaited, useInjection} from "@qlivedev/qlive-ts";
 import {CNode, field, FieldExpression, matchSort, matchSortPart, value} from "@qlivedev/qlive-ts/filter";
 import { Q_FooList, Q_FooListResult } from "./Q_FooList";
-import PrintSortOrder, {sortExpression} from "../../component/PrintSortOrder";
+import FilterDSLPrinter, {sortExpression} from "../../component/FilterDSLPrinter";
+import filterAsTitle from "../../util/filterAsTitle";
+import React from "react";
 
 /**
  * Sort orders a header click can't set, offered by a control of the view's own.
@@ -44,7 +46,11 @@ export default function Sorting()
                 </p>
                 <DataGrid doc={ foos } columns={ ["name", "num", "flag", "owner"] } headerTitle={ headerTitle }/>
             </div>
-            <PrintSortOrder queryConfig={foos.config}/>
+
+            <p>
+                { i18n("Current sorting order") }
+            </p>
+            <FilterDSLPrinter value={sortFields}/>
         </>
     );
 }

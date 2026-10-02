@@ -1,8 +1,8 @@
 # Fixture mode: views running on given data
 
 Status: fixture mode and the recorder are implemented in qlive-ts, and
-qlive-doc runs views on fixtures (2026-10-02). The view's route is
-open.
+qlive-doc runs views on fixtures (2026-10-02). Several fixtures on one
+page, and the view's route, are [fixture-scope.md](fixture-scope.md).
 
 ## Problem
 
@@ -60,8 +60,8 @@ page as it does live.
 
 Injections that aren't query documents are taken as they come.
 
-`QLiveFixture` is that bootstrap plus an optional `path`: the location
-the recorder recorded it at. Nothing reads it yet; see
+`QLiveFixture` is that bootstrap plus the `route` of the view it was
+recorded on. Injection ids start with it, see
 [The view's route](#the-views-route).
 
 ## API
@@ -102,34 +102,21 @@ fixture mode as they do to `localDocument()`, and it adds no new ones.
 ## The view's route
 
 An island or a story renders the view component directly, so
-`location.pathname` is the page it sits on, not the view's route. A
-view that reads its route, or links to other views, gets the wrong path
-or dead links.
+`location.pathname` is the page it sits on, not the view's route.
+Settled in [fixture-scope.md](fixture-scope.md): injection ids carry
+the route, a `ViewRoute` tells the view below it which route it is,
+and `useInjection()` and `useRoute()` read it before the location. A
+view that links to other views still gets dead links on a page that
+isn't the application.
 
-To be decided: either demo views avoid both, or `initFixture` takes the
-view's path and the router reads that instead of the browser's
-location. The recorder knows the path, so a recorded fixture can carry
-it.
+## Several fixtures on one page
 
-## One fixture per page
-
-QLive's config and injections are module state, and `initData()`
-replaces all injections at once. Within one module instance, only one
-fixture is active at a time:
-
-- **Storybook and tests** call `initFixture` per story or test, the
-  same way `startup()` already calls `initPubSub()` to clear what a
-  previous startup left.
-- **Astro islands** on one page share their modules, so a second
-  island's `initFixture` would wipe the first one's injections. A page
-  has one fixture that covers every island on it, initialized once
-  before any island renders. Two islands that need different data
-  under the same query name use `__id`, as two injections in one live
-  view do.
-
-A React provider per island would remove that limit. It would also
-change how `useInjection` finds its data in every mode, so it waits for
-a case that needs it.
+`initFixture()` replaces whatever was loaded, which suits Storybook and
+tests that start each case from scratch. A page with several views on
+fixtures uses `addFixture()`, or a `FixtureScope` per view, which adds
+each fixture next to the others; route-keyed ids keep them apart. One
+fixture per route on a page, see
+[fixture-scope.md](fixture-scope.md#limits).
 
 ## Recorder
 
@@ -195,7 +182,8 @@ add one.
   `prefers-color-scheme`. qlive-test's own stylesheet styles `body` and
   stays out.
 
-One demo per page, as the module state allows. A fixture is mostly
+Each island renders its view in a `FixtureScope`, so a page can show
+several demos, one per view. A fixture is mostly
 the config's schema. The recorder sets the schema's descriptions to
 null, which only DomainTables shows; that took the Sorting fixture from
 72 to 57 KB compact, 44 of them still schema. Pruning the schema to the

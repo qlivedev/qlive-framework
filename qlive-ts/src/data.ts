@@ -16,7 +16,8 @@ let injections: { [key: string]: Injection }
 
 export function initData(data : { [key: string]: InjectionSource })
 {
-    injectionSources = data ?? {}
+    // a copy: addData() adds to it, and the object is the caller's -- a bootstrap, or a fixture still in use
+    injectionSources = {...data}
     // A new page brings new injections. What the last one converted belongs to the data
     // it was converted from, so it goes with it instead of shadowing an id that repeats.
     injections = {}

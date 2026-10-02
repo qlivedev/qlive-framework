@@ -134,6 +134,14 @@ describe("addFixture", () => {
         await expect(addFixture(fixture("grid/sorting", "Sorted"))).resolves.toBe(config())
     })
 
+    it("leaves the data of the fixture it started with as it was", async () => {
+        const first = fixture("grid/sorting", "Sorted")
+        await initFixture(first)
+        await addFixture(fixture("grid/filters", "Filtered"))
+
+        expect(Object.keys(first.data)).toEqual(["grid/sorting/Q_Foo"])
+    })
+
     it("refuses another recording for a route the page already holds", async () => {
         await addFixture(fixture("grid/sorting", "Sorted"))
 

@@ -84,10 +84,11 @@ accounts, open the view, and click "Record fixture" in its bottom right
 corner. Save the download under the view's path. Re-record whenever the
 view's queries or the seeded data change.
 
-One demo per page: QLive's config and injections are module state that every
-island on a page shares, so a page runs one fixture at a time. A view that
-reads its route or links to other views won't work either, since the page it
-runs on is not the application.
+A page can show several demos, one per view. Every island adds its fixture
+to the same QLive with `FixtureScope`, and each view reads its injections by
+its route, which the fixture carries. The same view twice on a page shares
+its documents: sort one, and the other sorts with it. A view that links to
+other views won't work, since the page it runs on is not the application.
 
 ## Colors
 

@@ -1,9 +1,9 @@
 import {type ComponentType, useEffect, useState} from "react";
-import {ErrorBoundary, initFixture, type QLiveFixture} from "@qlivedev/qlive-ts";
+import {ErrorBoundary, FixtureScope, type QLiveFixture} from "@qlivedev/qlive-ts";
 import "@qlivedev/qlive-ts/styles.css";
 
 /*
- * Both globs are lazy: a page fetches the one view and the one fixture it shows, not every one there is.
+ * Both globs are lazy: a page fetches the views and fixtures it shows, not every one there is.
  */
 const VIEW_PREFIX = "../../../qlive-test/frontend/src/app/";
 const views = import.meta.glob<{default: ComponentType}>("../../../qlive-test/frontend/src/app/**/*.tsx");
@@ -11,13 +11,12 @@ const views = import.meta.glob<{default: ComponentType}>("../../../qlive-test/fr
 const FIXTURE_PREFIX = "../demo/fixtures/";
 const fixtures = import.meta.glob<QLiveFixture>("../demo/fixtures/**/*.json", {import: "default"});
 
-/**
- * The view whose fixture QLive was initialized with. QLive's config and injections are module state, shared by every
- * island on a page, so a page runs one fixture -- and with it one view.
- */
-let active: string | null = null;
+type Demo = {
+    View: ComponentType
+    fixture: QLiveFixture
+}
 
-async function load(view: string): Promise<ComponentType>
+async function load(view: string): Promise<Demo>
 {
     const loadView = views[VIEW_PREFIX + view + ".tsx"];
     const loadFixture = fixtures[FIXTURE_PREFIX + view + ".json"];
@@ -30,17 +29,9 @@ async function load(view: string): Promise<ComponentType>
         throw new Error("No fixture for " + view + " in qlive-doc/src/demo/fixtures");
     }
 
-    if (active !== view)
-    {
-        if (active)
-        {
-            throw new Error("This page already runs " + active + ": one demo per page, since QLive runs one fixture at a time");
-        }
-        active = view;
-        await initFixture(await loadFixture());
-    }
+    const [module, fixture] = await Promise.all([loadView(), loadFixture()]);
 
-    return (await loadView()).default;
+    return {View: module.default, fixture};
 }
 
 export interface QLiveIslandProps
@@ -53,18 +44,20 @@ export interface QLiveIslandProps
 }
 
 /**
- * Runs a view of qlive-test on its recorded fixture. Client-only: a view needs QLive initialized, which happens here.
+ * Runs a view of qlive-test on its recorded fixture. Client-only: a view needs QLive initialized, which its
+ * FixtureScope does. Every island on a page adds its fixture to the same QLive, each view reading its injections by
+ * its route, so a page can show several demos -- one per view.
  */
 export default function QLiveIsland({view}: QLiveIslandProps)
 {
-    const [View, setView] = useState<ComponentType | null>(null);
+    const [demo, setDemo] = useState<Demo | null>(null);
     const [error, setError] = useState<unknown>(null);
 
     useEffect(
         () => {
             let current = true;
             load(view).then(
-                component => current && setView(() => component),
+                loaded => current && setDemo(loaded),
                 e => current && setError(e)
             );
             return () => {
@@ -79,9 +72,19 @@ export default function QLiveIsland({view}: QLiveIslandProps)
         return <p className="qlive-error">{ error instanceof Error ? error.message : String(error) }</p>;
     }
 
-    return View && (
+    if (!demo)
+    {
+        return null;
+    }
+
+    const {View, fixture} = demo;
+
+    // The boundary goes outside the scope: a fixture that doesn't fit the page throws while the scope renders.
+    return (
         <ErrorBoundary>
-            <View/>
+            <FixtureScope fixture={ fixture }>
+                <View/>
+            </FixtureScope>
         </ErrorBoundary>
     );
 }

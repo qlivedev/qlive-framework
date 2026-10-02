@@ -278,6 +278,14 @@ export type QLiveConfig = {
      */
     errorView?: ComponentType<ErrorViewProps>
 
+    /**
+     * What i18n() looks its tags up in: a tag, `"Filter {0}"` or `"Foo.name"`, to its translation, which holds the
+     * same placeholders. A tag without one renders as itself in brackets, so a missing translation shows. Written by
+     * the application like errorView, in startup()'s init hook.
+     *
+     *     config.translations = {"Foo.name": "Name", "Filter {0}": "{0} filtern"}
+     */
+    translations?: Record<string, string>
 }
 
 /**
@@ -674,6 +682,16 @@ export function logStartup(bs : QLiveBoostrap)
 /**
  * Returns the QLive config for the current application.
  */
+/**
+ * The config, or null before init().
+ *
+ * @internal
+ */
+export function currentConfig(): QLiveConfig | null
+{
+    return theConfig
+}
+
 export default function config(): QLiveConfig {
     if (!theConfig)
     {

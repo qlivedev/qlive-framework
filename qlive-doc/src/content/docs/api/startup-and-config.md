@@ -260,7 +260,9 @@ work -- a save button, say -- this is how it can tell.
 declare function config(): QLiveConfig;
 ```
 
-Returns the QLive config for the current application.
+:::note[Undocumented]
+This export carries no doc comment in the source.
+:::
 
 ## QLiveConfig
 
@@ -313,6 +315,14 @@ type QLiveConfig = {
    *     })
    */
   errorView?: ComponentType<ErrorViewProps>;
+  /**
+   * What i18n() looks its tags up in: a tag, `"Filter {0}"` or `"Foo.name"`, to its translation, which holds the
+   * same placeholders. A tag without one renders as itself in brackets, so a missing translation shows. Written by
+   * the application like errorView, in startup()'s init hook.
+   *
+   *     config.translations = {"Foo.name": "Name", "Filter {0}": "{0} filtern"}
+   */
+  translations?: Record<string, string>;
 };
 ```
 
@@ -769,7 +779,12 @@ foreign key points to.
 declare function i18n(tag: string, ...args: string[]): string;
 ```
 
-Internationalization helper function
+Translates the given tag, filling in the given arguments.
+
+The tag is the static text, the arguments what varies: `i18n("Filter {0}", label)`. The translation comes from
+`config().translations` and has the same placeholders, `{0}` for the first argument, `{1}` for the second and so
+on, as in Java's MessageFormat. A tag without a translation renders as itself in brackets, its arguments appended:
+`[Filter {0}:Name]`, so a missing one shows.
 
 **Parameters**
 

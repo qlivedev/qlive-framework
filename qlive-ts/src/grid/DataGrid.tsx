@@ -143,7 +143,7 @@ export default function DataGrid<R>(props: DataGridProps<R>): JSX.Element
                     <p className="qlive-grid-error" role="alert">
                         {
                             doc.error.message
-                                ? i18n("Rows not updated", doc.error.message)
+                                ? i18n("Rows not updated: {0}", doc.error.message)
                                 : i18n("Rows not updated")
                         }
                     </p>

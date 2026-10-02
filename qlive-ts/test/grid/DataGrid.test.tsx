@@ -196,7 +196,7 @@ describe("DataGrid", () => {
         const error = grid.firstElementChild as HTMLElement;
         expect(error.className).toBe("qlive-grid-error");
         expect(error.getAttribute("role")).toBe("alert");
-        expect(error.textContent).toBe("[Rows not updated:Not authenticated]");
+        expect(error.textContent).toBe("[Rows not updated: {0}:Not authenticated]");
         expect(grid.querySelectorAll("tbody tr")).toHaveLength(2);
     });
 

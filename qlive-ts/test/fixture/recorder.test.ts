@@ -103,13 +103,13 @@ describe("recordFixture", () => {
         expect(fixture.data["home/Q_Count"]).toEqual(bootstrap().data["home/Q_Count"])
     })
 
-    it("records the location and drops the session's CSRF token", async () => {
+    it("records the route of the location and drops the session's CSRF token", async () => {
         inject(Q_Foo)
         respondWith(allRows(3))
 
         const fixture = await recordFixture()
 
-        expect(fixture.path).toBe(location.pathname)
+        expect(fixture.route).toBe("home")
         expect(fixture.csrfToken.value).toBe("")
         expect(fixture.authentication).toEqual(testAuthentication())
     })

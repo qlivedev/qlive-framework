@@ -2,6 +2,7 @@ import config, {QLiveFixture} from "../config";
 import {convertVariablesToServer} from "../converter";
 import graphql, {firstValue} from "../util/graphql";
 import {injectionNote, keptBootstrap} from "./notes";
+import {routeOf} from "../router";
 
 /*
  * The fixture recorder: dev tooling that saves the data of the view on screen as a fixture, see initFixture().
@@ -31,10 +32,9 @@ export async function recordFixture(): Promise<QLiveFixture>
         throw new Error("No bootstrap was kept to record a fixture from: the page was not started by startup() in dev mode")
     }
 
-    const fixture: QLiveFixture = structuredClone(bootstrap)
+    const fixture: QLiveFixture = {...structuredClone(bootstrap), route: routeOf(location.pathname)}
     // a token for a session that will be long gone by the time the fixture is used
     fixture.csrfToken = {...fixture.csrfToken, value: ""}
-    fixture.path = location.pathname
     if (fixture.config)
     {
         stripDescriptions(fixture.config.schema)
@@ -122,13 +122,13 @@ function stripDescriptions(value: unknown): void
 }
 
 /**
- * The file name a fixture recorded at the given path is saved as.
+ * The file name a fixture recorded on the given route is saved as.
  *
- * @param path  location path
+ * @param route     route of the view
  */
-function fileName(path: string): string
+function fileName(route: string): string
 {
-    const name = path.split("/").filter(segment => segment.length).join("-")
+    const name = route.split("/").filter(segment => segment.length).join("-")
     return "fixture" + (name ? "-" + name : "") + ".json"
 }
 
@@ -142,7 +142,7 @@ async function download(): Promise<void>
     const url = URL.createObjectURL(new Blob([JSON.stringify(fixture, null, 2)], {type: "application/json"}))
     const link = document.createElement("a")
     link.href = url
-    link.download = fileName(fixture.path!)
+    link.download = fileName(fixture.route)
     link.click()
     // not right away: the click only starts the download, which still reads the URL
     setTimeout(() => URL.revokeObjectURL(url), 0)

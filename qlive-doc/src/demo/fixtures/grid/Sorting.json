@@ -5,7 +5,7 @@
     "value": ""
   },
   "data": {
-    "Q_FooList": {
+    "grid/sorting/Q_FooList": {
       "data": {
         "queryFooDocument": {
           "type": "Foo",
@@ -4478,5 +4478,5 @@
     ],
     "id": "3f7c1a10-0000-4000-8000-ffffffffffff"
   },
-  "path": "/app/grid/sorting/"
+  "route": "grid/sorting"
 }

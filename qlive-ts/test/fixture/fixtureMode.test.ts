@@ -52,7 +52,8 @@ function fixture(): QLiveFixture
                 type: "FooDocument",
                 meta: null
             }
-        }
+        },
+        route: "home"
     }
 }
 

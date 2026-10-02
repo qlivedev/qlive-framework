@@ -214,10 +214,11 @@ export type QLiveBoostrap = {
  */
 export type QLiveFixture = QLiveBoostrap & {
     /**
-     * The location the fixture was recorded at, where it was recorded. Nothing reads it yet: it says which view the
-     * data is for.
+     * Route of the view the fixture was recorded on, as routeOf() gives it: "grid/sorting". The injection ids in
+     * `data` start with it, and FixtureScope renders its view at it. A route rather than the location path, which
+     * only resolves under the base of the application it was recorded in.
      */
-    path?: string
+    route: string
 }
 
 export type QLiveConfig = {

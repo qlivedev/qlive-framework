@@ -1,821 +1,821 @@
 [
   {
-    "name":"Addressed",
     "description":"Implemented by client message kinds that name what they are about, so a failure can be reported back\nagainst that rather than against the connection at large.\n\nWhat Error carries, in other words, seen from the message that provoked it. The transport\ncatches a failure without knowing which kind it was handling -- that is the point of it being a\ntransport -- and this is how a kind says how it wants to be named in the answer. A kind that\nimplements neither this nor DynamicPayload still gets an `Error`; it just gets one that names\nonly what went wrong.",
     "fieldDocs":[
       {
-        "name":"id",
         "description":"Subscription this message is about.",
+        "name":"id",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"topic",
         "description":"Channel this message is about.",
+        "name":"topic",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"Addressed"
   },
   {
-    "name":"AllScalars",
     "description":"Test type containing all standard scalar types",
     "fieldDocs":[
       
-    ]
+    ],
+    "name":"AllScalars"
   },
   {
-    "name":"AppFieldLayout",
     "description":"The ordered field-name list one field mask was written against, under the hash of that list. A version record names its layout, so a mask written before a deployment that reordered a type's fields is permuted back into today's positions instead of being read as a different set of fields. Written idempotently -- the id being the hash makes it an upsert -- and swept by the same task that prunes version records, minus the layout currently in use and minus anything stored too recently to have been used yet.",
     "fieldDocs":[
       {
-        "name":"created",
         "description":"When this layout was first stored in this database. What keeps the sweep from taking a layout a node of a rolling deployment has stored but not yet written a record against, and the only account of when a layout appeared once the records naming it have been pruned.",
+        "name":"created",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"entityType",
         "description":"GraphQL name of the type the layout belongs to. In the hashed input as well, so that two types whose field lists happen to be identical do not share a row and \"what did this type look like then\" stays answerable.",
+        "name":"entityType",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"fields",
         "description":"The field names in the order that assigns the mask bit indices, joined by a character no GraphQL name can contain. Kept rather than only hashed: a hash detects that the bits moved, the list is what moves them back.",
+        "name":"fields",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"id",
         "description":"SHA-256 of the type name and the ordered field names, which is what makes writing a layout an upsert rather than a decision",
+        "name":"id",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"AppFieldLayout"
   },
   {
-    "name":"AppLogin",
     "description":"Database storage for spring security's remember-me feature",
     "fieldDocs":[
       {
-        "name":"lastUsed",
         "description":"Last access of the login",
+        "name":"lastUsed",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"series",
         "description":"Token series",
+        "name":"series",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"token",
         "description":"Token",
+        "name":"token",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"username",
         "description":"User name of the login",
+        "name":"username",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"AppLogin"
   },
   {
-    "name":"AppUser",
     "description":"Application users. Used to authenticate users by spring security. Can have additional fields/relations (See UserInfoService)",
     "fieldDocs":[
       {
-        "name":"created",
         "description":"Creation date of the user entry",
+        "name":"created",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"disabled",
         "description":"true if the user account was disabled",
+        "name":"disabled",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"id",
         "description":"user database id",
+        "name":"id",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"lastLogin",
         "description":"last login of the user",
+        "name":"lastLogin",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"login",
         "description":"User name / login",
+        "name":"login",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"password",
         "description":"encrypted password",
+        "name":"password",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"roles",
         "description":"Spring security roles of the user within the application",
+        "name":"roles",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"AppUser"
   },
   {
-    "name":"AppVersion",
     "description":"One recorded change to a row of a versioned type: who made it, when, and which fields it touched. A row's version column names the record describing the state it is in now, and prev chains that record to the one before it, so the fields changed between any two versions are the union of the masks in between. Written only by the merge, pruned after the version record lifetime -- which is why nothing has a foreign key onto it: a row outlives the records describing how it got here.",
     "fieldDocs":[
       {
-        "name":"created",
         "description":"When the change was made. What the cleanup of expired version records goes by.",
+        "name":"created",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"entityId",
         "description":"Id of the row that changed",
+        "name":"entityId",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"entityType",
         "description":"GraphQL name of the type whose row changed",
+        "name":"entityType",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"fieldLayout",
         "description":"Hash of the field-name list the mask was written against. A record whose layout does not match the schema in front of us has its mask read as unknown, so a deployment that reorders fields makes a mask conservative rather than wrong.",
+        "name":"fieldLayout",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"fieldMask",
         "description":"Bit per field of the type, set for the fields this change touched. The bit index is the position of the field in the type's alphabetically sorted field list, and fieldLayout is what makes reading that back safe.",
+        "name":"fieldMask",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"id",
         "description":"Version id, and what the version column of the changed row holds",
+        "name":"id",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"ownerId",
         "description":"The user who made the change. What lets a subscriber filter out its own writes.",
+        "name":"ownerId",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"prev",
         "description":"The version this change was made against, or null for the first recorded change of the row. Best-effort: the record it names may have been pruned, which reads as \"assume every field changed\" rather than as an error.",
+        "name":"prev",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"AppVersion"
   },
   {
-    "name":"CNode",
     "description":"Abstract base class for all types in the FilterDSL condition hierarchy.",
     "fieldDocs":[
       {
-        "name":"type",
         "description":"The discriminator the FilterDSL JSON carries, derived from the class name. It is read-only in both\ndirections of the word: there is no field behind it, and a parser must not try to set it. It is\nstill generated, because it is what tells a reader which node it is looking at -- see\nConditionParser, which selects the subclass by it.",
+        "name":"type",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"CNode"
   },
   {
-    "name":"ClientCsrfToken",
     "description":"Encapsulates CSRF token meta information",
     "fieldDocs":[
       {
-        "name":"header",
         "description":"Header name to send the CSRF token as",
+        "name":"header",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"param",
         "description":"HTTP Parameter name to send the CSRF token as",
+        "name":"param",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"value",
         "description":"CSRF token value",
+        "name":"value",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"ClientCsrfToken"
   },
   {
-    "name":"ClientMessage",
     "description":"Abstract base class for the messages a client sends to the server.",
     "fieldDocs":[
       
-    ]
+    ],
+    "name":"ClientMessage"
   },
   {
-    "name":"ConditionParser",
     "description":"Specialized JSONParser setup to parse a FilterDSL node hierarchy into\nthe correct types.",
     "fieldDocs":[
       
-    ]
+    ],
+    "name":"ConditionParser"
   },
   {
-    "name":"ConditionVisitor",
     "description":"Visitor for FilterDSL condition hierarchies.",
     "fieldDocs":[
       
-    ]
+    ],
+    "name":"ConditionVisitor"
   },
   {
-    "name":"DynamicPayload",
     "description":"Implemented by the two message kinds whose payload's type is not fixed by the kind but by the channel\nthe message is on.\n\nEvery other message kind is fully described by its own class, so the discriminator alone tells a parser\neverything. These two are not, which is why their payload is read as a plain `Object` -- a `Map`, for\nanything that arrives as JSON -- and why a caller wanting compile-time field access has to ask for it\nby class through PayloadRecast. That is a property of pub/sub, not a gap in the message model:\nmost consumers never need more, because\norg.svenson.util.JSONBeanUtil#getProperty(Object, String) reads a map entry and a bean property\nthrough the same call.",
     "fieldDocs":[
       {
-        "name":"topic",
         "description":"Name of the channel the message belongs to, and what decides the payload's type.",
+        "name":"topic",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"DynamicPayload"
   },
   {
-    "name":"EntityChange",
     "description":"Everything one row of one type changed by, as a working set hands it over.\n\nA change names the row, the base it was read at and the fields that changed -- never the whole row. What\nthe user did not touch is not in here, which is what makes a concurrent change to a different field\nmergeable rather than a clash.",
     "fieldDocs":[
       {
-        "name":"changes",
         "description":"The fields that changed, one entry each.",
+        "name":"changes",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"id",
         "description":"Id of the row. Generated by the client for a new row, so that changes can refer to each other before\nthe server has seen any of them.",
+        "name":"id",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"new",
         "description":"true if the row does not exist yet and the change is an insert. The client says so rather than the\nserver guessing: an unversioned type has no version to read the answer off, and a row that was deleted\nelsewhere must not be silently recreated by an update that found nothing.",
+        "name":"new",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"type",
         "description":"GraphQL name of the type whose row this is.",
+        "name":"type",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"version",
         "description":"The version the row was read at, and the whole of the optimistic lock: the write only lands while the\nstored version is still this one. Null for a new row and for a type that carries no version field.",
+        "name":"version",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"EntityChange"
   },
   {
-    "name":"EntityDeletion",
     "description":"One row to remove.\n\nThe same optimistic lock as a change and for the same reason: a row that changed since it was read may\nnot be the row the user meant to delete, and a delete that quietly removed it anyway would be the\nworst-behaved lost update of the lot.",
     "fieldDocs":[
       {
-        "name":"id",
         "description":"Id of the row to remove.",
+        "name":"id",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"type",
         "description":"GraphQL name of the type whose row this is.",
+        "name":"type",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"version",
         "description":"The version the row was read at. Null for a type that carries no version field, where the delete runs\nunconditionally.",
+        "name":"version",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"EntityDeletion"
   },
   {
-    "name":"Error",
     "description":"Reports that something a client asked for did not happen, to the client that asked.\n\nNamed for what it is on the wire. Within this package it shadows `java.lang.Error`, which is the price\nof the discriminator being the class's own simple name; code here that means the JVM's writes\n`java.lang.Error`.",
     "fieldDocs":[
       {
-        "name":"id",
         "description":"Subscription id the failed request carried, if it carried one.",
+        "name":"id",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"message",
         "description":"What went wrong, in terms the sender can act on.",
+        "name":"message",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"topic",
         "description":"Channel the failed request named, if it named one.",
+        "name":"topic",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"Error"
   },
   {
-    "name":"FieldChange",
     "description":"One field of one row set to one value.\n\nThe value travels as a GenericScalar, i.e. as the name of a scalar type plus a value that type's coercing\nunderstands. That is what lets one mutation write any type: the value arrives already converted to the\nJava type the column has, and no application ever declares an input type for it.",
     "fieldDocs":[
       {
-        "name":"field",
         "description":"Name of the field, as the GraphQL type spells it. Not the column name -- the domain is what says which\ncolumn that is.",
+        "name":"field",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"value",
         "description":"The value to write, or null to write null. A GenericScalar whose own value is null means the same\nthing, so a client that has a type name at hand may say it either way.",
+        "name":"value",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"FieldChange"
   },
   {
-    "name":"FunctionNode",
     "description":"Implemented by operation and condition nodes which are all just defined by their name and their operands.",
     "fieldDocs":[
       
-    ]
+    ],
+    "name":"FunctionNode"
   },
   {
-    "name":"Injection",
     "description":"Encapsulates the data and meta data for a data injection.",
     "fieldDocs":[
       {
-        "name":"data",
         "description":"The payload for the injection",
+        "name":"data",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"meta",
         "description":"Arbitrary meta data",
+        "name":"meta",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"type",
         "description":"The GraphQL type of the injection",
+        "name":"type",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"Injection"
   },
   {
-    "name":"MergeConfig",
     "description":"What the caller of a merge says about itself.\n\nEverything a type decides about merging is type meta data and is declared once, in the\napplication's MergeMetadataProvider. What is in here is the other half: the same working set can be\nsubmitted by a form with a user in front of it and by a service with nobody there, and the two want\ndifferent things back from a conflict.",
     "fieldDocs":[
       {
-        "name":"conflictValues",
         "description":"true if the caller can put a conflict in front of a user and take a decision back. Only then does a\nconflict come back carrying both values per field; otherwise it names the fields that clashed and\nnothing else.\n\nNothing else about the merge turns on this. The conflict is detected either way, the write fails\neither way, and the fields that clashed are named either way -- what it decides is whether the other\nuser's values travel. A caller that cannot show two values has no use for the stored row and every\nreason not to be handed a copy of it.\n\nThe type has to agree: values travel where this is set and the type declared that it resolves\nconflicts in the view.",
+        "name":"conflictValues",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"MergeConfig"
   },
   {
-    "name":"MergeConflict",
     "description":"One row the merge could not write, and why.\n\nA conflict is data. The framework ships no dialog and nothing here blocks: the merge rolled back, the user\nstill has everything they typed, and the form they were editing is where they decide what to do about it.",
     "fieldDocs":[
       {
-        "name":"deleted",
         "description":"true if the row is not there at all -- removed by somebody else, or never created. There is nothing to\nmerge into and nothing to choose between, so no fields come with it.",
+        "name":"deleted",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"fields",
         "description":"The fields that clashed. Empty for a deletion, which touches no fields, and empty where the row is\ngone.",
+        "name":"fields",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"id",
         "description":"Id of the row.",
+        "name":"id",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"storedVersion",
         "description":"The version standing in the database now, and the base a second attempt has to be made against. Null\nwhere the row is gone, and null for a type that carries no version field.\n\nNot called \"version\", and it cannot be: a type with a field of that name is a versioned type, on this\nend and on the client, and that rule is what makes the two ends unable to disagree about who takes\npart. A conflict is not a row and does not take part. The name it has instead is the one\nMergeConflictField already uses for the value that is in the database.",
+        "name":"storedVersion",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"type",
         "description":"GraphQL name of the type whose row this is.",
+        "name":"type",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"MergeConflict"
   },
   {
-    "name":"MergeConflictField",
     "description":"One field of a row that could not be written as asked.\n\nThe vocabulary is deliberately not \"ours\" and \"theirs\". Whoever wrote first is gone; the only person still\nhere is the one whose save just bounced, and what they are choosing between is the value they typed and the\nvalue that is in the database. So: mine and stored.\n\nNot every field in here is a decision. A field the other write touched and this one did not is attached\nas informational, so that a form can show what changed under the user rather than only what clashed.",
     "fieldDocs":[
       {
-        "name":"field",
         "description":"Name of the field, as the GraphQL type spells it.",
+        "name":"field",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"informational",
         "description":"true if the field is here to be seen rather than decided about: the other write changed it, this one\ndid not, and the merge takes their value silently. Catching up on a field nobody here has an opinion\nabout is not a decision anybody needs to make.\n\nAn informational field carries no mine, there being no value of ours to carry.",
+        "name":"informational",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"mine",
         "description":"The value the user meant to write, echoed back. Null where the conflict carries no values, i.e. where\neither the type or the caller did not ask to resolve conflicts.",
+        "name":"mine",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"stored",
         "description":"The value that is in the database. Null where the conflict carries no values, and null as a value in\nits own right where the stored value is null -- the GenericScalar is there either way when values are\ncarried at all.",
+        "name":"stored",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"MergeConflictField"
   },
   {
-    "name":"MergeResult",
     "description":"What came of one merge.\n\nAll or nothing: either every change and every deletion landed, or none of them did and the conflicts say\nwhich rows stood in the way. There is no partial success to reconcile, which is what lets a working set\nkeep holding exactly what the user has not saved yet.",
     "fieldDocs":[
       {
-        "name":"conflicts",
         "description":"One entry per row that could not be written. Empty when the merge is done.",
+        "name":"conflicts",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"status",
         "description":"Whether the merge landed.",
+        "name":"status",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"MergeResult"
   },
   {
-    "name":"MergeStatus",
     "description":"How a merge ended.\n\nTwo outcomes and no third one. Everything that is neither -- a type nobody exposes, a field name that\nmatches no column, a foreign key pointing at nothing -- is a programming error rather than a state of the\ndata, and comes back as a GraphQL error instead of as a status a caller has to branch on.\n\nA unique constraint is the one refusal that is not in that list. A row refused for being a duplicate of\none already there is somebody else having got in first, which is the same thing every other conflict is,\nand it comes back as one.",
     "fieldDocs":[
       {
-        "name":"CONFLICT",
         "description":"At least one row could not be written as asked, and nothing was written at all. The result carries one\nconflict per row that stood in the way.",
+        "name":"CONFLICT",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"DONE",
         "description":"Everything in the working set landed. Nothing else is written, and the transaction committed.",
+        "name":"DONE",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"MergeStatus"
   },
   {
-    "name":"ModuleFunctionReferences",
     "description":"Encapsulates the detected static function calls within one module.",
     "fieldDocs":[
       {
-        "name":"module",
         "description":"Module name (without leading \"./\")",
+        "name":"module",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"requires",
         "description":"Map of variable names mapping to",
+        "name":"requires",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"ModuleFunctionReferences"
   },
   {
-    "name":"PayloadRecast",
     "description":"Turns the untyped payload of a DynamicPayload message into the class its channel is bound to.\n\nA step a handler takes because it wants compile-time field access, not one the message model performs\non its behalf. Filtering needs none of this -- a condition compiled against `payload.name` neither\nknows nor cares whether it is reading the parsed `Map` or a recast instance -- so this exists for the\nJava code that would rather not spell its own payload's fields as strings.\n\nRecasting walks the parsed map graph straight into a new instance through Svenson's own property\naccessors. It is driven by the *target* class's declared properties, so content the bound class\ndeclares no place for simply has nowhere to land.",
     "fieldDocs":[
       
-    ]
+    ],
+    "name":"PayloadRecast"
   },
   {
-    "name":"Publish",
     "description":"Sends a payload to a channel, from a client.\n\nThe mirror image of the `publish()` call any framework or application bean can make server-side, and\nthe one payload the server receives as raw JSON rather than as a live object. Which channels a client\nmay publish to is an authorization question the transport answers, not this class.",
     "fieldDocs":[
       {
-        "name":"message",
         "description":"The payload, as parsed: a `Map`, since what class it belongs to is the channel's business and not\nthis message kind's. PayloadRecast is how a handler that wants it typed asks for that.",
+        "name":"message",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"Publish"
   },
   {
-    "name":"PushMessage",
     "description":"Abstract base class for every message QLive sends over its websocket connection, in either direction.\n\nThe set of message kinds is fixed at compile time and each kind is one subclass, dispatched by the same\nclass-name discriminator io.github.qlivedev.model.condition.CNode uses. Pub/sub is one of\nthose kinds, not the protocol itself: whatever QLive needs to say over the socket next gets a class\nbeside these rather than a second protocol.\n\nA message travels in one direction only, which is what ClientMessage and ServerMessage\nsay. PushMessageParser rejects a message read against the wrong one.",
     "fieldDocs":[
       {
-        "name":"type",
         "description":"The discriminator the JSON carries, derived from the class name. Read-only in both directions of\nthe word: there is no field behind it, and a parser must not try to set it -- it is what told the\nparser which class to build in the first place.",
+        "name":"type",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"PushMessage"
   },
   {
-    "name":"PushMessageParser",
     "description":"Reads a websocket frame as the message class its \"type\" names.\n\nTwo hierarchies are dispatched in one pass: the message kind, and the FilterDSL condition a\nSubscribe carries. Each gets its own class-name mapper, scoped to its own base type, and\nTypeMappers#firstAnswer is what lets both be consulted -- Svenson's own composite cannot, see\nthere.\n\nThe one field neither mapper touches is a pub/sub payload. `Publish.message` is declared as `Object`,\nso no matcher fires on it and it lands as a plain `Map`: which class it belongs to is decided by the\nchannel, and that is runtime state no parser can be given at construction time.\nPayloadRecast is how a caller asks for the typed instance, if it wants one.",
     "fieldDocs":[
       
-    ]
+    ],
+    "name":"PushMessageParser"
   },
   {
-    "name":"QLiveBoostrap",
     "description":"Encapsulates the data for a /api/bootstrap call or to be embedded in the HTML document.\n\n * QLive config - QLiveConfig wrapped in a JSONHolder\n * injected data - Prepared data for the starting view based on static analysis of TypeScript sources.\n * who is asking - AppAuthentication, which is per user and so cannot live in the config, that\n   being rendered once per module and handed to everyone.",
     "fieldDocs":[
       {
-        "name":"authentication",
         "description":"Who the page is being served to: login, roles and id, the last of which is what lets a client tell\nsomebody else's write from its own without asking.\n\nAnonymous is an answer and not an absence, so this is never null.",
+        "name":"authentication",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"config",
         "description":"QLive system config.\n\nWe keep it wrapped in a JSONHolder to generate the JSON only once.",
+        "name":"config",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"csrfToken",
         "description":"Returns CSRF Token meta information.",
+        "name":"csrfToken",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"data",
         "description":"Injection data map",
+        "name":"data",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"QLiveBoostrap"
   },
   {
-    "name":"QLiveConfig",
     "description":"Contains the system configuration of a QLive system.",
     "fieldDocs":[
       
-    ]
+    ],
+    "name":"QLiveConfig"
   },
   {
-    "name":"QueryConfig",
     "description":"Generalized query configuration",
     "fieldDocs":[
       {
-        "name":"offset",
         "description":"Returns the query offset",
+        "name":"offset",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"pageSize",
         "description":"Returns the page size / limit",
+        "name":"pageSize",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"sortFields",
         "description":"Field sort expressions",
+        "name":"sortFields",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"QueryConfig"
   },
   {
-    "name":"QueryDocument",
     "description":"Container for [T] queries",
     "fieldDocs":[
       {
-        "name":"config",
         "description":"query config for this document",
+        "name":"config",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"rows",
         "description":"List of [T] objects",
+        "name":"rows",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"type",
         "description":"Runtime payload type (always '[T]')",
+        "name":"type",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"QueryDocument"
   },
   {
-    "name":"ServerMessage",
     "description":"Abstract base class for the messages the server sends to a client.",
     "fieldDocs":[
       
-    ]
+    ],
+    "name":"ServerMessage"
   },
   {
-    "name":"Subscribe",
     "description":"Registers one subscription on one channel for the connection that sent it.\n\nA connection can hold several subscriptions on the same channel with different conditions, which is\nwhat #getId() tells apart: the client picks it, and it comes back on every\nTopic message the subscription matched, on the Subscribed acknowledging it, and on any\nError rejecting it.",
     "fieldDocs":[
       {
-        "name":"condition",
         "description":"Condition every message on the channel is evaluated against before it is delivered to this\nsubscription, or `null` to receive everything the channel carries.",
+        "name":"condition",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"id",
         "description":"The client's own id for this subscription, unique within its connection.",
+        "name":"id",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"topic",
         "description":"Name of the channel to subscribe to.",
+        "name":"topic",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"Subscribe"
   },
   {
-    "name":"Subscribed",
     "description":"Acknowledges a Subscribe: the condition compiled, the subscription is registered, and messages\non the channel will start arriving.\n\nThe point of acknowledging at all is that the other outcome is visible too. A condition using an\noperator this backend cannot honor is rejected with an Error naming it, rather than becoming a\nsubscription that silently never matches anything.",
     "fieldDocs":[
       {
-        "name":"id",
         "description":"The id the Subscribe carried.",
+        "name":"id",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"Subscribed"
   },
   {
-    "name":"Topic",
     "description":"One channel message, delivered to one connection.\n\n#getIds() is a list because a connection can hold several subscriptions on the same channel\nwith different conditions. A publish matching more than one of them is batched into a single outgoing\nmessage rather than sent once per match, so the receiving client sees the payload once and knows every\none of its own subscriptions it belongs to.",
     "fieldDocs":[
       {
-        "name":"ids",
         "description":"The ids of this connection's subscriptions that the payload matched.",
+        "name":"ids",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"payload",
         "description":"What was published, serialized on the way out and never read back server-side. The client is its\nonly consumer, and what type it gives the value there is a TypeScript question.",
+        "name":"payload",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"Topic"
   },
   {
-    "name":"TopicTypes",
     "description":"The one thing reading a dynamic payload needs from the pub/sub channel registry: the Java class a topic\nis bound to.\n\nNarrow on purpose. The registry is runtime state that grows as an application registers channels, so\nit cannot be wired into a parser once at construction time the way a fixed subclass list can -- but\nnothing about turning a payload into its bound type needs more of it than this.",
     "fieldDocs":[
       
-    ]
+    ],
+    "name":"TopicTypes"
   },
   {
-    "name":"TrackUsageData",
     "description":"Encapsulates the information contained within a <code>track-usage.json<\/code> file on the java side.\n\nIt contains the results of JavaScript code analysis that detects statically analyzable calls within the application\nreact components and other modules.",
     "fieldDocs":[
       
-    ]
+    ],
+    "name":"TrackUsageData"
   },
   {
-    "name":"Unsubscribe",
     "description":"Drops one of the sending connection's subscriptions.\n\nOnly ever needed while a connection lives: closing one sweeps every subscription it holds, across every\nchannel.",
     "fieldDocs":[
       {
-        "name":"id",
         "description":"The id the matching Subscribe carried.",
+        "name":"id",
         "paramDocs":[
           
         ]
       }
-    ]
+    ],
+    "name":"Unsubscribe"
   },
   {
-    "name":"ValueNode",
     "description":"Abstract base class for \"Value nodes\" within a FilterDSL condition hierarchy",
     "fieldDocs":[
       
-    ]
+    ],
+    "name":"ValueNode"
   }
 ]

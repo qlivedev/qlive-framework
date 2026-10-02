@@ -667,8 +667,8 @@ public class AnotherQLiveDomainTest
 
         assertThat(pagedPayload, is(notNullValue()));
         assertThat(pagedPayload.getFieldDefinitions().size(), is(2));
-        final GraphQLList listProp = (GraphQLList) ((GraphQLNonNull)pagedPayload.getFieldDefinitions().get(0).getType()).getWrappedType();
-        final GraphQLOutputType numProp = (GraphQLOutputType) ((GraphQLNonNull)pagedPayload.getFieldDefinitions().get(1).getType()).getWrappedType();
+        final GraphQLList listProp = (GraphQLList) ((GraphQLNonNull)pagedPayload.getFieldDefinition("rows").getType()).getWrappedType();
+        final GraphQLOutputType numProp = (GraphQLOutputType) ((GraphQLNonNull)pagedPayload.getFieldDefinition("rowCount").getType()).getWrappedType();
         assertThat(((GraphQLNamedType)listProp.getWrappedType()).getName(), is( "Payload"));
         assertThat(((GraphQLNamedType)numProp).getName(), is( "Int"));
 
@@ -694,8 +694,8 @@ public class AnotherQLiveDomainTest
 
         assertThat(pagedPayload, is(notNullValue()));
         assertThat(pagedPayload.getFieldDefinitions().size(), is(2));
-        final GraphQLList listProp = (GraphQLList) ((GraphQLNonNull)pagedPayload.getFieldDefinitions().get(0).getType()).getWrappedType();
-        final GraphQLOutputType numProp = (GraphQLOutputType) ((GraphQLNonNull)pagedPayload.getFieldDefinitions().get(1).getType()).getWrappedType();
+        final GraphQLList listProp = (GraphQLList) ((GraphQLNonNull)pagedPayload.getFieldDefinition("rows").getType()).getWrappedType();
+        final GraphQLOutputType numProp = (GraphQLOutputType) ((GraphQLNonNull)pagedPayload.getFieldDefinition("rowCount").getType()).getWrappedType();
         assertThat(((GraphQLNamedType)listProp.getWrappedType()).getName(), is( "AnnotatedPayload"));
         assertThat(((GraphQLNamedType)numProp).getName(), is( "Int"));
 
@@ -727,8 +727,8 @@ public class AnotherQLiveDomainTest
 
         assertThat(pagedPayload, is(notNullValue()));
         assertThat(pagedPayload.getFieldDefinitions().size(), is(2));
-        final GraphQLList listProp = (GraphQLList) ((GraphQLNonNull)pagedPayload.getFieldDefinitions().get(0).getType()).getWrappedType();
-        final GraphQLOutputType numProp = (GraphQLOutputType) ((GraphQLNonNull)pagedPayload.getFieldDefinitions().get(1).getType()).getWrappedType();
+        final GraphQLList listProp = (GraphQLList) ((GraphQLNonNull)pagedPayload.getFieldDefinition("rows").getType()).getWrappedType();
+        final GraphQLOutputType numProp = (GraphQLOutputType) ((GraphQLNonNull)pagedPayload.getFieldDefinition("rowCount").getType()).getWrappedType();
         assertThat(((GraphQLNamedType)listProp.getWrappedType()).getName(), is( "SourceOne"));
         assertThat(((GraphQLNamedType)numProp).getName(), is( "Int"));
 
@@ -957,8 +957,7 @@ public class AnotherQLiveDomainTest
         final GraphQLObjectType type = (GraphQLObjectType) schema.getType(((GraphQLNamedType)queryContainerB.getType()).getName());
         assertThat(type.getDescription(), is("Generated for io.github.qlivedev.graphql.beans.Container<TypeB>"));
         assertThat(type.getFieldDefinitions().size(), is(2));
-        assertThat(type.getFieldDefinitions().get(0).getName(), is("value"));
-        assertThat(((GraphQLNamedType)type.getFieldDefinitions().get(0).getType()).getName(), is("TypeB"));
+        assertThat(((GraphQLNamedType)type.getFieldDefinition("value").getType()).getName(), is("TypeB"));
 
 
         GraphQLFieldDefinition queryListA = queryType.getFieldDefinition("queryListTypeA");
@@ -1005,8 +1004,7 @@ public class AnotherQLiveDomainTest
         final GraphQLObjectType type = (GraphQLObjectType) schema.getType(((GraphQLNamedType)mutationContainerB.getType()).getName());
         assertThat(type.getDescription(), is("Generated for io.github.qlivedev.graphql.beans.Container<TypeB>"));
         assertThat(type.getFieldDefinitions().size(), is(2));
-        assertThat(type.getFieldDefinitions().get(0).getName(), is("value"));
-        assertThat(((GraphQLNamedType)type.getFieldDefinitions().get(0).getType()).getName(), is("TypeB"));
+        assertThat(((GraphQLNamedType)type.getFieldDefinition("value").getType()).getName(), is("TypeB"));
 
 
         GraphQLFieldDefinition mutationListA = mutationType.getFieldDefinition("mutateListTypeA");

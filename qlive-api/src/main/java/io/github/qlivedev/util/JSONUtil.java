@@ -32,7 +32,8 @@ public class JSONUtil
         // no instances
     }
 
-    public final static JavaObjectSupport OBJECT_SUPPORT = new JavaObjectSupport();
+    /// The object support, with bean properties in a stable order -- see [OrderedObjectSupport].
+    public final static JavaObjectSupport OBJECT_SUPPORT = new OrderedObjectSupport();
 
     public final static JSON DEFAULT_GENERATOR;
 

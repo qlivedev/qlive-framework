@@ -55,3 +55,41 @@
     font-size: var(--sl-text-xs);
     color: var(--sl-color-gray-3);
 }
+
+/*
+ * Page width on wide screens. Starlight keeps the text column at 45rem and
+ * centers it right of the sidebar, handing half the leftover width to an
+ * empty gap and half to the "On this page" column -- on a 2560px window
+ * that is over 1000px of nothing while diagrams and tables squeeze into
+ * 720px. Instead the column grows once there is room for it, and the
+ * outline column keeps the sidebar's width rather than soaking up the
+ * rest. The leftover goes 70/30 before and after text and outline:
+ * split evenly, the text looked crowded toward the sidebar.
+ *
+ * Unlayered, so these win over Starlight's rules in @layer starlight.core.
+ */
+@media (min-width: 100rem) {
+    :root {
+        --sl-content-width: 56rem;
+    }
+}
+
+@media (min-width: 72rem) {
+    [data-has-sidebar][data-has-toc] {
+        --qlive-content-box: calc(var(--sl-content-width) + 2 * var(--sl-content-pad-x));
+    }
+
+    [data-has-sidebar][data-has-toc] .main-pane {
+        width: min(
+            calc(100% - var(--sl-sidebar-width)),
+            calc(
+                var(--qlive-content-box) +
+                max(0px, (100% - var(--sl-sidebar-width) - var(--qlive-content-box)) * 0.7)
+            )
+        );
+    }
+
+    [data-has-sidebar][data-has-toc] .right-sidebar-container {
+        width: var(--sl-sidebar-width);
+    }
+}

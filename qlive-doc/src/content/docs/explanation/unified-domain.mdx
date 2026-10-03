@@ -56,13 +56,33 @@ translated into a Java predicate tree that can express conditions on Java
 object graphs. Here, the conditions inherit the memory access semantics
 from the use case.
 
-If a document's rows are in the browser already -- a local document over
-rows the view holds, or a page running on recorded data like the one below --
-the conditions are evaluated there, over the rows in memory, with no request
-at all. The grid can't tell the difference.
+### Demos
 
-<QLiveDemo view="grid/Local"/>
+We can also just use in-memory data. Every demo in this documentation is built
+on a extended state snapshot of the actual view. Then we set up astro islands
+where we provide the snapshot data.
 
-One condition graph, written once, therefore does not mean one thing. What
-that costs and what it buys is [Filter DSL](/qlive-framework/explanation/filter-dsl/).
+This uses pre-existing functionality (See [useLocalDocument](/qlive-framework/api/query-documents/#localdocument))
+in a new way useful to demos off a static file host like this or tests or storybook.
 
+Here, inside an MDX document, we can then just invoke the QLive demo by its view
+
+```tsx title="unified-domain.mdx"
+<QLiveDemo view="grid/Basic"/>
+```
+to create a live demo based on the extended data, but refiltered with the TypeScript FilterDSL implementation, so that
+the components inside, for example, Basic.tsx don't even see any difference.
+
+The update function that normally requests an update from the server now just creates a new slice of the extended data.
+
+<QLiveDemo view="grid/Basic"/>
+
+## One condition, three worlds
+
+One condition graph, written once, therefore does not mean only one thing. There are of course difference in the translation
+of these conditions, of course. After all, they are targeting three very different platforms query.query
+
+What is a reference to an in-memory object graph in one world means an
+[EXIST query in another](/qlive-framework/explanation/filter-dsl/#semantic-differences-per-technology).
+
+See [Filter DSL](/qlive-framework/explanation/filter-dsl/) for more details.

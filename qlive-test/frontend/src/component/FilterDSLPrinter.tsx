@@ -75,7 +75,7 @@ const FilterDSLPrinter = ({ value } : FilterDSLPrinterProps) => {
         return (
             <>
                 {
-                    value ? decompileFilter(value) : "<none>"
+                    value ? <textarea cols={60} rows={ 16    } readOnly={true} value={ decompileFilter(value) }/>  : "<none>"
                 }
             </>
         );

@@ -55,9 +55,7 @@ export default function Search()
 
                 </dt>
                 <dd>
-                    <pre>
-                        <FilterDSLPrinter value={ foos.config.condition }/>
-                    </pre>
+                    <FilterDSLPrinter value={ foos.config.condition }/>
                 </dd>
 
             </dl>

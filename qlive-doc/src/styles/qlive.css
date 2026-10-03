@@ -127,3 +127,15 @@ mark {
     background: var(--qlive-amber);
     color: var(--qlive-on-accent);
 }
+
+textarea
+{
+    flex: 1;
+    min-width: 0;
+    padding: var(--qlive-space-1) var(--qlive-space-2);
+    border: 1px solid var(--qlive-color-border);
+    border-radius: var(--qlive-radius-md);
+    background: var(--qlive-color-bg);
+    color: var(--qlive-color-fg);
+    font: inherit;
+}

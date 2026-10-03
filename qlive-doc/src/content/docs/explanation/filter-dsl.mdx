@@ -138,6 +138,17 @@ shows, and clearing the search leaves the grid's part alone.
 
 <QLiveDemo view="grid/Search"/>
 
+This demo shows filter composition. Both parts of the view: the search from and the datagrid can contribute to the final
+final, but each of them sticks to their own part of the whole marked by the component.query
+
+The component approach is needed because each component needs to know which parts of the incoming QueryConfig belong
+to it. Wrapping the expression in a component always allows us to associate filter terms with components.
+
+You can also just control the QueryConfig from the outside without using components.
+[Sorting.tsx](/qlive-framework/demo/sorting/) controls the sortFields with a select field from the outside. Note how
+the datagrid renders multi column or expression-based sort orders. Although it can't trigger the state itself, it can still
+show the state.
+
 ## Why the operators are not listed here
 
 Every operator is a method on a field, value or condition node, and each is

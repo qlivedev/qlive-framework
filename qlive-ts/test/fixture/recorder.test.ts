@@ -149,11 +149,25 @@ describe("recordFixture", () => {
         expect(fixture.config!.schema.types[0]).toHaveProperty("description", null)
     })
 
-    it("fails where the server held the rows to a maxPageSize", async () => {
-        inject(Q_Foo)
-        respondWith(allRows(2))
+    it("takes the rows a maxPageSize held the server to as all there are, and says so", async () => {
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+        try
+        {
+            inject(Q_Foo)
+            respondWith(allRows(2))
 
-        await expect(recordFixture()).rejects.toThrow(/'home\/Q_Foo' got 2 of 3 Foo rows/)
+            const fixture = await recordFixture()
+
+            const doc = fixture.data["home/Q_Foo"].data.xxx
+            expect(doc.rows).toHaveLength(2)
+            expect(doc.rowCount).toBe(2)
+            expect(fixture.description).toMatch(/: Q_Foo with 2 of 3 Foo rows$/)
+            expect(warn).toHaveBeenCalledWith(expect.stringMatching(/'home\/Q_Foo' got 2 of 3 Foo rows/))
+        }
+        finally
+        {
+            warn.mockRestore()
+        }
     })
 
     describe("for a query that selects no rowCount", () => {
@@ -209,18 +223,32 @@ describe("recordFixture", () => {
             expect(sentVariables(fetchMock).config).toEqual({sortFields: ["name"], offset: 0, pageSize: 0})
         })
 
-        it("fails where the rows fill the type's maxPageSize", async () => {
-            await namesPage(3)
-            respondWith(namesResult(3))
+        it("says the rows may be cut short where they fill the type's maxPageSize", async () => {
+            const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+            try
+            {
+                await namesPage(3)
+                respondWith(namesResult(3))
 
-            await expect(recordFixture()).rejects.toThrow(/'home\/Q_Names' got 3 of possibly more Foo rows/)
+                const fixture = await recordFixture()
+
+                expect(fixture.data["home/Q_Names"].data.xxx.rows).toHaveLength(3)
+                expect(fixture.description).toMatch(/: Q_Names with 3 of possibly more Foo rows$/)
+                expect(warn).toHaveBeenCalledOnce()
+            }
+            finally
+            {
+                warn.mockRestore()
+            }
         })
 
-        it("takes rows short of the type's maxPageSize", async () => {
+        it("takes rows short of the type's maxPageSize as all there are", async () => {
             await namesPage(5)
             respondWith(namesResult(3))
 
-            await expect(recordFixture()).resolves.toBeDefined()
+            const fixture = await recordFixture()
+
+            expect(fixture.description).toMatch(/: Q_Names with 3 Foo rows$/)
         })
     })
 

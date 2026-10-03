@@ -144,10 +144,16 @@ call with its `GraphQLQuery` and params while the view renders. So:
    path, with the path in it and the CSRF token blanked.
 
 Asked for `pageSize: 0`, the server returns everything unless the type
-has a `maxPageSize` and the result is larger. The recorder compares
-`rowCount` with the number of rows it got and fails, naming the type.
-A cut-off result would page and filter wrong without any sign of it,
-and demo data large enough to hit the limit is a mistake anyway.
+has a `maxPageSize` and the result is larger. Then the recorder keeps
+the rows it got and sets `rowCount` to their number: the fixture
+treats them as the whole table. That is consistent in itself -- the
+rows are the first ones in the injected sort order, so the view opens
+on the same first page, and it pages, filters and sorts within them --
+and differs only from the server, which a fixture never claims to
+match. What a recording needs is enough rows to show, not every row.
+So the cut has a sign but is no error: the description reads
+"2 of 3 Foo rows" (or "of possibly more" where the query selects no
+`rowCount`), and the recorder warns on the console.
 
 The recorder lives in `fixture/recorder.ts`, which `startup()` loads
 with a dynamic import in dev mode only, so it is a chunk of its own

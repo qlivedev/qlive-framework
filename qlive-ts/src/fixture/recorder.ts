@@ -15,14 +15,17 @@ import {routeOf} from "../router";
  * again for all its rows.
  *
  * The query and parameters come from the view's own useInjection() calls, so the view has to have rendered. A
- * document comes back with all rows unless its type sets a maxPageSize the result is larger than, and a fixture
- * holding a part of the rows would page and filter wrong without any sign of it -- so that fails instead.
+ * document comes back with all rows unless its type sets a maxPageSize the result is larger than. Then the fixture
+ * holds the rows that came back, first in the injected sort order, as if they were all there are: the view opens on
+ * the same first page, and pages, filters and sorts within those. The description says where that happened, and so
+ * does a warning on the console.
  *
  * The fixture carries the authentication of whoever records it: record as a demo login, not a personal one.
  *
  * The schema's descriptions are dropped: a quarter of the schema that only DomainTables shows.
  *
- * The fixture's description says when, where and as whom it was recorded, and how many rows each document holds.
+ * The fixture's description says when, where and as whom it was recorded, and how many rows each document holds --
+ * "2 of 3 Foo rows" where maxPageSize cut it short.
  *
  * @returns the fixture
  */
@@ -81,22 +84,22 @@ export async function recordFixture(): Promise<QLiveFixture>
         })
         const all = firstValue(result)
 
-        if (!allRows(all))
+        const total = cutFrom(all)
+        const rows = all.rows.length + (total != null ? " of " + total : "") + " " +
+                     (document.type ? document.type + " " : "") + "rows"
+        if (total != null)
         {
-            throw new Error(
-                "The injection '" + injectionId + "' got " + all.rows.length + " of " +
-                (all.rowCount ?? "possibly more") + " " + document.type + " rows: the type's maxPageSize holds a " +
-                "query for all rows to that. A fixture needs every row, so record from data that fits."
+            console.warn(
+                "Recording the fixture: the injection '" + injectionId + "' got " + rows + ", held to the type's " +
+                "maxPageSize. The fixture holds these as all there are."
             )
         }
 
-        // all the rows, under the config the view injected with
+        // the rows there are, as far as the fixture knows, under the config the view injected with
         source.data = {
             [key]: {...document, rows: all.rows, rowCount: all.rows.length}
         }
-        documents.push(
-            injectionId.substring(route.length + 1) + " with " + all.rows.length + " " + (document.type ? document.type + " " : "") + "rows"
-        )
+        documents.push(injectionId.substring(route.length + 1) + " with " + rows)
     }
 
     fixture.description = "Recorded " + new Date().toISOString().substring(0, 16).replace("T", " ") + " UTC at " +
@@ -107,20 +110,27 @@ export async function recordFixture(): Promise<QLiveFixture>
 }
 
 /**
- * Whether the given result of a query for all rows holds every row: as many as its rowCount says, or, where the query
- * selects no rowCount, fewer than the row type's maxPageSize, which is what a query for all rows is held to.
+ * How many rows the given result of a query for all rows was cut short of by the row type's maxPageSize: its rowCount
+ * where it holds fewer rows than that, "possibly more" where the query selects no rowCount and the rows fill the
+ * maxPageSize, or can't be told from a maxPageSize because the query selects no type.
  *
  * @param all   query document result, as received
+ *
+ * @returns how many rows there were, or null where the result holds them all
  */
-function allRows(all: {rows: unknown[], rowCount?: number, type?: string}): boolean
+function cutFrom(all: {rows: unknown[], rowCount?: number, type?: string}): number | "possibly more" | null
 {
     if (all.rowCount != null)
     {
-        return all.rows.length === all.rowCount
+        return all.rows.length < all.rowCount ? all.rowCount : null
     }
 
-    const maxPageSize = all.type ? config().meta.types[all.type]?.meta?.maxPageSize : undefined
-    return maxPageSize == null ? !!all.type : all.rows.length < maxPageSize
+    if (!all.type)
+    {
+        return "possibly more"
+    }
+    const maxPageSize = config().meta.types[all.type]?.meta?.maxPageSize
+    return maxPageSize != null && all.rows.length >= maxPageSize ? "possibly more" : null
 }
 
 /**

@@ -5,8 +5,6 @@ import io.github.qlivedev.model.merge.FieldChange;
 import io.github.qlivedev.model.merge.MergeConfig;
 import io.github.qlivedev.runtime.merge.EntityVersion;
 import io.github.qlivedev.runtime.merge.EntityVersionsEvent;
-import io.github.qlivedev.runtime.merge.FieldLayout;
-import io.github.qlivedev.runtime.merge.FieldLayoutService;
 import io.github.qlivedev.runtime.merge.MergeService;
 import io.github.qlivedev.runtime.merge.VersionHolder;
 import io.github.qlivedev.runtime.auth.AppAuthentication;
@@ -38,25 +36,23 @@ import static io.github.qlivedev.runtime.scalar.FilterDSL.value;
 import static io.github.qlivedev.qlivetest.domain.Tables.APP_VERSION;
 import static io.github.qlivedev.qlivetest.domain.Tables.BAR;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 /// Push's first consumer, end to end from a merge: the records a merge wrote, on the "EntityVersion"
-/// channel, filtered the way a form on screen would filter them.
+/// channel.
 ///
 /// Subscribed in-process rather than over a websocket. What the transport does with a message is
 /// {@link PushWebSocketTest}'s subject; what this is about is that a committed merge produces one, that it
-/// carries what a subscriber needs, and that an uncommitted one produces nothing.
+/// carries what a subscriber needs, and that an uncommitted one produces nothing. How a record is spelled
+/// on the wire and what a subscription can filter it by is qlive's EntityVersionPublisherTest, with no
+/// merge involved.
 @SpringBootTest
 class EntityVersionPushTest
 {
     @Autowired
     private MergeService mergeService;
-
-    @Autowired
-    private FieldLayoutService fieldLayoutService;
 
     @Autowired
     private VersionHolder versionHolder;
@@ -112,81 +108,6 @@ class EntityVersionPushTest
         assertThat(record.get("id"), is(dslContext.select(BAR.VERSION).from(BAR).where(BAR.ID.eq(id)).fetchOne(BAR.VERSION)));
         assertThat(record.get("ownerId"), is(notNullValue()));
         assertThat(record.get("prev"), is((Object) null));
-    }
-
-
-    /// The mask is a decimal string on the wire, not a number: it is 128 bits wide and a JavaScript number
-    /// holds 53 of them exactly. The client reads it with `BigInt`.
-    @Test
-    void sendsTheFieldMaskAsADecimalString()
-    {
-        final String id = newId();
-        merge(newBar(id, "Pushed #2", 2));
-
-        final Object mask = subscriber.record(0).get("fieldMask");
-
-        assertThat("the mask is a string, not a number", mask instanceof String, is(true));
-
-        final FieldLayout layout = fieldLayoutService.current("Bar");
-        assertThat(layout.fields(new BigInteger((String) mask)), contains("created", "name", "num"));
-
-        // and the layout the positions were assigned by travels with it, because a client decoding the
-        // mask has to know which one it was written against
-        assertThat(subscriber.record(0).get("fieldLayout"), is(layout.getId()));
-    }
-
-
-    /// The timestamp is the string the GraphQL schema's own Timestamp scalar produces, rather than a dump
-    /// of `java.util.Date`'s getters, which is what Svenson makes of a `java.sql.Timestamp` left alone.
-    @Test
-    void sendsTheTimestampTheWayEveryOtherTimestampIsSent()
-    {
-        final String id = newId();
-        merge(newBar(id, "Pushed #3", 3));
-
-        assertThat(
-            String.valueOf(subscriber.record(0).get("created")),
-            org.hamcrest.Matchers.matchesPattern("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z")
-        );
-    }
-
-
-    /// The subscription the whole design is shaped around: this type, these rows, these fields. Built
-    /// entirely out of what the payload carries, with no coercion needed on the way in -- the ids are
-    /// strings and the mask is a decimal string on both sides.
-    @Test
-    void filtersTheWayAFormOnScreenWould()
-    {
-        final String watched = newId();
-        final String other = newId();
-
-        final BigInteger nameOnly = fieldLayoutService.current("Bar").mask(List.of("name"));
-
-        pubSub.subscribe(
-            subscriber,
-            EntityVersionPublisher.TOPIC,
-            and(
-                field("entityType").eq(value("Bar")),
-                field("entityId").eq(value(watched)),
-                field("fieldMask").bitAnd(value(nameOnly.toString())).ne(value(0))
-            ),
-            "onScreen"
-        );
-
-        merge(newBar(watched, "Watched", 1));
-        merge(newBar(other, "Not watched", 2));
-
-        final String version = dslContext.select(BAR.VERSION).from(BAR).where(BAR.ID.eq(watched))
-            .fetchOne(BAR.VERSION);
-
-        // the row being watched, once, and not the other one -- the unfiltered subscription saw both
-        assertThat(
-            subscriber.received.stream()
-                .filter(m -> m.getIds().contains("onScreen"))
-                .map(m -> record(m).get("id"))
-                .toList(),
-            contains(version)
-        );
     }
 
 

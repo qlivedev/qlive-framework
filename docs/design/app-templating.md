@@ -119,7 +119,8 @@ load it into whatever database the application names, and the qlive-test
 reality -- a binary backup as the only persistence, see the dev database
 note -- is not something to hand a new user as their first artifact. It
 holds the four tables `qlive` reaches by name. `qlive/qlive.backup` is
-not that baseline; it is stale and still contains `foo`.
+not that baseline; it is the source of qlive's own test domain, `test_*`
+tables the framework's tests build their schema from.
 
 **Generated artifacts are committed.** jOOQ classes, `schema.graphql`
 and `types.d.ts` for the baseline schema ship in the template, so a

@@ -1228,6 +1228,10 @@ type analysis.
 
 ## Open items
 
+Collected with the other executed designs' open questions in
+`../open-questions.md`, which is where to look for what is still open;
+the reasoning stays here.
+
 - **Whether the framework ships the listing.** The descriptors are layer
   2 and the application renders them, consistent with everything else
   here. But a "parked work" list is a page rather than a modal in a

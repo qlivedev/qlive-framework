@@ -373,6 +373,10 @@ only name whose argument is not a field, and its caller handles it.
 
 ## Open items (not decided)
 
+Collected with the other executed designs' open questions in
+`../open-questions.md`, which is where to look for what is still open;
+the reasoning stays here.
+
 - **`MULTISET` instead of follow-up queries.** Deliberately deferred,
   not rejected. The plan tree is the seam.
 - **Same-row semantics for multiple conditions on one to-many path.**

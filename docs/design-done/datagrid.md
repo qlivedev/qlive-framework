@@ -609,6 +609,10 @@ avoid. Its API shape is worth borrowing.
 
 ## Open
 
+Collected with the other executed designs' open questions in
+`../open-questions.md`, which is where to look for what is still open;
+the reasoning stays here.
+
 - Select-all and selection across pages.
 - Whether `useFilters()` should also serve a form that isn't a grid:
   a search form is an owner of a component too, with fields instead of

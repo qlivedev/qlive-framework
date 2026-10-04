@@ -1160,6 +1160,10 @@ them.
 
 ## Open items
 
+Collected with the other executed designs' open questions in
+`../open-questions.md`, which is where to look for what is still open;
+the reasoning stays here.
+
 - Whether the `CNode`/`ConditionParser` model already has, or should
   grow, a context-node concept -- relevant only if a genuine
   per-subscriber personalisation need ever shows up; not needed for

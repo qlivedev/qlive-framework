@@ -189,11 +189,17 @@ add one.
   stays out.
 
 Each island renders its view in a `FixtureScope`, so a page can show
-several demos, one per view. A fixture is mostly
-the config's schema. The recorder sets the schema's descriptions to
-null, which only DomainTables shows; that took the Sorting fixture from
-72 to 57 KB compact, 44 of them still schema. Pruning the schema to the
-types a view reaches would be the next step if size starts to matter.
+several demos, one per view. A recorded fixture is mostly the config's
+schema. The recorder sets the schema's descriptions to null, which only
+DomainTables shows; that took the Sorting fixture from 72 to 57 KB
+compact, 44 of them still schema. qlive-doc then took the config out of
+its fixtures altogether: they are stored with `config: null`, and the
+islands fetch the one config all of them share, `src/demo/config.json`,
+once per page. `pnpm -C qlive-doc fixture` adds a recording and refuses
+one whose config differs from the shared one. That leaves the Sorting
+fixture at 16 KB. Pruning the schema to the types a view reaches is no
+longer needed for the docs; an application's own fixtures still carry
+their config.
 
 ## Not chosen
 

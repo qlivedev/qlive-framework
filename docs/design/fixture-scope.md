@@ -183,12 +183,12 @@ fixture-mode.md go with it. The Sorting fixture is re-recorded.
   showing the same view on the same fixture share its documents: sort
   one, and the other sorts with it. Neither is a case a docs page has
   yet.
-- **The schema in every fixture.** It's 44 of the Sorting fixture's 57
-  KB, and three demos on a page download it three times. Accepted for
-  now; pruning each fixture's schema to the types its view reaches is
-  the next step fixture-mode.md already names. Recording the config
-  once per application and the injections per view would load it once,
-  but it changes the fixture format and is more than this calls for.
+- **The schema in every fixture.** It was 44 of the Sorting fixture's
+  57 KB, and three demos on a page downloaded it three times. qlive-doc
+  has since solved it without changing the format: its fixtures carry
+  `config: null` and the islands fill in one shared config, fetched
+  once per page (see [fixture-mode.md](fixture-mode.md#showing-a-view-in-qlive-doc)).
+  A fixture used anywhere else still carries its own.
 
 ## Not chosen
 

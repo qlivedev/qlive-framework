@@ -1,7 +1,8 @@
 # Splitting the qlive-graphql schema tests
 
 Status: sketched, not started, and judged not worth doing on its own.
-Written 2026-09-25, out of a question asked during the DomainQL rename.
+Written 2026-09-25, out of a question asked during the DomainQL rename;
+counts updated 2026-10-04.
 
 Recorded so the next person to open `AnotherQLiveDomainTest` finds the
 reasoning instead of rediscovering it.
@@ -19,7 +20,7 @@ The difference between them is not subject matter. It is shape:
 | | domains built | tests |
 | --- | --- | --- |
 | `QLiveDomainTest` | 1, as a field | 8 |
-| `AnotherQLiveDomainTest` | 44 | 44 |
+| `AnotherQLiveDomainTest` | 45 | 45 |
 
 `QLiveDomainTest` configures a single domain with nine source/target
 relation variants and then interrogates that one schema from eight
@@ -32,7 +33,7 @@ something a test should be named after.
 
 ## What a split would look like
 
-The 44 cases fall into three groups. Two name themselves; the third took
+The 45 cases fall into three groups. Two name themselves; the third took
 a second pass to see, because its members look unrelated until the
 question is phrased as "how does a Java thing become a GraphQL thing".
 
@@ -54,13 +55,14 @@ question is phrased as "how does a Java thing become a GraphQL thing".
 `testImplicitOverrideNonInputLogic`, `testOutputTypeOverride`,
 `testOutputTypeOverrideByParam`.
 
-**Type mapping -- 16.** What a Java type or property turns into:
+**Type mapping -- 17.** What a Java type or property turns into:
 `testInputMirrorCreation`, `testObjectAndScalarSourceFields`,
 `testWrongTypeAsQueryInput`, `testRecordAsQueryInput`,
 `testAnnotatedFields`, `testCustomParameterProvider`,
 `testLogicWithEnums`, `testLogicWithEnums2`, `testListReturningLogic`,
 `testFieldLookup`, `testNotNullQuery`, `testIgnoredProps`, `testDBView`,
-`testBinaryData`, `testBigNumericTypes`, `testMetaTags`.
+`testBinaryData`, `testBigNumericTypes`, `testMetaTags`,
+`testComputedProps`.
 
 `QLiveDomainTest` is left as it is by the split, and its name only
 becomes honest once the others have theirs: five of its eight cases are
@@ -71,8 +73,8 @@ decision for whoever does the work.
 
 ## Why it is not being done
 
-Nothing is wrong. Every one of the 44 passes, covers something real, and
-is found by the same `mvn test` either way. Moving 1,391 lines between
+Nothing is wrong. Every one of the 45 passes, covers something real, and
+is found by the same `mvn test` either way. Moving 1,417 lines between
 files buys navigability and nothing else -- no coverage, no clarity
 about what the framework does, no bug.
 
@@ -85,7 +87,7 @@ person who chose to pay it.
 
 When one of the three groups has to grow. A new cluster of generics
 tests is a reason to give generics a file; adding the fifteenth naming
-test to a class already holding forty-four is not.
+test to a class already holding forty-five is not.
 
 Doing it opportunistically also works: if a change already moves most of
 one group, finish the group rather than leaving it half-moved.

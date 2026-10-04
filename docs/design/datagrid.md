@@ -1,6 +1,8 @@
 # DataGrid (design)
 
-Status: built through step 7 of the build order. Written 2026-09-27.
+Status: built, all seven steps of the build order, except selection
+(step 4) and the picker for large target tables (step 6). Written
+2026-09-27.
 
 The table component for QLive, and the pieces under it. What it has to
 cover is `datagrid-features.md`, a survey of the Automaton DataGrid in

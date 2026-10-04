@@ -2,7 +2,8 @@
 
 Status: a checklist, not a design. Written 2026-09-27 from a survey of
 the Automaton DataGrid (`automaton-js/src/ui/datagrid`, used throughout
-`automaton-test`).
+`automaton-test`). The grid it was written for is built; "Missing in
+QLive" is as of 2026-10-04.
 
 Everything the Automaton grid does that QLive's grid has to at least
 consider, in QLive terms. Its user column configuration and its
@@ -69,8 +70,8 @@ the condition belongs to the grid depends on the condition's shape.
   condition inside a composed condition. It adds the component if it is
   missing, and returns the same condition object when nothing changed,
   so an unchanged filter doesn't send an `update()`. Automaton's
-  `updateComponentCondition()` is prior art; QLive has no equivalent yet
-  (see "Missing in QLive").
+  `updateComponentCondition()` is prior art; QLive's is
+  `updateComponent()` in `FilterDSL.ts`.
 - **Same rule for the sort.** `sortFields` has no components; the
   document has one sort order, and whoever sets it last wins. Code
   outside the grid can set any sort (see "Sorting"), and the headers
@@ -198,7 +199,7 @@ the condition belongs to the grid depends on the condition's shape.
   every cell.
 - **Created rows.** Rows from `ws.create()` appear on the first page,
   filtered by the document's current condition. That needs client-side
-  condition evaluation (see "Missing in QLive").
+  condition evaluation, which is `evaluate.ts`.
 - **Created rows in view types.** A new row of a base type shown in a
   grid over a view or joined type. Automaton mapped these through
   per-field dependency resolvers; a use case has to be found before
@@ -244,24 +245,17 @@ Follows `docs/styling.md`; nothing grid-specific should get around it.
 
 ## Missing in QLive
 
-- **Updating a component.** A FilterDSL helper that replaces one
-  component's condition inside a composed condition, adds the component
-  when missing, and returns the unchanged condition object when the new
-  term is structurally equal. `isComposedComponentExpression()` and
-  `findComponentNode()` exist; the write side doesn't. It belongs next
-  to them in `FilterDSL.ts`, since forms and pickers need it as much as
-  the grid does. Prior art: Automaton's `updateComponentCondition()`.
-- **Sort matching.** A function comparing a sort field (name, `"!name"`,
-  or an expression, optionally wrapped in `desc`) to a column's sort key
-  and answering ascending, descending or no match. Prior art:
-  Automaton's `findSort()` and `compareConditions()`.
-- **Client-side condition evaluation.** A FilterDSL evaluator over
-  JavaScript objects, to filter and sort local rows and created
-  working-set rows by the same condition the server applies. It has to
-  agree with the SQL path and with `PayloadOperators` on what equality
-  and ordering mean per scalar (see the planned `scalarEqual(type, a,
-  b)`). Prior art: Automaton's `filterTransformer`,
-  `evaluateMemoryQuery`.
+Three entries this list started with are built: updating a component
+(`updateComponent()` in `FilterDSL.ts`), sort matching (`matchSort()`
+and `toggleSort()` there too), and client-side condition evaluation
+(`evaluate.ts`, see `datagrid.md` step 7). What is still missing:
+
+- **Selection.** `useSelection()` and `<RowSelector/>` are designed in
+  `datagrid.md` and not built; select-all and selection across pages
+  are open on top of them.
+- **A picker for large target tables.** `pick(doc)` covers a catalog
+  the view already holds; a table too large for that needs its own
+  search document and a dialog.
 - **Validation errors** to show in cells.
 - **Export.**
 

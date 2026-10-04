@@ -97,10 +97,8 @@ is not there yet.
 
 ## Push
 
-From `done/push.md`, "Open items" and step 9.
+From `done/push.md`, "Open items".
 
-- **The manual two-tab check** of `/bar/edit` and `/bar/live`. It needs
-  a real login, and nothing records that it was done.
 - **Which channels a client may publish to.** Refused today. Any answer
   is a per-channel declaration at `register()`, closed by default, that
   validates the payload and stamps the sender from the connection.

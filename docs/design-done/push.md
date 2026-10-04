@@ -1,7 +1,7 @@
 # Push (design)
 
-Status: built, steps 1 to 9, plus step 10 below. What is left is the
-manual two-tab check step 9 describes, which needs a login. Written
+Status: built, steps 1 to 9, plus step 10 below. The manual two-tab
+check step 9 describes was done by hand, in two browsers. Written
 2026-09-10, reordered and finished 2026-09-11; revised 2026-09-17 after
 the review recorded in "Registration is the server's word" and "The
 transport is not the feature".

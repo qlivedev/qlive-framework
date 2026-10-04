@@ -1,11 +1,9 @@
 package io.github.qlivedev.qlivetest.runtime;
 
-import io.github.qlivedev.model.push.Error;
 import io.github.qlivedev.model.push.PushMessageParser;
 import io.github.qlivedev.model.push.ServerMessage;
 import io.github.qlivedev.model.push.Subscribe;
 import io.github.qlivedev.model.push.Subscribed;
-import io.github.qlivedev.model.push.Unsubscribe;
 import io.github.qlivedev.runtime.QLivePaths;
 import io.github.qlivedev.runtime.pubsub.PubSubService;
 import io.github.qlivedev.runtime.service.DevStaticAnalysisProvider;
@@ -40,8 +38,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import static io.github.qlivedev.runtime.scalar.FilterDSL.field;
-import static io.github.qlivedev.runtime.scalar.FilterDSL.value;
 import static io.github.qlivedev.qlivetest.domain.Tables.APP_USER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -62,6 +58,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /// The login is a real form post, CSRF token and all, against a user this test makes and removes again.
 /// Nothing here is a mock, because a mock of the filter chain would answer the one question the test is
 /// for with whatever it was told to say.
+///
+/// What pub/sub does with the frames -- conditions, unsubscribes, refusals -- is qlive's
+/// PubSubMessageHandlerTest, without a socket. What is left here is what only a running application shows:
+/// the security chain in front of the handshake, and the framework's push wiring behind it.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class PushWebSocketTest
 {
@@ -173,7 +173,7 @@ class PushWebSocketTest
         {
             client.connect(login());
 
-            client.send(subscribe(TOPIC, "s1", null));
+            client.send(subscribe());
             assertThat(client.next(), instanceOf(Subscribed.class));
 
             pubSub.publish(TOPIC, new Note("hello", "kim"));
@@ -192,83 +192,16 @@ class PushWebSocketTest
     }
 
 
-    /// Each subscription's own condition, evaluated server-side, per message.
-    @Test
-    void deliversOnlyWhatTheSubscriptionsConditionMatches() throws Exception
-    {
-        try (Client client = new Client())
-        {
-            client.connect(login());
-
-            client.send(subscribe(TOPIC, "mine", field("author").eq(value("kim"))));
-            assertThat(client.next(), instanceOf(Subscribed.class));
-
-            pubSub.publish(TOPIC, new Note("not for you", "sam"));
-            pubSub.publish(TOPIC, new Note("for you", "kim"));
-
-            final io.github.qlivedev.model.push.Topic message =
-                (io.github.qlivedev.model.push.Topic) client.next();
-
-            assertThat(payload(message).get("text"), is("for you"));
-        }
-    }
-
-
-    /// A refused subscription comes back as a refusal. The alternative -- a server log line and a
-    /// subscription that silently never matches -- is what this protocol acknowledges subscribes to avoid.
-    @Test
-    void answersASubscribeToAnUnknownChannelWithAnError() throws Exception
-    {
-        try (Client client = new Client())
-        {
-            client.connect(login());
-
-            client.send(subscribe("NoSuchChannel", "s1", null));
-
-            final ServerMessage answer = client.next();
-
-            assertThat(answer, instanceOf(Error.class));
-            assertThat(((Error) answer).getTopic(), is("NoSuchChannel"));
-            assertThat(((Error) answer).getId(), is("s1"));
-            assertThat(((Error) answer).getMessage(), containsString("No such channel"));
-        }
-    }
-
-
-    @Test
-    void stopsDeliveringAfterAnUnsubscribe() throws Exception
-    {
-        try (Client client = new Client())
-        {
-            client.connect(login());
-
-            client.send(subscribe(TOPIC, "s1", null));
-            assertThat(client.next(), instanceOf(Subscribed.class));
-
-            final Unsubscribe unsubscribe = new Unsubscribe();
-            unsubscribe.setTopic(TOPIC);
-            unsubscribe.setId("s1");
-            client.send(unsubscribe);
-
-            waitForSubscriptionCount(0);
-
-            pubSub.publish(TOPIC, new Note("hello", "kim"));
-
-            assertThat(client.nothingWithin(1), is(true));
-        }
-    }
-
-
-    /// A closed connection takes every subscription it held with it. Worth a test of its own rather than a
-    /// line of code somebody trusts: Automaton lost exactly this cleanup in a refactor once, and nothing
-    /// about a subscription nobody is listening to makes a noise.
+    /// A closed connection takes every subscription it held with it. The sweep itself is qlive's to test;
+    /// what this shows is that a socket closing reaches it at all, which is wiring, and wiring is what
+    /// Automaton lost exactly this cleanup to in a refactor once.
     @Test
     void aClosedConnectionLosesItsSubscriptions() throws Exception
     {
         final Client client = new Client();
         client.connect(login());
 
-        client.send(subscribe(TOPIC, "s1", null));
+        client.send(subscribe());
         assertThat(client.next(), instanceOf(Subscribed.class));
 
         waitForSubscriptionCount(1);
@@ -276,15 +209,6 @@ class PushWebSocketTest
         client.close();
 
         waitForSubscriptionCount(0);
-    }
-
-
-    /// Publishing on a channel nobody is on does nothing at all, which is what a framework-internal
-    /// publisher needs: it has no reason to know whether anyone has subscribed yet.
-    @Test
-    void publishingToAChannelNobodyIsOnIsANoOp()
-    {
-        pubSub.publish(TOPIC, new Note("nobody there", "kim"));
     }
 
 
@@ -305,12 +229,12 @@ class PushWebSocketTest
     }
 
 
-    private static Subscribe subscribe(String topic, String id, io.github.qlivedev.model.condition.CNode condition)
+    /// A subscription to the test channel with no condition, as "s1".
+    private static Subscribe subscribe()
     {
         final Subscribe subscribe = new Subscribe();
-        subscribe.setTopic(topic);
-        subscribe.setId(id);
-        subscribe.setCondition(condition);
+        subscribe.setTopic(TOPIC);
+        subscribe.setId("s1");
         return subscribe;
     }
 
@@ -444,11 +368,6 @@ class PushWebSocketTest
             return parser.parseServerMessage(frame);
         }
 
-
-        boolean nothingWithin(long seconds) throws Exception
-        {
-            return frames.poll(seconds, TimeUnit.SECONDS) == null;
-        }
 
 
         @Override

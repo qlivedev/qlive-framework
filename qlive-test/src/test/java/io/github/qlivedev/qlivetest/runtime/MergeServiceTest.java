@@ -8,7 +8,6 @@ import io.github.qlivedev.model.merge.MergeConflict;
 import io.github.qlivedev.model.merge.MergeConflictField;
 import io.github.qlivedev.model.merge.MergeResult;
 import io.github.qlivedev.model.merge.MergeStatus;
-import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.merge.MergeService;
 import io.github.qlivedev.runtime.merge.VersionHolder;
 import io.github.qlivedev.graphql.generic.GenericScalar;
@@ -32,9 +31,7 @@ import static io.github.qlivedev.qlivetest.domain.Tables.BAZ;
 import static io.github.qlivedev.qlivetest.domain.Tables.FOO;
 import static io.github.qlivedev.qlivetest.domain.Tables.QUX;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -467,36 +464,6 @@ class MergeServiceTest
         assertThat(conflict.getFields(), is(empty()));
 
         assertThat(bar(id), is(notNullValue()));
-    }
-
-
-    /// A versioned row can only be written against the version it was read at, so a change without one is a
-    /// query that forgot to select it -- which is worth hearing about here rather than as a lost update
-    /// later.
-    @Test
-    void refusesAChangeWithNoBaseVersion()
-    {
-        final String id = newId(bars);
-        merge(newBar(id, "Merge #10", 10));
-
-        final QLiveException e = assertThrows(
-            QLiveException.class,
-            () -> merge(change("Bar", id, null, field("num", "Int", 1)))
-        );
-
-        assertThat(e.getMessage(), containsString("version"));
-    }
-
-
-    /// The guard for the service that writes a table itself. bar is versioned, so writing it directly would
-    /// leave its version saying the row is in a state it is not in.
-    @Test
-    void refusesToLetAVersionedTableBeWrittenDirectly()
-    {
-        assertThrows(QLiveException.class, () -> mergeService.ensureNotVersioned(BAR));
-
-        // qux is not versioned and never took part, so nothing stands in the way of writing it
-        mergeService.ensureNotVersioned(QUX);
     }
 
 

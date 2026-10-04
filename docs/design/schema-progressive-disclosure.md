@@ -1,6 +1,7 @@
 # Progressive disclosure of schema types (design sketch)
 
-Status: sketched, not started. Written 2026-09-06.
+Status: tier 0 built (`57e20a7`, 2026-09-06), tiers 1 and 2 sketched
+and not started. Written 2026-09-06.
 
 ## Problem
 
@@ -65,7 +66,9 @@ payload size:
 
 - **`noSchema()`** (`qlive-ts/src/index.ts`) -- an empty exported function
   whose only purpose is to be seen by static analysis. `login.tsx` calls
-  it. Nothing consumes the signal yet.
+  it. `DefaultBootstrapService` reads it from the track-usage data and
+  serves such a path a reduced config, cached beside the full one: tier
+  0 below.
 - **track-usage** -- `qlive-test/frontend/vite.config.ts` tracks
   `noSchema` and `GraphQLQuery` (among others) per module, writing
   `track-usage.json` at `vite build` and POSTing live snapshots to
@@ -255,11 +258,10 @@ problem from the error message alone.
   described above. Slicing the schema alone is simpler and captures most
   of the win; `meta.relations` is the part with the awkward closure rule
   above.
-- **Fixing `StartupOptions.reduced`.** It is currently declared,
-  undocumented in behavior, unread, and passed an inverted value. It
-  should either become the client-side expression of these tiers or be
-  removed; leaving a dead flag that looks like this feature is worse
-  than either.
+- **Fixing `StartupOptions.reduced`.** Settled: the flag is gone. The
+  server decides the tier, and where the client has to tell -- adding a
+  fixture -- it reads the config's content (`isReduced()` in
+  `config.ts`).
 - **Whether tier 0 should skip the bootstrap fetch entirely in dev.**
   The login page currently retries `/api/bootstrap` for a payload it
   barely uses. Out of scope here, but it is the same question wearing a

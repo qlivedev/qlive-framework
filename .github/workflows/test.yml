@@ -1,0 +1,68 @@
+# Tests the framework itself: the Java modules and qlive-ts.
+#
+# Runs on every push to every branch, so a feature branch shows red before main
+# is fast-forwarded to it. Both jobs need nothing but their toolchain -- no
+# database, no running application -- which is what keeps this cheap enough to
+# run that often.
+#
+# qlive-test is not built here. Its tests need Postgres with qlivetest.backup
+# restored and the frontend built; they are the application-level checks, run
+# locally against the dev database.
+name: Tests
+
+on:
+  push:
+  workflow_dispatch:
+
+# A newer push to the same branch makes the older run's answer moot.
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  java:
+    name: Java (qlive-api, qlive-graphql, qlive)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+
+      # -am builds what qlive depends on, and verify runs each module's tests
+      # on the way.
+      - name: Test
+        run: ./mvnw -B -ntp -pl qlive -am verify
+
+  typescript:
+    name: TypeScript (qlive-ts)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The version comes from packageManager in package.json.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Both typechecks and the bundle, which check-exports reads.
+      - name: Build
+        run: pnpm --filter @qlivedev/qlive-ts run build
+
+      - name: Test
+        run: pnpm --filter @qlivedev/qlive-ts test
+
+      - name: Check exports
+        run: pnpm --filter @qlivedev/qlive-ts run check-exports

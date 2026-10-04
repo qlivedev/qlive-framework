@@ -1,0 +1,4 @@
+# Scopes the IDE GraphQL plugin's check of the query strings in
+# QLiveDomainExecutionTest to the schema its domains serve.
+schema: execution-test-schema.graphql
+documents: QLiveDomainExecutionTest.java

@@ -1,6 +1,8 @@
 # Full-stack module distribution (design sketch)
 
-Status: sketched, not started. Written 2026-08-29, revised 2026-09-10.
+Status: sketched, not started; two of the seams it asks for came with
+the merge and push work. Written 2026-08-29, revised 2026-09-10, status
+checked 2026-10-04.
 
 ## Problem
 
@@ -162,10 +164,12 @@ every module that application will ever install -- its author never has
 to learn a module's configuration class name.
 
 It also replaces the `@Import(QLiveConfiguration.class)` every
-application currently copies out of qlive-test. Incidentally, the other
-five entries in that block are already redundant: they name
-`@Configuration` classes that sit inside the scanned package and would be
-found anyway.
+application currently copies out of qlive-test. (When this was written
+the other five entries in that block were redundant, naming
+`@Configuration` classes inside the scanned package. qlive-test's scan
+has since been narrowed to its logic and service packages, so they are
+what puts those classes in the context, and `app-templating.md` makes
+that explicit list the design.)
 
 **Why not Spring Boot auto-configuration.** It would work -- a module
 ships `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`
@@ -282,8 +286,13 @@ small, and most land inside work already planned.
    holders become one listener; a push module is the second. The merge
    design already names step E as the place a broker would be handed the
    version records -- publishing instead of calling makes that additive
-   rather than a patch.
-3. **A "stored state changed" entry point on both stores.** The merge
+   rather than a patch. *Built:* `EntityVersionsEvent`, with push's
+   `EntityVersionPublisher` as the second listener.
+3. **A "stored state changed" entry point on both stores.** *Built for
+   `WorkingSet`, settled otherwise for `QueryDocument`:*
+   `WorkingSet.storedState()` exists and push calls it; the document got
+   no entry point on purpose, see push.md's "The two stores are not the
+   same case". As written: the merge
    design already commits to this for `WorkingSet`, with a push message
    named as the second caller. `QueryDocument` needs the same and does
    not have it: `rows`, `config` and `rowCount` are public and mutable
@@ -348,6 +357,14 @@ Two complementary pieces:
   application's source tree. Lifting it would mean a module shipping its
   own track-usage fragment for the plugin to merge, plus a route
   namespace and a collision rule. Not attempted.
+- **`@EnableQLive` against the explicit import list.** Registration
+  above has the annotation replace the application's `@Import` block.
+  `app-templating.md`, written later, decides the opposite for the
+  framework's own wiring: plain `@Configuration` classes the application
+  lists by name, so the list is the table of contents of its wiring.
+  Both can hold -- the framework's classes listed, modules registered by
+  the annotation -- but this document has to say so before either is
+  built.
 - **Decided**: `QLiveServerModule` stays metadata-only. It carries
   pairing info and names a module's configuration classes, but never
   produces beans and never sees an application context. `@EnableQLive`

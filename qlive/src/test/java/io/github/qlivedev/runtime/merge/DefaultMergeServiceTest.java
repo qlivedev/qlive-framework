@@ -45,8 +45,8 @@ class DefaultMergeServiceTest
     void refusesATypeTheDomainDoesNotExpose()
     {
         assertThat(
-            refused(change("TestBar", "id-1", "v-1", field("name", "String", "x"))),
-            containsString("TestBar")
+            refused(change("NoSuchType", "id-1", "v-1", field("name", "String", "x"))),
+            containsString("NoSuchType")
         );
     }
 

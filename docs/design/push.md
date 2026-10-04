@@ -773,11 +773,13 @@ defend.
 `PushWebSocketHandler` and `PushHandshakeInterceptor` -- both in
 `runtime.push`, see "The transport is not the feature" above -- the
 latter reading `AppAuthentication.current().getId()` at handshake time
-and stashing it on the WS session. The open question that gates this whole section:
-does the security filter chain actually run against a WebSocket upgrade
-request here? Confirm this first, against a real authenticated session,
-before the rest of the identity design -- and `qlive-test`'s catch-all
-`hasRole("USER")` covering the push URI -- is assumed to hold.
+and stashing it on the WS session. That rests on the security filter
+chain running against the WebSocket upgrade request, which was the
+question gating this whole section. It does:
+`PushWebSocketTest.refusesAHandshakeFromSomebodyNotLoggedIn` gets a 401
+for the push URI without a login, so `qlive-test`'s catch-all
+`hasRole("USER")` covers it and the identity read at handshake time is
+the logged-in user's.
 
 ## Entity-version push, the first consumer
 
@@ -1062,13 +1064,13 @@ them.
 
    The server half of this landed with step 3 -- compiling the
    condition, and the `Subscribed`/`Error` replies, which a refused
-   subscribe needs whatever else is or is not wired. What is left here
-   is the client half, and the one genuinely unbuilt server piece: the
-   `CNode` -> `CNode` coercion pass beside `ConditionCoercing.parseCNode`
-   that re-reads each `Value`/`Values` through `parseScalar`. Until that
-   exists a timestamp constant off the wire is still a string, which the
-   entity-version subscription does not care about and something with a
-   date range in it would.
+   subscribe needs whatever else is or is not wired. What was left here
+   was the client half, and one server piece: the `CNode` -> `CNode`
+   coercion pass beside `ConditionCoercing.parseCNode` that re-reads
+   each `Value`/`Values` through `parseScalar`, so that a timestamp
+   constant off the wire arrives as a timestamp rather than a string.
+   Built as `ConditionCoercing.coerceValues()`, which
+   `PubSubMessageHandler` runs on every subscription's condition.
 8. **Client subscription wiring, the full loop.** Documents and working
    sets derive their condition from what's actually on screen, send it
    on registration, unsubscribe on disposal, and resubscribe on

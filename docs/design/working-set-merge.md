@@ -1,9 +1,10 @@
 # WorkingSet and merge (design)
 
 Status: the build order below is built, steps 1 to 8. What is designed
-and not built is everything the build order never listed: the unload
-guard and the navigation guard it registers, parking a change set, and
-push. Written 2026-09-09.
+and not built is what the build order never listed: the unload guard
+and the navigation guard it registers, and parking a change set. Push,
+which this design left out, is built after its own design, `push.md`.
+Written 2026-09-09.
 
 Write support for QLive, modeled on the MVCC merge built in Automaton.
 This is a re-design, not a port: the mechanisms that earned their keep
@@ -1166,7 +1167,9 @@ is easier to see now than after the second one is written.
   is private, so nothing outside the document can move its state and have
   React hear about it. Whatever the working set gets called, the query
   document grows the same seam -- it is the other store a push message
-  lands in.
+  lands in. *Reversed by push.md* ("The two stores are not the same
+  case"): a document gets an observer and `update({})` instead, and no
+  seam until rows are patched in place.
 
 ## Build order
 
@@ -1250,9 +1253,8 @@ type analysis.
 - **Push, and it is the important one.** Everything in this document is
   damage control after the fact; telling a user that the row under their
   form just changed, while they can still do something cheap about it,
-  is worth more than any amount of conflict UI. Its own design, and the
-  one to write next -- see "When push arrives" for the two seams this
-  one leaves it.
+  is worth more than any amount of conflict UI. *Built*, after its own
+  design, `push.md`, on the two seams "When push arrives" describes.
 - **Whether the accessor travels by prop or by context.** Above it is a
   value the form passes down. A deep generic field tree would rather find
   it in a React context, which is what Automaton had in domainql-form's

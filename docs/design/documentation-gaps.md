@@ -1,7 +1,9 @@
 # Documentation gaps (design sketch)
 
-Status: sketched, not started. Written 2026-09-16 out of a survey of the
-hand-written half of `qlive-doc`.
+Status: sketched; of the eleven entries, 11 is fixed, 8 was overtaken by
+the code and 9 is partly covered. The pages 1 to 7 and 10 ask for are
+not written. Written 2026-09-16 out of a survey of the hand-written half
+of `qlive-doc`; status checked 2026-10-04.
 
 What the user site is missing, page by page, and where each missing page
 goes. Two of the gaps the survey found are not in here: push, which is
@@ -198,6 +200,11 @@ the page was sent.
 
 ## 8. `i18n()` is a stub with an API entry
 
+Overtaken. `i18n()` now translates from `config().translations` with
+`{0}`-style placeholders, falls back to the bracketed tag so a missing
+translation shows, and has a doc comment saying so. qlive-doc's demos
+supply translations. What follows is the entry as written.
+
 `i18n(tag, ...args)` returns `"[" + tag + "]"`. It is exported, it
 appears on the startup API page, and its entry says "Undocumented",
 which reads as an oversight rather than as a placeholder. Somebody will
@@ -211,6 +218,12 @@ expected to call it now so that the call sites exist when it becomes
 real.
 
 ## 9. Testing
+
+Partly covered. Fixture mode gives a view a bootstrap without a server,
+and `how-to/test-a-view-on-a-fixture.md` and
+`how-to/show-a-view-in-storybook.md` say how to use it. Testing writes,
+push and anything beyond the recorded injections is `testing-api.md`,
+proposed and not built. What follows is the entry as written.
 
 There are no test utilities in `qlive-ts` for application authors -- the
 package's own tests are vitest over its internals -- and no page says

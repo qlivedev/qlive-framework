@@ -17,7 +17,7 @@ and has nothing to do with row versioning.
 
 ## Problem
 
-`docs/design/working-set-merge.md` left push out of scope on purpose but
+`docs/design/done/working-set-merge.md` left push out of scope on purpose but
 built two seams for it in advance. A successful merge already publishes
 an `EntityVersionsEvent` -- entity type, id, new version, field mask,
 owner -- through Spring's `ApplicationEventPublisher`, and
@@ -86,7 +86,7 @@ to-one-joinable subtree, one follow-up per to-many edge, and a
 the plan selected. To-many children are pre-registered with the property
 set to `null` and filled in later -- deliberately `null`, never omitted,
 because a **missing** property, not merely an empty one, is what triggers
-the live-query fallback. `docs/design/query-document-service.md` states
+the live-query fallback. `docs/design/done/query-document-service.md` states
 the invariant this leans on:
 
 > Every relation edge in the GraphQL selection must be covered by the
@@ -406,7 +406,7 @@ only ever a question about one payload class's own shape.
 **A to-many hop is addressed by numeric index, not existential
 quantification -- a deliberate departure from the SQL backend's
 semantics.** The SQL condition compiler treats a to-many hop as `EXISTS`
-(`ExistsScope`, see `docs/design/query-document-service.md`'s section on
+(`ExistsScope`, see `docs/design/done/query-document-service.md`'s section on
 conditions crossing a to-many relation): "does *some* element satisfy the
 rest of the path." A pub/sub payload is a dead data tree, not a
 relational query, and a tree's natural path semantics are index-based,

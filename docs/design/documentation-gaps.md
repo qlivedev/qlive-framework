@@ -40,7 +40,7 @@ versioned type needs `version varchar(36)`.
 
 **What a reader cannot find.** Any of it. There is no DDL in the
 repository at all -- no migration, no schema dump -- and the only
-statement of the layout is `docs/design/working-set-merge.md`, which is
+statement of the layout is `docs/design/done/working-set-merge.md`, which is
 internal and is a design document rather than a contract. A user who
 turns on merging meets a runtime failure against a table nothing ever
 told them to create.

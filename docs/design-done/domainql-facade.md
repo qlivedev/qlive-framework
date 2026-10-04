@@ -284,7 +284,7 @@ is -- a default set of registrations, not the domain itself.
 The rejected alternative was `QLiveSchema`, which overlaps `GraphQLSchema`
 -- a thing the facade exposes rather than a thing it is.
 
-The knock-on went with it: the bean proposed in `module-distribution.md`
+The knock-on went with it: the bean proposed in `../module-distribution.md`
 is a `Consumer<DomainQLBuilder>` and was named after the helper, so it is
 `QLiveDomainBuilderCustomizer` there now -- it customizes the builder, not
 the facade.
@@ -319,7 +319,7 @@ The facade stays in `qlive-graphql`. Putting it in `qlive-api`, which would
 let the runtime depend on the API alone, requires `TypeRegistry`,
 `DomainQLMeta` and `TableLookup` to move as well, and the dependency runs
 `qlive-graphql` -> `qlive-api`, not the reverse. Not worth coupling to this
-change; see `module-distribution.md` for where that question belongs.
+change; see `../module-distribution.md` for where that question belongs.
 
 ## Non-goals
 

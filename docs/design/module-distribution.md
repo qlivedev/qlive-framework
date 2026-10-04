@@ -291,9 +291,8 @@ small, and most land inside work already planned.
 3. **A "stored state changed" entry point on both stores.** *Built for
    `WorkingSet`, settled otherwise for `QueryDocument`:*
    `WorkingSet.storedState()` exists and push calls it; the document got
-   no entry point on purpose, see push.md's "The two stores are not the
-   same case". As written: the merge
-   design already commits to this for `WorkingSet`, with a push message
+   no entry point on purpose, see `done/push.md`, "The two stores are
+   not the same case". As written: the merge design already commits to this for `WorkingSet`, with a push message
    named as the second caller. `QueryDocument` needs the same and does
    not have it: `rows`, `config` and `rowCount` are public and mutable
    while `notify()` is private, so an external writer can change a

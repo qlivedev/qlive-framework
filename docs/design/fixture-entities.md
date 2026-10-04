@@ -1,8 +1,8 @@
 # Fixture entities: storing each object once
 
 Status: shelved 2026-10-02. Written down while it was fresh; nothing is
-built, and nothing else waits on it. Extends [fixture-mode.md](fixture-mode.md)
-and [fixture-scope.md](fixture-scope.md).
+built, and nothing else waits on it. Extends [fixture-mode.md](done/fixture-mode.md)
+and [fixture-scope.md](done/fixture-scope.md).
 
 ## Problem
 
@@ -128,7 +128,7 @@ not a dependency.
 
 ## Writes
 
-[fixture-mode.md](fixture-mode.md#direction) rules out writes: faking
+[fixture-mode.md](done/fixture-mode.md#direction) rules out writes: faking
 merges, versions and conflicts costs a lot and shows little. An entity
 store changes the cost side -- a merge becomes an update of entities,
 and every document over them could be answered again -- but not the

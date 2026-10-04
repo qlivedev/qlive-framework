@@ -99,7 +99,7 @@ force a theme instead of following the OS.
 
 ## What the stylesheet currently paints
 
-The grid's parts, as far as they exist (see `docs/design/datagrid.md`):
+The grid's parts, as far as they exist (see `docs/design/done/datagrid.md`):
 
 - `.qlive-grid-pager`, with `.qlive-grid-pager-{start,center,end}` for
   its alignment and `-first`, `-previous`, `-page`, `-next`, `-last`

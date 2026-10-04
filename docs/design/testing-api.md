@@ -1,7 +1,7 @@
 # Testing API: a bootstrap from a mock, a server for the rest
 
 Status: proposed 2026-10-03, nothing built. Builds on
-[fixture-mode.md](fixture-mode.md) and [fixture-scope.md](fixture-scope.md).
+[fixture-mode.md](done/fixture-mode.md) and [fixture-scope.md](done/fixture-scope.md).
 What application authors have so far is in the user docs: *Test a view
 on a fixture* and the Storybook sketch.
 

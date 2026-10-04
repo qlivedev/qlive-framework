@@ -69,7 +69,7 @@ jOOQ's existing vocabulary is worth real effort.
 ### Tested against merge
 
 Written as a paper exercise while building the merge schema
-(`working-set-merge.md` step 1), which is the descriptor's intended
+(`done/working-set-merge.md` step 1), which is the descriptor's intended
 first customer: one owned type (`app_version`) and one required trait
 (the `version` column on the types the application nominates). What the
 exercise says about the format:

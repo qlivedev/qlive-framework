@@ -314,7 +314,12 @@ name is an error.
 
 ## Decided details
 
-- **`pageSize: 0` returns all rows.** No cap for now.
+- **`pageSize: 0` returns all rows**, up to the type's `maxPageSize`.
+  The cap came later, as type meta data from
+  `QueryConfigMetadataProvider`: a type that declares none is
+  unlimited, and a larger or unlimited page becomes the cap, whoever
+  asked. `QueryConfigMeta.maxPageSizeForType()` is where the service
+  reads it.
 - **No sort fields means sort by the primary key**, so that paging is
   deterministic out of the box. A named sort is completed to a total
   order (`QueryPlanBuilder.completion()`).
@@ -372,6 +377,3 @@ only name whose argument is not a field, and its caller handles it.
   not rejected. The plan tree is the seam.
 - **Same-row semantics for multiple conditions on one to-many path.**
   Needs its own syntax if it is ever wanted.
-- **A page size cap.** `pageSize: 0` from a browser is an unbounded
-  table scan. Out of scope now, worth revisiting with the security
-  policy design.

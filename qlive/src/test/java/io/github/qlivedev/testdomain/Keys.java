@@ -4,9 +4,15 @@
 package io.github.qlivedev.testdomain;
 
 
+import io.github.qlivedev.testdomain.tables.TestBar;
+import io.github.qlivedev.testdomain.tables.TestBarLink;
+import io.github.qlivedev.testdomain.tables.TestBaz;
 import io.github.qlivedev.testdomain.tables.TestFoo;
 import io.github.qlivedev.testdomain.tables.TestFooType;
 import io.github.qlivedev.testdomain.tables.TestUser;
+import io.github.qlivedev.testdomain.tables.records.TestBarLinkRecord;
+import io.github.qlivedev.testdomain.tables.records.TestBarRecord;
+import io.github.qlivedev.testdomain.tables.records.TestBazRecord;
 import io.github.qlivedev.testdomain.tables.records.TestFooRecord;
 import io.github.qlivedev.testdomain.tables.records.TestFooTypeRecord;
 import io.github.qlivedev.testdomain.tables.records.TestUserRecord;
@@ -38,6 +44,10 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final UniqueKey<TestBarRecord> PK_TEST_BAR = Internal.createUniqueKey(TestBar.TEST_BAR, DSL.name("pk_test_bar"), new TableField[] { TestBar.TEST_BAR.ID }, true);
+    public static final UniqueKey<TestBarLinkRecord> PK_TEST_BAR_LINK = Internal.createUniqueKey(TestBarLink.TEST_BAR_LINK, DSL.name("pk_test_bar_link"), new TableField[] { TestBarLink.TEST_BAR_LINK.ID }, true);
+    public static final UniqueKey<TestBarLinkRecord> UC_TEST_BAR_LINK_BAR_BAZ = Internal.createUniqueKey(TestBarLink.TEST_BAR_LINK, DSL.name("uc_test_bar_link_bar_baz"), new TableField[] { TestBarLink.TEST_BAR_LINK.BAR_ID, TestBarLink.TEST_BAR_LINK.BAZ_ID }, true);
+    public static final UniqueKey<TestBazRecord> PK_TEST_BAZ = Internal.createUniqueKey(TestBaz.TEST_BAZ, DSL.name("pk_test_baz"), new TableField[] { TestBaz.TEST_BAZ.ID }, true);
     public static final UniqueKey<TestFooRecord> PK_TEST_FOO = Internal.createUniqueKey(TestFoo.TEST_FOO, DSL.name("pk_test_foo"), new TableField[] { TestFoo.TEST_FOO.ID }, true);
     public static final UniqueKey<TestFooTypeRecord> PK_TEST_FOO_TYPE = Internal.createUniqueKey(TestFooType.TEST_FOO_TYPE, DSL.name("pk_test_foo_type"), new TableField[] { TestFooType.TEST_FOO_TYPE.ORDINAL }, true);
     public static final UniqueKey<TestFooTypeRecord> TEST_FOO_TYPE_NAME_KEY = Internal.createUniqueKey(TestFooType.TEST_FOO_TYPE, DSL.name("test_foo_type_name_key"), new TableField[] { TestFooType.TEST_FOO_TYPE.NAME }, true);
@@ -48,6 +58,8 @@ public class Keys {
     // FOREIGN KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final ForeignKey<TestBarLinkRecord, TestBarRecord> TEST_BAR_LINK__FK_TEST_BAR_LINK_TO_BAR = Internal.createForeignKey(TestBarLink.TEST_BAR_LINK, DSL.name("fk_test_bar_link_to_bar"), new TableField[] { TestBarLink.TEST_BAR_LINK.BAR_ID }, Keys.PK_TEST_BAR, new TableField[] { TestBar.TEST_BAR.ID }, true);
+    public static final ForeignKey<TestBarLinkRecord, TestBazRecord> TEST_BAR_LINK__FK_TEST_BAR_LINK_TO_BAZ = Internal.createForeignKey(TestBarLink.TEST_BAR_LINK, DSL.name("fk_test_bar_link_to_baz"), new TableField[] { TestBarLink.TEST_BAR_LINK.BAZ_ID }, Keys.PK_TEST_BAZ, new TableField[] { TestBaz.TEST_BAZ.ID }, true);
     public static final ForeignKey<TestFooRecord, TestUserRecord> TEST_FOO__FK_TEST_FOO_OWNER_ID = Internal.createForeignKey(TestFoo.TEST_FOO, DSL.name("fk_test_foo_owner_id"), new TableField[] { TestFoo.TEST_FOO.OWNER_ID }, Keys.PK_TEST_USER, new TableField[] { TestUser.TEST_USER.ID }, true);
     public static final ForeignKey<TestFooRecord, TestFooTypeRecord> TEST_FOO__FK_TEST_FOO_TYPE_ID = Internal.createForeignKey(TestFoo.TEST_FOO, DSL.name("fk_test_foo_type_id"), new TableField[] { TestFoo.TEST_FOO.TYPE }, Keys.TEST_FOO_TYPE_NAME_KEY, new TableField[] { TestFooType.TEST_FOO_TYPE.NAME }, true);
 }

@@ -4,7 +4,7 @@
 package io.github.qlivedev.testdomain.tables.records;
 
 
-import io.github.qlivedev.testdomain.tables.pojos.TestUser;
+import io.github.qlivedev.testdomain.tables.TestUser;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -177,14 +177,14 @@ public class TestUserRecord extends UpdatableRecordImpl<TestUserRecord> {
      * Create a detached TestUserRecord
      */
     public TestUserRecord() {
-        super(io.github.qlivedev.testdomain.tables.TestUser.TEST_USER);
+        super(TestUser.TEST_USER);
     }
 
     /**
      * Create a detached, initialised TestUserRecord
      */
     public TestUserRecord(String id, String login, String password, Boolean disabled, Timestamp created, Timestamp lastLogin, String roles) {
-        super(io.github.qlivedev.testdomain.tables.TestUser.TEST_USER);
+        super(TestUser.TEST_USER);
 
         setId(id);
         setLogin(login);
@@ -199,8 +199,8 @@ public class TestUserRecord extends UpdatableRecordImpl<TestUserRecord> {
     /**
      * Create a detached, initialised TestUserRecord
      */
-    public TestUserRecord(TestUser value) {
-        super(io.github.qlivedev.testdomain.tables.TestUser.TEST_USER);
+    public TestUserRecord(io.github.qlivedev.testdomain.tables.pojos.TestUser value) {
+        super(TestUser.TEST_USER);
 
         if (value != null) {
             setId(value.getId());

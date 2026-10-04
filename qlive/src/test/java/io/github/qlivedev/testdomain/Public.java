@@ -4,6 +4,9 @@
 package io.github.qlivedev.testdomain;
 
 
+import io.github.qlivedev.testdomain.tables.TestBar;
+import io.github.qlivedev.testdomain.tables.TestBarLink;
+import io.github.qlivedev.testdomain.tables.TestBaz;
 import io.github.qlivedev.testdomain.tables.TestFoo;
 import io.github.qlivedev.testdomain.tables.TestFooType;
 import io.github.qlivedev.testdomain.tables.TestUser;
@@ -39,6 +42,21 @@ public class Public extends SchemaImpl {
     public static final Public PUBLIC = new Public();
 
     /**
+     * The table <code>public.test_bar</code>.
+     */
+    public final TestBar TEST_BAR = TestBar.TEST_BAR;
+
+    /**
+     * The table <code>public.test_bar_link</code>.
+     */
+    public final TestBarLink TEST_BAR_LINK = TestBarLink.TEST_BAR_LINK;
+
+    /**
+     * The table <code>public.test_baz</code>.
+     */
+    public final TestBaz TEST_BAZ = TestBaz.TEST_BAZ;
+
+    /**
      * The table <code>public.test_foo</code>.
      */
     public final TestFoo TEST_FOO = TestFoo.TEST_FOO;
@@ -69,6 +87,9 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
+            TestBar.TEST_BAR,
+            TestBarLink.TEST_BAR_LINK,
+            TestBaz.TEST_BAZ,
             TestFoo.TEST_FOO,
             TestFooType.TEST_FOO_TYPE,
             TestUser.TEST_USER

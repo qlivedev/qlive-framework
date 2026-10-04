@@ -4,6 +4,9 @@
 package io.github.qlivedev.testdomain;
 
 
+import io.github.qlivedev.testdomain.tables.TestBar;
+import io.github.qlivedev.testdomain.tables.TestBarLink;
+import io.github.qlivedev.testdomain.tables.TestBaz;
 import io.github.qlivedev.testdomain.tables.TestFoo;
 import io.github.qlivedev.testdomain.tables.TestFooType;
 import io.github.qlivedev.testdomain.tables.TestUser;
@@ -23,6 +26,21 @@ import javax.annotation.processing.Generated;
 )
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Tables {
+
+    /**
+     * The table <code>public.test_bar</code>.
+     */
+    public static final TestBar TEST_BAR = TestBar.TEST_BAR;
+
+    /**
+     * The table <code>public.test_bar_link</code>.
+     */
+    public static final TestBarLink TEST_BAR_LINK = TestBarLink.TEST_BAR_LINK;
+
+    /**
+     * The table <code>public.test_baz</code>.
+     */
+    public static final TestBaz TEST_BAZ = TestBaz.TEST_BAZ;
 
     /**
      * The table <code>public.test_foo</code>.

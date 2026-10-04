@@ -4,7 +4,7 @@
 package io.github.qlivedev.testdomain.tables.records;
 
 
-import io.github.qlivedev.testdomain.tables.TestFoo;
+import io.github.qlivedev.testdomain.tables.TestBar;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -34,22 +34,22 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 @Entity
 @Table(
-    name = "test_foo",
+    name = "test_bar",
     schema = "public"
 )
-public class TestFooRecord extends UpdatableRecordImpl<TestFooRecord> {
+public class TestBarRecord extends UpdatableRecordImpl<TestBarRecord> {
 
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>public.test_foo.id</code>.
+     * Setter for <code>public.test_bar.id</code>.
      */
     public void setId(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>public.test_foo.id</code>.
+     * Getter for <code>public.test_bar.id</code>.
      */
     @Id
     @Column(name = "id", nullable = false, length = 36)
@@ -60,14 +60,14 @@ public class TestFooRecord extends UpdatableRecordImpl<TestFooRecord> {
     }
 
     /**
-     * Setter for <code>public.test_foo.name</code>.
+     * Setter for <code>public.test_bar.name</code>.
      */
     public void setName(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>public.test_foo.name</code>.
+     * Getter for <code>public.test_bar.name</code>.
      */
     @Column(name = "name", nullable = false, length = 100)
     @NotNull
@@ -77,14 +77,14 @@ public class TestFooRecord extends UpdatableRecordImpl<TestFooRecord> {
     }
 
     /**
-     * Setter for <code>public.test_foo.num</code>.
+     * Setter for <code>public.test_bar.num</code>.
      */
     public void setNum(Integer value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>public.test_foo.num</code>.
+     * Getter for <code>public.test_bar.num</code>.
      */
     @Column(name = "num", nullable = false)
     @NotNull
@@ -93,100 +93,50 @@ public class TestFooRecord extends UpdatableRecordImpl<TestFooRecord> {
     }
 
     /**
-     * Setter for <code>public.test_foo.type</code>.
+     * Setter for <code>public.test_bar.created</code>.
      */
-    public void setType(String value) {
+    public void setCreated(Timestamp value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>public.test_foo.type</code>.
-     */
-    @Column(name = "type", nullable = false, length = 100)
-    @NotNull
-    @Size(max = 100)
-    public String getType() {
-        return (String) get(3);
-    }
-
-    /**
-     * Setter for <code>public.test_foo.created</code>.
-     */
-    public void setCreated(Timestamp value) {
-        set(4, value);
-    }
-
-    /**
-     * Getter for <code>public.test_foo.created</code>.
+     * Getter for <code>public.test_bar.created</code>.
      */
     @Column(name = "created", nullable = false, precision = 6)
     @NotNull
     public Timestamp getCreated() {
-        return (Timestamp) get(4);
+        return (Timestamp) get(3);
     }
 
     /**
-     * Setter for <code>public.test_foo.description</code>.
+     * Setter for <code>public.test_bar.description</code>.
      */
     public void setDescription(String value) {
+        set(4, value);
+    }
+
+    /**
+     * Getter for <code>public.test_bar.description</code>.
+     */
+    @Column(name = "description")
+    public String getDescription() {
+        return (String) get(4);
+    }
+
+    /**
+     * Setter for <code>public.test_bar.version</code>.
+     */
+    public void setVersion(String value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>public.test_foo.description</code>.
-     */
-    @Column(name = "description")
-    public String getDescription() {
-        return (String) get(5);
-    }
-
-    /**
-     * Setter for <code>public.test_foo.owner_id</code>.
-     */
-    public void setOwnerId(String value) {
-        set(6, value);
-    }
-
-    /**
-     * Getter for <code>public.test_foo.owner_id</code>.
-     */
-    @Column(name = "owner_id", nullable = false, length = 36)
-    @NotNull
-    @Size(max = 36)
-    public String getOwnerId() {
-        return (String) get(6);
-    }
-
-    /**
-     * Setter for <code>public.test_foo.flag</code>.
-     */
-    public void setFlag(Boolean value) {
-        set(7, value);
-    }
-
-    /**
-     * Getter for <code>public.test_foo.flag</code>.
-     */
-    @Column(name = "flag", nullable = false)
-    @NotNull
-    public Boolean getFlag() {
-        return (Boolean) get(7);
-    }
-
-    /**
-     * Setter for <code>public.test_foo.version</code>.
-     */
-    public void setVersion(String value) {
-        set(8, value);
-    }
-
-    /**
-     * Getter for <code>public.test_foo.version</code>.
+     * Getter for <code>public.test_bar.version</code>.
      */
     @Column(name = "version", length = 36)
     @Size(max = 36)
     public String getVersion() {
-        return (String) get(8);
+        return (String) get(5);
     }
 
     // -------------------------------------------------------------------------
@@ -203,45 +153,39 @@ public class TestFooRecord extends UpdatableRecordImpl<TestFooRecord> {
     // -------------------------------------------------------------------------
 
     /**
-     * Create a detached TestFooRecord
+     * Create a detached TestBarRecord
      */
-    public TestFooRecord() {
-        super(TestFoo.TEST_FOO);
+    public TestBarRecord() {
+        super(TestBar.TEST_BAR);
     }
 
     /**
-     * Create a detached, initialised TestFooRecord
+     * Create a detached, initialised TestBarRecord
      */
-    public TestFooRecord(String id, String name, Integer num, String type, Timestamp created, String description, String ownerId, Boolean flag, String version) {
-        super(TestFoo.TEST_FOO);
+    public TestBarRecord(String id, String name, Integer num, Timestamp created, String description, String version) {
+        super(TestBar.TEST_BAR);
 
         setId(id);
         setName(name);
         setNum(num);
-        setType(type);
         setCreated(created);
         setDescription(description);
-        setOwnerId(ownerId);
-        setFlag(flag);
         setVersion(version);
         resetChangedOnNotNull();
     }
 
     /**
-     * Create a detached, initialised TestFooRecord
+     * Create a detached, initialised TestBarRecord
      */
-    public TestFooRecord(io.github.qlivedev.testdomain.tables.pojos.TestFoo value) {
-        super(TestFoo.TEST_FOO);
+    public TestBarRecord(io.github.qlivedev.testdomain.tables.pojos.TestBar value) {
+        super(TestBar.TEST_BAR);
 
         if (value != null) {
             setId(value.getId());
             setName(value.getName());
             setNum(value.getNum());
-            setType(value.getType());
             setCreated(value.getCreated());
             setDescription(value.getDescription());
-            setOwnerId(value.getOwnerId());
-            setFlag(value.getFlag());
             setVersion(value.getVersion());
             resetChangedOnNotNull();
         }

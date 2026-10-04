@@ -4,7 +4,7 @@
 package io.github.qlivedev.testdomain.tables.records;
 
 
-import io.github.qlivedev.testdomain.tables.pojos.TestFooType;
+import io.github.qlivedev.testdomain.tables.TestFooType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -94,14 +94,14 @@ public class TestFooTypeRecord extends UpdatableRecordImpl<TestFooTypeRecord> {
      * Create a detached TestFooTypeRecord
      */
     public TestFooTypeRecord() {
-        super(io.github.qlivedev.testdomain.tables.TestFooType.TEST_FOO_TYPE);
+        super(TestFooType.TEST_FOO_TYPE);
     }
 
     /**
      * Create a detached, initialised TestFooTypeRecord
      */
     public TestFooTypeRecord(Integer ordinal, String name) {
-        super(io.github.qlivedev.testdomain.tables.TestFooType.TEST_FOO_TYPE);
+        super(TestFooType.TEST_FOO_TYPE);
 
         setOrdinal(ordinal);
         setName(name);
@@ -111,8 +111,8 @@ public class TestFooTypeRecord extends UpdatableRecordImpl<TestFooTypeRecord> {
     /**
      * Create a detached, initialised TestFooTypeRecord
      */
-    public TestFooTypeRecord(TestFooType value) {
-        super(io.github.qlivedev.testdomain.tables.TestFooType.TEST_FOO_TYPE);
+    public TestFooTypeRecord(io.github.qlivedev.testdomain.tables.pojos.TestFooType value) {
+        super(TestFooType.TEST_FOO_TYPE);
 
         if (value != null) {
             setOrdinal(value.getOrdinal());

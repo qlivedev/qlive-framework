@@ -1,4 +1,4 @@
-import {describe, expect, test} from "vitest";
+import {describe, expect, onTestFinished, test, vi} from "vitest";
 import {and, conditionsEqual, field, FilterExpression, value} from "../../src/FilterDSL";
 import {claimTerms, ColumnFilter, FilterColumn, filled, filterLabel, filterTarget, operatorFilter} from "../../src/grid/filters";
 
@@ -155,10 +155,14 @@ describe("claimTerms", () => {
     });
 
     test("leaves a term two columns claim unclaimed", () => {
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        onTestFinished(() => warn.mockRestore());
+
         const twice: FilterColumn[] = [{field: "name", filter: contains}, {field: "name", filter: contains}];
         const claimed = claimTerms(nameTerm(), twice);
         expect(claimed.terms).toEqual([null, null]);
         expect(claimed.unclaimed).toHaveLength(1);
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining("all recognize the same term"), nameTerm());
     });
 
     test("gives a column one term at most", () => {

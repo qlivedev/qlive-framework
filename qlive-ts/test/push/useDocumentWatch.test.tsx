@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
+import {afterEach, beforeEach, describe, expect, it, onTestFinished, vi} from "vitest";
 import {act, Component, ReactNode, StrictMode} from "react";
 import {createRoot, Root} from "react-dom/client";
 import {init} from "../../src/config";
@@ -187,7 +187,15 @@ describe("a render that is thrown away", () => {
     // opened while rendering belongs to a commit that never happened, so nothing is left to close it.
     it("leaves nothing subscribed", () => {
 
-        vi.spyOn(console, "error").mockImplementation(() => {})
+        // React logs the thrown error through console.error, and jsdom reports it again as uncaught unless
+        // the window's error event is cancelled -- through a console Vitest wired up before any spy existed.
+        const error = vi.spyOn(console, "error").mockImplementation(() => {})
+        const cancel = (event: ErrorEvent) => event.preventDefault()
+        window.addEventListener("error", cancel)
+        onTestFinished(() => {
+            window.removeEventListener("error", cancel)
+            error.mockRestore()
+        })
 
         act(() => {
             root.render(<Boundary><BarsLive/><Boom/></Boundary>)

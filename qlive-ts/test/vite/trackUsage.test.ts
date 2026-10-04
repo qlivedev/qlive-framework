@@ -4,7 +4,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import trackUsageData from "../../src/vite/babel/trackUsageData.js";
 import type {Plugin, ResolvedConfig, ViteDevServer} from "vite";
-import {afterEach, beforeEach, describe, expect, it, type MockInstance, vi} from "vitest";
+import {afterEach, beforeEach, describe, expect, it, type MockInstance, onTestFinished, vi} from "vitest";
 import {and, field, value} from "../../src/FilterDSL";
 import {analyzeSourceTree, type TrackUsagePluginOptions, trackUsage} from "../../src/vite/trackUsage";
 
@@ -249,10 +249,14 @@ describe("trackUsage", () => {
 
 
     it("serves at once when there is no backend to reach", async () => {
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        onTestFinished(() => warn.mockRestore());
+
         startPlugin();
         pushes[0].fail();
         await settle();
         expect(serving).toBe(true);
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining("could not reach"), expect.anything());
     });
 
 

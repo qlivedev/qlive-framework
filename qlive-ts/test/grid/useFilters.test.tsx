@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
+import {afterEach, beforeEach, describe, expect, it, onTestFinished, vi} from "vitest";
 import {act, Component, ReactNode, useState} from "react";
 import {createRoot, Root} from "react-dom/client";
 import {and, component, conditionsEqual, field, FilterExpression, or, value} from "../../src/FilterDSL";
@@ -256,7 +256,7 @@ describe("useFilters", () => {
     });
 
     it("reports an or composition without its slot", () => {
-        vi.spyOn(console, "error").mockImplementation(() => {});
+        quietThrowsInRender();
         render(or(component("a", nameTerm("x")), component("b", nameTerm("y"))));
 
         type(0, "foo");
@@ -265,3 +265,21 @@ describe("useFilters", () => {
         expect(updates).toEqual([]);
     });
 });
+
+
+/**
+ * Silences an error this test throws while rendering on purpose. React logs it through console.error, and
+ * jsdom reports it again as uncaught unless the window's error event is cancelled -- printed through a
+ * console Vitest wired up before any spy existed, so only cancelling the event keeps it out of the output.
+ */
+function quietThrowsInRender()
+{
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const cancel = (event: ErrorEvent) => event.preventDefault();
+    window.addEventListener("error", cancel);
+
+    onTestFinished(() => {
+        window.removeEventListener("error", cancel);
+        error.mockRestore();
+    });
+}

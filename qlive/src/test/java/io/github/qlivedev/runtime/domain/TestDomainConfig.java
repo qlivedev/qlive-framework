@@ -70,6 +70,8 @@ public class TestDomainConfig
             // configure object creation for schema relationships
             .configureRelation(TEST_FOO.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY)
             .configureRelation(TEST_FOO.TYPE, SourceField.OBJECT_AND_SCALAR, TargetField.NONE, "fooType", null)
+            .configureRelation(TEST_BAR_LINK.BAR_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY, "bar", "bazLinks")
+            .configureRelation(TEST_BAR_LINK.BAZ_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY, "baz", "bazLinks")
             .configureNameField("name")
 
 

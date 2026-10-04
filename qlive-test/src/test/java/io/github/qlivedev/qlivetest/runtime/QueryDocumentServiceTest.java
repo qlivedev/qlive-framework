@@ -30,15 +30,19 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 /// Runs query documents the way a browser does -- through the schema, against this application's own
-/// database -- because everything this service does only means something at the far end of that.
+/// database -- for what only the database can answer: whether the statements find the rows they describe,
+/// and whether every column type reads back as its scalar.
 ///
-/// The Foo tests make their own rows and look only at those: each carries a marker in its description, and
-/// every condition they query with requires it. What else the table holds -- the seed rows, rows saved in the
-/// browser, a previous run's leftovers -- cannot change their outcome (see docs/design/test-isolation.md).
+/// What QLive does on either side of the database -- the statements a document comes to, what it binds,
+/// how rows are stitched into relations, the config it echoes -- is qlive's QueryDocumentExecutionTest,
+/// against scripted rows.
 ///
-/// The Bar, Baz and Qux tests still read the example database's own rows. Its many-to-many data is laid out
-/// for exactly what is asserted there: one bar with three links, one with none, and a baz that two bars link
-/// to.
+/// The Foo test makes its own rows and looks only at those: each carries a marker in its description, and
+/// every condition it queries with requires it. What else the table holds -- the seed rows, rows saved in the
+/// browser, a previous run's leftovers -- cannot change its outcome (see docs/design/test-isolation.md).
+///
+/// The Bar and Qux tests still read the example database's own rows. Its many-to-many data is laid out for
+/// exactly what is asserted there: one bar with three links and one with none.
 @SpringBootTest
 class QueryDocumentServiceTest
 {
@@ -51,9 +55,8 @@ class QueryDocumentServiceTest
     /// In the description of every row this test makes, and nowhere else.
     private final String marker = "QueryDocumentServiceTest " + UUID.randomUUID();
 
-    /// Two users to own the rows, whoever they are.
+    /// The user who owns Alpha and Charlie, whoever that is.
     private Record2<String, String> ownerA;
-    private Record2<String, String> ownerB;
 
 
     /// Alpha and Bravo from 2018, Charlie from 2020; Alpha and Charlie belong to one user, Bravo to another.
@@ -66,7 +69,7 @@ class QueryDocumentServiceTest
             .limit(2)
             .fetch();
         ownerA = users.get(0);
-        ownerB = users.get(1);
+        final Record2<String, String> ownerB = users.get(1);
 
         final String type = dslContext.select(FOO_TYPE.NAME).from(FOO_TYPE).limit(1).fetchOne(FOO_TYPE.NAME);
 
@@ -80,64 +83,6 @@ class QueryDocumentServiceTest
     void removeRows()
     {
         dslContext.deleteFrom(FOO).where(FOO.DESCRIPTION.eq(marker)).execute();
-    }
-
-
-    /// A to-one relation comes back with the rows that carry it, out of the one statement that fetched
-    /// them, and not out of a query per row afterwards.
-    @Test
-    void fetchesRowsWithTheirToOneRelations()
-    {
-        final Map<String, Object> document = queryDocument(
-            "queryFooDocument",
-            "id name type ownerId owner { id login } fooType { name ordinal }",
-            Map.of("pageSize", 0, "offset", 0, "condition", marked())
-        );
-
-        assertThat(document.get("type"), is("Foo"));
-
-        final List<Map<String, Object>> rows = rows(document);
-        assertThat(rows, hasSize(3));
-
-        for (Map<String, Object> row : rows)
-        {
-            assertThat(nested(row, "owner").get("id"), is(row.get("ownerId")));
-            assertThat(nested(row, "owner").get("login"), is(notNullValue()));
-            assertThat(nested(row, "fooType").get("name"), is(row.get("type")));
-        }
-    }
-
-
-    /// The row count is of everything the condition matches, which is the number the client pages by, not
-    /// the number of rows it just received.
-    @Test
-    void countsWhatThePageLeftOut()
-    {
-        final Map<String, Object> document = queryDocument(
-            "queryFooDocument",
-            "id name",
-            Map.of("pageSize", 2, "offset", 0, "condition", marked())
-        );
-
-        assertThat(rows(document), hasSize(2));
-        assertThat(document.get("rowCount"), is(3));
-    }
-
-
-    /// With no page size the document is everything, and the config that comes back says what was applied.
-    /// The primary-key sort the server falls back on is not part of that: nobody asked for it, and an empty
-    /// sort echoed back gets it again.
-    @Test
-    void returnsTheConfigItActuallyUsed()
-    {
-        final Map<String, Object> document = queryDocument("queryFooDocument", "id name", config(0, 0));
-
-        @SuppressWarnings("unchecked")
-        final Map<String, Object> config = (Map<String, Object>) document.get("config");
-
-        assertThat(config.get("pageSize"), is(0));
-        assertThat((List<?>) config.get("sortFields"), is(empty()));
-        assertThat(rows(document), hasSize((Integer) document.get("rowCount")));
     }
 
 
@@ -171,112 +116,6 @@ class QueryDocumentServiceTest
             Map.of("pageSize", 1, "offset", 0, "sortFields", List.of("!name"), "condition", marked())
         );
         assertThat(names(sorted), contains("Charlie"));
-    }
-
-
-    /// A sort field can be any field expression, not only a field name. It arrives as a node of the condition
-    /// tree, and the config that comes back carries it as it was sent.
-    @Test
-    void sortsByAnExpression()
-    {
-        // num * -1, ascending: the largest num first
-        final Map<String, Object> negated = Map.of(
-            "type", "Operation",
-            "name", "mul",
-            "operands", List.of(
-                Map.of("type", "Field", "name", "num"),
-                Map.of("type", "Value", "scalarType", "Int", "value", -1)
-            )
-        );
-
-        final Map<String, Object> document = queryDocument(
-            "queryFooDocument",
-            "id name",
-            Map.of("pageSize", 0, "offset", 0, "sortFields", List.of(negated), "condition", marked())
-        );
-
-        assertThat(names(document), contains("Charlie", "Bravo", "Alpha"));
-
-        @SuppressWarnings("unchecked")
-        final Map<String, Object> config = (Map<String, Object>) document.get("config");
-
-        assertThat((List<?>) config.get("sortFields"), contains(negated));
-    }
-
-
-    /// A condition's values arrive as JSON, where a timestamp is a string. By the time one reaches a
-    /// query it is a Timestamp, because the condition scalar converted it with the coercing of the scalar
-    /// type the node named.
-    @Test
-    void readsTypedValuesInConditions()
-    {
-        final Map<String, Object> document = queryDocument(
-            "queryFooDocument",
-            "name created",
-            Map.of(
-                "pageSize", 0,
-                "offset", 0,
-                "sortFields", List.of("name"),
-                "condition", marked(comparison("lt", "created", "Timestamp", "2019-01-01T00:00:00.000Z"))
-            )
-        );
-
-        assertThat(names(document), contains("Alpha", "Bravo"));
-    }
-
-
-    /// A component names which part of a filter form a condition came from. The database has no use for
-    /// it -- the condition below it filters exactly as it would on its own -- but the config the document
-    /// returns still carries it, because the client spreads that config over its next update() and its
-    /// form finds its own part of the condition by that id.
-    @Test
-    void returnsTheComponentsOfAConditionToTheClient()
-    {
-        final Map<String, Object> condition = component(
-            "nameFilter",
-            marked(eq("name", "String", "Alpha"))
-        );
-
-        final Map<String, Object> document = queryDocument(
-            "queryFooDocument",
-            "id name",
-            Map.of("pageSize", 0, "offset", 0, "condition", condition)
-        );
-
-        assertThat(names(document), contains("Alpha"));
-
-        @SuppressWarnings("unchecked")
-        final Map<String, Object> config = (Map<String, Object>) document.get("config");
-
-        assertThat(config.get("condition"), is(condition));
-    }
-
-
-    /// A to-many relation is fetched by a query of its own and stitched back onto the rows it belongs to.
-    @Test
-    void fetchesToManyRelations()
-    {
-        final Map<String, Object> document = queryDocument(
-            "queryAppUserDocument",
-            "id login foos { name description }",
-            Map.of(
-                "pageSize", 0,
-                "offset", 0,
-                "condition", eq("login", "String", ownerA.value2())
-            )
-        );
-
-        final List<Map<String, Object>> rows = rows(document);
-        assertThat(rows, hasSize(1));
-
-        @SuppressWarnings("unchecked")
-        final List<Map<String, Object>> foos = (List<Map<String, Object>>) rows.get(0).get("foos");
-        final List<Object> mine = foos.stream()
-            .filter(foo -> marker.equals(foo.get("description")))
-            .map(foo -> foo.get("name"))
-            .sorted()
-            .toList();
-        assertThat(mine, contains("Alpha", "Charlie"));
     }
 
 
@@ -346,35 +185,7 @@ class QueryDocumentServiceTest
     }
 
 
-    /// The same links from the other end, where the link table's other foreign key is the to-many relation
-    /// and the first one is the to-one below it.
-    @Test
-    void readsTheSameLinksFromEitherSide()
-    {
-        final List<Map<String, Object>> bazs = rows(
-            queryDocument(
-                "queryBazDocument",
-                "name bazLinks { id bar { name } }",
-                Map.of(
-                    "pageSize", 0,
-                    "offset", 0,
-                    "condition", eq("name", "String", "Baz #1")
-                )
-            )
-        );
-
-        assertThat(bazs, hasSize(1));
-        assertThat(linked(bazs.get(0), "bar"), contains("Bar #1", "Bar #2"));
-    }
-
-
     // -----------------------------------------------------------------------------------------------------
-
-    private static Map<String, Object> config(int pageSize, int offset)
-    {
-        return Map.of("pageSize", pageSize, "offset", offset);
-    }
-
 
     private void insertFoo(String name, int num, Record2<String, String> owner, String type, String created)
     {
@@ -412,25 +223,12 @@ class QueryDocumentServiceTest
     }
 
 
-    private static Map<String, Object> eq(String field, String scalarType, Object value)
-    {
-        return comparison("eq", field, scalarType, value);
-    }
-
-
-    /// A condition wrapped in the client's marker for the filter form field it came from.
-    private static Map<String, Object> component(String id, Map<String, Object> condition)
-    {
-        return Map.of("type", "Component", "id", id, "condition", condition);
-    }
-
-
     /// One FilterDSL comparison as it arrives over the wire: the condition scalar's own JSON shape.
-    private static Map<String, Object> comparison(String name, String field, String scalarType, Object value)
+    private static Map<String, Object> eq(String field, String scalarType, Object value)
     {
         return Map.of(
             "type", "Condition",
-            "name", name,
+            "name", "eq",
             "operands", List.of(
                 Map.of("type", "Field", "name", field),
                 Map.of("type", "Value", "scalarType", scalarType, "value", value)

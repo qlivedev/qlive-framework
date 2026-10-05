@@ -28,13 +28,12 @@ import java.util.TreeMap;
 ///         return MergeMetadataProvider.newProvider()
 ///             .resolveConflicts(Bar.class)
 ///             .ignoreFields(Foo.class, "lastAccessed")
-///             .autoMerge(Baz.class, false)
-///             .linkType(CorgeLink.class);
+///             .autoMerge(Baz.class, false);
 ///     }
 ///
 /// Which types take part is not declared here and cannot be: a type with a `version` field is versioned, and
-/// that is the whole rule. Everything but {@link #linkType} therefore has to be said about a versioned type
-/// and is reported otherwise -- declaring how conflicts are resolved for a type that can have none is a
+/// that is the whole rule. Everything here therefore has to be said about a versioned type and is reported
+/// otherwise -- declaring how conflicts are resolved for a type that can have none is a
 /// forgotten column, and it is much cheaper to hear about it at startup than to find the write silently
 /// clobbering.
 ///
@@ -55,8 +54,6 @@ public class MergeMetadataProvider
         private Boolean autoMerge;
 
         private List<String> ignoredFields;
-
-        private Boolean linkType;
     }
 
     /// Declarations by Java type, whose GraphQL name only the built domain knows.
@@ -161,35 +158,6 @@ public class MergeMetadataProvider
 
         declaration.autoMerge =
             declaredOnce(declaration.autoMerge, MergeMeta.AUTO_MERGE, typeName, autoMerge);
-
-        return this;
-    }
-
-
-    /// Declares the type QLiveDomain exposes the given Java type as a link table, i.e. a row that exists to say
-    /// two entities are associated.
-    ///
-    /// Only needed for the link tables carrying fields beyond the two foreign keys: one of the plain shape is
-    /// recognized by that shape, on the client, out of the relation meta data it already has. The one
-    /// statement here that says nothing about versioning, and the only one a type without a `version` field
-    /// may make.
-    public MergeMetadataProvider linkType(Class<?> javaType)
-    {
-        final Declaration declaration = declarationFor(javaType);
-
-        declaration.linkType = declaredOnce(declaration.linkType, MergeMeta.LINK_TYPE, javaType);
-
-        return this;
-    }
-
-
-    /// Declares the type of the given GraphQL name a link table, for the types an application has no class
-    /// at hand for.
-    public MergeMetadataProvider linkType(String typeName)
-    {
-        final Declaration declaration = declarationFor(typeName);
-
-        declaration.linkType = declaredOnce(declaration.linkType, MergeMeta.LINK_TYPE, typeName);
 
         return this;
     }
@@ -314,11 +282,6 @@ public class MergeMetadataProvider
             requireVersioned(domain, typeName, MergeMeta.IGNORED_FIELDS);
             requireFields(domain, typeName, declaration.ignoredFields);
             written.put(MergeMeta.IGNORED_FIELDS, declaration.ignoredFields);
-        }
-
-        if (declaration.linkType != null)
-        {
-            written.put(MergeMeta.LINK_TYPE, declaration.linkType);
         }
 
         log.debug("Merge meta data of type {}: {}", typeName, written);

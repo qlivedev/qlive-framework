@@ -56,8 +56,8 @@ class MergeMetadataProviderTest
     }
 
 
-    /// The four statements land in one map under one property, so that the type meta data namespace an
-    /// application extends carries one merge entry rather than four ordinary words.
+    /// The statements land in one map under one property, so that the type meta data namespace an
+    /// application extends carries one merge entry rather than three ordinary words.
     @Test
     void writesTheDeclarationOntoTheType()
     {
@@ -71,7 +71,6 @@ class MergeMetadataProviderTest
         assertThat(MergeMeta.resolvesConflicts(domain, "TestFoo"), is(true));
         assertThat(MergeMeta.isAutoMerge(domain, "TestFoo"), is(false));
         assertThat(MergeMeta.ignoredFields(domain, "TestFoo"), contains("created", "num"));
-        assertThat(MergeMeta.isLinkType(domain, "TestFoo"), is(false));
     }
 
 
@@ -84,7 +83,6 @@ class MergeMetadataProviderTest
 
         assertThat(MergeMeta.resolvesConflicts(domain, "TestFoo"), is(false));
         assertThat(MergeMeta.ignoredFields(domain, "TestFoo"), is(List.of()));
-        assertThat(MergeMeta.isLinkType(domain, "TestFoo"), is(false));
 
         // the one default that is not "off": a change that does not overlap ours is merged unless the type
         // asked to see it, because that case is what the mechanism is for
@@ -109,22 +107,9 @@ class MergeMetadataProviderTest
     }
 
 
-    /// The one statement about a type that says nothing about versioning: a link row has no fields of its
-    /// own to clash over, and a link table that carries some is the case auto-detection cannot see.
-    @Test
-    void declaresALinkTypeWithoutVersioning()
-    {
-        final QLiveDomain domain = domainWith(
-            MergeMetadataProvider.newProvider().linkType(TestUser.class)
-        );
-
-        assertThat(MergeMeta.isLinkType(domain, "TestUser"), is(true));
-    }
-
-
-    /// Reported rather than written: a type without a version column takes no part, so everything but the
-    /// link declaration would be meta data describing behavior the type can never reach -- which looks
-    /// exactly like a column somebody forgot to add.
+    /// Reported rather than written: a type without a version column takes no part, so every declaration
+    /// would be meta data describing behavior the type can never reach -- which looks exactly like a column
+    /// somebody forgot to add.
     @Test
     void reportsMergeBehaviourDeclaredForAnUnversionedType()
     {

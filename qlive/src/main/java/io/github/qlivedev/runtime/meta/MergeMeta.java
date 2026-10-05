@@ -45,9 +45,9 @@ public final class MergeMeta
     /// Name of the type meta data property holding everything a type declares about merging it. Has to agree
     /// with `DomainTypeMetaProps` on the client, which declares the same name to TypeScript.
     ///
-    /// One grouped property rather than four loose ones: the type meta data is a namespace an application
-    /// extends with addenda of its own, and `resolve`, `autoMerge`, `ignoredFields` and `linkType` are words
-    /// too ordinary to claim there one by one.
+    /// One grouped property rather than three loose ones: the type meta data is a namespace an application
+    /// extends with addenda of its own, and `resolve`, `autoMerge` and `ignoredFields` are words too ordinary
+    /// to claim there one by one.
     public final static String MERGE = "merge";
 
     /// Key under {@link #MERGE}: the type opts in to resolving conflicts in the view. Off -- the default --
@@ -61,10 +61,6 @@ public final class MergeMeta
     /// Key under {@link #MERGE}: fields whose change neither marks the type's field mask nor ever counts as
     /// a conflict.
     public final static String IGNORED_FIELDS = "ignoredFields";
-
-    /// Key under {@link #MERGE}: the type is a link table, for the link tables that carry fields of their
-    /// own and are therefore not recognisable by their shape.
-    public final static String LINK_TYPE = "linkType";
 
 
     /// Whether rows of the given type take part in conflict detection, i.e. whether the type has a
@@ -146,16 +142,6 @@ public final class MergeMeta
         final Object ignored = merge(domain, typeName).get(IGNORED_FIELDS);
 
         return ignored == null ? List.of() : List.copyOf((List<String>) ignored);
-    }
-
-
-    /// Whether the type was declared a link table. Only ever true for the link tables that carry fields
-    /// beyond the two foreign keys, since a link table of the plain shape is recognized by that shape.
-    ///
-    /// @param typeName  name of a GraphQL type, known or not
-    public static boolean isLinkType(QLiveDomain domain, String typeName)
-    {
-        return Boolean.TRUE.equals(merge(domain, typeName).get(LINK_TYPE));
     }
 
 

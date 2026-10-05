@@ -86,13 +86,4 @@ class MergeMetadataTest
         assertThat(MergeMeta.isAutoMerge(domain, "Foo"), is(true));
         assertThat(MergeMeta.ignoredFields(domain, "Bar"), is(List.of()));
     }
-
-
-    /// bar_link is a link of the plain shape -- an id, a version and its two foreign keys -- so the client
-    /// recognizes it without help and nothing here declares it one.
-    @Test
-    void declaresNoLinkType()
-    {
-        assertThat(MergeMeta.isLinkType(domain, "BarLink"), is(false));
-    }
 }

@@ -2,7 +2,7 @@
 title: Add an entry point
 description: A second HTML page that boots the way the application does.
 sidebar:
-  order: 4
+  order: 5
 ---
 
 An **entry point** is an HTML file plus the module it loads. An application

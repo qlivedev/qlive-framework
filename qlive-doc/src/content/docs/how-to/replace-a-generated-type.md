@@ -2,7 +2,7 @@
 title: Replace a generated type
 description: A handwritten class in place of the jOOQ POJO, with computed fields and pinned scalars.
 sidebar:
-  order: 6
+  order: 7
 ---
 
 When a table's columns do not say everything about a type, replace the

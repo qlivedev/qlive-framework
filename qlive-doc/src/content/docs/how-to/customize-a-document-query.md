@@ -2,7 +2,7 @@
 title: Customize a document query
 description: Intercepting the QueryConfig for defaults and for row-level security.
 sidebar:
-  order: 7
+  order: 8
 ---
 
 The config a document query executes with is the one you hand

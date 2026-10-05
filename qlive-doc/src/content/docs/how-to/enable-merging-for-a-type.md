@@ -127,7 +127,7 @@ application has no class at hand for.
 
 Either as a `MetadataProvider` bean, which the domain picks up through the
 `getBeansOfType()` call in
-[Wire up a Spring application](/qlive-framework/how-to/wire-up-a-spring-application/),
+[Define the domain](/qlive-framework/how-to/define-the-domain/),
 or inline in the domain builder, which is what `qlive-test` does:
 
 ```java title="QLiveDomainConfiguration.java"
@@ -147,7 +147,7 @@ or inline in the domain builder, which is what `qlive-test` does:
 
 Both routes reach the same meta data, and what reads it does not care who
 wrote it. See
-[Add schema metadata](/qlive-framework/how-to/add-schema-metadata/) for
+[Metadata providers](/qlive-framework/how-to/define-the-domain/#metadata-providers) for
 what else rides along on the same mechanism.
 
 ## The mutation is already there

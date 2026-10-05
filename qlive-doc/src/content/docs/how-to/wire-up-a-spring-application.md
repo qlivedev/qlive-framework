@@ -30,42 +30,9 @@ pages that answer 503 forever.
 
 ## The domain
 
-```java
-@Bean
-public QLiveDomain domain() throws IOException
-{
-    return QLiveDefaultDomain.newDomain(
-            dslContext,
-            applicationContext.getBeansOfType(MetadataProvider.class).values()
-        )
-        .logicBeans(applicationContext.getBeansWithAnnotation(GraphQLLogic.class).values())
-        .objectTypes(Public.PUBLIC)
-        // ...
-        .build();
-}
-```
-
-`QLiveDefaultDomain.newDomain()` is a builder helper that standardizes the QLive
-scalars (`QueryConfig`, `Condition`, `FieldExpression`, `ComputedValue` and
-the rest) into the domain.
-
-`QLiveDomain` is the whole of what the framework and your own code read the
-domain through: `getGraphQLSchema()`, `getTypeRegistry()` and
-`getMetaData()`. Declare the bean as that rather than as the `QLiveDomainImpl`
-the builder returns -- the schema assembly behind it is not something an
-application has anything to say to.
-
-You can keep the domain definition separable from the bean wiring: nothing in it
-touches the `DSLContext` until a query executes, so a test can build the
-same schema with `null` and assert on it without a database. Hand it the
-same logic beans and metadata providers, or you are testing a different
-schema than you ship. 
-
-(See io.github.qlivedev.qlivetest.runtime.config.QLiveDomainConfiguration.newDomain)
-
-Every `MetadataProvider` bean the context holds is handed to the domain
-here -- see
-[Add schema metadata](/qlive-framework/how-to/add-schema-metadata/).
+The `QLiveDomain` bean is yours: it is built from your jOOQ schema, your logic
+beans and your metadata providers. See
+[Define the domain](/qlive-framework/how-to/define-the-domain/).
 
 ## Static analysis, per profile
 

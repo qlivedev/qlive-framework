@@ -2,7 +2,7 @@
 title: MergeService
 description: What the merge service does and why it does it
 sidebar:
-  order: 7
+  order: 8
 ---
 So far we talked about how we query things and filter them but now how to write them back. There's of course the 
 GraphQL way where you define input types for your output types and use them in your mutations. That's something you can 

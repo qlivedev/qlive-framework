@@ -2,7 +2,7 @@
 title: Expose document queries
 description: How to setup QueryDocumentService endpoints
 sidebar:
-  order: 2
+  order: 3
 ---
 Each type of query document needs to be served by its own dedicated endpoint. Thanks to our GraphQL engine we don't have
 to write them by hand, but we can instead use one generic endpoint that gets multiplied into one query per row type we 
@@ -107,6 +107,6 @@ posted by a browser may reach.
                                                                      
 - Read about [why the document can be a security boundary](/qlive-framework/explanation/query-documents/#why-the-document-can-be-a-security-boundary)
 - A page size cap, a default sort or a standing condition per type:
-  [Add schema metadata](/qlive-framework/how-to/add-schema-metadata/).
+  [Define the domain](/qlive-framework/how-to/define-the-domain/#the-query-config-a-type-suggests).
 - Row-level security, or redefining what "no config" means:
   [Customize a document query](/qlive-framework/how-to/customize-a-document-query/).

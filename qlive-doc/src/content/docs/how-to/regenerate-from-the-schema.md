@@ -2,7 +2,7 @@
 title: Regenerate from the schema
 description: Refreshing schema.graphql after a domain change, and the types that come off it.
 sidebar:
-  order: 5
+  order: 6
 ---
 
 Every TypeScript type the frontend has for the domain is generated from

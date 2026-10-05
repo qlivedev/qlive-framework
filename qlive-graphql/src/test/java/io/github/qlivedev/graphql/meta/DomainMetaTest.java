@@ -53,7 +53,12 @@ public class DomainMetaTest
             )
 
 
-            .configureNameField("name")
+            .withMetadataProviders(
+                NameFieldProvider.newProvider()
+                    .forAllTypes()
+                        .nameFields("name")
+                        .build()
+            )
 
             .logicBeans(Collections.singleton(new OutputTypeOverrideByParamLogic()))
             .build();
@@ -80,8 +85,14 @@ public class DomainMetaTest
             .configureRelation(BAR.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
             .configureRelation(BAR_OWNER.ORG_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
 
-            .configureNameFieldForTypes("name", BarOwner.class, BarOrg.class, Foo.class)
-            .configureNameFields(Bar.class,"name", "owner.name", "owner.org.name")
+            .withMetadataProviders(
+                NameFieldProvider.newProvider()
+                    .forTypes(BarOwner.class, BarOrg.class, Foo.class)
+                        .nameFields("name")
+                    .andForType(Bar.class)
+                        .nameFields("name", "owner.name", "owner.org.name")
+                        .build()
+            )
             .build();
 
 
@@ -105,7 +116,12 @@ public class DomainMetaTest
 
             .configureRelation(BAR.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
 
-            .configureNameFields(Bar.class, "owner.orgId")
+            .withMetadataProviders(
+                NameFieldProvider.newProvider()
+                    .forType(Bar.class)
+                        .nameFields("owner.orgId")
+                        .build()
+            )
             .build();
 
         assertThat(
@@ -126,7 +142,12 @@ public class DomainMetaTest
 
                     // this makes sense from a GraphQL logic point of view, but we don't want the complications
                     // and the use-case for this is weak at best
-                    .configureNameFields(BarOwner.class,"name", "bars.name")
+                    .withMetadataProviders(
+                        NameFieldProvider.newProvider()
+                            .forType(BarOwner.class)
+                                .nameFields("name", "bars.name")
+                                .build()
+                    )
                     .build();
 
 
@@ -144,14 +165,19 @@ public class DomainMetaTest
                     .configureRelation(BAR.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
                     .configureRelation(BAR_OWNER.ORG_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
 
-                    .configureNameFields(Bar.class,"name", "wrong.name")
+                    .withMetadataProviders(
+                        NameFieldProvider.newProvider()
+                            .forType(Bar.class)
+                                .nameFields("name", "wrong.name")
+                                .build()
+                    )
                     .build();
     
         });
     }
 
     @Test
-    public void testNameFieldConfiguringByName()
+    public void testNameFieldsForAllTypes()
     {
         final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
@@ -159,8 +185,14 @@ public class DomainMetaTest
             .configureRelation(BAR.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
             .configureRelation(BAR_OWNER.ORG_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
 
-            .configureNameField("name")
-            .configureNameFields(Bar.class,"name", "owner.name", "owner.org.name")
+            .withMetadataProviders(
+                NameFieldProvider.newProvider()
+                    .forAllTypes()
+                        .nameFields("name")
+                    .andForType(Bar.class)
+                        .nameFields("name", "owner.name", "owner.org.name")
+                        .build()
+            )
             .build();
 
         final DomainTypeMeta barMeta = domain.getMetaData().getTypeMeta("Bar");
@@ -176,7 +208,7 @@ public class DomainMetaTest
     }
 
     @Test
-    public void testNameFieldConfiguringNonDBByName()
+    public void testNameFieldsForAllTypesNonDB()
     {
         final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .logicBeans(new ConfigureNonDBByNameLogic())
@@ -185,14 +217,72 @@ public class DomainMetaTest
             .configureRelation(BAR.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
             .configureRelation(BAR_OWNER.ORG_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
 
-            .configureNameField("name")
-            .configureNameFields(Bar.class,"name", "owner.name", "owner.org.name")
+            .withMetadataProviders(
+                NameFieldProvider.newProvider()
+                    .forAllTypes()
+                        .nameFields("name")
+                    .andForType(Bar.class)
+                        .nameFields("name", "owner.name", "owner.org.name")
+                        .build()
+            )
             .build();
 
 
         final DomainTypeMeta fullResponseMeta = domain.getMetaData().getTypeMeta("FullResponse");
 
         assertThat( fullResponseMeta.getMeta(DomainMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
+    }
+
+
+    @Test
+    public void testNameFieldsForAllTypesSkipTypesWithoutThem()
+    {
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
+            .objectTypes(Public.PUBLIC)
+
+            .configureRelation(BAR.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
+
+            .withMetadataProviders(
+                NameFieldProvider.newProvider()
+                    .forAllTypes()
+                        .nameFields("name", "owner.name")
+                        .build()
+            )
+            .build();
+
+        // only Bar has an owner
+        assertThat(
+            domain.getMetaData().getTypeMeta("Bar").getMeta(DomainMeta.NAME_FIELDS),
+            is(Arrays.asList("name", "owner.name"))
+        );
+        assertThat(domain.getMetaData().getTypeMeta("BarOwner").getMeta(DomainMeta.NAME_FIELDS), is(nullValue()));
+        assertThat(domain.getMetaData().getTypeMeta("Foo").getMeta(DomainMeta.NAME_FIELDS), is(nullValue()));
+    }
+
+    @Test
+    public void testNameFieldsDeclaredTwice()
+    {
+        final NameFieldTypeConfigurer configurer = NameFieldProvider.newProvider()
+            .forTypes(Bar.class, Foo.class)
+            .nameFields("name");
+
+        assertThrows(IllegalStateException.class, () -> configurer.andForType(Foo.class));
+    }
+
+    @Test
+    public void testNameFieldsOfUnknownType()
+    {
+        assertThrows(QLiveDomainTypeException.class, () ->
+            QLiveDomainBuilder.newDomain(null)
+                .objectTypes(Public.PUBLIC)
+                .withMetadataProviders(
+                    NameFieldProvider.newProvider()
+                        .forType(String.class)
+                            .nameFields("name")
+                            .build()
+                )
+                .build()
+        );
     }
 
 

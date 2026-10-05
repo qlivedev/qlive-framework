@@ -5,6 +5,7 @@ import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.config.SourceField;
 import io.github.qlivedev.graphql.config.TargetField;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
+import io.github.qlivedev.graphql.meta.NameFieldProvider;
 import io.github.qlivedev.testdomain.Public;
 
 import java.util.Collection;
@@ -72,7 +73,12 @@ public class TestDomainConfig
             .configureRelation(TEST_FOO.TYPE, SourceField.OBJECT_AND_SCALAR, TargetField.NONE, "fooType", null)
             .configureRelation(TEST_BAR_LINK.BAR_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY, "bar", "bazLinks")
             .configureRelation(TEST_BAR_LINK.BAZ_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY, "baz", "bazLinks")
-            .configureNameField("name")
+            .withMetadataProviders(
+                NameFieldProvider.newProvider()
+                    .forAllTypes()
+                        .nameFields("name")
+                        .build()
+            )
 
 
             .build();

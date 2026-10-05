@@ -10,7 +10,6 @@ import io.github.qlivedev.graphql.docs.TypeDoc;
 import io.github.qlivedev.graphql.docs.TypeDocs;
 import io.github.qlivedev.graphql.meta.ComputedMetadataProvider;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
-import io.github.qlivedev.graphql.meta.NameFieldProvider;
 import io.github.qlivedev.graphql.meta.UniqueKeyProvider;
 import io.github.qlivedev.graphql.param.DataFetchingEnvironmentProviderFactory;
 import io.github.qlivedev.graphql.param.ParameterProviderFactory;
@@ -20,14 +19,8 @@ import io.github.qlivedev.util.JSONUtil;
 import graphql.Directives;
 import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLList;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
-import graphql.schema.GraphQLType;
-import graphql.schema.GraphQLTypeUtil;
-import graphql.schema.GraphQLUnmodifiedType;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Schema;
@@ -47,7 +40,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -119,10 +111,6 @@ public class QLiveDomainBuilder
 
     private Set<String> relationIds = new HashSet<>();
 
-    private Map<String, List<String>> nameFields = new LinkedHashMap<>();
-
-    private Set<String> nameFieldsByName = new HashSet<>();
-
     /// In the order the application registered them, which is the order they run in after QLive's own.
     private Set<MetadataProvider> metadataProviders = new LinkedHashSet<>();
 
@@ -181,7 +169,6 @@ public class QLiveDomainBuilder
         // QLive's own first, so that an application's provider writing the same key has the last word -- and in a
         // fixed order either way, which is what keeps the meta data the same from one start to the next
         final Set<MetadataProvider> effectiveMetadataProviders = new LinkedHashSet<>();
-        effectiveMetadataProviders.add(new NameFieldProvider(nameFields, nameFieldsByName));
         effectiveMetadataProviders.add(new ComputedMetadataProvider());
         effectiveMetadataProviders.add(new UniqueKeyProvider());
         effectiveMetadataProviders.addAll(metadataProviders);
@@ -204,8 +191,6 @@ public class QLiveDomainBuilder
             fieldLookup,
             Collections.unmodifiableSet(effectiveMetadataProviders)
         ).assemble();
-
-        validateNameFields(domain.getGraphQLSchema());
 
         return domain;
     }
@@ -710,55 +695,6 @@ public class QLiveDomainBuilder
 
 
     /**
-     * Convenience method to define a single name field for a number of types.
-     *
-     * @param nameField Single representative name field for each type
-     * @param pojoTypes varargs of simple POJO domain types
-     *
-     * @return this builder
-     *
-     * @see #configureNameFields(Class, String...)
-     */
-    public QLiveDomainBuilder configureNameFieldForTypes(String nameField, Class<?>... pojoTypes)
-    {
-        if (pojoTypes == null || pojoTypes.length < 1)
-        {
-            throw new IllegalArgumentException("Need at least one POJO type");
-        }
-
-        for (Class<?> pojoType : pojoTypes)
-        {
-            PojoTypes.ensurePojoType(pojoType);
-            configureNameFields(pojoType, nameField);
-        }
-        return this;
-    }
-
-
-    /**
-     * Convenience method to define one or more name fields to be automatically used as name field if they are
-     * present on the a type.
-     * <p>
-     * The first field of a type that matches one of the fields will be configured as only name field. If you need
-     * multiple
-     * name fields on a single type, use {@link #configureNameFields(Class, String...)}.
-     *
-     * @return this builder
-     */
-    public QLiveDomainBuilder configureNameField(String... nameFields)
-    {
-        if (nameFields == null || nameFields.length < 1)
-        {
-            throw new IllegalArgumentException("Need at least one name field");
-        }
-
-        Collections.addAll(this.nameFieldsByName, nameFields);
-
-        return this;
-    }
-
-
-    /**
      * Adds the given meta data provider instances to be used for schema metadata creation.
      *
      * @param metadataProviders Varargs of meta data provider instances.
@@ -771,100 +707,4 @@ public class QLiveDomainBuilder
 
         return this;
     }
-
-
-    /**
-     * Configures the given name fields to be representative of the given domain type.
-     * <p>
-     * This method is needed to define name fields on JOOQ generated POJOs.
-     *
-     * @param pojoClass  pojo type for the domain type
-     * @param nameFields name fields.
-     *
-     * @return this builder
-     */
-    public QLiveDomainBuilder configureNameFields(Class<?> pojoClass, String... nameFields)
-    {
-        if (nameFields == null || nameFields.length < 1)
-        {
-            throw new IllegalArgumentException("Need at least one name field");
-        }
-
-        PojoTypes.ensurePojoType(pojoClass);
-
-        this.nameFields.put(pojoClass.getSimpleName(), Arrays.asList(nameFields));
-        return this;
-    }
-
-
-    /**
-     * Makes sure that all types and fields declared in {@link #nameFields} actually exist
-     * @param graphQLSchema
-     */
-    private void validateNameFields(GraphQLSchema graphQLSchema)
-    {
-        for (Map.Entry<String, List<String>> e : nameFields.entrySet())
-        {
-            final String typeName = e.getKey();
-            final List<String> fields = e.getValue();
-
-            final GraphQLType type = graphQLSchema.getType(typeName);
-            if (!(type instanceof GraphQLObjectType))
-            {
-                throw new QLiveDomainTypeException("Could find named type " + typeName);
-            }
-
-            for (String path : fields)
-            {
-                // Trimmed, and empty segments dropped: what the StringTokenizer this replaces did.
-                final List<String> parts = Arrays.stream(path.split("\\."))
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .collect(Collectors.toList());
-
-                final int numberOfParts = parts.size();
-                GraphQLObjectType current = (GraphQLObjectType) type;
-                if (numberOfParts > 0)
-                {
-
-                    for (int i = 0; i < numberOfParts - 1; i++)
-                    {
-                        final GraphQLFieldDefinition fieldDef = current.getFieldDefinition(parts.get(
-                            i));
-                        if (fieldDef == null)
-                        {
-                            throw new QLiveDomainTypeException("Could not find name object field '" + path + "' for type" +
-                                " " + typeName);
-                        }
-
-                        final GraphQLOutputType fieldType = fieldDef.getType();
-
-                        if (GraphQLTypeUtil.unwrapNonNull(fieldType) instanceof GraphQLList)
-                        {
-                            throw new QLiveDomainTypeException("The naming field mechanism does not allow following many-to-many relations");
-                        }
-
-                        final GraphQLUnmodifiedType newType = GraphQLTypeUtil.unwrapAll(fieldType);
-                        if (!(newType instanceof GraphQLObjectType))
-                        {
-                            throw new QLiveDomainTypeException("Could not find name object field '" + path + "' for " +
-                                "type" +
-                                " " + typeName);
-                        }
-
-                        current = (GraphQLObjectType) newType;
-                    }
-
-
-                }
-                final GraphQLFieldDefinition fieldDef = current.getFieldDefinition(parts.get(
-                    numberOfParts - 1));
-                if (fieldDef == null || !(GraphQLTypeUtil.unwrapNonNull(fieldDef.getType()) instanceof GraphQLScalarType))
-                {
-                    throw new QLiveDomainTypeException("Could not find name scalar field '" + path + "' for type " + typeName);
-                }
-            }
-        }
-    }
 }
-

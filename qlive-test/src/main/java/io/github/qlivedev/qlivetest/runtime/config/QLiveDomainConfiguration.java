@@ -6,6 +6,7 @@ import io.github.qlivedev.graphql.annotation.GraphQLLogic;
 import io.github.qlivedev.graphql.config.SourceField;
 import io.github.qlivedev.graphql.config.TargetField;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
+import io.github.qlivedev.graphql.meta.NameFieldProvider;
 import io.github.qlivedev.qlivetest.domain.Public;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.AppUser;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Bar;
@@ -90,11 +91,18 @@ public class QLiveDomainConfiguration {
                 .configureRelation(FOO.TYPE, SourceField.OBJECT_AND_SCALAR, TargetField.NONE, "fooType", null)
                 .configureRelation(BAR_LINK.BAR_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY, "bar", "bazLinks")
                 .configureRelation(BAR_LINK.BAZ_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY, "baz", "bazLinks")
-                .configureNameField("name")
-                // users have a login instead, and a grid column of Foo.owner shows it
-                .configureNameFields(AppUser.class, "login")
 
                 .withMetadataProviders(
+
+                        // What a grid column of a relation and a pick option show for a row: its name where it has
+                        // one. Users have a login instead, and a grid column of Foo.owner shows it.
+                        NameFieldProvider.newProvider()
+                                .forAllTypes()
+                                .nameFields("name")
+                                .andForType(AppUser.class)
+                                .nameFields("login")
+                                .build(),
+
 
                         // The house rule for every row type the domain has a query document for. Small on purpose:
                         // it makes paging visible in the example views. A view wanting something else for a local

@@ -232,8 +232,8 @@ Three things, and only the first is cheap to fix.
 
 **The DomainQL builder.** `QLiveDefaultDomain.newDomain()` hands a builder back
 to the application, which finishes it. Everything said there is closed to
-a module: `withAdditionalScalar`, `configureRelation`,
-`configureNameField`, `objectTypes` and `withTypeDocsFrom` -- note that
+a module: `withAdditionalScalar`, `configureRelation`, `objectTypes`
+and `withTypeDocsFrom` -- note that
 QLive's own `qlive-typedocs.json` is loaded by a line the application
 copied into its config, and a module shipping typedocs would need the
 same line added by hand.

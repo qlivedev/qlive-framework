@@ -79,13 +79,13 @@ QLive defines MetadataProviders for a number of different purposes:
  * Generic Type metadata block
  * Relation metadata block
  * Computed field metadata
- * Name field metadata
  * Unique key metadata
 
 Above MetadataProviders reflect the current domain.
 
 Some are also used to configure framework behavior:
 
+ * Name fields, which grid columns of relations and pick options show
  * MergeService configuration
  * QueryConfig defaults and QueryDocumentService limits
  

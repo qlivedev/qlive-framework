@@ -1,6 +1,8 @@
 # Many-to-many relations
 
-Status: proposed. Written 2026-10-05.
+Status: built, steps 1 to 7. Written 2026-10-05, built 2026-10-06 on
+`feat/many-to-many`. qlive-test's Bar edit view was checked by hand
+against the running backend, adding and removing associations both ways.
 
 ## Problem
 
@@ -198,13 +200,26 @@ Nothing is released, so none of this needs a migration path.
   row while editing leaves it in queries, results and generated types,
   which is where most of the awkwardness is.
 
-## Open questions
+## Decided while building
 
-1. **The wire format.** Pairs per addition and removal, or per source row
-   and field with id lists. Decide while writing the merge part.
-2. **The shape of `ManyToManyBuilder`.** The sketch above names the link
-   type once and each side by its column and type. Settle it against
-   `RelationBuilder` when writing it, so the two read alike.
+1. **The wire format** is per source row and field with id lists:
+   `LinkChange {type, id, field, added, removed}`, a fourth argument of
+   `mergeWorkingSet` between the changes and the deletions. It mirrors
+   what the working set holds -- one field of one row -- and the server
+   applies it after the changes and before the deletions.
+2. **`ManyToManyBuilder`** has `withForeignKeyFields(linkField,
+   otherLinkField)`, `withPojoFields(linkPojo, linkField, type,
+   otherLinkField, otherType)` and `withFieldNames(fieldName,
+   otherFieldName)`. It builds the two halves with `RelationBuilder`, so
+   both forms resolve fields the way ordinary relations do. The halves
+   stay out of the domain's relations: an application configuring the
+   same foreign keys as ordinary relations would otherwise get the link
+   columns twice.
+3. **Field masks** count through fields like any other field of the
+   type, on both ends, since both take every field of the schema type.
+4. **qlive-test** dropped the ordinary `bazLinks` relations. The
+   template shows the declared way; the framework's own test domain
+   keeps both over the same keys.
 
 Ordered links are out of scope. An application that needs order makes
 its position column required, and that makes the link an entity.

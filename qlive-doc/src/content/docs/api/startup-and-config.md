@@ -671,9 +671,10 @@ that was given one by hand has it.
 precision?: number;
 ```
 
-The most significant digits a BigDecimal field holds, on both sides of the point together. Written by QLive's
-DecimalMetadataProvider from the field's `@Column(precision = p)`, which jOOQ generates for a `numeric(p, s)`
-column. Absent for an unconstrained `numeric`, and on every field that is no BigDecimal.
+The most significant digits a BigDecimal or BigInteger field holds, for a BigDecimal on both sides of the point
+together. Written by QLive's DecimalMetadataProvider from the field's `@Column(precision = p)`, which jOOQ
+generates for a `numeric(p, s)` column. Absent for an unconstrained `numeric`, and on every field that is
+neither.
 
 ### DomainFieldMeta.scale
 
@@ -682,7 +683,8 @@ scale?: number;
 ```
 
 The digits a BigDecimal field holds after the point. Written by QLive's DecimalMetadataProvider from the field's
-`@Column(scale = s)`, wherever it writes a precision -- 0 then means the field holds integers.
+`@Column(scale = s)`, wherever it writes a precision -- 0 then means the field holds integers. Never on a
+BigInteger, whose scale is 0 by definition.
 
 ## GenericTypeInfo
 

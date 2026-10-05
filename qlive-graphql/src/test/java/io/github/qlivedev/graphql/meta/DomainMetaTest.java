@@ -443,6 +443,11 @@ public class DomainMetaTest
         assertThat(decimalMeta.getFieldMeta("unbounded", DomainMeta.SCALE), is(nullValue()));
         assertThat(decimalMeta.getFieldMeta("created", DomainMeta.PRECISION), is(nullValue()));
 
+        // a BigInteger has a precision, and a scale that could only ever be 0
+        assertThat(decimalMeta.getFieldMeta("mask", DomainMeta.PRECISION), is(39));
+        assertThat(decimalMeta.getFieldMeta("mask", DomainMeta.SCALE), is(nullValue()));
+        assertThat(decimalMeta.getFieldMeta("unboundedInt", DomainMeta.PRECISION), is(nullValue()));
+
         final String json = JSONUtil.DEFAULT_GENERATOR.forValue(domain.getMetaData());
         assertThat(json, containsString("\"precision\":30"));
     }

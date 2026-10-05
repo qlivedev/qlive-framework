@@ -3,15 +3,19 @@ package io.github.qlivedev.graphql.beans;
 import jakarta.persistence.Column;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 
-/// A type with the numeric columns jOOQ writes precision and scale for, and the ones it writes no scale for.
+/// A type with the numeric columns jOOQ writes precision and scale for, the ones it writes only a precision for, and
+/// the ones it writes neither for.
 public class DecimalResponse
 {
     private BigDecimal amount;
     private BigDecimal count;
     private BigDecimal unbounded;
     private Timestamp created;
+    private BigInteger mask;
+    private BigInteger unboundedInt;
 
 
     @Column(name = "amount", precision = 30, scale = 10)
@@ -63,5 +67,31 @@ public class DecimalResponse
     public void setCreated(Timestamp created)
     {
         this.created = created;
+    }
+
+
+    @Column(name = "mask", precision = 39)
+    public BigInteger getMask()
+    {
+        return mask;
+    }
+
+
+    public void setMask(BigInteger mask)
+    {
+        this.mask = mask;
+    }
+
+
+    @Column(name = "unbounded_int")
+    public BigInteger getUnboundedInt()
+    {
+        return unboundedInt;
+    }
+
+
+    public void setUnboundedInt(BigInteger unboundedInt)
+    {
+        this.unboundedInt = unboundedInt;
     }
 }

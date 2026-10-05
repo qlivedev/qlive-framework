@@ -426,8 +426,7 @@ export interface DomainTypeMetaProps {
 export interface DomainFieldMeta {
 
     /**
-     * true if the field is a GraphQLComputed-annotated property. Written by QLive's ComputedMetadataProvider,
-     * which an application has to register as a MetadataProvider bean itself.
+     * true if the field is a GraphQLComputed-annotated property. Written by QLive's ComputedMetadataProvider.
      */
     computed?: boolean
 

@@ -311,7 +311,7 @@ type MergeResult {
 
 "Auto-generated from QueryLogic, MergeLogic"
 type MutationType {
-    mergeWorkingSet(changes: [EntityChangeInput]!, links: [LinkChangeInput]!, deletions: [EntityDeletionInput]!, mergeConfig: MergeConfigInput!): MergeResult!
+    mergeWorkingSet(changes: [EntityChangeInput]!, deletions: [EntityDeletionInput]!, links: [LinkChangeInput]!, mergeConfig: MergeConfigInput!): MergeResult!
 }
 
 "Auto-generated from QueryLogic, MergeLogic"

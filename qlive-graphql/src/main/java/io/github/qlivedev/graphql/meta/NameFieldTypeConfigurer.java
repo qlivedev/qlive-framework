@@ -10,7 +10,7 @@ import java.util.List;
 ///
 ///     NameFieldProvider.newProvider()
 ///         .forType(Bar.class)
-///             .nameFields("name", "owner.name")
+///             .nameFields("name", "description")
 ///             .build()
 ///
 /// {@link #build()} ends the chain and returns the provider; the `andFor...` methods end one statement and
@@ -28,8 +28,8 @@ public final class NameFieldTypeConfigurer
     }
 
 
-    /// The fields naming an instance of the types to a user, most significant first. Each is a field of the type
-    /// or a path over to-one relations to one, like `"owner.name"`, and ends on a scalar.
+    /// The fields naming an instance of the types to a user, most significant first. Each is a scalar field of
+    /// the type itself, never a path to a related one.
     ///
     /// @param nameFields  the name fields, at least one
     public NameFieldTypeConfigurer nameFields(String... nameFields)
@@ -37,6 +37,16 @@ public final class NameFieldTypeConfigurer
         if (nameFields == null || nameFields.length == 0)
         {
             throw new IllegalArgumentException("Need at least one name field");
+        }
+
+        for (String name : nameFields)
+        {
+            if (name.contains("."))
+            {
+                throw new IllegalArgumentException(
+                    "Name field '" + name + "' is a path. A name field is a field of the type itself."
+                );
+            }
         }
 
         this.nameFields = List.of(nameFields);

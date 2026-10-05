@@ -1,24 +1,20 @@
 package io.github.qlivedev.graphql.meta;
 
 import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLTypeUtil;
-import graphql.schema.GraphQLUnmodifiedType;
 import io.github.qlivedev.graphql.OutputType;
 import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.QLiveDomainTypeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /// Writes which fields name an instance of a type to a user, most significant first -- the
 /// {@link DomainMeta#NAME_FIELDS} a grid column of a to-one relation and a pick option show.
@@ -35,7 +31,7 @@ import java.util.stream.Collectors;
 ///             .andForType(AppUser.class)
 ///                 .nameFields("login")
 ///             .andForType(Bar.class)
-///                 .nameFields("name", "owner.name")
+///                 .nameFields("name", "description")
 ///                 .build();
 ///     }
 ///
@@ -44,9 +40,9 @@ import java.util.stream.Collectors;
 /// statement with its `andFor...` twin and close the last one with {@link NameFieldTypeConfigurer#build()},
 /// which hands the provider back.
 ///
-/// A name field is a path: a field of the type itself, or one reached over to-one relations, like
-/// `"owner.name"`. Either way it ends on a scalar. A path leading through a to-many relation is not one, as a
-/// row would then be named by any number of values.
+/// A name field is a scalar field of the type itself. Name fields represent a row's identity to a user, which
+/// is the row's own business: a path like `"owner.name"` would name it by something a query might just as well
+/// not select.
 ///
 /// Nothing keeps an application from writing {@link DomainMeta#NAME_FIELDS} from a provider of its own -- this
 /// is the convenient way to say it, not the only one. What reads it does not care who wrote it.
@@ -168,12 +164,14 @@ public class NameFieldProvider
                 );
             }
 
-            for (String path : nameFields)
+            for (String name : nameFields)
             {
-                final String error = checkPath(type, path);
-                if (error != null)
+                if (!isScalarField(type, name))
                 {
-                    throw new QLiveDomainTypeException(error);
+                    throw new QLiveDomainTypeException(
+                        "Name field '" + name + "' declared for type " + typeName + ", which has no scalar field " +
+                            "of that name."
+                    );
                 }
             }
 
@@ -191,7 +189,7 @@ public class NameFieldProvider
                 if (namedType instanceof GraphQLObjectType type &&
                     !nameFieldsByType.containsKey(typeName) &&
                     domain.getTypeRegistry().lookup(typeName) != null &&
-                    allTypesNameFields.stream().allMatch(path -> checkPath(type, path) == null))
+                    allTypesNameFields.stream().allMatch(name -> isScalarField(type, name)))
                 {
                     nameFieldsByType.put(typeName, allTypesNameFields);
                 }
@@ -207,51 +205,9 @@ public class NameFieldProvider
     }
 
 
-    /// Whether the given path is a name field of the given type.
-    ///
-    /// @return null if it is, otherwise what is wrong with it
-    private static String checkPath(GraphQLObjectType type, String path)
+    private static boolean isScalarField(GraphQLObjectType type, String name)
     {
-        final List<String> parts = Arrays.stream(path.split("\\."))
-            .map(String::trim)
-            .filter(s -> !s.isEmpty())
-            .collect(Collectors.toList());
-
-        if (parts.isEmpty())
-        {
-            return "Empty name field declared for type " + type.getName();
-        }
-
-        GraphQLObjectType current = type;
-        for (int i = 0; i < parts.size() - 1; i++)
-        {
-            final GraphQLFieldDefinition fieldDef = current.getFieldDefinition(parts.get(i));
-            if (fieldDef == null)
-            {
-                return "Could not find name object field '" + path + "' for type " + type.getName();
-            }
-
-            final GraphQLUnmodifiedType fieldType = GraphQLTypeUtil.unwrapAll(fieldDef.getType());
-            if (GraphQLTypeUtil.unwrapNonNull(fieldDef.getType()) instanceof GraphQLList)
-            {
-                return "Name field '" + path + "' of type " + type.getName() + " follows a to-many relation, " +
-                    "which a name field cannot.";
-            }
-
-            if (!(fieldType instanceof GraphQLObjectType))
-            {
-                return "Could not find name object field '" + path + "' for type " + type.getName();
-            }
-
-            current = (GraphQLObjectType) fieldType;
-        }
-
-        final GraphQLFieldDefinition fieldDef = current.getFieldDefinition(parts.get(parts.size() - 1));
-        if (fieldDef == null || !(GraphQLTypeUtil.unwrapNonNull(fieldDef.getType()) instanceof GraphQLScalarType))
-        {
-            return "Could not find name scalar field '" + path + "' for type " + type.getName();
-        }
-
-        return null;
+        final GraphQLFieldDefinition fieldDef = type.getFieldDefinition(name);
+        return fieldDef != null && GraphQLTypeUtil.unwrapNonNull(fieldDef.getType()) instanceof GraphQLScalarType;
     }
 }

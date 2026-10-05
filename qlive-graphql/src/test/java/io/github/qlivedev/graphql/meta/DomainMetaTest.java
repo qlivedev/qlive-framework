@@ -91,7 +91,7 @@ public class DomainMetaTest
                     .forTypes(BarOwner.class, BarOrg.class, Foo.class)
                         .nameFields("name")
                     .andForType(Bar.class)
-                        .nameFields("name", "owner.name", "owner.org.name")
+                        .nameFields("name", "description")
                         .build()
             )
             .build();
@@ -102,79 +102,53 @@ public class DomainMetaTest
         final DomainTypeMeta barOrgMeta = domain.getMetaData().getTypeMeta("BarOrg");
         final DomainTypeMeta fooMeta = domain.getMetaData().getTypeMeta("Foo");
 
-        assertThat( barMeta.getMeta(DomainMeta.NAME_FIELDS), is(Arrays.asList("name", "owner.name", "owner.org.name")) );
+        assertThat( barMeta.getMeta(DomainMeta.NAME_FIELDS), is(Arrays.asList("name", "description")) );
         assertThat( barOwnerMeta.getMeta(DomainMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
         assertThat( barOrgMeta.getMeta(DomainMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
         assertThat( fooMeta.getMeta(DomainMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
     }
 
     @Test
-    public void testNameFieldPathEndsOnTheRelatedType()
+    public void testNameFieldPathsRejected()
     {
-        // orgId is a field of BarOwner only, so the last segment has to be looked up where the path led
-        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
-            .objectTypes(Public.PUBLIC)
-
-            .configureRelation(BAR.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
-
-            .withMetadataProviders(
-                NameFieldProvider.newProvider()
-                    .forType(Bar.class)
-                        .nameFields("owner.orgId")
-                        .build()
-            )
-            .build();
-
-        assertThat(
-            domain.getMetaData().getTypeMeta("Bar").getMeta(DomainMeta.NAME_FIELDS),
-            is(Collections.singletonList("owner.orgId"))
+        // a name field is the row's own: a related row's name is something a query might not select
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> NameFieldProvider.newProvider().forType(Bar.class).nameFields("name", "owner.name")
         );
-    }
-
-    @Test
-    public void testNamingFieldsManyToMany()
-    {
-        assertThrows(QLiveDomainTypeException.class, () -> {
-                final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
-                    .objectTypes(Public.PUBLIC)
-
-                    .configureRelation(BAR.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY)
-                    .configureRelation(BAR_OWNER.ORG_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
-
-                    // this makes sense from a GraphQL logic point of view, but we don't want the complications
-                    // and the use-case for this is weak at best
-                    .withMetadataProviders(
-                        NameFieldProvider.newProvider()
-                            .forType(BarOwner.class)
-                                .nameFields("name", "bars.name")
-                                .build()
-                    )
-                    .build();
-
-
-    
-        });
     }
 
     @Test
     public void testNamingFieldsError()
     {
-        assertThrows(QLiveDomainTypeException.class, () -> {
-                final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
-                    .objectTypes(Public.PUBLIC)
+        assertThrows(QLiveDomainTypeException.class, () ->
+            QLiveDomainBuilder.newDomain(null)
+                .objectTypes(Public.PUBLIC)
+                .withMetadataProviders(
+                    NameFieldProvider.newProvider()
+                        .forType(Bar.class)
+                            .nameFields("name", "wrong")
+                            .build()
+                )
+                .build()
+        );
+    }
 
-                    .configureRelation(BAR.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
-                    .configureRelation(BAR_OWNER.ORG_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
-
-                    .withMetadataProviders(
-                        NameFieldProvider.newProvider()
-                            .forType(Bar.class)
-                                .nameFields("name", "wrong.name")
-                                .build()
-                    )
-                    .build();
-    
-        });
+    @Test
+    public void testNameFieldOfRelationRejected()
+    {
+        assertThrows(QLiveDomainTypeException.class, () ->
+            QLiveDomainBuilder.newDomain(null)
+                .objectTypes(Public.PUBLIC)
+                .configureRelation(BAR.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
+                .withMetadataProviders(
+                    NameFieldProvider.newProvider()
+                        .forType(Bar.class)
+                            .nameFields("owner")
+                            .build()
+                )
+                .build()
+        );
     }
 
     @Test
@@ -191,7 +165,7 @@ public class DomainMetaTest
                     .forAllTypes()
                         .nameFields("name")
                     .andForType(Bar.class)
-                        .nameFields("name", "owner.name", "owner.org.name")
+                        .nameFields("name", "description")
                         .build()
             )
             .build();
@@ -201,7 +175,7 @@ public class DomainMetaTest
         final DomainTypeMeta barOrgMeta = domain.getMetaData().getTypeMeta("BarOrg");
         final DomainTypeMeta fooMeta = domain.getMetaData().getTypeMeta("Foo");
 
-        assertThat( barMeta.getMeta(DomainMeta.NAME_FIELDS), is(Arrays.asList("name", "owner.name", "owner.org.name")) );
+        assertThat( barMeta.getMeta(DomainMeta.NAME_FIELDS), is(Arrays.asList("name", "description")) );
         assertThat( barOwnerMeta.getMeta(DomainMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
         assertThat( barOrgMeta.getMeta(DomainMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
         assertThat( fooMeta.getMeta(DomainMeta.NAME_FIELDS), is(Collections.singletonList("name")) );
@@ -223,7 +197,7 @@ public class DomainMetaTest
                     .forAllTypes()
                         .nameFields("name")
                     .andForType(Bar.class)
-                        .nameFields("name", "owner.name", "owner.org.name")
+                        .nameFields("name", "description")
                         .build()
             )
             .build();
@@ -246,15 +220,15 @@ public class DomainMetaTest
             .withMetadataProviders(
                 NameFieldProvider.newProvider()
                     .forAllTypes()
-                        .nameFields("name", "owner.name")
+                        .nameFields("name", "description")
                         .build()
             )
             .build();
 
-        // only Bar has an owner
+        // only Bar has a description
         assertThat(
             domain.getMetaData().getTypeMeta("Bar").getMeta(DomainMeta.NAME_FIELDS),
-            is(Arrays.asList("name", "owner.name"))
+            is(Arrays.asList("name", "description"))
         );
         assertThat(domain.getMetaData().getTypeMeta("BarOwner").getMeta(DomainMeta.NAME_FIELDS), is(nullValue()));
         assertThat(domain.getMetaData().getTypeMeta("Foo").getMeta(DomainMeta.NAME_FIELDS), is(nullValue()));

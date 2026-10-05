@@ -91,6 +91,7 @@ public class QLiveDomainConfiguration {
                 .configureRelation(FOO.TYPE, SourceField.OBJECT_AND_SCALAR, TargetField.NONE, "fooType", null)
                 .configureRelation(BAR_LINK.BAR_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY, "bar", "bazLinks")
                 .configureRelation(BAR_LINK.BAZ_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY, "baz", "bazLinks")
+                .configureManyToMany(BAR_LINK.BAR_ID, BAR_LINK.BAZ_ID, "bazs", "bars")
 
                 .withMetadataProviders(
 

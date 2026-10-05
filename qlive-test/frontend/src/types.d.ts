@@ -98,6 +98,8 @@ export type AppVersion = {
 export type Bar = {
     /** One-to-many objects from bar_link.bar_id */
     bazLinks: BarLink[]
+    /** Many-to-many objects through bar_link.bar_id */
+    bazs: Baz[]
     /** DB column 'created' */
     created: Temporal.Instant
     /** DB column 'description' */
@@ -141,6 +143,8 @@ export type BarLink = {
 
 /** Generated from public.baz */
 export type Baz = {
+    /** Many-to-many objects through bar_link.baz_id */
+    bars: Bar[]
     /** One-to-many objects from bar_link.baz_id */
     bazLinks: BarLink[]
     /** DB column 'created' */

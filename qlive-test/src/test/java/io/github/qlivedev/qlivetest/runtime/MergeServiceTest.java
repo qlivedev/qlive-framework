@@ -3,6 +3,7 @@ package io.github.qlivedev.qlivetest.runtime;
 import io.github.qlivedev.model.merge.EntityChange;
 import io.github.qlivedev.model.merge.EntityDeletion;
 import io.github.qlivedev.model.merge.FieldChange;
+import io.github.qlivedev.model.merge.LinkChange;
 import io.github.qlivedev.model.merge.MergeConfig;
 import io.github.qlivedev.model.merge.MergeConflict;
 import io.github.qlivedev.model.merge.MergeConflictField;
@@ -67,6 +68,11 @@ class MergeServiceTest
     @AfterEach
     void removeWhatWasMade()
     {
+        // the merge names the link rows it makes for an association itself, so those are found by their bar
+        barLinks.addAll(
+            dslContext.select(BAR_LINK.ID).from(BAR_LINK).where(BAR_LINK.BAR_ID.in(bars)).fetch(BAR_LINK.ID)
+        );
+
         dslContext.deleteFrom(BAR_LINK).where(BAR_LINK.ID.in(barLinks)).execute();
         dslContext.deleteFrom(BAR).where(BAR.ID.in(bars)).execute();
         dslContext.deleteFrom(QUX).where(QUX.ID.in(quxs)).execute();
@@ -420,6 +426,86 @@ class MergeServiceTest
     }
 
 
+    /// Associations through a many-to-many are pairs: the merge inserts a link row per pair gained, naming it
+    /// and versioning it itself, and deletes the link row of a pair lost. Neither needs the link row's id or
+    /// version from the client, nor the bar's.
+    @Test
+    void addsAndRemovesAssociationsByPair()
+    {
+        final String barId = newId(bars);
+        final List<String> bazIds = dslContext.select(BAZ.ID).from(BAZ).orderBy(BAZ.ID).limit(2).fetch(BAZ.ID);
+
+        assertThat(
+            mergeService.merge(
+                List.of(newBar(barId, "Merge #15", 15)),
+                List.of(links("Bar", barId, "bazs", bazIds, List.of())),
+                List.of(),
+                new MergeConfig()
+            ).getStatus(),
+            is(MergeStatus.DONE)
+        );
+
+        assertThat(linkedBazs(barId), is(bazIds));
+
+        final List<String> linkIds = dslContext.select(BAR_LINK.ID).from(BAR_LINK)
+            .where(BAR_LINK.BAR_ID.eq(barId))
+            .fetch(BAR_LINK.ID);
+
+        // a link row the merge made is a versioned row like any other, with the record to go with it
+        assertThat(
+            dslContext.fetchCount(BAR_LINK, BAR_LINK.BAR_ID.eq(barId).and(BAR_LINK.VERSION.isNotNull())),
+            is(2)
+        );
+        assertThat(dslContext.fetchCount(APP_VERSION, APP_VERSION.ENTITY_ID.in(linkIds)), is(2));
+
+        assertThat(
+            mergeLinks(links("Bar", barId, "bazs", List.of(), List.of(bazIds.get(0)))).getStatus(),
+            is(MergeStatus.DONE)
+        );
+
+        assertThat(linkedBazs(barId), is(List.of(bazIds.get(1))));
+    }
+
+
+    /// The same association from the other end of the declaration, through the other link column.
+    @Test
+    void addsAnAssociationFromTheOtherEnd()
+    {
+        final String barId = newId(bars);
+        final String bazId = dslContext.select(BAZ.ID).from(BAZ).limit(1).fetchOne(BAZ.ID);
+
+        merge(newBar(barId, "Merge #16", 16));
+
+        assertThat(
+            mergeLinks(links("Baz", bazId, "bars", List.of(barId), List.of())).getStatus(),
+            is(MergeStatus.DONE)
+        );
+
+        assertThat(linkedBazs(barId), is(List.of(bazId)));
+    }
+
+
+    /// Adding an association that is there and removing one that is gone leave the database as asked. That
+    /// is somebody else having done the same thing first, which is no conflict.
+    @Test
+    void takesAnAssociationThatIsAlreadySoAsDone()
+    {
+        final String barId = newId(bars);
+        final List<String> bazIds = dslContext.select(BAZ.ID).from(BAZ).orderBy(BAZ.ID).limit(2).fetch(BAZ.ID);
+
+        merge(newBar(barId, "Merge #17", 17));
+        mergeLinks(links("Bar", barId, "bazs", List.of(bazIds.get(0)), List.of()));
+
+        final MergeResult result = mergeLinks(
+            links("Bar", barId, "bazs", List.of(bazIds.get(0)), List.of(bazIds.get(1)))
+        );
+
+        assertThat(result.getStatus(), is(MergeStatus.DONE));
+        assertThat(result.getConflicts(), is(empty()));
+        assertThat(linkedBazs(barId), is(List.of(bazIds.get(0))));
+    }
+
+
     /// A deletion is the same lock, and a row that is not there any more is a conflict of its own kind:
     /// there is nothing to merge into and nothing to choose between.
     @Test
@@ -484,6 +570,35 @@ class MergeServiceTest
     private MergeResult merge(List<EntityChange> changes, List<EntityDeletion> deletions)
     {
         return mergeService.merge(changes, List.of(), deletions, new MergeConfig());
+    }
+
+
+    private MergeResult mergeLinks(LinkChange... links)
+    {
+        return mergeService.merge(List.of(), List.of(links), List.of(), new MergeConfig());
+    }
+
+
+    /// The bazs the given bar is associated with, by id.
+    private List<String> linkedBazs(String barId)
+    {
+        return dslContext.select(BAR_LINK.BAZ_ID).from(BAR_LINK)
+            .where(BAR_LINK.BAR_ID.eq(barId))
+            .orderBy(BAR_LINK.BAZ_ID)
+            .fetch(BAR_LINK.BAZ_ID);
+    }
+
+
+    private static LinkChange links(String type, String id, String field, List<String> added, List<String> removed)
+    {
+        final LinkChange change = new LinkChange();
+        change.setType(type);
+        change.setId(id);
+        change.setField(field);
+        change.setAdded(added);
+        change.setRemoved(removed);
+
+        return change;
     }
 
 

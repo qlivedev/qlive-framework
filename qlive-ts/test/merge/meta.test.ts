@@ -53,7 +53,6 @@ describe("declared meta data", () => {
         expect(MergeMeta.metaOf("Foo")).toEqual({})
         expect(MergeMeta.resolvesConflicts("Foo")).toBe(false)
         expect(MergeMeta.ignoredFields("Foo")).toEqual([])
-        expect(MergeMeta.isLinkType("Foo")).toBe(false)
 
         // the one default that is not "off"
         expect(MergeMeta.isAutoMerge("Foo")).toBe(true)
@@ -67,90 +66,54 @@ describe("declared meta data", () => {
     })
 })
 
-describe("link types", () => {
+describe("many-to-many fields", () => {
 
-    it("recognizes one by its shape", () => {
+    it("reads a field from the declaration", () => {
 
-        // an id, a version and the two foreign keys with their object fields, and nothing else
-        expect(MergeMeta.isLinkType("BarLink")).toBe(true)
-    })
-
-    it("takes the declaration for one carrying a field of its own", () => {
-
-        // CorgeLink has a weight, so nothing about its shape says "link"
-        expect(MergeMeta.isLinkType("CorgeLink")).toBe(true)
-    })
-
-    it("is not fooled by a type that merely has two relations", () => {
-
-        // Foo points at an owner and a type, and has fields two users can disagree about
-        expect(MergeMeta.isLinkType("Foo")).toBe(false)
-
-        // and one relation is not two, whatever the rest looks like
-        expect(MergeMeta.isLinkType("Bar")).toBe(false)
-        expect(MergeMeta.isLinkType("NoSuchType")).toBe(false)
-    })
-})
-
-describe("link relations", () => {
-
-    it("resolves a link array into both sides of the link", () => {
-
-        expect(MergeMeta.linkRelation("Bar", "bazLinks")).toEqual({
-            field: "bazLinks",
+        expect(MergeMeta.manyToManyField("Bar", "bazs")).toEqual({
+            field: "bazs",
             sourceType: "Bar",
-            linkType: "BarLink",
-            sourceField: "barId",
             targetType: "Baz",
-            targetField: "bazId",
-            targetObject: "baz"
-        })
-    })
-
-    it("resolves the same link from the other side", () => {
-
-        expect(MergeMeta.linkRelation("Baz", "barLinks")).toEqual({
-            field: "barLinks",
-            sourceType: "Baz",
             linkType: "BarLink",
-            sourceField: "bazId",
+            writable: true
+        })
+    })
+
+    it("reads the same declaration from the other end", () => {
+
+        expect(MergeMeta.manyToManyField("Baz", "bars")).toEqual({
+            field: "bars",
+            sourceType: "Baz",
             targetType: "Bar",
-            targetField: "barId",
-            targetObject: "bar"
+            linkType: "BarLink",
+            writable: true
         })
     })
 
-    it("resolves a declared link type the same way", () => {
+    it("says where a field cannot be written", () => {
 
-        expect(MergeMeta.linkRelation("Corge", "corgeLinks")).toEqual({
-            field: "corgeLinks",
-            sourceType: "Corge",
-            linkType: "CorgeLink",
-            sourceField: "corgeId",
-            targetType: "Grault",
-            targetField: "graultId",
-            targetObject: "grault"
-        })
+        // a CorgeLink needs a weight, which nothing but a CorgeLink row can give it
+        expect(MergeMeta.manyToManyField("Corge", "graults")?.writable).toBe(false)
     })
 
-    it("leaves an ordinary back reference alone", () => {
+    it("leaves the link arrays of ordinary relations alone", () => {
 
-        // AppUser.foos is a list of Foo the same way Bar.bazLinks is a list of BarLink, and editing it is
-        // not the same thing at all
-        expect(MergeMeta.linkRelations("AppUser")).toEqual([])
-        expect(MergeMeta.linkRelation("AppUser", "foos")).toBeNull()
+        // Bar.bazLinks lists the same link rows, and is a one-to-many relation like AppUser.foos: its rows are
+        // entities of their own, whatever their shape
+        expect(MergeMeta.manyToManyField("Bar", "bazLinks")).toBeNull()
+        expect(MergeMeta.manyToManyField("AppUser", "foos")).toBeNull()
     })
 
-    it("answers a field that is no link array, and a type that has none", () => {
+    it("answers a field that is none, and a type that has none", () => {
 
-        expect(MergeMeta.linkRelation("Bar", "name")).toBeNull()
-        expect(MergeMeta.linkRelations("Qux")).toEqual([])
-        expect(MergeMeta.linkRelations("NoSuchType")).toEqual([])
+        expect(MergeMeta.manyToManyField("Bar", "name")).toBeNull()
+        expect(MergeMeta.manyToManyFields("Qux")).toEqual([])
+        expect(MergeMeta.manyToManyFields("NoSuchType")).toEqual([])
     })
 
-    it("lists every link array of a type", () => {
+    it("lists every many-to-many field of a type", () => {
 
-        expect(MergeMeta.linkRelations("Bar").map(l => l.field)).toEqual(["bazLinks"])
-        expect(MergeMeta.linkRelations("Grault").map(l => l.field)).toEqual(["corgeLinks"])
+        expect(MergeMeta.manyToManyFields("Bar").map(f => f.field)).toEqual(["bazs"])
+        expect(MergeMeta.manyToManyFields("Grault").map(f => f.field)).toEqual(["corges"])
     })
 })

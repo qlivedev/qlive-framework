@@ -51,6 +51,18 @@ export type EntityDeletion = {
 }
 
 /**
+ * The associations one row gained and lost through one many-to-many field, by the ids of the rows on the other
+ * end. Written as link rows keyed by the pair, so it carries no link row's id or version and never conflicts.
+ */
+export type LinkChange = {
+    type: string
+    id: string
+    field: string
+    added: string[]
+    removed: string[]
+}
+
+/**
  * What the caller of a merge says about itself, as opposed to what a type declares once in the
  * application's MergeMetadataProvider.
  */

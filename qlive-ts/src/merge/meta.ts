@@ -1,4 +1,4 @@
-import config, {RelationInfo} from "../config";
+import config, {ManyToManyEnd, ManyToManyInfo} from "../config";
 import {GraphQLObjectType} from "../GraphQLSchema";
 
 /**
@@ -34,26 +34,19 @@ export type MergeTypeMeta = {
      * declared none.
      */
     ignoredFields?: string[]
-
-    /**
-     * true if the type is a link table that carries fields of its own and is therefore not recognisable by
-     * its shape. Absent for a link table of the plain shape, which isLinkType() sees anyway.
-     */
-    linkType?: boolean
 }
 
 /**
- * A many-to-many relation as an edit sees it: one list field on a type, the link type its rows are, and the
- * two foreign keys of a link row.
+ * A many-to-many field as an edit sees it: the type it is on, the type whose rows it lists, and whether it can be
+ * written.
  *
- * Derived from config().meta.relations rather than declared anywhere. Editing bar.bazLinks means inserting
- * and deleting BarLink rows and never touching Baz, which is what the GraphQL type of the field already
- * says; this is that statement in the form a working set needs it in.
+ * Read from the declaration in config().meta.manyToMany. Setting bar.bazs means associating the Bar with other
+ * Bazs, which the merge writes as link rows and never as a change to Bar or Baz.
  */
-export type LinkRelation = {
+export type ManyToManyField = {
 
     /**
-     * The list field on the source type, e.g. "bazLinks" on Bar.
+     * The field, e.g. "bazs" on Bar.
      */
     field: string
 
@@ -63,34 +56,20 @@ export type LinkRelation = {
     sourceType: string
 
     /**
-     * The type of the rows in the field, e.g. "BarLink".
-     */
-    linkType: string
-
-    /**
-     * The field of a link row holding the foreign key back to the source, e.g. "barId".
-     */
-    sourceField: string
-
-    /**
-     * The type on the other side of the link, e.g. "Baz".
+     * The type whose rows the field lists, e.g. "Baz".
      */
     targetType: string
 
     /**
-     * The field of a link row holding the foreign key to the other side, e.g. "bazId".
+     * The link type the associations are rows of, e.g. "BarLink".
      */
-    targetField: string
+    linkType: string
 
     /**
-     * The field of a link row holding the row on the other side, e.g. "baz". Absent where the relation
-     * generated none.
-     *
-     * What lets a new association be written as the row it is about -- `[...bar.bazLinks, {baz}]` -- rather
-     * than as the foreign key alone. It is also the object a view renders the association through, so the
-     * short form is the one that both diffs and displays.
+     * Whether the field can be written. False where a link row needs values of its own besides its two link
+     * fields, which makes the link rows the thing to edit.
      */
-    targetObject?: string
+    writable: boolean
 }
 
 /**
@@ -168,121 +147,63 @@ export function ignoredFields(typeName: string): string[]
 }
 
 /**
- * Whether the type is a link table, i.e. whether its rows exist to say two entities are associated.
- *
- * True for a type of the plain link shape -- an id, an optional version and nothing but the two foreign keys
- * -- and for one the application declared with MergeMetadataProvider#linkType, which is how a link table
- * that carries fields of its own says so.
+ * The many-to-many field of the given type with the given name, or null where that field is none.
  *
  * @param typeName      GraphQL type name, known or not
+ * @param field         field name on that type
  */
-export function isLinkType(typeName: string): boolean
+export function manyToManyField(typeName: string, field: string): ManyToManyField | null
 {
-    return relationsFrom(typeName).length === 2 &&
-        (metaOf(typeName).linkType === true || hasOnlyLinkFields(typeName))
+    for (const declared of config().meta.manyToMany)
+    {
+        if (isEnd(declared.left, typeName, field))
+        {
+            return oriented(declared, declared.left, declared.right)
+        }
+        if (isEnd(declared.right, typeName, field))
+        {
+            return oriented(declared, declared.right, declared.left)
+        }
+    }
+
+    return null
 }
 
 /**
- * The many-to-many relations of the given type, in the order the relation meta data lists them.
+ * The many-to-many fields of the given type, in the order they were declared.
  *
  * @param typeName      GraphQL type name, known or not
  */
-export function linkRelations(typeName: string): LinkRelation[]
+export function manyToManyFields(typeName: string): ManyToManyField[]
 {
-    const found: LinkRelation[] = []
+    const found: ManyToManyField[] = []
 
-    for (const relation of config().meta.relations)
+    for (const declared of config().meta.manyToMany)
     {
-        const link = asLinkRelation(typeName, relation)
-        if (link)
+        for (const [own, other] of [[declared.left, declared.right], [declared.right, declared.left]])
         {
-            found.push(link)
+            if (own.type === typeName && own.field)
+            {
+                found.push(oriented(declared, own, other))
+            }
         }
     }
 
     return found
 }
 
-/**
- * The many-to-many relation the given field of the given type is, or null if that field is no link array.
- *
- * @param typeName      GraphQL type name, known or not
- * @param field         field name on that type
- */
-export function linkRelation(typeName: string, field: string): LinkRelation | null
+function isEnd(end: ManyToManyEnd, typeName: string, field: string): boolean
 {
-    return linkRelations(typeName).find(link => link.field === field) ?? null
+    return end.type === typeName && end.field === field
 }
 
-/**
- * The relation as a link relation of the given type, or null where it is none: it has to point at that type
- * from the many side, name a field there, and come from a link type.
- */
-function asLinkRelation(typeName: string, relation: RelationInfo): LinkRelation | null
+function oriented(declared: ManyToManyInfo, own: ManyToManyEnd, other: ManyToManyEnd): ManyToManyField
 {
-    if (
-        relation.targetType !== typeName ||
-        relation.targetField !== "MANY" ||
-        !relation.rightSideObjectName ||
-        !isLinkType(relation.sourceType)
-    )
-    {
-        return null
-    }
-
-    // isLinkType() saw two relations out of the link type, and this is the one that is not us
-    const other = relationsFrom(relation.sourceType).find(r => r !== relation)
-    if (!other)
-    {
-        // both foreign keys of the link point back at us, so there is no other side to resolve to
-        return null
-    }
-
     return {
-        field: relation.rightSideObjectName,
-        sourceType: typeName,
-        linkType: relation.sourceType,
-        sourceField: relation.sourceFields[0],
-        targetType: other.targetType,
-        targetField: other.sourceFields[0],
-        targetObject: other.leftSideObjectName
+        field: own.field!,
+        sourceType: own.type,
+        targetType: other.type,
+        linkType: declared.linkType,
+        writable: declared.writable
     }
-}
-
-/**
- * The relations leading out of the given type, i.e. the ones its own foreign keys make.
- */
-function relationsFrom(typeName: string): RelationInfo[]
-{
-    return config().meta.relations.filter(r => r.sourceType === typeName)
-}
-
-/**
- * Whether the type holds nothing but its id, its version and the two foreign keys of its relations -- the
- * shape of a row that exists only to say two entities are associated.
- *
- * A field beyond those is something two users could disagree about, so a type carrying one is not recognized
- * here and has to be declared instead.
- */
-function hasOnlyLinkFields(typeName: string): boolean
-{
-    const type = config().typesByName!.get(typeName)
-    if (!type || type.kind !== "OBJECT")
-    {
-        return false
-    }
-
-    const allowed = new Set<string>(["id", VERSION])
-
-    for (const relation of relationsFrom(typeName))
-    {
-        relation.sourceFields.forEach(f => allowed.add(f))
-
-        if (relation.leftSideObjectName)
-        {
-            allowed.add(relation.leftSideObjectName)
-        }
-    }
-
-    return type.fields.every(f => allowed.has(f.name))
 }

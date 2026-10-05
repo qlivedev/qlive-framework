@@ -80,6 +80,57 @@ export type RelationInfo = {
      */
     targetFields: [string]
 }
+
+/**
+ * One end of a declared many-to-many: its type, the field of the link type pointing at it, and the field it gets
+ * listing the rows on the other end.
+ */
+export type ManyToManyEnd = {
+
+    /**
+     * Domain type of this end, e.g. "Bar"
+     */
+    type: string
+
+    /**
+     * Field of the link type pointing at this end, e.g. "barId"
+     */
+    linkField: string
+
+    /**
+     * Field on this end's type listing the rows on the other end, e.g. "bazs". Absent where the declaration
+     * gave this end none.
+     */
+    field?: string
+}
+
+/**
+ * A many-to-many declared with configureManyToMany() or withManyToMany(): a link type whose rows each associate
+ * a row of one end with a row of the other.
+ */
+export type ManyToManyInfo = {
+
+    /**
+     * Domain type of the link table, e.g. "BarLink"
+     */
+    linkType: string
+
+    /**
+     * End the declaration's first link column points at
+     */
+    left: ManyToManyEnd
+
+    /**
+     * End the declaration's second link column points at
+     */
+    right: ManyToManyEnd
+
+    /**
+     * Whether the fields of both ends can be written, i.e. whether a link row can be inserted from its two link
+     * columns alone
+     */
+    writable: boolean
+}
 /**
  * Source field configuration for a relation. Defines what fields to add for the relation on the side where the foreign
  * key is.
@@ -314,6 +365,7 @@ export interface DomainMeta {
     }
     genericTypes: GenericTypeInfo[]
     relations: RelationInfo[]
+    manyToMany: ManyToManyInfo[]
 }
 
 /**

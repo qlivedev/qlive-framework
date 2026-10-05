@@ -74,7 +74,7 @@ export { decompileFilter } from "./util/decompileFilter";
 export { conditionPredicate, sortComparator } from "./evaluate";
 
 // What the schema and the type meta data say about merging a type. Namespaced
-// the way FilterDSL is: isLinkType, versionedTypes and ignoredFields say what
+// the way FilterDSL is: manyToManyField, versionedTypes and ignoredFields say what
 // they mean next to a merge prefix and not much without one.
 export * as MergeMeta from "./merge/meta";
 
@@ -157,6 +157,8 @@ export type {
     DomainFieldMeta,
     GenericTypeInfo,
     RelationInfo,
+    ManyToManyInfo,
+    ManyToManyEnd,
     SourceField,
     TargetField
 } from "./config";
@@ -217,7 +219,7 @@ export type {
     WatchOptions
 } from "./push/entityVersion";
 
-export type { MergeTypeMeta, LinkRelation } from "./merge/meta";
+export type { MergeTypeMeta, ManyToManyField } from "./merge/meta";
 
 export type {
     WorkingSetSnapshot,
@@ -242,6 +244,7 @@ export type {
     FieldChange,
     EntityChange,
     EntityDeletion,
+    LinkChange,
     MergeConfig,
     MergeConflictField,
     MergeConflict,

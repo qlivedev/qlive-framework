@@ -21,7 +21,7 @@ describe("fieldMask", () => {
         // The order FieldLayout.of(QLiveDomain, String) assigns on the Java side. Both ends derive it from
         // the same schema, and a mask read under another order names other fields without saying so.
         expect(fieldOrder("Bar")).toEqual(
-            ["bazLinks", "created", "description", "id", "name", "num", "version"]
+            ["bazLinks", "bazs", "created", "description", "id", "name", "num", "version"]
         )
     })
 
@@ -29,9 +29,9 @@ describe("fieldMask", () => {
     it("makes a mask of the fields it is given", () => {
 
         expect(maskOf("Bar", ["bazLinks"])).toBe(1n)
-        expect(maskOf("Bar", ["description"])).toBe(4n)
-        expect(maskOf("Bar", ["name"])).toBe(16n)
-        expect(maskOf("Bar", ["name", "num"])).toBe(48n)
+        expect(maskOf("Bar", ["description"])).toBe(8n)
+        expect(maskOf("Bar", ["name"])).toBe(32n)
+        expect(maskOf("Bar", ["name", "num"])).toBe(96n)
         expect(maskOf("Bar", [])).toBe(0n)
     })
 
@@ -46,7 +46,7 @@ describe("fieldMask", () => {
 
     it("names the fields of a mask", () => {
 
-        expect(maskedFields("Bar", 48n)).toEqual(["name", "num"])
+        expect(maskedFields("Bar", 96n)).toEqual(["name", "num"])
         expect(maskedFields("Bar", 0n)).toEqual([])
     })
 
@@ -56,7 +56,7 @@ describe("fieldMask", () => {
         // A field this client does not have is one it cannot name, and a stale bit is not worth guessing
         // at -- the Java side drops the same bits for the same reason.
         expect(maskedFields("Bar", 1n << 100n)).toEqual([])
-        expect(maskedFields("Bar", (1n << 100n) | 16n)).toEqual(["name"])
+        expect(maskedFields("Bar", (1n << 100n) | 32n)).toEqual(["name"])
     })
 
 
@@ -73,7 +73,7 @@ describe("fieldMask", () => {
         // How one travels: 128 bits has no exact JSON number to be, so the wire carries decimal digits and
         // this side reads them with BigInt. Parsing the same string as a number loses the low bits, which
         // is precisely the field names.
-        const wire = ((1n << 100n) | 16n).toString()
+        const wire = ((1n << 100n) | 32n).toString()
 
         expect(maskedFields("Bar", BigInt(wire))).toEqual(["name"])
         expect(Number(wire) % 2 ** 53).toBe(0)

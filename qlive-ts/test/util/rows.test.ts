@@ -26,6 +26,7 @@ describe("walkRows", () => {
         expect(seen).toEqual([
             "Baz baz-1",
             "BarLink link-1",
+            "Baz baz-1",
             "Bar bar-1",
             "Bar bar-2"
         ])
@@ -43,7 +44,10 @@ describe("walkRows", () => {
         expect([...bar.values.keys()].sort()).toEqual(
             ["created", "description", "id", "name", "num", "version"]
         )
-        expect(bar.relations.map((r: any) => [r.field, r.type, r.list])).toEqual([["bazLinks", "BarLink", true]])
+        expect(bar.relations.map((r: any) => [r.field, r.type, r.list])).toEqual([
+            ["bazLinks", "BarLink", true],
+            ["bazs", "Baz", true]
+        ])
 
         // the link's foreign keys are values and the rows they name are not, whatever they look like
         const link = visits.get("link-1")

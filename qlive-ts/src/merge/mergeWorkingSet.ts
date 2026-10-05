@@ -1,5 +1,5 @@
 import {GraphQLQuery} from "../GraphQLQuery";
-import {EntityChange, EntityDeletion, MergeConfig, MergeResult} from "./types";
+import {EntityChange, EntityDeletion, LinkChange, MergeConfig, MergeResult} from "./types";
 
 /**
  * QLive's write mutation, and the only one an application needs in order to store anything.
@@ -12,9 +12,9 @@ import {EntityChange, EntityDeletion, MergeConfig, MergeResult} from "./types";
  * an import; the conversion map it needs the schema for is built on first use, long after startup().
  */
 const MERGE_WORKING_SET = new GraphQLQuery<MergeResult>(
-    `mutation mergeWorkingSet($changes: [EntityChangeInput]!, $deletions: [EntityDeletionInput]!, $mergeConfig: MergeConfigInput!)
+    `mutation mergeWorkingSet($changes: [EntityChangeInput]!, $links: [LinkChangeInput]!, $deletions: [EntityDeletionInput]!, $mergeConfig: MergeConfigInput!)
     {
-        mergeWorkingSet(changes: $changes, deletions: $deletions, mergeConfig: $mergeConfig)
+        mergeWorkingSet(changes: $changes, links: $links, deletions: $deletions, mergeConfig: $mergeConfig)
         {
             status
             conflicts
@@ -36,12 +36,13 @@ const MERGE_WORKING_SET = new GraphQLQuery<MergeResult>(
 )
 
 /**
- * Writes one working set: every change and every deletion in one transaction, or none of them.
+ * Writes one working set: every change, association and deletion in one transaction, or none of them.
  *
  * The plain call, without a working set around it -- what a service with nobody in front of it needs, and
  * what WorkingSet#merge() runs underneath.
  *
  * @param changes       rows to insert or update
+ * @param links         associations gained and lost through many-to-many fields
  * @param deletions     rows to remove
  * @param mergeConfig   what the caller can do about a conflict
  *
@@ -49,9 +50,10 @@ const MERGE_WORKING_SET = new GraphQLQuery<MergeResult>(
  */
 export function mergeWorkingSet(
     changes: EntityChange[],
+    links: LinkChange[],
     deletions: EntityDeletion[],
     mergeConfig: MergeConfig
 ): Promise<MergeResult>
 {
-    return MERGE_WORKING_SET.execute({changes, deletions, mergeConfig})
+    return MERGE_WORKING_SET.execute({changes, links, deletions, mergeConfig})
 }

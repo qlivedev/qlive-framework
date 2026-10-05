@@ -156,7 +156,8 @@ export const testConfig: QLiveConfig = {
                 genericType: "io.github.qlivedev.model.QueryDocument"
             }
         ],
-        relations: []
+        relations: [],
+        manyToMany: []
     }
 }
 

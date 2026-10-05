@@ -81,6 +81,7 @@ QLive defines MetadataProviders for a number of different purposes:
  * Computed field metadata
  * Unique key metadata
  * Field length metadata, from @Size
+ * Decimal precision and scale metadata, from @Column
 
 Above MetadataProviders reflect the current domain.
 

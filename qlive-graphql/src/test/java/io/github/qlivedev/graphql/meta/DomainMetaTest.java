@@ -7,7 +7,9 @@ import io.github.qlivedev.graphql.RelationBuilder;
 import io.github.qlivedev.graphql.config.RelationModel;
 import io.github.qlivedev.graphql.config.SourceField;
 import io.github.qlivedev.graphql.config.TargetField;
+import io.github.qlivedev.graphql.scalar.BigDecimalScalar;
 import io.github.qlivedev.graphql.logicimpl.ConfigureNonDBByNameLogic;
+import io.github.qlivedev.graphql.logicimpl.DecimalResponseLogic;
 import io.github.qlivedev.graphql.logicimpl.OutputTypeOverrideByParamLogic;
 import io.github.qlivedev.graphql.logicimpl.SizedResponseLogic;
 import io.github.qlivedev.graphql.logicimpl.TestLogic;
@@ -26,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -414,5 +417,33 @@ public class DomainMetaTest
         assertThat(sizedMeta.getFieldMeta("note", DomainMeta.MIN_LENGTH), is(nullValue()));
         assertThat(sizedMeta.getFieldMeta("note", DomainMeta.MAX_LENGTH), is(nullValue()));
         assertThat(sizedMeta.getFieldMeta("plain", DomainMeta.MAX_LENGTH), is(nullValue()));
+    }
+
+
+    @Test
+    public void testDecimalPrecisionAndScale()
+    {
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
+            .logicBeans(new DecimalResponseLogic())
+            .objectTypes(Public.PUBLIC)
+            .withAdditionalScalar(BigDecimal.class, BigDecimalScalar.newScalar())
+            .build();
+
+        final DomainTypeMeta decimalMeta = domain.getMetaData().getTypeMeta("DecimalResponse");
+
+        assertThat(decimalMeta.getFieldMeta("amount", DomainMeta.PRECISION), is(30));
+        assertThat(decimalMeta.getFieldMeta("amount", DomainMeta.SCALE), is(10));
+
+        // numeric(10) holds integers, which is worth saying
+        assertThat(decimalMeta.getFieldMeta("count", DomainMeta.PRECISION), is(10));
+        assertThat(decimalMeta.getFieldMeta("count", DomainMeta.SCALE), is(0));
+
+        // an unconstrained numeric says nothing, and a timestamp's precision is not a decimal's
+        assertThat(decimalMeta.getFieldMeta("unbounded", DomainMeta.PRECISION), is(nullValue()));
+        assertThat(decimalMeta.getFieldMeta("unbounded", DomainMeta.SCALE), is(nullValue()));
+        assertThat(decimalMeta.getFieldMeta("created", DomainMeta.PRECISION), is(nullValue()));
+
+        final String json = JSONUtil.DEFAULT_GENERATOR.forValue(domain.getMetaData());
+        assertThat(json, containsString("\"precision\":30"));
     }
 }

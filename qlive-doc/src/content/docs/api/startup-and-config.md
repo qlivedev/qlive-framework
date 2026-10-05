@@ -665,6 +665,25 @@ The fewest characters a string field holds -- or elements a list field, or entri
 QLive's SizeMetadataProvider from the field's `@Size(min = n)`. jOOQ never generates a minimum, so only a field
 that was given one by hand has it.
 
+### DomainFieldMeta.precision
+
+```ts
+precision?: number;
+```
+
+The most significant digits a BigDecimal field holds, on both sides of the point together. Written by QLive's
+DecimalMetadataProvider from the field's `@Column(precision = p)`, which jOOQ generates for a `numeric(p, s)`
+column. Absent for an unconstrained `numeric`, and on every field that is no BigDecimal.
+
+### DomainFieldMeta.scale
+
+```ts
+scale?: number;
+```
+
+The digits a BigDecimal field holds after the point. Written by QLive's DecimalMetadataProvider from the field's
+`@Column(scale = s)`, wherever it writes a precision -- 0 then means the field holds integers.
+
 ## GenericTypeInfo
 
 <span class="api-kind">type</span>

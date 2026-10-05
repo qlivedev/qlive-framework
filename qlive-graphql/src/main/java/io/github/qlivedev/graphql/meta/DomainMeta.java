@@ -41,6 +41,17 @@ public class DomainMeta
     public final static String MIN_LENGTH = "minLength";
 
     /**
+     * Name of the builtin field meta holding the precision of a BigDecimal field, from its
+     * {@code @Column(precision = p)}
+     */
+    public final static String PRECISION = "precision";
+
+    /**
+     * Name of the builtin field meta holding the scale of a BigDecimal field, from its {@code @Column(scale = s)}
+     */
+    public final static String SCALE = "scale";
+
+    /**
      * Name of the builtin relations addendum
      */
     public final static String RELATIONS = "relations";

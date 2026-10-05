@@ -19,13 +19,6 @@ import {
     withNamedImports
 } from "../src/queryTypes.js"
 
-/*
- * The expectations here are the ones GraphQLQueryTypingServiceTest asserts on the Java side, against
- * the same schema. That is the point of the file: the dev backend and this generator write into the
- * same modules, so a query either renders identically on both sides or every `pnpm generate` fights
- * the last `pnpm dev`.
- */
-
 const packageDir = path.dirname(fileURLToPath(new URL("../package.json", import.meta.url)))
 const fixtureDir = path.join(packageDir, "test", "query-fixture")
 const schemaFile = path.join(fixtureDir, "schema.graphql")

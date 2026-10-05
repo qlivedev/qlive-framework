@@ -1,16 +1,10 @@
 /*
- * Build-time half of the generated query result types.
+ * The generated query result types: each tracked `new GraphQLQuery(...)` is parsed
+ * against the schema and its result type patched back into the module.
  *
- * The dev backend derives the same types from the same input: QLive's
- * GraphQLQueryTypingService parses each tracked `new GraphQLQuery(...)` against the
- * live schema and patches the result type back into the module. That only runs in the
- * dev profile, so without this a production build has no way to bring a checked-in
- * result type back in line with its query.
- *
- * The two therefore have to agree byte for byte -- a build that rewrote what dev wrote
- * would leave a dirty working tree after every `pnpm generate`. That is why this is a
- * literal port down to the shape of the traversal: the two are meant to be read side by
- * side, and a change to either belongs in both.
+ * The one implementation there is. The track-usage plugin runs it per save under
+ * `vite dev`, and generate-query-types runs it on demand -- after a schema change, in
+ * CI, or from `pnpm generate`.
  */
 
 import fs from "node:fs"
@@ -149,8 +143,7 @@ function updateModule(schema, modFnRef, modulePath, sourceRoot, typesModule)
 
 /**
  * Resolves a module id from the analysis to the file it was read from. Query modules are ".ts" -- a
- * query lives in a module of its own and has no JSX in it, which is the rule the dev-side service
- * assumes as well.
+ * query lives in a module of its own and has no JSX in it.
  */
 function moduleFile(sourceRoot, modulePath)
 {

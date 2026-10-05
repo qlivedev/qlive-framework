@@ -323,8 +323,8 @@ filter: FilterColumn | null;
 
 The column's filter and the field it filters, `null` if it has none. For a relation column that is its first
 name field, `"owner.login"`, not the relation, or its foreign key, `"ownerId"`, for a filter that picks the
-related row (`ColumnFilter.key`). For a computed column it is the sort key, labeled with the heading where
-that is text.
+related row (`ColumnFilter.key`). For a computed column it is the sort key. The filter is labeled with the
+heading where that is text, so its inputs are called what the header says.
 
 ### ResolvedColumn.className
 

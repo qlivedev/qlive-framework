@@ -124,7 +124,7 @@
                 },
                 {
                     "name": "foos",
-                    "description": "Many-to-many objects from foo.owner_id",
+                    "description": "One-to-many objects from foo.owner_id",
                     "args": [],
                     "type": {
                         "kind": "NON_NULL",

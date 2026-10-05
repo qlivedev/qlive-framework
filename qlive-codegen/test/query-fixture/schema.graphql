@@ -80,7 +80,7 @@ type TestUser {
     password: String!
     "DB column 'roles'"
     roles: String!
-    "Many-to-many objects from test_foo.owner_id"
+    "One-to-many objects from test_foo.owner_id"
     testFoos: [TestFoo]!
 }
 

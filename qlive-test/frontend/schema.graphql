@@ -49,7 +49,7 @@ type AppUser {
     created: Timestamp!
     "true if the user account was disabled"
     disabled: Boolean
-    "Many-to-many objects from foo.owner_id"
+    "One-to-many objects from foo.owner_id"
     foos: [Foo]!
     "user database id"
     id: String!
@@ -96,7 +96,7 @@ type AppVersion {
 
 "Generated from public.bar"
 type Bar {
-    "Many-to-many objects from bar_link.bar_id"
+    "One-to-many objects from bar_link.bar_id"
     bazLinks: [BarLink]!
     "DB column 'created'"
     created: Timestamp!
@@ -141,7 +141,7 @@ type BarLink {
 
 "Generated from public.baz"
 type Baz {
-    "Many-to-many objects from bar_link.baz_id"
+    "One-to-many objects from bar_link.baz_id"
     bazLinks: [BarLink]!
     "DB column 'created'"
     created: Timestamp!

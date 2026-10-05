@@ -49,7 +49,7 @@ export type AppUser = {
     created: Temporal.Instant
     /** true if the user account was disabled */
     disabled?: boolean
-    /** Many-to-many objects from foo.owner_id */
+    /** One-to-many objects from foo.owner_id */
     foos: Foo[]
     /** user database id */
     id: string
@@ -96,7 +96,7 @@ export type AppVersion = {
 
 /** Generated from public.bar */
 export type Bar = {
-    /** Many-to-many objects from bar_link.bar_id */
+    /** One-to-many objects from bar_link.bar_id */
     bazLinks: BarLink[]
     /** DB column 'created' */
     created: Temporal.Instant
@@ -141,7 +141,7 @@ export type BarLink = {
 
 /** Generated from public.baz */
 export type Baz = {
-    /** Many-to-many objects from bar_link.baz_id */
+    /** One-to-many objects from bar_link.baz_id */
     bazLinks: BarLink[]
     /** DB column 'created' */
     created: Temporal.Instant

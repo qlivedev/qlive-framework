@@ -295,7 +295,7 @@ type TargetEight {
   name: String!
   "DB column 'num'"
   num: Int!
-  "Many-to-many objects from source_eight.target_name, source_eight.target_num"
+  "One-to-many objects from source_eight.target_name, source_eight.target_num"
   sourceEights: [SourceEight]!
 }
 
@@ -351,7 +351,7 @@ type TargetSeven {
 type TargetSix {
   "DB column 'id'"
   id: String!
-  "Many-to-many objects from source_six.target_id"
+  "One-to-many objects from source_six.target_id"
   sourceSixes: [SourceSix]!
 }
 

@@ -1255,7 +1255,7 @@ class SchemaAssembler
         final GraphQLFieldDefinition.Builder backReferenceField = GraphQLFieldDefinition.newFieldDefinition()
             .name(backReferenceFieldName)
             .description(
-                (isOneToOne ? "One-to-one object" : "Many-to-many objects") +
+                (isOneToOne ? "One-to-one object" : "One-to-many objects") +
                     " from " +
                     relationModel.getSourceDBFields().stream()
                         .map(

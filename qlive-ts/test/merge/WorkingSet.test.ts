@@ -35,7 +35,7 @@ const Q_BARS = new GraphQLQuery<QueryDocument<any>>(
                     bazId
                     baz { id name version }
                 }
-                bazs { id name version }
+                bazes { id name version }
             }
         }
     }`
@@ -56,7 +56,7 @@ const Q_BARS_UNVERSIONED = new GraphQLQuery<QueryDocument<any>>(
                 id
                 name
                 num
-                bazs { id name version }
+                bazes { id name version }
             }
         }
     }`
@@ -124,7 +124,7 @@ describe("registration", () => {
         expect(ws.edit(document.rows[1]).name).toBe("Bar #2")
         expect(ws.edit(document.rows[0].bazLinks[0]).bazId).toBe("baz-1")
         expect(ws.edit(document.rows[0].bazLinks[0].baz).name).toBe("Baz #1")
-        expect(ws.edit(document.rows[0].bazs[0]).name).toBe("Baz #1")
+        expect(ws.edit(document.rows[0].bazes[0]).name).toBe("Baz #1")
 
         expect(ws.dirty).toBe(false)
     })
@@ -151,7 +151,7 @@ describe("registration", () => {
         const ws = new WorkingSet()
         ws.register(document)
 
-        ws.edit(document.rows[0]).bazs = []
+        ws.edit(document.rows[0]).bazes = []
 
         const fetchMock = respondWith(mergeResponse({status: "CONFLICT", conflicts: []}))
         await ws.merge()
@@ -162,7 +162,7 @@ describe("registration", () => {
         // and held to no version at all
         expect(changes).toEqual([])
         expect(deletions).toEqual([])
-        expect(links).toEqual([{type: "Bar", id: "bar-1", field: "bazs", added: [], removed: ["baz-1"]}])
+        expect(links).toEqual([{type: "Bar", id: "bar-1", field: "bazes", added: [], removed: ["baz-1"]}])
     })
 
     it("refuses to edit a row of a versioned type that has none", async () => {
@@ -180,23 +180,23 @@ describe("registration", () => {
 
     it("edits associations to rows read without their version", async () => {
 
-        // the Bazs come back without a version, which is the query that reads them only to show them. An
+        // the Bazes come back without a version, which is the query that reads them only to show them. An
         // association names a Baz and writes nothing of it, so none is needed
         const bars: any = barDocument()
-        bars.rows[0].bazs = bars.rows[0].bazs.map(({version, ...baz}: any) => baz)
+        bars.rows[0].bazes = bars.rows[0].bazes.map(({version, ...baz}: any) => baz)
         respondWith({data: {queryBarDocument: bars}, errors: []})
 
         const document = await Q_BARS.execute({config: CONFIG})
         const ws = new WorkingSet()
         ws.register(document)
 
-        ws.edit(document.rows[0]).bazs = []
+        ws.edit(document.rows[0]).bazes = []
 
         const fetchMock = respondWith(mergeResponse({status: "CONFLICT", conflicts: []}))
         await ws.merge()
 
         expect(sentVariables(fetchMock).links)
-            .toEqual([{type: "Bar", id: "bar-1", field: "bazs", added: [], removed: ["baz-1"]}])
+            .toEqual([{type: "Bar", id: "bar-1", field: "bazes", added: [], removed: ["baz-1"]}])
     })
 
     it("refuses a row it was never given", async () => {
@@ -240,7 +240,7 @@ describe("registration", () => {
         const heard = vi.fn()
         ws.subscribe(heard)
 
-        const next = {...barDocument(), rows: [{...barDocument().rows[1], id: "bar-3", bazLinks: [], bazs: []}]}
+        const next = {...barDocument(), rows: [{...barDocument().rows[1], id: "bar-3", bazLinks: [], bazes: []}]}
         respondWith({data: {queryBarDocument: next}, errors: []})
         await document.update({offset: 10})
 
@@ -599,10 +599,10 @@ describe("many-to-many", () => {
         ws.register(document)
 
         const bar = ws.edit<any>(document.rows[0])
-        bar.bazs = bar.bazs.filter((baz: any) => baz.id !== "baz-1")
+        bar.bazes = bar.bazes.filter((baz: any) => baz.id !== "baz-1")
 
         expect(ws.dirty).toBe(true)
-        expect(bar.bazs).toEqual([])
+        expect(bar.bazes).toEqual([])
 
         const fetchMock = respondWith(mergeResponse({status: "CONFLICT", conflicts: []}))
         await ws.merge()
@@ -612,7 +612,7 @@ describe("many-to-many", () => {
         // the Bar itself has nothing to write -- what changed was an association, not a field of the row
         expect(changes).toEqual([])
         expect(deletions).toEqual([])
-        expect(links).toEqual([{type: "Bar", id: "bar-1", field: "bazs", added: [], removed: ["baz-1"]}])
+        expect(links).toEqual([{type: "Bar", id: "bar-1", field: "bazes", added: [], removed: ["baz-1"]}])
     })
 
     it("turns a row put into the field into an association gained", async () => {
@@ -622,15 +622,15 @@ describe("many-to-many", () => {
         ws.register(document)
 
         // the row itself, which is also what a view renders the association through
-        const baz = document.rows[0].bazs[0]
+        const baz = document.rows[0].bazes[0]
         const bar = ws.edit<any>(document.rows[1])
-        bar.bazs = [...bar.bazs, baz]
+        bar.bazes = [...bar.bazes, baz]
 
         const fetchMock = respondWith(mergeResponse({status: "CONFLICT", conflicts: []}))
         await ws.merge()
 
         expect(sentVariables(fetchMock).links)
-            .toEqual([{type: "Bar", id: "bar-2", field: "bazs", added: ["baz-1"], removed: []}])
+            .toEqual([{type: "Bar", id: "bar-2", field: "bazes", added: ["baz-1"], removed: []}])
     })
 
     it("takes a row created in the same working set", async () => {
@@ -640,7 +640,7 @@ describe("many-to-many", () => {
         ws.register(document)
 
         const baz = ws.create<any>("Baz", {name: "New Baz"})
-        ws.edit<any>(document.rows[1]).bazs = [baz]
+        ws.edit<any>(document.rows[1]).bazes = [baz]
 
         const fetchMock = respondWith(mergeResponse({status: "CONFLICT", conflicts: []}))
         await ws.merge()
@@ -649,7 +649,7 @@ describe("many-to-many", () => {
 
         // the new row goes out as a row, and the association to it after it
         expect(changes).toMatchObject([{type: "Baz", id: baz.id, new: true}])
-        expect(links).toEqual([{type: "Bar", id: "bar-2", field: "bazs", added: [baz.id], removed: []}])
+        expect(links).toEqual([{type: "Bar", id: "bar-2", field: "bazes", added: [baz.id], removed: []}])
     })
 
     it("associates a row created in the same working set", async () => {
@@ -658,7 +658,7 @@ describe("many-to-many", () => {
         const ws = new WorkingSet()
         ws.register(document)
 
-        const bar = ws.create<any>("Bar", {name: "New Bar", bazs: [document.rows[0].bazs[0]]})
+        const bar = ws.create<any>("Bar", {name: "New Bar", bazes: [document.rows[0].bazes[0]]})
 
         const fetchMock = respondWith(mergeResponse({status: "CONFLICT", conflicts: []}))
         await ws.merge()
@@ -667,7 +667,7 @@ describe("many-to-many", () => {
 
         // the field is no column of the new row, so it travels as an association and not as a field
         expect(changes[0].changes.map((c: any) => c.field)).toEqual(["name"])
-        expect(links).toEqual([{type: "Bar", id: bar.id, field: "bazs", added: ["baz-1"], removed: []}])
+        expect(links).toEqual([{type: "Bar", id: bar.id, field: "bazes", added: ["baz-1"], removed: []}])
     })
 
     it("never writes the type on the other side, nor the link type", async () => {
@@ -676,8 +676,8 @@ describe("many-to-many", () => {
         const ws = new WorkingSet()
         ws.register(document)
 
-        ws.edit<any>(document.rows[0]).bazs = []
-        ws.edit<any>(document.rows[1]).bazs = [{id: "baz-1"}]
+        ws.edit<any>(document.rows[0]).bazes = []
+        ws.edit<any>(document.rows[1]).bazes = [{id: "baz-1"}]
 
         const fetchMock = respondWith(mergeResponse({status: "CONFLICT", conflicts: []}))
         await ws.merge()
@@ -696,26 +696,26 @@ describe("many-to-many", () => {
         ws.register(document)
 
         const bar = ws.edit<any>(document.rows[0])
-        bar.bazs = []
+        bar.bazes = []
         expect(ws.dirty).toBe(true)
 
         // another object for the same row, which is the same association
-        bar.bazs = [{id: "baz-1"}]
+        bar.bazes = [{id: "baz-1"}]
 
         expect(ws.dirty).toBe(false)
     })
 
     it("refuses a field the query did not select", async () => {
 
-        const {bazs, ...selected} = barDocument().rows[0]
+        const {bazes, ...selected} = barDocument().rows[0]
         respondWith({data: {queryBarDocument: {...barDocument(), rows: [selected]}}, errors: []})
 
         const document = await Q_BARS.execute({config: CONFIG})
         const ws = new WorkingSet()
         ws.register(document)
 
-        expect(() => { ws.edit<any>(document.rows[0]).bazs = [] })
-            .toThrowError(/Cannot change Bar.bazs.*did not select it/s)
+        expect(() => { ws.edit<any>(document.rows[0]).bazes = [] })
+            .toThrowError(/Cannot change Bar.bazes.*did not select it/s)
     })
 
     it("refuses a row that says nothing about which one it is", async () => {
@@ -724,11 +724,11 @@ describe("many-to-many", () => {
         const ws = new WorkingSet()
         ws.register(document)
 
-        expect(() => { ws.edit<any>(document.rows[1]).bazs = [{name: "Baz #1"}] })
-            .toThrowError(/A row in Bar.bazs has no id/)
+        expect(() => { ws.edit<any>(document.rows[1]).bazes = [{name: "Baz #1"}] })
+            .toThrowError(/A row in Bar.bazes has no id/)
 
-        expect(() => { ws.edit<any>(document.rows[1]).bazs = "baz-1" as any })
-            .toThrowError(/Cannot set Bar.bazs to something that is not an array/)
+        expect(() => { ws.edit<any>(document.rows[1]).bazes = "baz-1" as any })
+            .toThrowError(/Cannot set Bar.bazes to something that is not an array/)
     })
 
     it("refuses a field whose link rows need values of their own", async () => {
@@ -762,7 +762,7 @@ describe("associations and conflicts", () => {
 
         const bar = ws.edit<any>(document.rows[0])
         bar.name = "Mine"
-        bar.bazs = []
+        bar.bazes = []
 
         respondWith(mergeResponse({
             status: "CONFLICT",
@@ -795,7 +795,7 @@ describe("associations and conflicts", () => {
         const {changes, links} = sentVariables(second)
 
         expect(changes).toMatchObject([{type: "Bar", id: "bar-1", version: "v9"}])
-        expect(links).toEqual([{type: "Bar", id: "bar-1", field: "bazs", added: [], removed: ["baz-1"]}])
+        expect(links).toEqual([{type: "Bar", id: "bar-1", field: "bazes", added: [], removed: ["baz-1"]}])
     })
 })
 

@@ -6,7 +6,7 @@ import org.svenson.JSONProperty;
 
 /// A declared many-to-many: a link table whose rows each associate a row of one end with a row of the other.
 ///
-/// Each end gets a field listing the rows on the other end, fetched through the link table -- `Bar.bazs` and
+/// Each end gets a field listing the rows on the other end, fetched through the link table -- `Bar.bazes` and
 /// `Baz.bars` for `bar_link`. The two relations out of the link table that make it are held here and nowhere
 /// else: they are not relations of the domain and generate no fields, so an application can still configure the
 /// same foreign keys as ordinary relations when it wants the link rows as rows.

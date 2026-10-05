@@ -71,7 +71,7 @@ public class ManyToManyEnd
     }
 
 
-    /// Name of the field on this end's type listing the rows on the other end, e.g. "bazs" on Bar. `null` where
+    /// Name of the field on this end's type listing the rows on the other end, e.g. "bazes" on Bar. `null` where
     /// the declaration gave this end none.
     @JSONProperty(ignoreIfNull = true)
     public String getField()

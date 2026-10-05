@@ -97,7 +97,7 @@ export type AppVersion = {
 /** Generated from public.bar */
 export type Bar = {
     /** Many-to-many objects through bar_link.bar_id */
-    bazs: Baz[]
+    bazes: Baz[]
     /** DB column 'created' */
     created: Temporal.Instant
     /** DB column 'description' */

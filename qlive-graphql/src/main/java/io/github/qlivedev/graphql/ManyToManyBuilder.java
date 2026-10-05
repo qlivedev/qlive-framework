@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 /// ```java
 /// new ManyToManyBuilder()
 ///     .withForeignKeyFields(BAR_LINK.BAR_ID, BAR_LINK.BAZ_ID)
-///     .withFieldNames("bazs", "bars")
+///     .withFieldNames("bazes", "bars")
 /// ```
 ///
 /// Each link column has to reference the `id` of its end, which is what the working set names rows by.
@@ -117,7 +117,7 @@ public class ManyToManyBuilder
 
     /// Names the through fields. `null` leaves that end without one, but one of the two has to be given.
     ///
-    /// @param fieldName        field on the first end, listing the rows of the other, e.g. "bazs" on Bar
+    /// @param fieldName        field on the first end, listing the rows of the other, e.g. "bazes" on Bar
     /// @param otherFieldName   field on the other end, listing the rows of the first, e.g. "bars" on Baz
     ///
     /// @return this builder

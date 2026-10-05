@@ -90,8 +90,8 @@ public class QLiveDomainConfiguration {
                 .configureRelation(FOO.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY)
                 .configureRelation(FOO.TYPE, SourceField.OBJECT_AND_SCALAR, TargetField.NONE, "fooType", null)
 
-                // bar_link associates bars and bazs: Bar.bazs lists a bar's bazs, Baz.bars a baz's bars
-                .configureManyToMany(BAR_LINK.BAR_ID, BAR_LINK.BAZ_ID, "bazs", "bars")
+                // bar_link associates bars and bazes: Bar.bazes lists a bar's bazes, Baz.bars a baz's bars
+                .configureManyToMany(BAR_LINK.BAR_ID, BAR_LINK.BAZ_ID, "bazes", "bars")
 
                 .withMetadataProviders(
 

@@ -170,7 +170,7 @@ class MergeLogicTest
                 Map.of(
                     "type", "TestBar",
                     "id", "bar-1",
-                    "field", "bazs",
+                    "field", "bazes",
                     "added", List.of("baz-2"),
                     "removed", List.of("baz-1")
                 )
@@ -182,7 +182,7 @@ class MergeLogicTest
         final LinkChange received = mergeService.links.get(0);
         assertThat(received.getType(), is("TestBar"));
         assertThat(received.getId(), is("bar-1"));
-        assertThat(received.getField(), is("bazs"));
+        assertThat(received.getField(), is("bazes"));
         assertThat(received.getAdded(), is(List.of("baz-2")));
         assertThat(received.getRemoved(), is(List.of("baz-1")));
     }

@@ -396,8 +396,8 @@ public class QLiveDomainBuilder
     /**
      * Declares a many-to-many from the two foreign keys of its link table, and names the field each end gets.
      * <p>
-     * {@code configureManyToMany(BAR_LINK.BAR_ID, BAR_LINK.BAZ_ID, "bazs", "bars")} gives Bar a field "bazs"
-     * listing its Bazs, and Baz a field "bars" listing its Bars, both fetched through bar_link.
+     * {@code configureManyToMany(BAR_LINK.BAR_ID, BAR_LINK.BAZ_ID, "bazes", "bars")} gives Bar a field "bazes"
+     * listing its Bazes, and Baz a field "bars" listing its Bars, both fetched through bar_link.
      * </p>
      *
      * @param linkField         foreign key column of the link table pointing at the first end

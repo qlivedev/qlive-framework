@@ -269,12 +269,12 @@ class QueryDocumentExecutionTest
                 link("link-4", "baz-1", "baz_links_bar", "bar-2", "Bar #2")
             );
 
-        final List<Map<String, Object>> bazs = rows(
+        final List<Map<String, Object>> bazes = rows(
             queryDocument("queryTestBazDocument", "name bazLinks { id bar { name } }", config(0, 0))
         );
 
         assertThat(database.sql().get(1), containsString("where \"baz_links\".\"baz_id\" in (?)"));
-        assertThat(linked(bazs.get(0), "bar"), contains("Bar #1", "Bar #2"));
+        assertThat(linked(bazes.get(0), "bar"), contains("Bar #1", "Bar #2"));
     }
 
 
@@ -291,29 +291,29 @@ class QueryDocumentExecutionTest
                 Map.of("test_bar.id", "bar-3", "test_bar.name", "Bar #3")
             )
             .answer(
-                through("bazs", "bar_id", "bar-1", "baz-1", "Baz #1"),
-                through("bazs", "bar_id", "bar-2", "baz-1", "Baz #1"),
-                through("bazs", "bar_id", "bar-1", "baz-2", "Baz #2")
+                through("bazes", "bar_id", "bar-1", "baz-1", "Baz #1"),
+                through("bazes", "bar_id", "bar-2", "baz-1", "Baz #1"),
+                through("bazes", "bar_id", "bar-1", "baz-2", "Baz #2")
             );
 
         final List<Map<String, Object>> bars = rows(
-            queryDocument("queryTestBarDocument", "name bazs { name }", config(0, 0))
+            queryDocument("queryTestBarDocument", "name bazes { name }", config(0, 0))
         );
 
         assertThat(database.sql(), hasSize(2));
         assertThat(
             database.sql().get(1),
             containsString(
-                "from \"public\".\"test_baz\" as \"bazs\" join \"public\".\"test_bar_link\" as \"bazs_link\" " +
-                    "on \"bazs_link\".\"baz_id\" = \"bazs\".\"id\""
+                "from \"public\".\"test_baz\" as \"bazes\" join \"public\".\"test_bar_link\" as \"bazes_link\" " +
+                    "on \"bazes_link\".\"baz_id\" = \"bazes\".\"id\""
             )
         );
-        assertThat(database.sql().get(1), containsString("where \"bazs_link\".\"bar_id\" in (?, ?, ?)"));
+        assertThat(database.sql().get(1), containsString("where \"bazes_link\".\"bar_id\" in (?, ?, ?)"));
         assertThat(database.statements().get(1).bindings(), contains("bar-1", "bar-2", "bar-3"));
 
-        assertThat(names(bars.get(0), "bazs"), contains("Baz #1", "Baz #2"));
-        assertThat(names(bars.get(1), "bazs"), contains("Baz #1"));
-        assertThat(names(bars.get(2), "bazs"), is(empty()));
+        assertThat(names(bars.get(0), "bazes"), contains("Baz #1", "Baz #2"));
+        assertThat(names(bars.get(1), "bazes"), contains("Baz #1"));
+        assertThat(names(bars.get(2), "bazes"), is(empty()));
     }
 
 
@@ -328,12 +328,12 @@ class QueryDocumentExecutionTest
                 through("bars", "baz_id", "baz-1", "bar-2", "Bar #2")
             );
 
-        final List<Map<String, Object>> bazs = rows(
+        final List<Map<String, Object>> bazes = rows(
             queryDocument("queryTestBazDocument", "name bars { name }", config(0, 0))
         );
 
         assertThat(database.sql().get(1), containsString("where \"bars_link\".\"baz_id\" in (?)"));
-        assertThat(names(bazs.get(0), "bars"), contains("Bar #1", "Bar #2"));
+        assertThat(names(bazes.get(0), "bars"), contains("Bar #1", "Bar #2"));
     }
 
 
@@ -344,16 +344,16 @@ class QueryDocumentExecutionTest
     {
         queryDocument(
             "queryTestBarDocument",
-            "name bazs { name }",
-            Map.of("pageSize", 0, "offset", 0, "condition", eq("bazs.name", "String", "Baz #1"))
+            "name bazes { name }",
+            Map.of("pageSize", 0, "offset", 0, "condition", eq("bazes.name", "String", "Baz #1"))
         );
 
         assertThat(
             database.sql().get(0),
             containsString(
-                "exists (select 1 from \"public\".\"test_baz\" as \"bazs\" join \"public\".\"test_bar_link\" as " +
-                    "\"bazs_link\" on \"bazs_link\".\"baz_id\" = \"bazs\".\"id\" where (\"bazs_link\".\"bar_id\" = " +
-                    "\"test_bar\".\"id\" and \"bazs\".\"name\" = ?))"
+                "exists (select 1 from \"public\".\"test_baz\" as \"bazes\" join \"public\".\"test_bar_link\" as " +
+                    "\"bazes_link\" on \"bazes_link\".\"baz_id\" = \"bazes\".\"id\" where (\"bazes_link\".\"bar_id\" = " +
+                    "\"test_bar\".\"id\" and \"bazes\".\"name\" = ?))"
             )
         );
         assertThat(database.statements().get(0).bindings(), contains("Baz #1"));

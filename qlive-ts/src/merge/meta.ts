@@ -40,13 +40,13 @@ export type MergeTypeMeta = {
  * A many-to-many field as an edit sees it: the type it is on, the type whose rows it lists, and whether it can be
  * written.
  *
- * Read from the declaration in config().meta.manyToMany. Setting bar.bazs means associating the Bar with other
- * Bazs, which the merge writes as link rows and never as a change to Bar or Baz.
+ * Read from the declaration in config().meta.manyToMany. Setting bar.bazes means associating the Bar with other
+ * Bazes, which the merge writes as link rows and never as a change to Bar or Baz.
  */
 export type ManyToManyField = {
 
     /**
-     * The field, e.g. "bazs" on Bar.
+     * The field, e.g. "bazes" on Bar.
      */
     field: string
 

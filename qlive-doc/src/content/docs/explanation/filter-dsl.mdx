@@ -73,10 +73,10 @@ on the login of the related user. The form is always the same. What the
 path *means* is not.
 
 For a database query condition, a path may cross a to-many relation --
-`bazs.name` -- and becomes a correlated `EXISTS` rather than a join.
+`bazes.name` -- and becomes a correlated `EXISTS` rather than a join.
 
 For a Java object condition, the same path has memory graph semantics and
-needs an index. `bazs.0.name` refers to one concrete baz, the first one
+needs an index. `bazes.0.name` refers to one concrete baz, the first one
 in the list. `owner.login` happens to express the same thing in both
 worlds.
 

@@ -58,7 +58,7 @@ One call declares the many-to-many, naming both foreign keys of the link
 table and the field each side gets:
 
 ```java
-.configureManyToMany(BAR_LINK.BAR_ID, BAR_LINK.BAZ_ID, "bazs", "bars")
+.configureManyToMany(BAR_LINK.BAR_ID, BAR_LINK.BAZ_ID, "bazes", "bars")
 ```
 
 A null name leaves that side without a field.
@@ -70,7 +70,7 @@ A link table without foreign-key constraints is declared the way
 .withManyToMany(
     new ManyToManyBuilder()
         .withPojoFields(BarLink.class, "barId", Bar.class, "bazId", Baz.class)
-        .withFieldNames("bazs", "bars")
+        .withFieldNames("bazes", "bars")
 )
 ```
 
@@ -95,17 +95,17 @@ to show or edit link rows as rows.
 
 ### Through fields
 
-The declaration generates `Bar.bazs: [Baz]!` and `Baz.bars: [Bar]!`, fetched
+The declaration generates `Bar.bazes: [Baz]!` and `Baz.bars: [Bar]!`, fetched
 through the link table. Reading an association is reading the rows:
 
 ```graphql
-bar { id name bazs { id name } }
+bar { id name bazes { id name } }
 ```
 
 The query planner already fetches a to-many relation by a query of its own
 and stitches it onto the parents. A through field is the same, over
 `bar_link` joined to `baz`, stitched by `bar_id` and flattened. A FilterDSL
-path through it (`bazs.name`) becomes an EXISTS over the same join, the way
+path through it (`bazes.name`) becomes an EXISTS over the same join, the way
 a path through a to-many already does. Sorting through it stays refused.
 
 On the client it is a list field like any other, so codegen, the generated
@@ -116,8 +116,8 @@ query types and `evaluate.ts` take it as they find it.
 A through field is set to the rows the source is to be associated with:
 
 ```ts
-bar.bazs = [...bar.bazs, baz]
-bar.bazs = bar.bazs.filter(b => b.id !== id)
+bar.bazes = [...bar.bazes, baz]
+bar.bazes = bar.bazes.filter(b => b.id !== id)
 ```
 
 The working set diffs the ids against the ones read and sends the
@@ -235,7 +235,7 @@ its position column required, and that makes the link an entity.
    `version`, the writability check.
 5. The working set: diff through fields by id; remove the shape guess and
    `linkType`.
-6. qlive-test: switch Bar and Baz to `bazs`/`bars`, simplify `Edit.tsx`,
+6. qlive-test: switch Bar and Baz to `bazes`/`bars`, simplify `Edit.tsx`,
    adjust `MergeMetadataTest`, `WorkingSet.test.ts` and
    `QueryDocumentServiceTest`.
 7. qlive-doc: the many-to-many section of `define-the-domain.md`, and the

@@ -348,7 +348,7 @@ function connect(): void
  * @param condition    FilterDSL condition every message on the channel is evaluated against before it is
  *                     delivered here, or null to receive everything the channel carries. Field paths are
  *                     resolved against the channel's payload, and a to-many hop in one reads positionally
- *                     (`bazs.0.name`), unlike the same DSL against the database.
+ *                     (`bazes.0.name`), unlike the same DSL against the database.
  *
  * @returns a function that unsubscribes
  */

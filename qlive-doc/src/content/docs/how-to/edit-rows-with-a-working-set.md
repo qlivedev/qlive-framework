@@ -28,7 +28,7 @@ query Q_Bar($config: QueryConfig!) {
         config
         rows {
             id name num description version
-            bazs { id name }
+            bazes { id name }
         }
     }
 }
@@ -143,9 +143,9 @@ this one is associated with, and the merge turns the difference into
 associations gained and lost.
 
 ```tsx
-bar.bazs = checked
-    ? [...bar.bazs, baz]
-    : bar.bazs.filter(associated => associated.id !== baz.id);
+bar.bazes = checked
+    ? [...bar.bazes, baz]
+    : bar.bazes.filter(associated => associated.id !== baz.id);
 ```
 
 The rows in it can come from any query, or from `ws.create()`. Nothing here

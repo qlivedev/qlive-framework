@@ -21,7 +21,7 @@ describe("fieldMask", () => {
         // The order FieldLayout.of(QLiveDomain, String) assigns on the Java side. Both ends derive it from
         // the same schema, and a mask read under another order names other fields without saying so.
         expect(fieldOrder("Bar")).toEqual(
-            ["bazLinks", "bazs", "created", "description", "id", "name", "num", "version"]
+            ["bazLinks", "bazes", "created", "description", "id", "name", "num", "version"]
         )
     })
 

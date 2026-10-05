@@ -170,7 +170,7 @@ English pluralization function.
 ### Many-to-many
 
 A many-to-many relation lives in a link table with a foreign key to each side. In qlive-test, `bar_link` associates
-bars with bazs:
+bars with bazes:
 
 ```graphql title="BarLink in schema.graphql"
 "Generated from public.bar_link"
@@ -202,7 +202,7 @@ public class QLiveDomainConfiguration {
 
         return QLiveDefaultDomain.newDomain(dslContext, metadataProviders)
 
-                .configureManyToMany(BAR_LINK.BAR_ID, BAR_LINK.BAZ_ID, "bazs", "bars")
+                .configureManyToMany(BAR_LINK.BAR_ID, BAR_LINK.BAZ_ID, "bazes", "bars")
                 // ...
 
                 .build();
@@ -210,13 +210,13 @@ public class QLiveDomainConfiguration {
 }
 ```
 
-`Bar` gets a field `bazs` listing its bazs, and `Baz` a field `bars` listing its bars. Both are fetched through
+`Bar` gets a field `bazes` listing its bazes, and `Baz` a field `bars` listing its bars. Both are fetched through
 `bar_link`:
 
 ```graphql title="Bar in schema.graphql"
 type Bar {
     "Many-to-many objects through bar_link.bar_id"
-    bazs: [Baz]!
+    bazes: [Baz]!
     # ...
 }
 ```
@@ -229,7 +229,7 @@ composite primary key over `(bar_id, baz_id)` works as well. Do give the link ta
 keys. Without one, QLive logs a warning at startup, because two users adding the same association at the same moment
 could create it twice.
 
-How to change which bazs a bar has is in
+How to change which bazes a bar has is in
 [Edit rows with a working set](/qlive-framework/how-to/edit-rows-with-a-working-set/#associations).
 
 #### Link tables with columns of their own
@@ -248,7 +248,7 @@ A link table without foreign key constraints is declared by naming the fields of
     .withManyToMany(
         new ManyToManyBuilder()
             .withPojoFields(BarLink.class, "barId", Bar.class, "bazId", Baz.class)
-            .withFieldNames("bazs", "bars")
+            .withFieldNames("bazes", "bars")
     )
 ```
 

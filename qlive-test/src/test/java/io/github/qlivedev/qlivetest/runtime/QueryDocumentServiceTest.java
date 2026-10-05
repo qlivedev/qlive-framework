@@ -171,7 +171,7 @@ class QueryDocumentServiceTest
         final List<Map<String, Object>> bars = rows(
             queryDocument(
                 "queryBarDocument",
-                "name bazs { name }",
+                "name bazes { name }",
                 Map.of("pageSize", 0, "offset", 0, "sortFields", List.of("name"))
             )
         );
@@ -263,14 +263,14 @@ class QueryDocumentServiceTest
     }
 
 
-    /// The names of the Bazs a Bar is associated with, sorted, so that the order they come back in does not
+    /// The names of the Bazes a Bar is associated with, sorted, so that the order they come back in does not
     /// decide whether the test passes.
     @SuppressWarnings("unchecked")
     private static List<String> linked(Map<String, Object> row)
     {
-        final List<Map<String, Object>> bazs = (List<Map<String, Object>>) row.get("bazs");
+        final List<Map<String, Object>> bazes = (List<Map<String, Object>>) row.get("bazes");
 
-        return bazs.stream()
+        return bazes.stream()
             .map(baz -> (String) baz.get("name"))
             .sorted()
             .toList();

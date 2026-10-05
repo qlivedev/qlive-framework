@@ -46,7 +46,7 @@ describe("walkRows", () => {
         )
         expect(bar.relations.map((r: any) => [r.field, r.type, r.list])).toEqual([
             ["bazLinks", "BarLink", true],
-            ["bazs", "Baz", true]
+            ["bazes", "Baz", true]
         ])
 
         // the link's foreign keys are values and the rows they name are not, whatever they look like

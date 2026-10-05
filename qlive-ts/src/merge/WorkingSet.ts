@@ -279,7 +279,7 @@ export class WorkingSet
      * ```ts
      * const bar = ws.edit(row)
      * bar.name = "New name"
-     * bar.bazs = [...bar.bazs, baz]
+     * bar.bazes = [...bar.bazes, baz]
      * ```
      *
      * A many-to-many field is set like any other field and means something else: it says which rows this one
@@ -1078,7 +1078,7 @@ export class WorkingSet
     /**
      * Records a whole many-to-many field as the rows the row is to be associated with.
      *
-     * The field is set rather than changed element by element -- `bar.bazs = [...bar.bazs, baz]` or the same
+     * The field is set rather than changed element by element -- `bar.bazes = [...bar.bazes, baz]` or the same
      * with a filter -- and what is kept is the array, not a diff. The diff is made at merge time against the
      * rows the field was registered with, so an association taken away and put back is no change at all and
      * costs the merge nothing.
@@ -1290,7 +1290,7 @@ function scalarTypeName(type: string, name: string): string
  * registered with and no longer holds is an association lost, one it holds and was not registered with is one
  * gained.
  *
- * Nothing here writes the type on the other side. Setting bar.bazs associates the Bar with other Bazs and
+ * Nothing here writes the type on the other side. Setting bar.bazes associates the Bar with other Bazes and
  * never changes a Baz, which is what the user of the framework means by setting it.
  */
 function linkChanges(entity: Entity): LinkChange[]

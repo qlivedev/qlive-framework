@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class ManyToManyDeclarationTest
 {
     private final static String DECLARED =
-        "[{\"left\":{\"field\":\"bazs\",\"linkField\":\"barId\",\"type\":\"TestBar\"}," +
+        "[{\"left\":{\"field\":\"bazes\",\"linkField\":\"barId\",\"type\":\"TestBar\"}," +
             "\"linkType\":\"TestBarLink\"," +
             "\"right\":{\"field\":\"bars\",\"linkField\":\"bazId\",\"type\":\"TestBaz\"}," +
             "\"writable\":true}]";
@@ -42,7 +42,7 @@ class ManyToManyDeclarationTest
     {
         final QLiveDomain domain = TestDomainConfig.domainNoMeta();
 
-        assertThat(GraphQLTypeUtil.simplePrint(field(domain, "TestBar", "bazs").getType()), is("[TestBaz]!"));
+        assertThat(GraphQLTypeUtil.simplePrint(field(domain, "TestBar", "bazes").getType()), is("[TestBaz]!"));
         assertThat(GraphQLTypeUtil.simplePrint(field(domain, "TestBaz", "bars").getType()), is("[TestBar]!"));
         assertThat(field(domain, "TestBar", "bazLinks"), is(notNullValue()));
     }
@@ -66,7 +66,7 @@ class ManyToManyDeclarationTest
             b -> b.withManyToMany(
                 new ManyToManyBuilder()
                     .withPojoFields(TestBarLink.class, "barId", TestBar.class, "bazId", TestBaz.class)
-                    .withFieldNames("bazs", "bars")
+                    .withFieldNames("bazes", "bars")
             )
         );
 
@@ -79,10 +79,10 @@ class ManyToManyDeclarationTest
     void leavesAnEndWithoutAField()
     {
         final QLiveDomain domain = domain(
-            b -> b.configureManyToMany(TEST_BAR_LINK.BAR_ID, TEST_BAR_LINK.BAZ_ID, "bazs", null)
+            b -> b.configureManyToMany(TEST_BAR_LINK.BAR_ID, TEST_BAR_LINK.BAZ_ID, "bazes", null)
         );
 
-        assertThat(field(domain, "TestBar", "bazs"), is(notNullValue()));
+        assertThat(field(domain, "TestBar", "bazes"), is(notNullValue()));
         assertThat(type(domain, "TestBaz").getFieldDefinition("bars"), is((Object) null));
     }
 

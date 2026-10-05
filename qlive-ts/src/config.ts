@@ -98,7 +98,7 @@ export type ManyToManyEnd = {
     linkField: string
 
     /**
-     * Field on this end's type listing the rows on the other end, e.g. "bazs". Absent where the declaration
+     * Field on this end's type listing the rows on the other end, e.g. "bazes". Absent where the declaration
      * gave this end none.
      */
     field?: string

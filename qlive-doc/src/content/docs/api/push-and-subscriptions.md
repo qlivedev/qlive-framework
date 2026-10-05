@@ -343,7 +343,7 @@ subscribes once and keeps receiving messages across a server restart without doi
 |---|---|
 | `topic` | name of the channel, as the server registered it |
 | `handler` | called with the payload of every message matching the condition |
-| `condition` | FilterDSL condition every message on the channel is evaluated against before it is delivered here, or null to receive everything the channel carries. Field paths are resolved against the channel's payload, and a to-many hop in one reads positionally (`bazs.0.name`), unlike the same DSL against the database.  |
+| `condition` | FilterDSL condition every message on the channel is evaluated against before it is delivered here, or null to receive everything the channel carries. Field paths are resolved against the channel's payload, and a to-many hop in one reads positionally (`bazes.0.name`), unlike the same DSL against the database.  |
 
 **Returns** a function that unsubscribes
 

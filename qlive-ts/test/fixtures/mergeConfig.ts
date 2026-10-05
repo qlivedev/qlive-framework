@@ -87,7 +87,7 @@ export const mergeConfig: QLiveConfig = {
                 field("created", NOT_NULL(TIMESTAMP)),
                 field("version", STRING),
                 field("bazLinks", LIST_OF(OBJECT("BarLink"))),
-                field("bazs", NOT_NULL(LIST_OF(OBJECT("Baz"))))
+                field("bazes", NOT_NULL(LIST_OF(OBJECT("Baz"))))
             ]),
             object("Baz", [
                 field("id", NOT_NULL(STRING)),
@@ -248,7 +248,7 @@ export const mergeConfig: QLiveConfig = {
             relation("CorgeLink", "Grault", ["graultId"], "grault", "corgeLinks", "MANY")
         ],
         manyToMany: [
-            manyToMany("BarLink", "Bar", "barId", "bazs", "Baz", "bazId", "bars", true),
+            manyToMany("BarLink", "Bar", "barId", "bazes", "Baz", "bazId", "bars", true),
             manyToMany("CorgeLink", "Corge", "corgeId", "graults", "Grault", "graultId", "corges", false)
         ]
     }
@@ -284,7 +284,7 @@ export function barDocument(name: string = "Bar #1", version: string = "v1")
                         baz: {id: "baz-1", name: "Baz #1", version: "zv1"}
                     }
                 ],
-                bazs: [
+                bazes: [
                     {id: "baz-1", name: "Baz #1", version: "zv1"}
                 ]
             },
@@ -296,7 +296,7 @@ export function barDocument(name: string = "Bar #1", version: string = "v1")
                 created: "2026-01-03T00:00:00Z",
                 version: "v2",
                 bazLinks: [],
-                bazs: []
+                bazes: []
             }
         ]
     }

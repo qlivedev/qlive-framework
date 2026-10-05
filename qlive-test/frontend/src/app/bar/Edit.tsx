@@ -199,7 +199,7 @@ function BarForm({ ws, row, bazes }: {
 
 
 /**
- * The many-to-many. Bar.bazs is set to the Bazs the row is to be associated with, and the merge turns the
+ * The many-to-many. Bar.bazes is set to the Bazes the row is to be associated with, and the merge turns the
  * difference into associations gained and lost -- nothing here writes a Baz, and nothing here knows the link
  * table that holds the associations.
  */
@@ -209,13 +209,13 @@ function Associations({ bar, bazes, merge }: {
     merge: MergeAccessor
 })
 {
-    const linked = new Set(bar.bazs.map(baz => baz.id))
+    const linked = new Set(bar.bazes.map(baz => baz.id))
 
     return (
         <div className="field">
-            <label>bazs</label>
+            <label>bazes</label>
 
-            <div className={ "associations " + merge.field("bazs").className }>
+            <div className={ "associations " + merge.field("bazes").className }>
                 {
                     bazes.map(baz => (
                         <label key={ baz.id }>
@@ -223,9 +223,9 @@ function Associations({ bar, bazes, merge }: {
                                 type="checkbox"
                                 checked={ linked.has(baz.id) }
                                 onChange={ e => {
-                                    bar.bazs = e.target.checked
-                                        ? [...bar.bazs, baz]
-                                        : bar.bazs.filter(associated => associated.id !== baz.id)
+                                    bar.bazes = e.target.checked
+                                        ? [...bar.bazes, baz]
+                                        : bar.bazes.filter(associated => associated.id !== baz.id)
                                 } }
                             />
                             { baz.name }

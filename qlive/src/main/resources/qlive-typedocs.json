@@ -435,7 +435,7 @@
     "name":"Injection"
   },
   {
-    "description":"The associations one row gained and lost through one many-to-many field.\n\nNamed by the row and the field, e.g. Bar \"bar-1\" and \"bazs\", and by the ids of the rows on the other end.\nThe merge turns each into an insert or a delete of a link row keyed by the pair, so neither carries the link\nrow's id or version: an association is the pair, and nothing about it can conflict. Adding one that exists\nand removing one that is gone both leave the database as asked and are no error.",
+    "description":"The associations one row gained and lost through one many-to-many field.\n\nNamed by the row and the field, e.g. Bar \"bar-1\" and \"bazes\", and by the ids of the rows on the other end.\nThe merge turns each into an insert or a delete of a link row keyed by the pair, so neither carries the link\nrow's id or version: an association is the pair, and nothing about it can conflict. Adding one that exists\nand removing one that is gone both leave the database as asked and are no error.",
     "fieldDocs":[
       {
         "description":"Ids of the rows on the other end the row is now associated with and was not.",
@@ -445,7 +445,7 @@
         ]
       },
       {
-        "description":"Name of the many-to-many field, e.g. \"bazs\".",
+        "description":"Name of the many-to-many field, e.g. \"bazes\".",
         "name":"field",
         "paramDocs":[
           

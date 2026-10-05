@@ -70,8 +70,8 @@ describe("many-to-many fields", () => {
 
     it("reads a field from the declaration", () => {
 
-        expect(MergeMeta.manyToManyField("Bar", "bazs")).toEqual({
-            field: "bazs",
+        expect(MergeMeta.manyToManyField("Bar", "bazes")).toEqual({
+            field: "bazes",
             sourceType: "Bar",
             targetType: "Baz",
             linkType: "BarLink",
@@ -113,7 +113,7 @@ describe("many-to-many fields", () => {
 
     it("lists every many-to-many field of a type", () => {
 
-        expect(MergeMeta.manyToManyFields("Bar").map(f => f.field)).toEqual(["bazs"])
+        expect(MergeMeta.manyToManyFields("Bar").map(f => f.field)).toEqual(["bazes"])
         expect(MergeMeta.manyToManyFields("Grault").map(f => f.field)).toEqual(["corges"])
     })
 })

@@ -438,7 +438,7 @@ class MergeServiceTest
         assertThat(
             mergeService.merge(
                 List.of(newBar(barId, "Merge #15", 15)),
-                List.of(links("Bar", barId, "bazs", bazIds, List.of())),
+                List.of(links("Bar", barId, "bazes", bazIds, List.of())),
                 List.of(),
                 new MergeConfig()
             ).getStatus(),
@@ -459,7 +459,7 @@ class MergeServiceTest
         assertThat(dslContext.fetchCount(APP_VERSION, APP_VERSION.ENTITY_ID.in(linkIds)), is(2));
 
         assertThat(
-            mergeLinks(links("Bar", barId, "bazs", List.of(), List.of(bazIds.get(0)))).getStatus(),
+            mergeLinks(links("Bar", barId, "bazes", List.of(), List.of(bazIds.get(0)))).getStatus(),
             is(MergeStatus.DONE)
         );
 
@@ -494,10 +494,10 @@ class MergeServiceTest
         final List<String> bazIds = dslContext.select(BAZ.ID).from(BAZ).orderBy(BAZ.ID).limit(2).fetch(BAZ.ID);
 
         merge(newBar(barId, "Merge #17", 17));
-        mergeLinks(links("Bar", barId, "bazs", List.of(bazIds.get(0)), List.of()));
+        mergeLinks(links("Bar", barId, "bazes", List.of(bazIds.get(0)), List.of()));
 
         final MergeResult result = mergeLinks(
-            links("Bar", barId, "bazs", List.of(bazIds.get(0)), List.of(bazIds.get(1)))
+            links("Bar", barId, "bazes", List.of(bazIds.get(0)), List.of(bazIds.get(1)))
         );
 
         assertThat(result.getStatus(), is(MergeStatus.DONE));
@@ -579,7 +579,7 @@ class MergeServiceTest
     }
 
 
-    /// The bazs the given bar is associated with, by id.
+    /// The bazes the given bar is associated with, by id.
     private List<String> linkedBazs(String barId)
     {
         return dslContext.select(BAR_LINK.BAZ_ID).from(BAR_LINK)

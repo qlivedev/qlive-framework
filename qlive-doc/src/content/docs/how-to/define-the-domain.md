@@ -162,19 +162,22 @@ TargetField defines what field to create on the target side / the side the forei
 Here `Foo.ownerId` creates a field for both `Foo.ownerId` and `Foo.owner`. The relation points to `AppUser` who receives
 a `foos` array containing all foos that belong to that user.
 
+If you don't define an embedded object, it will receive its name from the key field name minus "Id". If you don't define
+the name for an embedded array, QLive will use a pluralization function to create the plural of your relation field name
+without "Id". By default QLive uses [evo-inflector](https://github.com/atteo/evo-inflector), an abstract rule-based
+English pluralization function. 
+
 ### Many-to-many
 
-A many-to-many relation has to be defined with a link type connecting both sides. In qlive-test we have, for example:
-```graphql title="BarLink in schema.graphql" {3-4} {7-8}
+A many-to-many relation lives in a link table with a foreign key to each side. In qlive-test, `bar_link` associates
+bars with bazs:
+
+```graphql title="BarLink in schema.graphql"
 "Generated from public.bar_link"
 type BarLink {
-    "Target of 'bar_id'"
-    bar: Bar!
-    "DB foreign key column 'bar_id'"
+    "DB column 'bar_id'"
     barId: String!
-    "Target of 'baz_id'"
-    baz: Baz!
-    "DB foreign key column 'baz_id'"
+    "DB column 'baz_id'"
     bazId: String!
     "DB column 'id'"
     id: String!
@@ -182,12 +185,10 @@ type BarLink {
     version: String
 }
 ```
-The highlighted parts here are defined in the domain definition, the rest is the type as it is in the database.
 
-`BarLink` has two foreign keys to both sides of the many-to-many relation, `barId` and `bazId` in the GraphQL schema.
-It also needs to have an `id` field for its own identity and `version` field if it should be merged with the MergeService.
+Declare it with `configureManyToMany()`, naming the two foreign key fields and the field each side gets:
 
-```java title="Defining a many-to-many relation" {14-27}
+```java title="Defining a many-to-many relation" {1} {14}
 import static io.github.qlivedev.qlivetest.domain.Tables.BAR_LINK;
 
 @Configuration
@@ -201,20 +202,7 @@ public class QLiveDomainConfiguration {
 
         return QLiveDefaultDomain.newDomain(dslContext, metadataProviders)
 
-                .configureRelation(
-                        BAR_LINK.BAR_ID, 
-                        SourceField.OBJECT_AND_SCALAR, 
-                        TargetField.MANY, 
-                        "bar", 
-                        "bazLinks"
-                )
-                .configureRelation(
-                        BAR_LINK.BAZ_ID, 
-                        SourceField.OBJECT_AND_SCALAR, 
-                        TargetField.MANY, 
-                        "baz", 
-                        "bazLinks"
-                )
+                .configureManyToMany(BAR_LINK.BAR_ID, BAR_LINK.BAZ_ID, "bazs", "bars")
                 // ...
 
                 .build();
@@ -222,16 +210,47 @@ public class QLiveDomainConfiguration {
 }
 ```
 
+`Bar` gets a field `bazs` listing its bazs, and `Baz` a field `bars` listing its bars. Both are fetched through
+`bar_link`:
 
+```graphql title="Bar in schema.graphql"
+type Bar {
+    "Many-to-many objects through bar_link.bar_id"
+    bazs: [Baz]!
+    # ...
+}
+```
 
-The second pair of calls defines a many-to-many relationship. The type `BarLink` has foreign keys to `Bar` and `Baz`.
+Pass `null` for a side that should get no field.
 
-It defines all names for the fields.
+Each foreign key has to point to the `id` of its side. Beyond the two foreign keys, the link table needs nothing: an
+`id` and a `version` column are fine, and QLive fills both in when it writes a link, but neither is required. A
+composite primary key over `(bar_id, baz_id)` works as well. Do give the link table a unique key over its two foreign
+keys. Without one, QLive logs a warning at startup, because two users adding the same association at the same moment
+could create it twice.
 
-If you don't define an embedded object, it will receive its name from the key field name minus "Id". If you don't define
-the name for an embedded array, QLive will use a pluralization function to create the plural of your relation field name
-without "Id". By default QLive uses [evo-inflector](https://github.com/atteo/evo-inflector), an abstract rule-based
-English pluralization function. 
+How to change which bazs a bar has is in
+[Edit rows with a working set](/qlive-framework/how-to/edit-rows-with-a-working-set/#associations).
+
+#### Link tables with columns of their own
+
+If the link table has a required column of its own -- `NOT NULL` without a default, a `role` say -- the two fields are
+read-only, since QLive cannot insert a link row from the two foreign keys alone. Such a link is an entity of its own.
+Configure its foreign keys as ordinary relations with `configureRelation()` and edit the link rows as rows. A table can
+have both: the many-to-many declaration leaves relations over the same foreign keys alone.
+
+#### Without foreign keys
+
+A link table without foreign key constraints is declared by naming the fields of its type, the same way as
+[a relation without a foreign key](#without-foreign-key):
+
+```java
+    .withManyToMany(
+        new ManyToManyBuilder()
+            .withPojoFields(BarLink.class, "barId", Bar.class, "bazId", Baz.class)
+            .withFieldNames("bazs", "bars")
+    )
+```
 
 ### Without foreign key
 
@@ -262,7 +281,8 @@ virtual foreign key is pointing to. The rest configures the fields as the shorte
 Every `MetadataProvider` bean the context holds is handed to the domain by
 `qLiveDomain`. Each one writes into
 the `DomainMeta` the server embeds in the page, on three levels: an
-addendum next to `types`, `genericTypes` and `relations`, type metadata, and field metadata on individual fields.
+addendum next to `types`, `genericTypes`, `relations` and `manyToMany`, type metadata, and field metadata on individual
+fields.
 
 The client-side counterpart is declaration merging -- name your addenda
 once and they are typed everywhere the application reads `config().meta`:

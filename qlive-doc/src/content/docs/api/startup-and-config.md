@@ -579,7 +579,7 @@ merge?: MergeTypeMeta;
 ```
 
 What this type declares about merging it: whether a conflict comes back to the view to resolve, which fields
-never count as one, whether a non-overlapping change may merge silently, and whether the type is a link table.
+never count as one, and whether a non-overlapping change may merge silently.
 
 Written server-side by QLive's MergeMetadataProvider, which an application registers as a MetadataProvider bean
 if it declares any of this -- absent everywhere in one that does not, and on every type that declared nothing.

@@ -101,8 +101,7 @@ public MetadataProvider mergeMetadata()
     return MergeMetadataProvider.newProvider()
         .resolveConflicts(Bar.class)
         .ignoreFields(Foo.class, "created")
-        .autoMerge(Baz.class, false)
-        .linkType(CorgeLink.class);
+        .autoMerge(Baz.class, false);
 }
 ```
 
@@ -111,9 +110,8 @@ public MetadataProvider mergeMetadata()
 | `resolveConflicts(type)` | A real conflict comes back carrying both values per field, for the form the user is looking at to offer. Without it the write simply fails and names the fields that clashed. |
 | `ignoreFields(type, ...)` | Fields whose change is neither recorded nor ever a conflict -- a last-accessed timestamp, a counter, anything two users cannot meaningfully disagree about. |
 | `autoMerge(type, false)` | Says a user should see even a change that does *not* clash with theirs before it is folded into their save. True is what happens anyway. |
-| `linkType(type)` | Declares a type a link table. Only needed for link tables carrying fields beyond the two foreign keys; a plain one is recognized by its shape, on the client, from the relation meta data it already has. |
 
-Every statement but `linkType` has to be said about a versioned type and is
+Every statement has to be said about a versioned type and is
 reported at startup otherwise: declaring how conflicts are resolved for a
 type that can have none is a forgotten column, and hearing about it at
 startup is much cheaper than finding the write silently clobbering. Each

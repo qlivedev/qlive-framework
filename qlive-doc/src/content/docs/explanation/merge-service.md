@@ -80,8 +80,7 @@ With `.resolveConflicts()` the refusal carries both values per field, so
 User A is shown what they would be overwriting and decides field by field
 before saving again.
 
-Those two and the other statements a type can make -- `.autoMerge()` and
-`.linkType()` -- are
+Those two and the other statement a type can make -- `.autoMerge()` -- are
 [Enable merging for a type](/qlive-framework/how-to/enable-merging-for-a-type/#what-a-type-declares).
 
 

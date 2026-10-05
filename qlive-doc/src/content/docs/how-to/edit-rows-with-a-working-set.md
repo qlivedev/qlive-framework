@@ -19,26 +19,23 @@ type nobody else is editing.
 ## Select what the merge needs
 
 A query whose rows are to be edited selects `id` and `version` on every
-row, and `id` on the rows of a link type:
+row, and `id` on the rows of a many-to-many field:
 
-```graphql {6,8}
+```graphql {6,7}
 query Q_Bar($config: QueryConfig!) {
     queryBarDocument(config: $config) {
         type
         config
         rows {
             id name num description version
-            bazLinks {
-                id version barId bazId
-                baz { id name version }
-            }
+            bazs { id name }
         }
     }
 }
 ```
 
-`version` is the base every write of that row is held to; the link row's
-`id` is what a removed association is deleted by. A row of a versioned type
+`version` is the base every write of that row is held to; the `id` of each
+baz is what an association names. A row of a versioned type
 that arrives without its version registers like any other and refuses the
 write that would need one, naming the query that read it -- so this is a
 mistake you hear about, not one that loses an update.
@@ -140,19 +137,26 @@ anything is left to decide.
 
 ## Associations
 
-A link array is set like any other field and means something else: it says
-which rows this one is associated with, and the merge turns the difference
-into inserts and deletions of the link type.
+A [many-to-many field](/qlive-framework/how-to/define-the-domain/#many-to-many)
+is set like any other field and means something else: it says which rows
+this one is associated with, and the merge turns the difference into
+associations gained and lost.
 
 ```tsx
-bar.bazLinks = checked
-    ? [...bar.bazLinks, {baz}]
-    : bar.bazLinks.filter(link => (link.bazId ?? link.baz.id) !== baz.id);
+bar.bazs = checked
+    ? [...bar.bazs, baz]
+    : bar.bazs.filter(associated => associated.id !== baz.id);
 ```
 
-A new association is written as the row it is about, `{baz}` and nothing
-else. Nothing here writes a `Baz`, and nothing here has to know that
-`BarLink` exists beyond naming the rows it points at.
+The rows in it can come from any query, or from `ws.create()`. Nothing here
+writes a `Baz`, and nothing here knows the link table: an association is
+the pair of rows, so it needs neither a link row's id nor a version, not
+even the bar's -- a view that only edits associations can leave `version`
+out. Nor can an association conflict. Adding one somebody else just added,
+or removing one somebody else just removed, leaves the database as asked.
+
+A field whose link table needs values of its own besides the two foreign
+keys is read-only, and writing it throws. Edit the link rows instead.
 
 ## New rows and deletions
 
@@ -163,7 +167,7 @@ ws.delete(row);
 
 `create()` generates the id here rather than in the database, so that new
 rows can refer to each other before the server has seen any of them -- a
-new `Bar` and a new `BarLink` pointing at it go over in one merge. What
+new `Bar` and a new `Baz` associated with it go over in one merge. What
 comes back is a draft like any other.
 
 `delete()` marks a row for deletion; a row that was only ever created here

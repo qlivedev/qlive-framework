@@ -516,8 +516,8 @@ type MergeAccessor = {
   /** fields somebody else changed and the user did not, alphabetically */
   remoteChangedFields(): string[];
   /**
-   * The accessor for another row of the same working set -- what a form editing a Bar and its BarLink
-   * rows in one place needs, without a second hook per row.
+   * The accessor for another row of the same working set -- what a form editing a Bar and the Bazs it lists
+   * in one place needs, without a second hook per row.
    *
    * @param row       row of a registered document, or a draft of one
    */

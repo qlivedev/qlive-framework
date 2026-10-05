@@ -14,10 +14,10 @@ sidebar:
 <span class="api-kind">function</span>
 
 ```ts
-declare function mergeWorkingSet(changes: EntityChange[], deletions: EntityDeletion[], mergeConfig: MergeConfig): Promise<MergeResult>;
+declare function mergeWorkingSet(changes: EntityChange[], links: LinkChange[], deletions: EntityDeletion[], mergeConfig: MergeConfig): Promise<MergeResult>;
 ```
 
-Writes one working set: every change and every deletion in one transaction, or none of them.
+Writes one working set: every change, association and deletion in one transaction, or none of them.
 
 The plain call, without a working set around it -- what a service with nobody in front of it needs, and
 what WorkingSet#merge() runs underneath.
@@ -27,6 +27,7 @@ what WorkingSet#merge() runs underneath.
 | | |
 |---|---|
 | `changes` | rows to insert or update |
+| `links` | associations gained and lost through many-to-many fields |
 | `deletions` | rows to remove |
 | `mergeConfig` | what the caller can do about a conflict  |
 
@@ -109,6 +110,23 @@ type FieldChange = {
 One field of one row set to one value. The value travels as a generic scalar, which is what lets one
 mutation write every type in the domain.
 
+## LinkChange
+
+<span class="api-kind">type</span>
+
+```ts
+type LinkChange = {
+  type: string;
+  id: string;
+  field: string;
+  added: string[];
+  removed: string[];
+};
+```
+
+The associations one row gained and lost through one many-to-many field, by the ids of the rows on the other
+end. Written as link rows keyed by the pair, so it carries no link row's id or version and never conflicts.
+
 ## EntityDeletion
 
 <span class="api-kind">type</span>
@@ -176,12 +194,12 @@ bounced.
 
 Imported as a namespace, and re-exported member by member from a second entry point.
 
-### MergeMeta.LinkRelation
+### MergeMeta.ManyToManyField
 
 ```ts
-type LinkRelation = {
+type ManyToManyField = {
   /**
-   * The list field on the source type, e.g. "bazLinks" on Bar.
+   * The field, e.g. "bazs" on Bar.
    */
   field: string;
   /**
@@ -189,39 +207,26 @@ type LinkRelation = {
    */
   sourceType: string;
   /**
-   * The type of the rows in the field, e.g. "BarLink".
-   */
-  linkType: string;
-  /**
-   * The field of a link row holding the foreign key back to the source, e.g. "barId".
-   */
-  sourceField: string;
-  /**
-   * The type on the other side of the link, e.g. "Baz".
+   * The type whose rows the field lists, e.g. "Baz".
    */
   targetType: string;
   /**
-   * The field of a link row holding the foreign key to the other side, e.g. "bazId".
+   * The link type the associations are rows of, e.g. "BarLink".
    */
-  targetField: string;
+  linkType: string;
   /**
-   * The field of a link row holding the row on the other side, e.g. "baz". Absent where the relation
-   * generated none.
-   *
-   * What lets a new association be written as the row it is about -- `[...bar.bazLinks, {baz}]` -- rather
-   * than as the foreign key alone. It is also the object a view renders the association through, so the
-   * short form is the one that both diffs and displays.
+   * Whether the field can be written. False where a link row needs values of its own besides its two link
+   * fields, which makes the link rows the thing to edit.
    */
-  targetObject?: string;
+  writable: boolean;
 };
 ```
 
-A many-to-many relation as an edit sees it: one list field on a type, the link type its rows are, and the
-two foreign keys of a link row.
+A many-to-many field as an edit sees it: the type it is on, the type whose rows it lists, and whether it can be
+written.
 
-Derived from config().meta.relations rather than declared anywhere. Editing bar.bazLinks means inserting
-and deleting BarLink rows and never touching Baz, which is what the GraphQL type of the field already
-says; this is that statement in the form a working set needs it in.
+Read from the declaration in config().meta.manyToMany. Setting bar.bazs means associating the Bar with other
+Bazs, which the merge writes as link rows and never as a change to Bar or Baz.
 
 ### MergeMeta.MergeTypeMeta
 
@@ -242,11 +247,6 @@ type MergeTypeMeta = {
    * declared none.
    */
   ignoredFields?: string[];
-  /**
-   * true if the type is a link table that carries fields of its own and is therefore not recognisable by
-   * its shape. Absent for a link table of the plain shape, which isLinkType() sees anyway.
-   */
-  linkType?: boolean;
 };
 ```
 
@@ -296,24 +296,6 @@ True unless the type said otherwise: that case is what the whole mechanism exist
 |---|---|
 | `typeName` | GraphQL type name, known or not |
 
-### MergeMeta.isLinkType()
-
-```ts
-declare function isLinkType(typeName: string): boolean;
-```
-
-Whether the type is a link table, i.e. whether its rows exist to say two entities are associated.
-
-True for a type of the plain link shape -- an id, an optional version and nothing but the two foreign keys
--- and for one the application declared with MergeMetadataProvider#linkType, which is how a link table
-that carries fields of its own says so.
-
-**Parameters**
-
-| | |
-|---|---|
-| `typeName` | GraphQL type name, known or not |
-
 ### MergeMeta.isVersioned()
 
 ```ts
@@ -333,13 +315,13 @@ last-write-wins, which is what not having the column means.
 |---|---|
 | `typeName` | GraphQL type name, known or not |
 
-### MergeMeta.linkRelation()
+### MergeMeta.manyToManyField()
 
 ```ts
-declare function linkRelation(typeName: string, field: string): LinkRelation | null;
+declare function manyToManyField(typeName: string, field: string): ManyToManyField | null;
 ```
 
-The many-to-many relation the given field of the given type is, or null if that field is no link array.
+The many-to-many field of the given type with the given name, or null where that field is none.
 
 **Parameters**
 
@@ -348,13 +330,13 @@ The many-to-many relation the given field of the given type is, or null if that 
 | `typeName` | GraphQL type name, known or not |
 | `field` | field name on that type |
 
-### MergeMeta.linkRelations()
+### MergeMeta.manyToManyFields()
 
 ```ts
-declare function linkRelations(typeName: string): LinkRelation[];
+declare function manyToManyFields(typeName: string): ManyToManyField[];
 ```
 
-The many-to-many relations of the given type, in the order the relation meta data lists them.
+The many-to-many fields of the given type, in the order they were declared.
 
 **Parameters**
 
@@ -423,11 +405,6 @@ type MergeTypeMeta = {
    * declared none.
    */
   ignoredFields?: string[];
-  /**
-   * true if the type is a link table that carries fields of its own and is therefore not recognisable by
-   * its shape. Absent for a link table of the plain shape, which isLinkType() sees anyway.
-   */
-  linkType?: boolean;
 };
 ```
 
@@ -438,14 +415,14 @@ DomainTypeMetaProps declares it.
 Which types take part is not in here and cannot be -- that is the "version" field, see isVersioned().
 What a provider declares is only the part that is genuinely the application's decision.
 
-## LinkRelation
+## ManyToManyField
 
 <span class="api-kind">type</span>
 
 ```ts
-type LinkRelation = {
+type ManyToManyField = {
   /**
-   * The list field on the source type, e.g. "bazLinks" on Bar.
+   * The field, e.g. "bazs" on Bar.
    */
   field: string;
   /**
@@ -453,37 +430,24 @@ type LinkRelation = {
    */
   sourceType: string;
   /**
-   * The type of the rows in the field, e.g. "BarLink".
-   */
-  linkType: string;
-  /**
-   * The field of a link row holding the foreign key back to the source, e.g. "barId".
-   */
-  sourceField: string;
-  /**
-   * The type on the other side of the link, e.g. "Baz".
+   * The type whose rows the field lists, e.g. "Baz".
    */
   targetType: string;
   /**
-   * The field of a link row holding the foreign key to the other side, e.g. "bazId".
+   * The link type the associations are rows of, e.g. "BarLink".
    */
-  targetField: string;
+  linkType: string;
   /**
-   * The field of a link row holding the row on the other side, e.g. "baz". Absent where the relation
-   * generated none.
-   *
-   * What lets a new association be written as the row it is about -- `[...bar.bazLinks, {baz}]` -- rather
-   * than as the foreign key alone. It is also the object a view renders the association through, so the
-   * short form is the one that both diffs and displays.
+   * Whether the field can be written. False where a link row needs values of its own besides its two link
+   * fields, which makes the link rows the thing to edit.
    */
-  targetObject?: string;
+  writable: boolean;
 };
 ```
 
-A many-to-many relation as an edit sees it: one list field on a type, the link type its rows are, and the
-two foreign keys of a link row.
+A many-to-many field as an edit sees it: the type it is on, the type whose rows it lists, and whether it can be
+written.
 
-Derived from config().meta.relations rather than declared anywhere. Editing bar.bazLinks means inserting
-and deleting BarLink rows and never touching Baz, which is what the GraphQL type of the field already
-says; this is that statement in the form a working set needs it in.
+Read from the declaration in config().meta.manyToMany. Setting bar.bazs means associating the Bar with other
+Bazs, which the merge writes as link rows and never as a change to Bar or Baz.
 

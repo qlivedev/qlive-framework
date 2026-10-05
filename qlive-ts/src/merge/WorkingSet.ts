@@ -310,7 +310,7 @@ export class WorkingSet
      * Adds a row that does not exist yet and returns its draft.
      *
      * The id is generated here rather than by the database, so that new rows can refer to each other before
-     * the server has seen any of them -- a new Foo and a new Bar associated with it go over in one merge.
+     * the server has seen any of them -- a new Bar and a new Baz associated with it go over in one merge.
      *
      * @param type      GraphQL type name
      * @param values    field values the row starts with

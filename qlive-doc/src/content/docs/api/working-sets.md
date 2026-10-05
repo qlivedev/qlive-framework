@@ -74,11 +74,11 @@ it recorded rather than applied.
 ```ts
 const bar = ws.edit(row)
 bar.name = "New name"
-bar.bazLinks = [...bar.bazLinks, {baz}]
+bar.bazs = [...bar.bazs, baz]
 ```
 
-A link array is set like any other field and means something else: it says which rows this one is
-associated with, and the merge turns the difference into inserts and deletions of the link type.
+A many-to-many field is set like any other field and means something else: it says which rows this one
+is associated with, and the merge turns the difference into associations gained and lost.
 
 One draft per row, so two components editing the same row edit the same draft. A draft is not the
 row -- `draft !== row` -- and it is read rather than kept: hold the row, call this on every render.
@@ -101,7 +101,7 @@ create<T extends object>(type: string, values?: Partial<T>): T;
 Adds a row that does not exist yet and returns its draft.
 
 The id is generated here rather than by the database, so that new rows can refer to each other before
-the server has seen any of them -- a new Bar and a new BarLink pointing at it go over in one merge.
+the server has seen any of them -- a new Bar and a new Baz associated with it go over in one merge.
 
 **Parameters**
 
@@ -281,8 +281,8 @@ whole working set -- after it, nothing is being edited.
 merge: () => Promise<MergeResult>;
 ```
 
-Writes everything the working set holds: every change and every deletion in one transaction, or none
-of them.
+Writes everything the working set holds: every change, association and deletion in one transaction, or
+none of them.
 
 Done, and the changes are gone and the registered documents run their query again -- a version left
 standing in a document that stayed on screen would fail the *next* edit, so refreshing is part of a
@@ -442,12 +442,6 @@ type StoredState = {
    * is not named here is what the row was read with.
    */
   fields?: Record<string, unknown>;
-  /**
-   * Associations known to be in the database, by link field: the ids of the rows on the other side. Only
-   * the ones that are known -- an association somebody else made says nothing about the rest of the set,
-   * and nothing here claims to be all of it.
-   */
-  links?: Record<string, string[]>;
 };
 ```
 

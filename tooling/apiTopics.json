@@ -61,6 +61,8 @@
         "DomainFieldMeta",
         "GenericTypeInfo",
         "RelationInfo",
+        "ManyToManyInfo",
+        "ManyToManyEnd",
         "SourceField",
         "TargetField",
         "i18n",
@@ -291,12 +293,13 @@
         "MergeStatus",
         "EntityChange",
         "FieldChange",
+        "LinkChange",
         "EntityDeletion",
         "MergeConflict",
         "MergeConflictField",
         "MergeMeta",
         "MergeTypeMeta",
-        "LinkRelation"
+        "ManyToManyField"
       ]
     },
     {

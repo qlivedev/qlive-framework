@@ -97,6 +97,24 @@ public class DomainMetaTest
     }
 
     @Test
+    public void testNameFieldPathEndsOnTheRelatedType()
+    {
+        // orgId is a field of BarOwner only, so the last segment has to be looked up where the path led
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
+            .objectTypes(Public.PUBLIC)
+
+            .configureRelation(BAR.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.NONE)
+
+            .configureNameFields(Bar.class, "owner.orgId")
+            .build();
+
+        assertThat(
+            domain.getMetaData().getTypeMeta("Bar").getMeta(DomainMeta.NAME_FIELDS),
+            is(Collections.singletonList("owner.orgId"))
+        );
+    }
+
+    @Test
     public void testNamingFieldsManyToMany()
     {
         assertThrows(QLiveDomainTypeException.class, () -> {

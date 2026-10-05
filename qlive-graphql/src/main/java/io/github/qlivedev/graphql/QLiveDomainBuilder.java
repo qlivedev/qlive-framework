@@ -823,10 +823,10 @@ public class QLiveDomainBuilder
                     .collect(Collectors.toList());
 
                 final int numberOfParts = parts.size();
+                GraphQLObjectType current = (GraphQLObjectType) type;
                 if (numberOfParts > 0)
                 {
 
-                    GraphQLObjectType current = (GraphQLObjectType) type;
                     for (int i = 0; i < numberOfParts - 1; i++)
                     {
                         final GraphQLFieldDefinition fieldDef = current.getFieldDefinition(parts.get(
@@ -857,7 +857,7 @@ public class QLiveDomainBuilder
 
 
                 }
-                final GraphQLFieldDefinition fieldDef = ((GraphQLObjectType) type).getFieldDefinition(parts.get(
+                final GraphQLFieldDefinition fieldDef = current.getFieldDefinition(parts.get(
                     numberOfParts - 1));
                 if (fieldDef == null || !(GraphQLTypeUtil.unwrapNonNull(fieldDef.getType()) instanceof GraphQLScalarType))
                 {

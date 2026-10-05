@@ -323,6 +323,8 @@ export type {
  *                                       converted, kept for the next read
  *   util/conversionMap.buildConversionMap
  *                                       a GraphQLQuery builds its own map
+ *   util/nameFieldCheck.warnMissingNameFields
+ *                                       a GraphQLQuery checks itself in dev
  *   views.viewNameForRoute()            resolution step inside
  *                                       loadViewForPath()
  *   component/ErrorBoundary.ErrorBoundaryState

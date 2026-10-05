@@ -524,6 +524,9 @@ nameFields?: string[];
 Names of the fields naming an instance of the type to a user, most significant first. Written by QLive's
 NameFieldProvider.
 
+A grid column of a relation and pick() show a row by these, so under `vite dev` a query selecting the type
+without all of them logs a warning the first time it is used. Mutations are not checked.
+
 ### DomainTypeMetaProps.uniqueKeys
 
 ```ts

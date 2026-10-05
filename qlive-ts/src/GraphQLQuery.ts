@@ -1,6 +1,8 @@
 import graphql, {firstValue, GraphQLParams} from "./util/graphql";
 import {type OperationType, type ParsedQuery, parseQuery, type QuerySelection} from "./util/parseQuery";
 import {buildConversionMap} from "./util/conversionMap";
+import {warnMissingNameFields} from "./util/nameFieldCheck";
+import {isViteDev} from "./util/viteEnv";
 import {convertResultFromServer, convertVariablesToServer, QueryConversionMap} from "./converter";
 import {QueryDocument} from "./QueryDocument";
 
@@ -84,6 +86,10 @@ export class GraphQLQuery<T>
         if (!this.map)
         {
             this.map = buildConversionMap(this.parsed)
+            if (isViteDev())
+            {
+                warnMissingNameFields(this.parsed)
+            }
         }
         return this.map
     }

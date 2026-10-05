@@ -120,8 +120,7 @@ public class QLiveDomainConfiguration {
 A relation connects two domain types. It defines what GraphQL fields result of the relation on each side of the relation
 and it can define the name of those fields.
 
-```java title="Defining relations" {1-2} {15} {17-30}
-import static io.github.qlivedev.qlivetest.domain.Tables.BAR_LINK;
+```java title="Defining relations" {1} {14}
 import static io.github.qlivedev.qlivetest.domain.Tables.FOO;
 
 @Configuration
@@ -137,27 +136,11 @@ public class QLiveDomainConfiguration {
 
                 .configureRelation(FOO.OWNER_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY)
 
-                .configureRelation(
-                        BAR_LINK.BAR_ID, 
-                        SourceField.OBJECT_AND_SCALAR, 
-                        TargetField.MANY, 
-                        "bar", 
-                        "bazLinks"
-                )
-                .configureRelation(
-                        BAR_LINK.BAZ_ID, 
-                        SourceField.OBJECT_AND_SCALAR, 
-                        TargetField.MANY, 
-                        "baz", 
-                        "bazLinks"
-                )
                 // ...
 
                 .build();
     }
-    // ...
 }
-
 ```
 Here we import the jOOQ tables we are going to use as static imports.
 
@@ -181,6 +164,66 @@ a `foos` array containing all foos that belong to that user.
 
 ### Many-to-many
 
+A many-to-many relation has to be defined with a link type connecting both sides. In qlive-test we have, for example:
+```graphql title="BarLink in schema.graphql" {3-4} {7-8}
+"Generated from public.bar_link"
+type BarLink {
+    "Target of 'bar_id'"
+    bar: Bar!
+    "DB foreign key column 'bar_id'"
+    barId: String!
+    "Target of 'baz_id'"
+    baz: Baz!
+    "DB foreign key column 'baz_id'"
+    bazId: String!
+    "DB column 'id'"
+    id: String!
+    "DB column 'version'"
+    version: String
+}
+```
+The highlighted parts here are defined in the domain definition, the rest is the type as it is in the database.
+
+`BarLink` has two foreign keys to both sides of the many-to-many relation, `barId` and `bazId` in the GraphQL schema.
+It also needs to have an `id` field for its own identity and `version` field if it should be merged with the MergeService.
+
+```java title="Defining a many-to-many relation" {14-27}
+import static io.github.qlivedev.qlivetest.domain.Tables.BAR_LINK;
+
+@Configuration
+public class QLiveDomainConfiguration {
+
+    static QLiveDomain newDomain(
+            DSLContext dslContext,
+            Collection<Object> logicBeans,
+            Collection<MetadataProvider> metadataProviders
+    ) throws IOException {
+
+        return QLiveDefaultDomain.newDomain(dslContext, metadataProviders)
+
+                .configureRelation(
+                        BAR_LINK.BAR_ID, 
+                        SourceField.OBJECT_AND_SCALAR, 
+                        TargetField.MANY, 
+                        "bar", 
+                        "bazLinks"
+                )
+                .configureRelation(
+                        BAR_LINK.BAZ_ID, 
+                        SourceField.OBJECT_AND_SCALAR, 
+                        TargetField.MANY, 
+                        "baz", 
+                        "bazLinks"
+                )
+                // ...
+
+                .build();
+    }
+}
+```
+
+
+
 The second pair of calls defines a many-to-many relationship. The type `BarLink` has foreign keys to `Bar` and `Baz`.
 
 It defines all names for the fields.
@@ -196,17 +239,19 @@ Without a foreign key backing the relation, you need to use the alternate, longe
 
 ```java
     .withRelation(
-        new RelationBuilder()   
+        new RelationBuilder()
             .withPojoFields(
-                    MyView.class, 
+                    Waldo.class, 
                     Collections.singletonList("userId"), 
                     AppUser.class, 
                     Collections.singletonList("id")
             )
+                    
             .withSourceField(SourceField.OBJECT_AND_SCALAR)
             .withLeftSideObjectName("user")
+ 
             .withTargetField(TargetField.MANY)
-            .withRightSideObjectName("myViews")
+            .withRightSideObjectName("waldos")
     )
 ```
 `.withPojoFields()`, defines the source type, the virtual foreign key field(s), the target type and the field(s) the

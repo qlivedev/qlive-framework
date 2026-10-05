@@ -2,6 +2,7 @@ package io.github.qlivedev.graphql;
 
 import com.google.common.collect.Maps;
 import io.github.qlivedev.graphql.annotation.GraphQLLogic;
+import io.github.qlivedev.graphql.config.ManyToManyModel;
 import io.github.qlivedev.graphql.config.Options;
 import io.github.qlivedev.graphql.config.RelationModel;
 import io.github.qlivedev.graphql.config.SourceField;
@@ -97,6 +98,8 @@ public class QLiveDomainBuilder
 
     private List<RelationBuilder> relationBuilders = new ArrayList<>();
 
+    private List<ManyToManyBuilder> manyToManyBuilders = new ArrayList<>();
+
     private Map<String, TableLookup> jooqTables = new HashMap<>();
 
     private Set<GraphQLFieldDefinition> additionalQueries = new LinkedHashSet<>();
@@ -167,6 +170,10 @@ public class QLiveDomainBuilder
             .map(b -> b.build(jooqTables, fieldLookup, options, relationIds))
             .collect(Collectors.toList());
 
+        final List<ManyToManyModel> manyToManyModels = manyToManyBuilders.stream()
+            .map(b -> b.build(jooqTables, fieldLookup, options))
+            .collect(Collectors.toList());
+
 
         // QLive's own first, so that an application's provider writing the same key has the last word -- and in a
         // fixed order either way, which is what keeps the meta data the same from one start to the next
@@ -183,6 +190,7 @@ public class QLiveDomainBuilder
             Collections.unmodifiableMap(jooqTables),
             Collections.unmodifiableCollection(parameterProviderFactories),
             Collections.unmodifiableList(relationModels),
+            Collections.unmodifiableList(manyToManyModels),
             options,
             Collections.unmodifiableSet(additionalQueries),
             Collections.unmodifiableSet(additionalMutations),
@@ -382,6 +390,53 @@ public class QLiveDomainBuilder
                 .withRightSideObjectName(rightSideObjectName)
                 .withMetaTags(metaTags)
         );
+    }
+
+
+    /**
+     * Declares a many-to-many from the two foreign keys of its link table, and names the field each end gets.
+     * <p>
+     * {@code configureManyToMany(BAR_LINK.BAR_ID, BAR_LINK.BAZ_ID, "bazs", "bars")} gives Bar a field "bazs"
+     * listing its Bazs, and Baz a field "bars" listing its Bars, both fetched through bar_link.
+     * </p>
+     *
+     * @param linkField         foreign key column of the link table pointing at the first end
+     * @param otherLinkField    foreign key column of the link table pointing at the other end
+     * @param fieldName         field on the first end listing the rows of the other, or <code>null</code> for none
+     * @param otherFieldName    field on the other end listing the rows of the first, or <code>null</code> for none
+     *
+     * @return this builder
+     *
+     * @see #withManyToMany(ManyToManyBuilder)
+     */
+    public QLiveDomainBuilder configureManyToMany(
+        TableField<?, ?> linkField,
+        TableField<?, ?> otherLinkField,
+        String fieldName,
+        String otherFieldName
+    )
+    {
+        return withManyToMany(
+            new ManyToManyBuilder()
+                .withForeignKeyFields(linkField, otherLinkField)
+                .withFieldNames(fieldName, otherFieldName)
+        );
+    }
+
+
+    /**
+     * Declares a many-to-many, which is the form for a link table without foreign-key constraints.
+     *
+     * @param manyToManyBuilder declaration
+     *
+     * @return this builder
+     *
+     * @see #configureManyToMany(TableField, TableField, String, String)
+     */
+    public QLiveDomainBuilder withManyToMany(ManyToManyBuilder manyToManyBuilder)
+    {
+        manyToManyBuilders.add(manyToManyBuilder);
+        return this;
     }
 
 

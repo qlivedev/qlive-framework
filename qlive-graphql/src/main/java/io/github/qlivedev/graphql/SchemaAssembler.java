@@ -6,6 +6,9 @@ import io.github.qlivedev.graphql.annotation.GraphQLComputed;
 import io.github.qlivedev.graphql.annotation.GraphQLFetcher;
 import io.github.qlivedev.graphql.annotation.GraphQLField;
 import io.github.qlivedev.graphql.config.Options;
+import io.github.qlivedev.graphql.config.ManyToManyEnd;
+import io.github.qlivedev.graphql.config.ManyToManyField;
+import io.github.qlivedev.graphql.config.ManyToManyModel;
 import io.github.qlivedev.graphql.config.RelationModel;
 import io.github.qlivedev.graphql.config.SourceField;
 import io.github.qlivedev.graphql.config.TargetField;
@@ -14,6 +17,7 @@ import io.github.qlivedev.graphql.docs.ParamDoc;
 import io.github.qlivedev.graphql.docs.TypeDoc;
 import io.github.qlivedev.graphql.fetcher.BackReferenceFetcher;
 import io.github.qlivedev.graphql.fetcher.FieldFetcher;
+import io.github.qlivedev.graphql.fetcher.ManyToManyFetcher;
 import io.github.qlivedev.graphql.fetcher.MethodFetcher;
 import io.github.qlivedev.graphql.fetcher.ReferenceFetcher;
 import io.github.qlivedev.graphql.logic.QLiveDomainMethod;
@@ -129,6 +133,8 @@ class SchemaAssembler
 
     private final List<RelationModel> relationModels;
 
+    private final List<ManyToManyModel> manyToManyModels;
+
     private final Set<MetadataProvider> metadataProviders;
 
     private final MutableTypeRegistry typeRegistry;
@@ -145,6 +151,7 @@ class SchemaAssembler
         Map<String, TableLookup> jooqTables,
         Collection<ParameterProviderFactory> parameterProviderFactories,
         List<RelationModel> relationModels,
+        List<ManyToManyModel> manyToManyModels,
         Options options,
         Set<GraphQLFieldDefinition> additionalQueries,
         Set<GraphQLFieldDefinition> additionalMutations,
@@ -160,6 +167,7 @@ class SchemaAssembler
         this.logicBeans = logicBeans;
         this.jooqTables = jooqTables;
         this.relationModels = relationModels;
+        this.manyToManyModels = manyToManyModels;
         this.additionalQueries = additionalQueries;
         this.additionalMutations = additionalMutations;
         this.additionalDirectives = additionalDirectives;
@@ -232,6 +240,7 @@ class SchemaAssembler
 
         metaData.addAddendum(DomainMeta.GENERIC_TYPES, Collections.unmodifiableList(genericTypes));
         metaData.addAddendum(DomainMeta.RELATIONS, typeRegistry.getRelationModels());
+        metaData.addAddendum(DomainMeta.MANY_TO_MANY, typeRegistry.getManyToManyModels());
 
         return metaData;
     }
@@ -829,6 +838,7 @@ class SchemaAssembler
         }
 
         typeRegistry.registerRelations(relationModels);
+        typeRegistry.registerManyToMany(manyToManyModels);
 
         for (OutputTypeAndTable e : outputTypes)
         {
@@ -1172,6 +1182,7 @@ class SchemaAssembler
             );
             buildForeignKeyFields(domainTypeBuilder, codeRegistryBuilder, pojoType, classInfo, table, fieldsGenerated);
             buildBackReferenceFields(domainTypeBuilder, codeRegistryBuilder, pojoType, fieldsGenerated);
+            buildManyToManyFields(domainTypeBuilder, codeRegistryBuilder, pojoType, fieldsGenerated);
 
             final GraphQLObjectType newObjectType = domainTypeBuilder.build();
 
@@ -1281,6 +1292,71 @@ class SchemaAssembler
 
         log.debug("-- fk {} {}", isOneToOne ? "backref" : "backrefs", fieldDef);
         return fieldDef;
+    }
+
+
+    /**
+     * Build the through fields of the many-to-many relations the current object type is an end of.
+     *
+     * @param domainTypeBuilder   object builder
+     * @param codeRegistryBuilder code registry builder
+     * @param pojoType            pojo type to build the object for
+     * @param fieldsGenerated     names of the fields generated for the type so far
+     */
+    private void buildManyToManyFields(
+        GraphQLObjectType.Builder domainTypeBuilder,
+        GraphQLCodeRegistry.Builder codeRegistryBuilder,
+        Class<?> pojoType,
+        Set<String> fieldsGenerated
+    )
+    {
+        final String typeName = pojoType.getSimpleName();
+
+        for (ManyToManyModel model : typeRegistry.getManyToManyModels())
+        {
+            for (ManyToManyEnd end : List.of(model.getLeft(), model.getRight()))
+            {
+                if (!end.getType().equals(typeName) || end.getField() == null)
+                {
+                    continue;
+                }
+
+                final ManyToManyField field = model.field(typeName, end.getField());
+                final String name = field.name();
+
+                if (fieldsGenerated.contains(name))
+                {
+                    throw new QLiveDomainTypeException(
+                        "Invalid many-to-many field name " + typeName + "." + name + ": not unique"
+                    );
+                }
+
+                final GraphQLFieldDefinition fieldDef = GraphQLFieldDefinition.newFieldDefinition()
+                    .name(name)
+                    .description(
+                        "Many-to-many objects through " + model.getLinkTable().getName() + "." +
+                            field.own().getLinkColumn().getName()
+                    )
+                    .type(
+                        nonNull(
+                            new GraphQLList(
+                                outputTypeRef(field.other().getRelation().getTargetPojoClass())
+                            )
+                        )
+                    )
+                    .build();
+
+                codeRegistryBuilder.dataFetcher(
+                    FieldCoordinates.coordinates(typeName, name),
+                    new ManyToManyFetcher(dslContext, field)
+                );
+
+                fieldsGenerated.add(name);
+
+                log.debug("-- many-to-many {}", fieldDef);
+                domainTypeBuilder.field(fieldDef);
+            }
+        }
     }
 
 

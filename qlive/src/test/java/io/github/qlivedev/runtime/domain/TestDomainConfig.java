@@ -73,6 +73,8 @@ public class TestDomainConfig
             .configureRelation(TEST_FOO.TYPE, SourceField.OBJECT_AND_SCALAR, TargetField.NONE, "fooType", null)
             .configureRelation(TEST_BAR_LINK.BAR_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY, "bar", "bazLinks")
             .configureRelation(TEST_BAR_LINK.BAZ_ID, SourceField.OBJECT_AND_SCALAR, TargetField.MANY, "baz", "bazLinks")
+            // the same link table as a many-to-many, which leaves the relations above alone
+            .configureManyToMany(TEST_BAR_LINK.BAR_ID, TEST_BAR_LINK.BAZ_ID, "bazs", "bars")
             .withMetadataProviders(
                 NameFieldProvider.newProvider()
                     .forAllTypes()

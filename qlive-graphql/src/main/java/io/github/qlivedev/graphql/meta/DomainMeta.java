@@ -1,6 +1,7 @@
 package io.github.qlivedev.graphql.meta;
 
 import io.github.qlivedev.graphql.GenericTypeReference;
+import io.github.qlivedev.graphql.config.ManyToManyModel;
 import io.github.qlivedev.graphql.config.RelationModel;
 import io.github.qlivedev.util.JSONUtil;
 import org.svenson.JSONable;
@@ -57,6 +58,11 @@ public class DomainMeta
     public final static String RELATIONS = "relations";
 
     /**
+     * Name of the builtin many-to-many addendum
+     */
+    public final static String MANY_TO_MANY = "manyToMany";
+
+    /**
      * Name of the builtin generic types addendum
      */
     public final static String GENERIC_TYPES = "genericTypes";
@@ -100,6 +106,11 @@ public class DomainMeta
     public List<RelationModel> getRelationModels()
     {
         return (List<RelationModel>) data.get(RELATIONS);
+    }
+
+    public List<ManyToManyModel> getManyToManyModels()
+    {
+        return (List<ManyToManyModel>) data.get(MANY_TO_MANY);
     }
 
     public List<GenericTypeReference> getGenericTypes()

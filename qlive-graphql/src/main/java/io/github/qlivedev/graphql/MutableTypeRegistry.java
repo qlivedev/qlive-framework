@@ -2,6 +2,9 @@ package io.github.qlivedev.graphql;
 
 import io.github.qlivedev.graphql.annotation.GraphQLComputed;
 import io.github.qlivedev.graphql.annotation.GraphQLField;
+import io.github.qlivedev.graphql.config.ManyToManyEnd;
+import io.github.qlivedev.graphql.config.ManyToManyField;
+import io.github.qlivedev.graphql.config.ManyToManyModel;
 import io.github.qlivedev.graphql.config.RelationModel;
 import io.github.qlivedev.graphql.scalar.ByteScalar;
 import io.github.qlivedev.graphql.scalar.DateScalar;
@@ -88,6 +91,10 @@ public class MutableTypeRegistry
     private Map<String, RelationModel> relationsBySourceField = Collections.emptyMap();
 
     private Map<String, RelationModel> relationsByTargetField = Collections.emptyMap();
+
+    private List<ManyToManyModel> manyToManyModels = Collections.emptyList();
+
+    private Map<String, ManyToManyField> manyToManyByField = Collections.emptyMap();
 
 
     public MutableTypeRegistry(
@@ -305,6 +312,39 @@ public class MutableTypeRegistry
     }
 
 
+    /**
+     * Takes over the domain's many-to-many declarations, resolving each against the types registered so far and
+     * indexing them by their through fields.
+     *
+     * @param models many-to-many relations as declared
+     */
+    public void registerManyToMany(List<ManyToManyModel> models)
+    {
+        final List<ManyToManyModel> updated = new ArrayList<>(models.size());
+        final Map<String, ManyToManyField> byField = new HashMap<>();
+
+        for (ManyToManyModel model : models)
+        {
+            final ManyToManyModel resolved = model.update(this);
+            updated.add(resolved);
+
+            for (ManyToManyEnd end : List.of(resolved.getLeft(), resolved.getRight()))
+            {
+                if (end.getField() != null)
+                {
+                    byField.put(
+                        relationKey(end.getType(), end.getField()),
+                        resolved.field(end.getType(), end.getField())
+                    );
+                }
+            }
+        }
+
+        this.manyToManyModels = Collections.unmodifiableList(updated);
+        this.manyToManyByField = Collections.unmodifiableMap(byField);
+    }
+
+
     private static String relationKey(String domainType, String fieldName)
     {
         return domainType + ":" + fieldName;
@@ -350,6 +390,20 @@ public class MutableTypeRegistry
     public RelationModel lookupBackReference(String targetType, String fieldName)
     {
         return relationsByTargetField.get(relationKey(targetType, fieldName));
+    }
+
+
+    @Override
+    public List<ManyToManyModel> getManyToManyModels()
+    {
+        return manyToManyModels;
+    }
+
+
+    @Override
+    public ManyToManyField lookupManyToMany(String type, String fieldName)
+    {
+        return manyToManyByField.get(relationKey(type, fieldName));
     }
 
 

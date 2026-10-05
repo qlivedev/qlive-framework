@@ -178,15 +178,16 @@ public class DefaultBootstrapService
     }
 
 
-    /// domain meta data with all three addenda present and empty.
+    /// domain meta data with every builtin addendum present and empty.
     ///
-    /// Empty, not absent: the client dereferences `meta.types`, `meta.genericTypes` and `meta.relations`
-    /// unconditionally while it initializes the derived config, so leaving any of them off the wire turns a
-    /// reduced page into a startup crash rather than a smaller payload.
+    /// Empty, not absent: the client dereferences `meta.types`, `meta.genericTypes`, `meta.relations` and
+    /// `meta.manyToMany` unconditionally, so leaving any of them off the wire turns a reduced page into a
+    /// startup crash rather than a smaller payload.
     private static DomainMeta emptyMeta()
     {
         final DomainMeta meta = new DomainMeta(Map.of());
         meta.addAddendum(DomainMeta.RELATIONS, List.of());
+        meta.addAddendum(DomainMeta.MANY_TO_MANY, List.of());
         meta.addAddendum(DomainMeta.GENERIC_TYPES, List.of());
 
         return meta;

@@ -1,6 +1,8 @@
 package io.github.qlivedev.graphql;
 
 import io.github.qlivedev.graphql.annotation.GraphQLField;
+import io.github.qlivedev.graphql.config.ManyToManyField;
+import io.github.qlivedev.graphql.config.ManyToManyModel;
 import io.github.qlivedev.graphql.config.RelationModel;
 import graphql.schema.GraphQLScalarType;
 import org.jooq.Field;
@@ -153,4 +155,23 @@ public interface TypeRegistry
      * @return relation, or <code>null</code> if that field is not a back reference
      */
     RelationModel lookupBackReference(String targetType, String fieldName);
+
+
+    /**
+     * Returns all declared many-to-many relations of the domain.
+     *
+     * @return many-to-many relations
+     */
+    List<ManyToManyModel> getManyToManyModels();
+
+
+    /**
+     * Looks up the many-to-many reached from the given type through the given field, oriented from that type.
+     *
+     * @param type      domain type the field is on
+     * @param fieldName name of the through field on that type
+     *
+     * @return the through field, or <code>null</code> if that field is no many-to-many
+     */
+    ManyToManyField lookupManyToMany(String type, String fieldName);
 }

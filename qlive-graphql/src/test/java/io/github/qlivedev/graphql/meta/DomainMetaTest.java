@@ -9,6 +9,7 @@ import io.github.qlivedev.graphql.config.SourceField;
 import io.github.qlivedev.graphql.config.TargetField;
 import io.github.qlivedev.graphql.logicimpl.ConfigureNonDBByNameLogic;
 import io.github.qlivedev.graphql.logicimpl.OutputTypeOverrideByParamLogic;
+import io.github.qlivedev.graphql.logicimpl.SizedResponseLogic;
 import io.github.qlivedev.graphql.logicimpl.TestLogic;
 import io.github.qlivedev.graphql.testdomain.Public;
 import io.github.qlivedev.graphql.testdomain.tables.pojos.Bar;
@@ -401,5 +402,43 @@ public class DomainMetaTest
         final String json = JSONUtil.DEFAULT_GENERATOR.forValue(domain.getMetaData());
         assertThat(json, containsString("\"uniqueKeys\":[{"));
         assertThat(json, containsString("\"fields\":[\"name\",\"num\"]"));
+    }
+
+
+    @Test
+    public void testSizeOfGeneratedPojos()
+    {
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
+            .objectTypes(Public.PUBLIC)
+            .build();
+
+        final DomainTypeMeta barMeta = domain.getMetaData().getTypeMeta("Bar");
+
+        // jOOQ writes @Size(max = n) from the column length, and never a minimum
+        assertThat(barMeta.getFieldMeta("id", DomainMeta.MAX_LENGTH), is(36));
+        assertThat(barMeta.getFieldMeta("name", DomainMeta.MAX_LENGTH), is(100));
+        assertThat(barMeta.getFieldMeta("name", DomainMeta.MIN_LENGTH), is(nullValue()));
+
+        final String json = JSONUtil.DEFAULT_GENERATOR.forValue(domain.getMetaData());
+        assertThat(json, containsString("\"maxLength\":100"));
+    }
+
+    @Test
+    public void testSizeOfHandWrittenTypes()
+    {
+        final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
+            .logicBeans(new SizedResponseLogic())
+            .objectTypes(Public.PUBLIC)
+            .build();
+
+        final DomainTypeMeta sizedMeta = domain.getMetaData().getTypeMeta("SizedResponse");
+
+        assertThat(sizedMeta.getFieldMeta("code", DomainMeta.MIN_LENGTH), is(2));
+        assertThat(sizedMeta.getFieldMeta("code", DomainMeta.MAX_LENGTH), is(8));
+
+        // a bound left at its default says nothing
+        assertThat(sizedMeta.getFieldMeta("note", DomainMeta.MIN_LENGTH), is(nullValue()));
+        assertThat(sizedMeta.getFieldMeta("note", DomainMeta.MAX_LENGTH), is(nullValue()));
+        assertThat(sizedMeta.getFieldMeta("plain", DomainMeta.MAX_LENGTH), is(nullValue()));
     }
 }

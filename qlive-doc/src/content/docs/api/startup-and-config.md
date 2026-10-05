@@ -643,6 +643,26 @@ computed?: boolean;
 true if the field is a GraphQLComputed-annotated property. Written by QLive's ComputedMetadataProvider,
 which an application has to register as a MetadataProvider bean itself.
 
+### DomainFieldMeta.maxLength
+
+```ts
+maxLength?: number;
+```
+
+The most characters a string field holds -- or elements a list field, or entries a map field. Written by
+QLive's SizeMetadataProvider from the field's `@Size(max = n)`, which jOOQ generates from the column length, so
+a table-backed field of limited length has it. Absent where nothing limits the field.
+
+### DomainFieldMeta.minLength
+
+```ts
+minLength?: number;
+```
+
+The fewest characters a string field holds -- or elements a list field, or entries a map field. Written by
+QLive's SizeMetadataProvider from the field's `@Size(min = n)`. jOOQ never generates a minimum, so only a field
+that was given one by hand has it.
+
 ## GenericTypeInfo
 
 <span class="api-kind">type</span>

@@ -71,12 +71,19 @@ class ExampleMetadataProviderTest
     }
 
 
-    /// A type taking no part in the quick search gets no field meta data at all, which is what lets the
-    /// client-side type declare "fields" as optional.
+    /// A type taking no part in the quick search gets no quick search field meta data, which is what lets the
+    /// client-side type declare "quickSearch" as optional. Its fields carry the builtin field meta data all
+    /// the same.
     @Test
     void leavesTypesWithoutANameFieldAlone()
     {
-        assertThat(meta.getTypeMeta("AppUser").getFields(), is(nullValue()));
+        meta.getTypeMeta("AppUser").getFields().forEach(
+            (fieldName, fieldMeta) -> assertThat(
+                fieldName,
+                fieldMeta.get(ExampleMetadataProvider.QUICK_SEARCH),
+                is(nullValue())
+            )
+        );
     }
 
 

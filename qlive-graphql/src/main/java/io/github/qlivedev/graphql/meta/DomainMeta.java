@@ -31,6 +31,16 @@ public class DomainMeta
     public final static String UNIQUE_KEYS = "uniqueKeys";
 
     /**
+     * Name of the builtin field meta holding the maximum length of a field, from its {@code @Size(max = n)}
+     */
+    public final static String MAX_LENGTH = "maxLength";
+
+    /**
+     * Name of the builtin field meta holding the minimum length of a field, from its {@code @Size(min = n)}
+     */
+    public final static String MIN_LENGTH = "minLength";
+
+    /**
      * Name of the builtin relations addendum
      */
     public final static String RELATIONS = "relations";

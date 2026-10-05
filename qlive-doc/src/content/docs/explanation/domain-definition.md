@@ -80,6 +80,7 @@ QLive defines MetadataProviders for a number of different purposes:
  * Relation metadata block
  * Computed field metadata
  * Unique key metadata
+ * Field length metadata, from @Size
 
 Above MetadataProviders reflect the current domain.
 

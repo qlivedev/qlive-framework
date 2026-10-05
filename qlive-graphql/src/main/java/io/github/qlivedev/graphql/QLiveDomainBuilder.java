@@ -10,6 +10,7 @@ import io.github.qlivedev.graphql.docs.TypeDoc;
 import io.github.qlivedev.graphql.docs.TypeDocs;
 import io.github.qlivedev.graphql.meta.ComputedMetadataProvider;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
+import io.github.qlivedev.graphql.meta.SizeMetadataProvider;
 import io.github.qlivedev.graphql.meta.UniqueKeyProvider;
 import io.github.qlivedev.graphql.param.DataFetchingEnvironmentProviderFactory;
 import io.github.qlivedev.graphql.param.ParameterProviderFactory;
@@ -171,6 +172,7 @@ public class QLiveDomainBuilder
         final Set<MetadataProvider> effectiveMetadataProviders = new LinkedHashSet<>();
         effectiveMetadataProviders.add(new ComputedMetadataProvider());
         effectiveMetadataProviders.add(new UniqueKeyProvider());
+        effectiveMetadataProviders.add(new SizeMetadataProvider());
         effectiveMetadataProviders.addAll(metadataProviders);
 
         final QLiveDomainImpl domain = new SchemaAssembler(

@@ -278,6 +278,88 @@ class QueryDocumentExecutionTest
     }
 
 
+    /// A declared many-to-many lists the far side directly. Its statement goes through the link table, and a
+    /// row is stitched onto the parent the link column names -- the far side carries nothing pointing back,
+    /// and one Baz linked to two Bars comes back under both.
+    @Test
+    void fetchesManyToManyThroughItsField()
+    {
+        database
+            .answer(
+                Map.of("test_bar.id", "bar-1", "test_bar.name", "Bar #1"),
+                Map.of("test_bar.id", "bar-2", "test_bar.name", "Bar #2"),
+                Map.of("test_bar.id", "bar-3", "test_bar.name", "Bar #3")
+            )
+            .answer(
+                through("bazs", "bar_id", "bar-1", "baz-1", "Baz #1"),
+                through("bazs", "bar_id", "bar-2", "baz-1", "Baz #1"),
+                through("bazs", "bar_id", "bar-1", "baz-2", "Baz #2")
+            );
+
+        final List<Map<String, Object>> bars = rows(
+            queryDocument("queryTestBarDocument", "name bazs { name }", config(0, 0))
+        );
+
+        assertThat(database.sql(), hasSize(2));
+        assertThat(
+            database.sql().get(1),
+            containsString(
+                "from \"public\".\"test_baz\" as \"bazs\" join \"public\".\"test_bar_link\" as \"bazs_link\" " +
+                    "on \"bazs_link\".\"baz_id\" = \"bazs\".\"id\""
+            )
+        );
+        assertThat(database.sql().get(1), containsString("where \"bazs_link\".\"bar_id\" in (?, ?, ?)"));
+        assertThat(database.statements().get(1).bindings(), contains("bar-1", "bar-2", "bar-3"));
+
+        assertThat(names(bars.get(0), "bazs"), contains("Baz #1", "Baz #2"));
+        assertThat(names(bars.get(1), "bazs"), contains("Baz #1"));
+        assertThat(names(bars.get(2), "bazs"), is(empty()));
+    }
+
+
+    /// The other end of the same declaration, through the other link column.
+    @Test
+    void fetchesManyToManyFromTheOtherEnd()
+    {
+        database
+            .answer(Map.of("test_baz.id", "baz-1", "test_baz.name", "Baz #1"))
+            .answer(
+                through("bars", "baz_id", "baz-1", "bar-1", "Bar #1"),
+                through("bars", "baz_id", "baz-1", "bar-2", "Bar #2")
+            );
+
+        final List<Map<String, Object>> bazs = rows(
+            queryDocument("queryTestBazDocument", "name bars { name }", config(0, 0))
+        );
+
+        assertThat(database.sql().get(1), containsString("where \"bars_link\".\"baz_id\" in (?)"));
+        assertThat(names(bazs.get(0), "bars"), contains("Bar #1", "Bar #2"));
+    }
+
+
+    /// A filter path through a many-to-many asks whether some row on the far side matches, in an EXISTS that
+    /// goes through the link table and is tied to the row by the link column.
+    @Test
+    void filtersThroughAManyToMany()
+    {
+        queryDocument(
+            "queryTestBarDocument",
+            "name bazs { name }",
+            Map.of("pageSize", 0, "offset", 0, "condition", eq("bazs.name", "String", "Baz #1"))
+        );
+
+        assertThat(
+            database.sql().get(0),
+            containsString(
+                "exists (select 1 from \"public\".\"test_baz\" as \"bazs\" join \"public\".\"test_bar_link\" as " +
+                    "\"bazs_link\" on \"bazs_link\".\"baz_id\" = \"bazs\".\"id\" where (\"bazs_link\".\"bar_id\" = " +
+                    "\"test_bar\".\"id\" and \"bazs\".\"name\" = ?))"
+            )
+        );
+        assertThat(database.statements().get(0).bindings(), contains("Baz #1"));
+    }
+
+
     // -----------------------------------------------------------------------------------------------------
 
     private static GraphQL graphQL(ScriptedDatabase database)
@@ -340,6 +422,23 @@ class QueryDocumentExecutionTest
             "baz_links." + parentKey, parentId,
             farSide + ".id", farId,
             farSide + ".name", farName
+        );
+    }
+
+
+    /// One row of a many-to-many's statement: the far side and the link column naming the parent.
+    private static Map<String, Object> through(
+        String field,
+        String linkColumn,
+        String parentId,
+        String farId,
+        String farName
+    )
+    {
+        return Map.of(
+            field + ".id", farId,
+            field + ".name", farName,
+            field + "_link." + linkColumn, parentId
         );
     }
 

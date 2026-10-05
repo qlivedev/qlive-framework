@@ -3,7 +3,6 @@ package io.github.qlivedev.runtime.query;
 import io.github.qlivedev.model.QueryConfig;
 import io.github.qlivedev.model.QueryDocument;
 import io.github.qlivedev.runtime.QLiveException;
-import io.github.qlivedev.graphql.config.RelationModel;
 import io.github.qlivedev.graphql.fetcher.FetcherContext;
 import io.github.qlivedev.graphql.generic.DomainObject;
 import io.github.qlivedev.util.JSONUtil;
@@ -16,7 +15,6 @@ import org.jooq.Result;
 import org.jooq.SelectJoinStep;
 import org.jooq.Select;
 import org.jooq.SelectLimitStep;
-import org.jooq.TableField;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -196,6 +194,9 @@ public class QueryExecution
 
     /// Fetches one to-many relation for the parents that are already there, and then whatever hangs below
     /// it. One query per relation, whatever the number of rows.
+    ///
+    /// Which parent a row belongs to is read off the record, not off the object it becomes: the far end of a
+    /// many-to-many carries nothing pointing back, only the link table it was fetched through does.
     private void fetch(PlanNode node)
     {
         final List<Object> parents = materialized.getOrDefault(node.getParent(), List.of());
@@ -204,9 +205,7 @@ public class QueryExecution
             return;
         }
 
-        final RelationModel relation = node.getRelation();
-        final List<String> parentProperties = relation.getTargetFields();
-        final List<? extends TableField<?, ?>> foreignKey = relation.getSourceDBFields();
+        final List<String> parentProperties = node.parentKeyProperties();
 
         final Set<List<Object>> keys = new LinkedHashSet<>();
         for (Object parent : parents)
@@ -236,14 +235,23 @@ public class QueryExecution
             slice(descendant, selectFields);
         }
 
-        SelectJoinStep<Record> from = dslContext.select(selectFields).from(node.getTable());
+        final List<Field<?>> keyColumns = node.parentKeyColumns();
+        for (Field<?> keyColumn : keyColumns)
+        {
+            if (!selectFields.contains(keyColumn))
+            {
+                selectFields.add(keyColumn);
+            }
+        }
+
+        SelectJoinStep<Record> from = dslContext.select(selectFields).from(node.source());
         for (PlanNode descendant : joined)
         {
             from = from.leftJoin(descendant.getTable()).on(descendant.joinCondition());
         }
 
         final Select<Record> query = from
-            .where(keyCondition(node, foreignKey, keys))
+            .where(keyCondition(keyColumns, keys))
             .orderBy(node.getKeyFields());
 
         log.debug("Relation '{}' of {} parent(s): {}", node.getFieldName(), parents.size(), query);
@@ -259,7 +267,7 @@ public class QueryExecution
                 continue;
             }
 
-            final List<Object> key = key(child, relation.getSourceFields());
+            final List<Object> key = key(record, keyColumns);
             if (key != null)
             {
                 byKey.computeIfAbsent(key, k -> new ArrayList<>()).add(child);
@@ -284,15 +292,11 @@ public class QueryExecution
 
     /// `WHERE fk IN (parent keys)`, or its long form for a composite key.
     @SuppressWarnings("unchecked")
-    private Condition keyCondition(
-        PlanNode node,
-        List<? extends TableField<?, ?>> foreignKey,
-        Set<List<Object>> keys
-    )
+    private static Condition keyCondition(List<Field<?>> keyColumns, Set<List<Object>> keys)
     {
-        if (foreignKey.size() == 1)
+        if (keyColumns.size() == 1)
         {
-            final Field<Object> field = (Field<Object>) column(node, foreignKey.get(0));
+            final Field<Object> field = (Field<Object>) keyColumns.get(0);
 
             final List<Object> values = new ArrayList<>(keys.size());
             for (List<Object> key : keys)
@@ -305,11 +309,11 @@ public class QueryExecution
         final List<Condition> conditions = new ArrayList<>(keys.size());
         for (List<Object> key : keys)
         {
-            final List<Condition> parts = new ArrayList<>(foreignKey.size());
-            for (int i = 0; i < foreignKey.size(); i++)
+            final List<Condition> parts = new ArrayList<>(keyColumns.size());
+            for (int i = 0; i < keyColumns.size(); i++)
             {
                 parts.add(
-                    ((Field<Object>) column(node, foreignKey.get(i))).eq(key.get(i))
+                    ((Field<Object>) keyColumns.get(i)).eq(key.get(i))
                 );
             }
             conditions.add(DSL.and(parts));
@@ -318,16 +322,20 @@ public class QueryExecution
     }
 
 
-    private Field<?> column(PlanNode node, Field<?> field)
+    /// The values of the given columns in one record, or `null` if any of them is null.
+    private static List<Object> key(Record record, List<Field<?>> columns)
     {
-        final Field<?> column = node.getColumn(field.getName());
-        if (column == null)
+        final List<Object> key = new ArrayList<>(columns.size());
+        for (Field<?> column : columns)
         {
-            throw new QLiveException(
-                "'" + node.getAlias() + "' does not select the key column '" + field.getName() + "'"
-            );
+            final Object value = record.get(column);
+            if (value == null)
+            {
+                return null;
+            }
+            key.add(value);
         }
-        return column;
+        return key;
     }
 
 

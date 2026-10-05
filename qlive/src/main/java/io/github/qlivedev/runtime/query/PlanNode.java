@@ -2,6 +2,7 @@ package io.github.qlivedev.runtime.query;
 
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.query.condition.ExistsScope;
+import io.github.qlivedev.graphql.config.ManyToManyField;
 import io.github.qlivedev.graphql.config.RelationModel;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -49,6 +50,12 @@ public class PlanNode
 
     private final boolean toMany;
 
+    /// The many-to-many this node is the far end of, `null` where it is reached by a relation.
+    private final ManyToManyField manyToMany;
+
+    /// The link table of that many-to-many on its own alias, `null` where there is none.
+    private final Table<?> link;
+
     private final int depth;
 
     /// Columns to select, by database column name.
@@ -78,6 +85,46 @@ public class PlanNode
         boolean toMany
     )
     {
+        this(parent, fieldName, domainType, pojoType, table, alias, relation, backReference, toMany, null, null);
+    }
+
+
+    /// A node for the far end of a many-to-many, which is reached through the link table rather than by a
+    /// relation. It is always to-many.
+    ///
+    /// @param linkAlias    alias of the link table, unique within the query like the node's own
+    PlanNode(PlanNode parent, String fieldName, ManyToManyField manyToMany, String alias, String linkAlias)
+    {
+        this(
+            parent,
+            fieldName,
+            manyToMany.other().getType(),
+            manyToMany.other().getRelation().getTargetPojoClass(),
+            manyToMany.other().getRelation().getTargetTable(),
+            alias,
+            null,
+            false,
+            true,
+            manyToMany,
+            linkAlias
+        );
+    }
+
+
+    private PlanNode(
+        PlanNode parent,
+        String fieldName,
+        String domainType,
+        Class<?> pojoType,
+        Table<?> table,
+        String alias,
+        RelationModel relation,
+        boolean backReference,
+        boolean toMany,
+        ManyToManyField manyToMany,
+        String linkAlias
+    )
+    {
         this.parent = parent;
         this.fieldName = fieldName;
         this.domainType = domainType;
@@ -87,6 +134,8 @@ public class PlanNode
         this.relation = relation;
         this.backReference = backReference;
         this.toMany = toMany;
+        this.manyToMany = manyToMany;
+        this.link = manyToMany == null ? null : manyToMany.model().getLinkTable().as(linkAlias);
         this.depth = parent == null ? 0 : parent.depth + 1;
 
         final UniqueKey<?> primaryKey = table.getPrimaryKey();
@@ -149,6 +198,13 @@ public class PlanNode
     public RelationModel getRelation()
     {
         return relation;
+    }
+
+
+    /// The many-to-many this node is the far end of, or `null` where a relation reaches it.
+    public ManyToManyField getManyToMany()
+    {
+        return manyToMany;
     }
 
 
@@ -279,6 +335,11 @@ public class PlanNode
     /// The condition tying this node to its parent, on both aliases.
     public Condition joinCondition()
     {
+        if (manyToMany != null)
+        {
+            throw new QLiveException("'" + alias + "' is reached through a link table and joins no parent");
+        }
+
         if (relation == null)
         {
             throw new QLiveException("The root of a query plan has no join condition");
@@ -306,6 +367,64 @@ public class PlanNode
     }
 
 
+    /// What a statement fetching this to-many node selects from: its table, joined to the link table where it is
+    /// the far end of a many-to-many.
+    public Table<?> source()
+    {
+        if (manyToMany == null)
+        {
+            return table;
+        }
+
+        return table.join(link).on(
+            equal(
+                aliased(link, manyToMany.other().getLinkColumn()),
+                aliased(table, manyToMany.other().getKeyColumn())
+            )
+        );
+    }
+
+
+    /// The properties of the parent that the rows of this to-many node belong to it by.
+    public List<String> parentKeyProperties()
+    {
+        return manyToMany == null ? relation.getTargetFields() : List.of(manyToMany.own().getKeyField());
+    }
+
+
+    /// The columns of a statement fetching this to-many node that say which parent a row belongs to: the
+    /// foreign key on this node's alias, or the link column pointing back at the parent.
+    public List<Field<?>> parentKeyColumns()
+    {
+        if (manyToMany != null)
+        {
+            return List.of(aliased(link, manyToMany.own().getLinkColumn()));
+        }
+
+        final List<Field<?>> fields = new ArrayList<>(relation.getSourceDBFields().size());
+        for (TableField<?, ?> field : relation.getSourceDBFields())
+        {
+            fields.add(aliased(table, field));
+        }
+        return fields;
+    }
+
+
+    /// The condition tying a row of this to-many node to its parent within a correlated subquery.
+    private Condition correlation()
+    {
+        if (manyToMany == null)
+        {
+            return joinCondition();
+        }
+
+        return equal(
+            aliased(link, manyToMany.own().getLinkColumn()),
+            aliased(parent.table, manyToMany.own().getKeyColumn())
+        );
+    }
+
+
     /// Builds the correlated `EXISTS` for a filter path that reaches through this to-many relation.
     ///
     /// The subquery selects from this node's table and joins everything below it that can be joined, which
@@ -319,14 +438,14 @@ public class PlanNode
             throw new QLiveException("'" + alias + "' is not a to-many relation");
         }
 
-        SelectJoinStep<Record1<Integer>> select = DSL.select(DSL.inline(1)).from(table);
+        SelectJoinStep<Record1<Integer>> select = DSL.select(DSL.inline(1)).from(source());
         for (PlanNode descendant : joinedDescendants())
         {
             select = select.leftJoin(descendant.getTable()).on(descendant.joinCondition());
         }
 
         return DSL.exists(
-            select.where(joinCondition(), inner)
+            select.where(correlation(), inner)
         );
     }
 

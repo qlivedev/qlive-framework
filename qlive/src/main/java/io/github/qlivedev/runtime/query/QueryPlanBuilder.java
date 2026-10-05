@@ -11,6 +11,7 @@ import io.github.qlivedev.runtime.query.condition.ResolvedField;
 import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.TableLookup;
 import io.github.qlivedev.graphql.TypeRegistry;
+import io.github.qlivedev.graphql.config.ManyToManyField;
 import io.github.qlivedev.graphql.config.RelationModel;
 import io.github.qlivedev.graphql.config.TargetField;
 import graphql.schema.DataFetchingEnvironment;
@@ -481,9 +482,47 @@ public class QueryPlanBuilder
             );
         }
 
+        final ManyToManyField manyToMany = types.lookupManyToMany(domainType, fieldName);
+        if (manyToMany != null)
+        {
+            return addManyToMany(parent, fieldName, manyToMany, aliases);
+        }
+
         throw new QLiveException(
             "Type '" + domainType + "' has no relation '" + fieldName + "'"
         );
+    }
+
+
+    /// Adds the far end of a many-to-many to the plan, which a statement of its own fetches through the link
+    /// table, like any to-many relation.
+    private PlanNode addManyToMany(
+        PlanNode parent,
+        String fieldName,
+        ManyToManyField manyToMany,
+        Set<String> aliases
+    )
+    {
+        final String candidate = parent.getParent() == null
+            ? snakeCase(fieldName)
+            : parent.getAlias() + "_" + snakeCase(fieldName);
+
+        final String alias = uniqueAlias(candidate, aliases);
+
+        final PlanNode child = new PlanNode(
+            parent,
+            fieldName,
+            manyToMany,
+            alias,
+            uniqueAlias(alias + "_link", aliases)
+        );
+
+        // what the rows are collected by on the parent's side, selected whether or not anybody asked for it
+        parent.addColumn(manyToMany.own().getKeyColumn(), false);
+
+        parent.addChild(child);
+
+        return child;
     }
 
 

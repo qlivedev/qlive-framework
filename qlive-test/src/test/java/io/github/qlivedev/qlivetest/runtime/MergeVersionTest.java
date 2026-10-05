@@ -245,7 +245,7 @@ class MergeVersionTest
 
     private void merge(EntityChange... changes)
     {
-        mergeService.merge(List.of(changes), List.of(), new MergeConfig());
+        mergeService.merge(List.of(changes), List.of(), List.of(), new MergeConfig());
     }
 
 

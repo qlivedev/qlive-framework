@@ -2,6 +2,7 @@ package io.github.qlivedev.runtime.merge;
 
 import io.github.qlivedev.model.merge.EntityChange;
 import io.github.qlivedev.model.merge.EntityDeletion;
+import io.github.qlivedev.model.merge.LinkChange;
 import io.github.qlivedev.model.merge.MergeConfig;
 import io.github.qlivedev.model.merge.MergeResult;
 import org.jooq.Table;
@@ -19,19 +20,28 @@ import java.util.List;
 /// needing something else registers its own bean.
 public interface MergeService
 {
-    /// Writes every change and every deletion, or none of them.
+    /// Writes every change, every association and every deletion, or none of them.
     ///
     /// A row of a versioned type is written under an optimistic lock: the statement carries the version the
     /// row was read at, and a row somebody else has written since matches nothing. That is a conflict, and a
     /// conflict rolls the whole merge back and comes back as data -- nothing here throws on account of one,
     /// and nothing here is half-written afterwards.
     ///
+    /// Associations through a many-to-many are written once the changes are, as inserts and deletes of link
+    /// rows keyed by the pair. They hold to no version and never conflict.
+    ///
     /// @param changes      rows to insert or update
-    /// @param deletions    rows to remove, applied after the changes
+    /// @param links        associations gained and lost, applied after the changes
+    /// @param deletions    rows to remove, applied after the associations
     /// @param config       what the caller can do about a conflict
     ///
     /// @return what came of it, never null
-    MergeResult merge(List<EntityChange> changes, List<EntityDeletion> deletions, MergeConfig config);
+    MergeResult merge(
+        List<EntityChange> changes,
+        List<LinkChange> links,
+        List<EntityDeletion> deletions,
+        MergeConfig config
+    );
 
 
     /// Raises unless the given table is one nothing versions, i.e. one that may be written directly.

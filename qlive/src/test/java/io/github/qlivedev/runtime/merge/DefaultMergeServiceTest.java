@@ -3,6 +3,7 @@ package io.github.qlivedev.runtime.merge;
 import io.github.qlivedev.model.merge.EntityChange;
 import io.github.qlivedev.model.merge.EntityDeletion;
 import io.github.qlivedev.model.merge.FieldChange;
+import io.github.qlivedev.model.merge.LinkChange;
 import io.github.qlivedev.model.merge.MergeConfig;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.domain.TestDomainConfig;
@@ -111,10 +112,31 @@ class DefaultMergeServiceTest
 
         final QLiveException e = assertThrows(
             QLiveException.class,
-            () -> mergeService.merge(List.of(), List.of(deletion), new MergeConfig())
+            () -> mergeService.merge(List.of(), List.of(), List.of(deletion), new MergeConfig())
         );
 
         assertThat(e.getMessage(), containsString("version"));
+    }
+
+
+    /// Associations are written through a declared many-to-many field and nothing else. A link array of an
+    /// ordinary relation is no such field: its rows are entities, created and deleted as rows.
+    @Test
+    void refusesALinkChangeOnAFieldThatIsNoManyToMany()
+    {
+        final LinkChange link = new LinkChange();
+        link.setType("TestBar");
+        link.setId("bar-1");
+        link.setField("bazLinks");
+        link.setAdded(List.of("baz-1"));
+        link.setRemoved(List.of());
+
+        final QLiveException e = assertThrows(
+            QLiveException.class,
+            () -> mergeService.merge(List.of(), List.of(link), List.of(), new MergeConfig())
+        );
+
+        assertThat(e.getMessage(), containsString("no many-to-many"));
     }
 
 
@@ -143,7 +165,7 @@ class DefaultMergeServiceTest
     {
         return assertThrows(
             QLiveException.class,
-            () -> mergeService.merge(List.of(change), List.of(), new MergeConfig())
+            () -> mergeService.merge(List.of(change), List.of(), List.of(), new MergeConfig())
         ).getMessage();
     }
 

@@ -471,19 +471,19 @@ class MergeServiceTest
 
     private MergeResult merge(EntityChange... changes)
     {
-        return mergeService.merge(List.of(changes), List.of(), new MergeConfig());
+        return mergeService.merge(List.of(changes), List.of(), List.of(), new MergeConfig());
     }
 
 
     private MergeResult merge(MergeConfig config, EntityChange... changes)
     {
-        return mergeService.merge(List.of(changes), List.of(), config);
+        return mergeService.merge(List.of(changes), List.of(), List.of(), config);
     }
 
 
     private MergeResult merge(List<EntityChange> changes, List<EntityDeletion> deletions)
     {
-        return mergeService.merge(changes, deletions, new MergeConfig());
+        return mergeService.merge(changes, List.of(), deletions, new MergeConfig());
     }
 
 

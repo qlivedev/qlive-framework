@@ -4,6 +4,7 @@ import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.generic.GenericScalar;
 import io.github.qlivedev.model.merge.EntityChange;
 import io.github.qlivedev.model.merge.EntityDeletion;
+import io.github.qlivedev.model.merge.LinkChange;
 import io.github.qlivedev.model.merge.MergeConfig;
 import io.github.qlivedev.model.merge.MergeConflict;
 import io.github.qlivedev.model.merge.MergeConflictField;
@@ -38,9 +39,10 @@ import static org.hamcrest.Matchers.nullValue;
 class MergeLogicTest
 {
     private final static String MUTATION =
-        "mutation M($changes: [EntityChangeInput]!, $deletions: [EntityDeletionInput]!, " +
-            "$mergeConfig: MergeConfigInput!) {" +
-            "  result: mergeWorkingSet(changes: $changes, deletions: $deletions, mergeConfig: $mergeConfig) {" +
+        "mutation M($changes: [EntityChangeInput]!, $links: [LinkChangeInput]!, " +
+            "$deletions: [EntityDeletionInput]!, $mergeConfig: MergeConfigInput!) {" +
+            "  result: mergeWorkingSet(changes: $changes, links: $links, deletions: $deletions, " +
+            "    mergeConfig: $mergeConfig) {" +
             "    status conflicts { type id storedVersion deleted fields { field mine stored informational } }" +
             "  }" +
             "}";
@@ -157,6 +159,35 @@ class MergeLogicTest
     }
 
 
+    /// Associations travel as the row, the many-to-many field and the ids on the other end -- no link row, no
+    /// link id and no version.
+    @Test
+    void handsTheServiceTheAssociations()
+    {
+        mergeWorkingSet(
+            List.of(),
+            List.of(
+                Map.of(
+                    "type", "TestBar",
+                    "id", "bar-1",
+                    "field", "bazs",
+                    "added", List.of("baz-2"),
+                    "removed", List.of("baz-1")
+                )
+            ),
+            List.of(),
+            Map.of("conflictValues", false)
+        );
+
+        final LinkChange received = mergeService.links.get(0);
+        assertThat(received.getType(), is("TestBar"));
+        assertThat(received.getId(), is("bar-1"));
+        assertThat(received.getField(), is("bazs"));
+        assertThat(received.getAdded(), is(List.of("baz-2")));
+        assertThat(received.getRemoved(), is(List.of("baz-1")));
+    }
+
+
     // -----------------------------------------------------------------------------------------------------
 
     private static GraphQL graphQL(MergeService mergeService)
@@ -175,9 +206,23 @@ class MergeLogicTest
         Map<String, Object> mergeConfig
     )
     {
+        return mergeWorkingSet(changes, List.of(), deletions, mergeConfig);
+    }
+
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> mergeWorkingSet(
+        List<Map<String, Object>> changes,
+        List<Map<String, Object>> links,
+        List<Map<String, Object>> deletions,
+        Map<String, Object> mergeConfig
+    )
+    {
         final ExecutionResult result = graphQL.execute(
             ExecutionInput.newExecutionInput(MUTATION)
-                .variables(Map.of("changes", changes, "deletions", deletions, "mergeConfig", mergeConfig))
+                .variables(
+                    Map.of("changes", changes, "links", links, "deletions", deletions, "mergeConfig", mergeConfig)
+                )
                 .build()
         );
 
@@ -276,6 +321,8 @@ class MergeLogicTest
     {
         private List<EntityChange> changes;
 
+        private List<LinkChange> links;
+
         private List<EntityDeletion> deletions;
 
         private MergeConfig config;
@@ -284,9 +331,15 @@ class MergeLogicTest
 
 
         @Override
-        public MergeResult merge(List<EntityChange> changes, List<EntityDeletion> deletions, MergeConfig config)
+        public MergeResult merge(
+            List<EntityChange> changes,
+            List<LinkChange> links,
+            List<EntityDeletion> deletions,
+            MergeConfig config
+        )
         {
             this.changes = changes;
+            this.links = links;
             this.deletions = deletions;
             this.config = config;
 

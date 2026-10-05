@@ -3,6 +3,7 @@ package io.github.qlivedev.runtime.merge;
 import io.github.qlivedev.model.merge.EntityChange;
 import io.github.qlivedev.model.merge.EntityDeletion;
 import io.github.qlivedev.model.merge.FieldChange;
+import io.github.qlivedev.model.merge.LinkChange;
 import io.github.qlivedev.model.merge.MergeConfig;
 import io.github.qlivedev.model.merge.MergeConflict;
 import io.github.qlivedev.model.merge.MergeConflictField;
@@ -14,6 +15,7 @@ import io.github.qlivedev.runtime.meta.MergeMeta;
 import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.TableLookup;
 import io.github.qlivedev.graphql.TypeRegistry;
+import io.github.qlivedev.graphql.config.ManyToManyField;
 import io.github.qlivedev.graphql.generic.GenericScalar;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLScalarType;
@@ -118,7 +120,12 @@ public class DefaultMergeService
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
-    public MergeResult merge(List<EntityChange> changes, List<EntityDeletion> deletions, MergeConfig config)
+    public MergeResult merge(
+        List<EntityChange> changes,
+        List<LinkChange> links,
+        List<EntityDeletion> deletions,
+        MergeConfig config
+    )
     {
         final List<PreparedChange> prepared = new ArrayList<>();
         for (EntityChange change : nullSafe(changes))
@@ -158,6 +165,17 @@ public class DefaultMergeService
             if (conflict != null)
             {
                 conflicts.add(conflict);
+            }
+        }
+
+        // D -- associations once the rows they associate are there, and before a row they are taken off is
+        // removed. Not after a conflict: the merge is rolled back either way, and the rows a link points at
+        // may be the ones that did not land
+        if (!aborted && conflicts.isEmpty())
+        {
+            for (LinkChange link : nullSafe(links))
+            {
+                writeLinks(link, written);
             }
         }
 
@@ -756,6 +774,139 @@ public class DefaultMergeService
         conflict.setFields(List.of());
 
         return conflict;
+    }
+
+
+    /// D -- the associations one row gained and lost through one many-to-many field, as inserts and deletes of
+    /// link rows keyed by the pair.
+    ///
+    /// Neither is held to a version and neither can conflict: an association is the pair and has nothing two
+    /// users could disagree about. A removal that finds nothing and an addition that finds the pair there leave
+    /// the database as asked. A link row's other columns go with it on removal, which is what removing the
+    /// association means.
+    private void writeLinks(LinkChange change, List<EntityVersion> written)
+    {
+        final String typeName = requireType(change.getType(), change);
+        final ManyToManyField field = change.getField() == null
+            ? null
+            : types.lookupManyToMany(typeName, change.getField());
+
+        if (field == null)
+        {
+            throw new QLiveException(
+                "Field '" + change.getField() + "' of " + change + " is no many-to-many of '" + typeName + "'."
+            );
+        }
+
+        if (change.getId() == null || change.getId().isEmpty())
+        {
+            throw new QLiveException("No id in " + change + ". A link change names the row it is about.");
+        }
+
+        final Table<?> link = field.model().getLinkTable();
+        final Field<Object> own = any(field.own().getLinkColumn());
+        final Field<Object> other = any(field.other().getLinkColumn());
+        final Object id = own.getDataType().convert(change.getId());
+
+        final Set<Object> removed = converted(other, change.getRemoved());
+        if (!removed.isEmpty())
+        {
+            dslContext.deleteFrom(link)
+                .where(own.eq(id), other.in(removed))
+                .execute();
+        }
+
+        final Set<Object> added = converted(other, change.getAdded());
+        if (added.isEmpty())
+        {
+            return;
+        }
+
+        final String linkType = field.model().getLinkType();
+
+        if (!field.model().isWritable())
+        {
+            throw new QLiveException(
+                "Cannot add to " + typeName + "." + field.name() + ": a row of " + linkType + " needs values " +
+                    "of its own besides its two link columns. Create " + linkType + " rows instead."
+            );
+        }
+
+        added.removeAll(
+            dslContext.select(other)
+                .from(link)
+                .where(own.eq(id), other.in(added))
+                .fetch(other)
+        );
+
+        // the id a version record names the row by, where the link table has one rather than a key over the pair
+        final UniqueKey<?> primaryKey = link.getPrimaryKey();
+        final Field<?> idField = primaryKey != null && primaryKey.getFields().size() == 1
+            ? primaryKey.getFields().get(0)
+            : null;
+        final boolean generatesId = idField != null && !idField.getDataType().defaulted();
+        final Field<?> versionField = versionField(linkType);
+
+        final Set<String> fields = new LinkedHashSet<>(
+            List.of(field.own().getLinkField(), field.other().getLinkField())
+        );
+        fields.removeAll(MergeMeta.ignoredFields(domain, linkType));
+
+        for (Object target : added)
+        {
+            final Map<Field<?>, Object> values = new LinkedHashMap<>();
+            values.put(own, id);
+            values.put(other, target);
+
+            final String linkId = generatesId ? UUID.randomUUID().toString() : null;
+            if (linkId != null)
+            {
+                values.put(idField, linkId);
+            }
+
+            final String newVersion = versionField == null ? null : UUID.randomUUID().toString();
+            if (newVersion != null)
+            {
+                values.put(versionField, newVersion);
+            }
+
+            // a concurrent addition of the same pair is the outcome this one is for, wherever a unique key
+            // on the pair lets the database tell
+            final int count = dslContext.insertInto(link)
+                .set(values)
+                .onConflictDoNothing()
+                .execute();
+
+            if (count != 0 && newVersion != null && linkId != null)
+            {
+                final FieldLayout layout = fieldLayouts.current(linkType);
+
+                written.add(
+                    new EntityVersion(
+                        newVersion,
+                        linkType,
+                        linkId,
+                        null,
+                        layout.mask(fields),
+                        layout.getId(),
+                        AppAuthentication.current().getId(),
+                        new Timestamp(System.currentTimeMillis())
+                    )
+                );
+            }
+        }
+    }
+
+
+    /// The given ids as values of the given column, without duplicates.
+    private static Set<Object> converted(Field<Object> column, List<String> ids)
+    {
+        final Set<Object> values = new LinkedHashSet<>();
+        for (String id : nullSafe(ids))
+        {
+            values.add(column.getDataType().convert(id));
+        }
+        return values;
     }
 
 

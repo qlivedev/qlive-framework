@@ -435,6 +435,47 @@
     "name":"Injection"
   },
   {
+    "description":"The associations one row gained and lost through one many-to-many field.\n\nNamed by the row and the field, e.g. Bar \"bar-1\" and \"bazs\", and by the ids of the rows on the other end.\nThe merge turns each into an insert or a delete of a link row keyed by the pair, so neither carries the link\nrow's id or version: an association is the pair, and nothing about it can conflict. Adding one that exists\nand removing one that is gone both leave the database as asked and are no error.",
+    "fieldDocs":[
+      {
+        "description":"Ids of the rows on the other end the row is now associated with and was not.",
+        "name":"added",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"Name of the many-to-many field, e.g. \"bazs\".",
+        "name":"field",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"Id of the row whose associations these are.",
+        "name":"id",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"Ids of the rows on the other end the row was associated with and is no longer.",
+        "name":"removed",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"GraphQL name of the type the field is on.",
+        "name":"type",
+        "paramDocs":[
+          
+        ]
+      }
+    ],
+    "name":"LinkChange"
+  },
+  {
     "description":"What the caller of a merge says about itself.\n\nEverything a type decides about merging is type meta data and is declared once, in the\napplication's MergeMetadataProvider. What is in here is the other half: the same working set can be\nsubmitted by a form with a user in front of it and by a service with nobody there, and the two want\ndifferent things back from a conflict.",
     "fieldDocs":[
       {

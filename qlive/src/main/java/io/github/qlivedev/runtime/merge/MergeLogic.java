@@ -2,6 +2,7 @@ package io.github.qlivedev.runtime.merge;
 
 import io.github.qlivedev.model.merge.EntityChange;
 import io.github.qlivedev.model.merge.EntityDeletion;
+import io.github.qlivedev.model.merge.LinkChange;
 import io.github.qlivedev.model.merge.MergeConfig;
 import io.github.qlivedev.model.merge.MergeResult;
 import io.github.qlivedev.graphql.annotation.GraphQLLogic;
@@ -12,7 +13,7 @@ import java.util.List;
 
 /// The framework's write mutation, and the only one an application needs in order to store anything.
 ///
-/// The four input types below are the framework's, not the application's forty. A change travels as field
+/// The input types below are the framework's, not the application's forty. A change travels as field
 /// names and `GenericScalar` values, which QLiveDomain coerces to whatever Java type the field actually has, so
 /// there is no `BarInput`, no `BazInput`, and no mutation per operation to keep in step with them.
 ///
@@ -32,9 +33,10 @@ public class MergeLogic
     }
 
 
-    /// Stores a working set: every change and every deletion in one transaction, or none of them.
+    /// Stores a working set: every change, association and deletion in one transaction, or none of them.
     ///
     /// @param changes      rows to insert or update
+    /// @param links        associations gained and lost through many-to-many fields
     /// @param deletions    rows to remove
     /// @param mergeConfig  what the caller can do about a conflict
     ///
@@ -42,10 +44,11 @@ public class MergeLogic
     @GraphQLMutation
     public @NotNull MergeResult mergeWorkingSet(
         @NotNull List<EntityChange> changes,
+        @NotNull List<LinkChange> links,
         @NotNull List<EntityDeletion> deletions,
         @NotNull MergeConfig mergeConfig
     )
     {
-        return mergeService.merge(changes, deletions, mergeConfig);
+        return mergeService.merge(changes, links, deletions, mergeConfig);
     }
 }

@@ -24,18 +24,10 @@ import { Q_BazList, Q_BazListResult } from "./Q_BazList";
  */
 
 /**
- * One row as the query yields it, and one association as the form writes one back.
- *
- * Both are read off the query's own result type rather than written out again beside it: that type is
- * generated from the selection, so a hand-written copy of it is a copy that goes stale. The link is the
- * one place the two differ -- a new association is written as the row it is about, `{ baz }` and nothing
- * else, and the merge turns that into a BarLink insert with both foreign keys.
+ * One row as the query yields it, read off the query's own result type rather than written out again beside
+ * it: that type is generated from the selection, so a hand-written copy of it is a copy that goes stale.
  */
-type QueriedLink = Q_BarResult["rows"][number]["bazLinks"][number]
-
-type EditLink = Partial<QueriedLink> & Pick<QueriedLink, "baz">
-
-type EditRow = Omit<Q_BarResult["rows"][number], "bazLinks"> & { bazLinks: EditLink[] }
+type EditRow = Q_BarResult["rows"][number]
 
 /**
  * The fields the form renders, which could as well come from the schema or from a config. Nothing below is
@@ -53,16 +45,6 @@ const VIEWS: MergeView[] = ["merged", "mine", "stored"]
 function typed(name: keyof EditRow, value: string): string | number
 {
     return name === "num" ? Number(value) : value
-}
-
-
-/**
- * The id of the Baz one link is about, from the foreign key or from the row itself. An association just
- * added by the form has only the row, which is the short form the merge takes as well.
- */
-function bazIdOf(link: EditLink): string
-{
-    return link.bazId ?? link.baz.id
 }
 
 
@@ -217,9 +199,9 @@ function BarForm({ ws, row, bazes }: {
 
 
 /**
- * The many-to-many. A link array is set to the associations the row is to have, and the merge turns the
- * difference into BarLink inserts and deletions -- nothing here writes a Baz, and nothing here has to know
- * that BarLink exists beyond naming the rows it points at.
+ * The many-to-many. Bar.bazs is set to the Bazs the row is to be associated with, and the merge turns the
+ * difference into associations gained and lost -- nothing here writes a Baz, and nothing here knows the link
+ * table that holds the associations.
  */
 function Associations({ bar, bazes, merge }: {
     bar: EditRow,
@@ -227,14 +209,13 @@ function Associations({ bar, bazes, merge }: {
     merge: MergeAccessor
 })
 {
-    const links = bar.bazLinks
-    const linked = new Set(links.map(bazIdOf))
+    const linked = new Set(bar.bazs.map(baz => baz.id))
 
     return (
         <div className="field">
-            <label>bazLinks</label>
+            <label>bazs</label>
 
-            <div className={ "associations " + merge.field("bazLinks").className }>
+            <div className={ "associations " + merge.field("bazs").className }>
                 {
                     bazes.map(baz => (
                         <label key={ baz.id }>
@@ -242,9 +223,9 @@ function Associations({ bar, bazes, merge }: {
                                 type="checkbox"
                                 checked={ linked.has(baz.id) }
                                 onChange={ e => {
-                                    bar.bazLinks = e.target.checked
-                                        ? [...links, { baz }]
-                                        : links.filter(link => bazIdOf(link) !== baz.id)
+                                    bar.bazs = e.target.checked
+                                        ? [...bar.bazs, baz]
+                                        : bar.bazs.filter(associated => associated.id !== baz.id)
                                 } }
                             />
                             { baz.name }

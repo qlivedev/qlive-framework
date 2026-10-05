@@ -163,15 +163,15 @@ class QueryDocumentServiceTest
     }
 
 
-    /// Many-to-many is not a case of its own: the link table is a to-many relation and the far side is a
-    /// to-one relation of that, so the result mirrors the selection right through it.
+    /// A declared many-to-many lists the far side directly, fetched through the link table, and a Bar
+    /// nothing is linked to gets an empty list.
     @Test
-    void fetchesManyToManyThroughItsLinkTable()
+    void fetchesManyToManyThroughItsField()
     {
         final List<Map<String, Object>> bars = rows(
             queryDocument(
                 "queryBarDocument",
-                "name bazLinks { id baz { name } }",
+                "name bazs { name }",
                 Map.of("pageSize", 0, "offset", 0, "sortFields", List.of("name"))
             )
         );
@@ -180,8 +180,8 @@ class QueryDocumentServiceTest
             bars.stream().map(bar -> bar.get("name")).toList(),
             contains("Bar #1", "Bar #2", "Bar #3", "Bar #4")
         );
-        assertThat(linked(bars.get(0), "baz"), contains("Baz #1", "Baz #2", "Baz #3"));
-        assertThat(linked(bars.get(3), "baz"), is(empty()));
+        assertThat(linked(bars.get(0)), contains("Baz #1", "Baz #2", "Baz #3"));
+        assertThat(linked(bars.get(3)), is(empty()));
     }
 
 
@@ -263,22 +263,15 @@ class QueryDocumentServiceTest
     }
 
 
+    /// The names of the Bazs a Bar is associated with, sorted, so that the order they come back in does not
+    /// decide whether the test passes.
     @SuppressWarnings("unchecked")
-    private static Map<String, Object> nested(Map<String, Object> row, String name)
+    private static List<String> linked(Map<String, Object> row)
     {
-        return (Map<String, Object>) row.get(name);
-    }
+        final List<Map<String, Object>> bazs = (List<Map<String, Object>>) row.get("bazs");
 
-
-    /// The names on the far side of a link table, sorted, so that a link's own order does not decide
-    /// whether the test passes.
-    @SuppressWarnings("unchecked")
-    private static List<String> linked(Map<String, Object> row, String farSide)
-    {
-        final List<Map<String, Object>> links = (List<Map<String, Object>>) row.get("bazLinks");
-
-        return links.stream()
-            .map(link -> (String) nested(link, farSide).get("name"))
+        return bazs.stream()
+            .map(baz -> (String) baz.get("name"))
             .sorted()
             .toList();
     }

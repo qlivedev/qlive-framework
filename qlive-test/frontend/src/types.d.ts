@@ -96,8 +96,6 @@ export type AppVersion = {
 
 /** Generated from public.bar */
 export type Bar = {
-    /** One-to-many objects from bar_link.bar_id */
-    bazLinks: BarLink[]
     /** Many-to-many objects through bar_link.bar_id */
     bazs: Baz[]
     /** DB column 'created' */
@@ -127,13 +125,9 @@ export type BarDocument = {
 
 /** Generated from public.bar_link */
 export type BarLink = {
-    /** Target of 'bar_id' */
-    bar: Bar
-    /** DB foreign key column 'bar_id' */
+    /** DB column 'bar_id' */
     barId: string
-    /** Target of 'baz_id' */
-    baz: Baz
-    /** DB foreign key column 'baz_id' */
+    /** DB column 'baz_id' */
     bazId: string
     /** DB column 'id' */
     id: string
@@ -145,8 +139,6 @@ export type BarLink = {
 export type Baz = {
     /** Many-to-many objects through bar_link.baz_id */
     bars: Bar[]
-    /** One-to-many objects from bar_link.baz_id */
-    bazLinks: BarLink[]
     /** DB column 'created' */
     created: Temporal.Instant
     /** DB column 'description' */

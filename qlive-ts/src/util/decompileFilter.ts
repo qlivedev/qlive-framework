@@ -87,18 +87,19 @@ export function decompileFilter(condition: CNode | null, level: number = 0, matc
     } else if (type === "Condition" || type === "Operation")
     {
         const {name, operands} = condition;
-        if (invert && !topLevelConditions.hasOwnProperty(name))
+        const isMethod = invert && !topLevelConditions.hasOwnProperty(name)
+        const args = isMethod ? operands.slice(1) : operands
+        // an empty argument list stays on one line: "isTrue()", not "isTrue(\n)"
+        const multiLine = level >= 0 && args.length > 0
+        const argSource = args.map(o => decompileFilter(o, nextLevel, match, invert))
+            .join(multiLine ? ",\n" : ",")
+        const call = markerL + name + (multiLine ? "(\n" + argSource + "\n" + indent(level) + ")" : "(" + argSource + ")") + markerR
+
+        if (isMethod)
         {
-            return decompileFilter(operands[0], level, match,
-                true) + "." + markerL + name + (level >= 0 && operands.length > 1 ? "(\n" : "(") + operands.slice(1)
-                .map(o => decompileFilter(o, nextLevel, match, invert)).join(
-                    (level >= 0 && operands.length > 1 ? ",\n" : ",")) + (level >= 0 && operands.length > 1 ? "\n" : "") + indent(
-                level) + ")" + markerR;
+            return decompileFilter(operands[0], level, match, true) + "." + call
         }
-        return indent(level) + markerL + name + (level >= 0 && operands.length > 0 ? "(\n" : "(") + operands.map(
-            o => decompileFilter(o, nextLevel, match, invert)).join(
-            (level >= 0 && operands.length > 1 ? ",\n" : ",")) + (level >= 0 && operands.length > 0 ? "\n" : "") + indent(
-            level) + ")" + markerR;
+        return indent(level) + call;
     } else if (type === "Value")
     {
         const {value, scalarType} = condition;

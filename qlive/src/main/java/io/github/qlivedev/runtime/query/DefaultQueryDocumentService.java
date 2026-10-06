@@ -3,6 +3,7 @@ package io.github.qlivedev.runtime.query;
 import io.github.qlivedev.model.QueryConfig;
 import io.github.qlivedev.model.QueryDocument;
 import io.github.qlivedev.runtime.meta.QueryConfigMeta;
+import io.github.qlivedev.graphql.PojoTypes;
 import io.github.qlivedev.graphql.QLiveDomain;
 import graphql.GraphQL;
 import graphql.schema.DataFetchingEnvironment;
@@ -33,6 +34,8 @@ public class DefaultQueryDocumentService
     @Override
     public <T> DocumentQueryBuilder<T> buildQuery(Class<T> type, DataFetchingEnvironment env, QueryConfig config)
     {
+        PojoTypes.ensurePojoType(type);
+
         return new DocumentQueryBuilder<>(this::execute, type, env, config);
     }
 

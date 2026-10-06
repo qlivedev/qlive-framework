@@ -6,6 +6,7 @@ import io.github.qlivedev.runtime.domain.TestLogic;
 import io.github.qlivedev.testdomain.tables.pojos.TestFoo;
 import io.github.qlivedev.testdomain.tables.pojos.TestUser;
 import io.github.qlivedev.graphql.QLiveDomain;
+import io.github.qlivedev.graphql.QLiveDomainTypeException;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
 import org.junit.jupiter.api.Test;
 
@@ -124,6 +125,16 @@ class MergeMetadataProviderTest
             assertThat(e.getMessage(), containsString("TestUser"));
             assertThat(e.getMessage(), containsString("version"));
         }
+    }
+
+
+    @Test
+    void reportsATableGivenForThePojo()
+    {
+        assertThrows(
+            QLiveDomainTypeException.class,
+            () -> MergeMetadataProvider.newProvider().resolveConflicts(io.github.qlivedev.testdomain.tables.TestFoo.class)
+        );
     }
 
 

@@ -47,14 +47,20 @@ public final class PojoTypes
 
 
     /**
-     * Tests if the user has imported the wrong of the same name accidentally by not importing the POJO class but
-     * the Table or Record class.
+     * Checks a class the application hands in as a domain type. The jOOQ generator writes a {@code Table}, a
+     * {@code Record} and a POJO of the same simple name, so importing the wrong one is an easy mistake whose
+     * consequences otherwise show up far from where it was made. A class annotated as a
+     * {@link GraphQLScalar} is no object type either.
+     * <p>
+     * Every API that accepts a POJO class from the application calls this where it accepts it.
      *
-     * @param cls
+     * @param cls   class given as a domain type
      *
-     * @return
+     * @return the class
+     *
+     * @throws QLiveDomainTypeException if the class is a jOOQ {@code Table} or {@code Record}, or a scalar
      */
-    static Class<?> ensurePojoType(Class<?> cls)
+    public static Class<?> ensurePojoType(Class<?> cls)
     {
         if (!isPojoType(cls))
         {

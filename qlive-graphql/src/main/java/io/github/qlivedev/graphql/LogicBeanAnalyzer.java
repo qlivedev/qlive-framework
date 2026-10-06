@@ -200,6 +200,8 @@ class LogicBeanAnalyzer
 
             for (Class typeParam : typeParamAnno.types())
             {
+                PojoTypes.ensurePojoType(typeParam);
+
 
                 final String varName = ((TypeVariable) actualTypeArgument).getName();
                 Map<String, Class<?>> map = new LinkedHashMap<>();
@@ -329,6 +331,8 @@ class LogicBeanAnalyzer
 
             for (Class typeParam : typeParamAnno.types())
             {
+                PojoTypes.ensurePojoType(typeParam);
+
                 final String varName = ((TypeVariable) actualTypeArgument).getName();
                 Map<String, Class<?>> map = new LinkedHashMap<>();
                 map.put(varName, typeParam);

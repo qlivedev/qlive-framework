@@ -3,6 +3,7 @@ package io.github.qlivedev.runtime.meta;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.OutputType;
+import io.github.qlivedev.graphql.PojoTypes;
 import io.github.qlivedev.graphql.meta.DomainMeta;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
 import graphql.schema.GraphQLObjectType;
@@ -165,6 +166,8 @@ public class MergeMetadataProvider
 
     private Declaration declarationFor(Class<?> javaType)
     {
+        PojoTypes.ensurePojoType(javaType);
+
         return byJavaType.computeIfAbsent(javaType, ignored -> new Declaration());
     }
 

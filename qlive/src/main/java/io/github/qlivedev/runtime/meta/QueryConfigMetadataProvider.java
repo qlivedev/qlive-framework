@@ -4,6 +4,7 @@ import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.util.Util;
 import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.OutputType;
+import io.github.qlivedev.graphql.PojoTypes;
 import io.github.qlivedev.graphql.meta.DomainMeta;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
 import org.slf4j.Logger;
@@ -142,6 +143,8 @@ public class QueryConfigMetadataProvider
 
         for (Class<?> cls : javaTypes)
         {
+            PojoTypes.ensurePojoType(cls);
+
             // Two statements about one type are two opinions about it, and the second silently winning
             // would be the kind of thing an application finds out about in a browser. Say it once, or say
             // it with forAllTypes() and depart from it per type.

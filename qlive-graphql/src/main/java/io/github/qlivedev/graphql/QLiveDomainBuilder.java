@@ -532,6 +532,8 @@ public class QLiveDomainBuilder
      */
     public QLiveDomainBuilder objectType(Class<?> cls)
     {
+        PojoTypes.ensurePojoType(cls);
+
         final jakarta.persistence.Table anno = cls.getAnnotation(jakarta.persistence.Table.class);
         if (anno == null)
         {
@@ -665,7 +667,7 @@ public class QLiveDomainBuilder
      */
     public QLiveDomainBuilder withAdditionalInputType(Class<?> inputType)
     {
-        this.additionalInputTypes.add(inputType);
+        this.additionalInputTypes.add(PojoTypes.ensurePojoType(inputType));
 
         return this;
     }
@@ -684,7 +686,10 @@ public class QLiveDomainBuilder
      */
     public QLiveDomainBuilder withAdditionalInputTypes(Class<?>... inputTypes)
     {
-        Collections.addAll(this.additionalInputTypes, inputTypes);
+        for (Class<?> inputType : inputTypes)
+        {
+            withAdditionalInputType(inputType);
+        }
 
         return this;
     }

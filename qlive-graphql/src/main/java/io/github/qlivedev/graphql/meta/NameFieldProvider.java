@@ -7,6 +7,7 @@ import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLTypeUtil;
 import io.github.qlivedev.graphql.OutputType;
+import io.github.qlivedev.graphql.PojoTypes;
 import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.QLiveDomainTypeException;
 import org.slf4j.Logger;
@@ -98,6 +99,8 @@ public class NameFieldProvider
 
         for (Class<?> cls : javaTypes)
         {
+            PojoTypes.ensurePojoType(cls);
+
             // Two statements about one type are two opinions about it, and the second silently winning would be
             // the kind of thing an application finds out about in a browser.
             if (byJavaType.putIfAbsent(cls, configurer) != null)

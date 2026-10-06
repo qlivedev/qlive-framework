@@ -1,5 +1,6 @@
 package io.github.qlivedev.runtime.pubsub;
 
+import io.github.qlivedev.graphql.PojoTypes;
 import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.filter.FilterTransformer;
@@ -36,6 +37,8 @@ public class DefaultPubSubService
         {
             throw new IllegalArgumentException("A channel needs both a name and a payload class");
         }
+
+        PojoTypes.ensurePojoType(payloadType);
 
         final Topic existing = topics.putIfAbsent(topic, new Topic(topic, payloadType));
 

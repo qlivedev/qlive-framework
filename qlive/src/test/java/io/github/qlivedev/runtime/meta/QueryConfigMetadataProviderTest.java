@@ -10,6 +10,7 @@ import io.github.qlivedev.runtime.domain.TestLogic;
 import io.github.qlivedev.testdomain.tables.pojos.TestFoo;
 import io.github.qlivedev.testdomain.tables.pojos.TestUser;
 import io.github.qlivedev.graphql.QLiveDomain;
+import io.github.qlivedev.graphql.QLiveDomainTypeException;
 import io.github.qlivedev.graphql.meta.MetadataProvider;
 import org.junit.jupiter.api.Test;
 
@@ -241,6 +242,18 @@ class QueryConfigMetadataProviderTest
 
         assertThat(e.getMessage(), containsString("TestFoo"));
         assertThat(e.getMessage(), containsString("twice"));
+    }
+
+
+    /// The table of the same name is the import an application gets wrong, and it is reported where it is
+    /// declared rather than as a type no query document was declared for.
+    @Test
+    void reportsATableGivenForThePojo()
+    {
+        assertThrows(
+            QLiveDomainTypeException.class,
+            () -> QueryConfigMetadataProvider.newProvider().forType(io.github.qlivedev.testdomain.tables.TestFoo.class)
+        );
     }
 
 

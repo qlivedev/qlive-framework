@@ -41,12 +41,16 @@ The grid below sorts and filters by a column no table has, the sum of two
 others:
 
 ```ts
-const SUM = field("numA").add(field("numB"));
+    field("numA").add(field("numB"))
 ```
+Running against an actual QLive server, that expression would be translated into SQL running on the database.
 
-On the server, that expression is SQL. This page has no server: the grid
-runs on recorded rows, and the same expression runs right here. Click the
-sum's header, or give it a range.
+This page however has no such server, it just runs on Github Pages, a static file host. So here we reuse a method normally
+meant for testing or Storybook: We record the injections of a live example and the grid here then runs on recorded rows.
+It evaluates the recorded rows against the same current filter expression transformed into a JavaScript function. From
+the component's perspective, nothing changes.
+
+Click the sum's header, or try limiting the date range.
 
 <QLiveDemo view="grid/Sum"/>
 
@@ -56,6 +60,7 @@ A view's query is a static declaration in that shared language, so the
 server can tell what a page needs before the page exists:
 
 ```tsx
+import {useInjection} from "@qlivedev/qlive-ts";
 export default function Home() {
     const foos = useInjection(Q_Foo);
     // ...
@@ -66,8 +71,7 @@ It runs the query and puts the result in the page. Nothing fetches it, and
 there is no loading state to render. Components get simpler for it, and
 their tests more so: there is no fetch to mock and nothing to wait for.
 
-If React Server Components are your reference point: the same idea, for
-teams that want a Java server.
+It does the same job as React Server Components, but with a Java server and a declarative way to express data needs.
 
 ## Requirements
 

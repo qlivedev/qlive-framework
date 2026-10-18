@@ -128,18 +128,18 @@ CREATE TABLE public.app_version
     entity_type character varying(100) NOT NULL,
     entity_id   character varying(36) NOT NULL,
     prev        character varying(36),
-    field_layout character varying(64) NOT NULL,
+    field_set   character varying(64) NOT NULL,
     CONSTRAINT pk_app_version PRIMARY KEY (id),
     CONSTRAINT fk_app_version_owner_id FOREIGN KEY (owner_id)
         REFERENCES public.app_user (id)
 );
 
-CREATE TABLE public.app_field_layout
+CREATE TABLE public.app_field_set
 (
     id          character varying(64) NOT NULL,
     entity_type character varying(100) NOT NULL,
     fields      text                  NOT NULL,
-    CONSTRAINT pk_app_field_layout PRIMARY KEY (id)
+    CONSTRAINT pk_app_field_set PRIMARY KEY (id)
 );
 ```
 
@@ -182,41 +182,42 @@ and a deployment is a restart. That is a bet on nothing important
 happening in a two-day window, and "park it until Monday" is a feature
 that deliberately reaches across one.
 
-**`app_field_layout` is the fix.** A version record names the field
-layout its mask was written against, and the layout table holds that
-layout's ordered field-name list. On read there are three cases and no
+**`app_field_set` is the fix.** A version record names the field set
+its mask was written against, and the field set table holds that field
+set's ordered field-name list. On read there are three cases and no
 migration step in any of them:
 
-- **The layout is the current one.** The mask reads directly.
-- **The layout is an older one we still have.** Both lists are in hand,
-  so the mask is permuted into today's positions and stays *accurate*.
+- **The field set is the current one.** The mask reads directly.
+- **The field set is an older one we still have.** Both lists are in
+  hand, so the mask is permuted into today's positions and stays
+  *accurate*.
   Bits for fields that no longer exist are dropped, which is right: a
   field that is gone cannot be in conflict.
-- **The layout is unknown**, because the record predates the table or was
-  written by something else. The mask is treated as unknown, which
+- **The field set is unknown**, because the record predates the table or
+  was written by something else. The mask is treated as unknown, which
   already has a meaning -- assume every field changed, the same as for a
   record whose version was pruned.
 
 The third case is the fallback rather than the norm, and that is the
-whole point. A layout hash on its own can only *detect* that the mask
+whole point. A field set hash on its own can only *detect* that the mask
 moved; keeping the list is what lets us undo it. Detection alone would
 mean every deployment turns the Friday-to-Monday park -- the case this
 feature exists for -- into a full conflict instead of the clean
 auto-merge the mask was recorded to make possible.
 
 Nothing about this is a write-path dependency, a step that has to run, or
-a lock. Records written under two layouts can sit in the table side by
-side, which is what makes a rolling deployment a non-event, and the
+a lock. Records written under two field sets can sit in the table side
+by side, which is what makes a rolling deployment a non-event, and the
 remapping happens on the conflict path only -- `rowcount == 0`, walk the
 chain -- which is rare and behind the in-memory version holders anyway.
 
-**`id` is a hash of the layout, which makes writing it an idempotent
+**`id` is a hash of the field set, which makes writing it an idempotent
 upsert.** SHA-256 of the type name and the ordered field names, joined
 with a separator that cannot occur in a GraphQL name -- without one,
 `["ab", "c"]` and `["a", "bc"]` hash alike, which is a real collision at
 a rate nowhere near the birthday bound. Hash the list that actually
 assigns the bit indices rather than a separately sorted copy of it, or
-the two can drift and the hash certifies a layout nothing ever used.
+the two can drift and the hash certifies a field set nothing ever used.
 
 The type name is in the hashed input on purpose, even though the bit
 semantics do not need it: `Bar` and `Baz` in qlive-test have field lists
@@ -226,20 +227,21 @@ unanswerable.
 
 **A collision is not a design consideration here, and the hash does not
 have to be trusted anyway.** At 256 bits the birthday probability over
-the ~10^4 distinct layouts a long-lived application accumulates is about
-10^-70, far below the rate at which the row corrupts on disk, and there
-is no adversary either, the input being the application's own field
-names. More to the point, the reader has the list itself and compares
-that, and the writer sees a collision for free -- a layout row that
-already exists under our id with different `fields` is one, and it fails
-loudly at startup rather than silently merging the wrong fields.
+the ~10^4 distinct field sets a long-lived application accumulates is
+about 10^-70, far below the rate at which the row corrupts on disk, and
+there is no adversary either, the input being the application's own
+field names. More to the point, the reader has the list itself and
+compares that, and the writer sees a collision for free -- a field set
+row that already exists under our id with different `fields` is one, and
+it fails loudly at startup rather than silently merging the wrong
+fields.
 
 `varchar(64)` is exactly SHA-256 hex with no slack for an algorithm tag.
 Truncating to 128 bits (32 hex characters, still ~10^-31 over the same
 10^4) or storing base64url (43) leaves room for a `v2:` prefix. Either
-way an unrecognised layout falls back to the third case above, so getting
-this wrong is safe rather than fatal -- worth settling when something
-first writes the column, not before.
+way an unrecognised field set falls back to the third case above, so
+getting this wrong is safe rather than fatal -- worth settling when
+something first writes the column, not before.
 
 This table and this column are what this design adds to the model it
 inherits from Automaton. Everything else in it was already there.
@@ -344,10 +346,10 @@ walk from the version whose `prev` is our base up to the current one,
 OR-ing the `field_mask`s. That union is *their* changed fields.
 
 - **No record for our base version** (pruned, or older than the
-  lifetime), or a record naming a field layout we no longer have: assume
+  lifetime), or a record naming a field set we no longer have: assume
   every field changed. Conservative, and the only safe answer. A record
-  whose layout we do have is remapped into today's field positions first,
-  so a deployment in between does not land here.
+  whose field set we do have is remapped into today's field positions
+  first, so a deployment in between does not land here.
 - **Their fields and our fields do not intersect**: a pseudo-conflict. A
   edited `name`, B edited `num`, and both edits belong in the row. With
   `autoMerge` on, retry the write with their version as the base and
@@ -388,8 +390,8 @@ the notification. It costs one event class now.
 
 **Cleanup.** A scheduled task drops version records older than the
 lifetime from memory and from the database. Without it `app_version`
-grows forever. `app_field_layout` is swept by the same task, dropping a
-layout no version record names any more -- except the current one per
+grows forever. `app_field_set` is swept by the same task, dropping a
+field set no version record names any more -- except the current one per
 type, which is about to be written again.
 
 **`ensureNotVersioned`.** A guard other services call before writing a
@@ -1121,13 +1123,13 @@ is easier to see now than after the second one is written.
 - **The version record lifetime spans a weekend.** 7 days, not
   Automaton's 48 hours: Friday evening to Monday morning is 72, and
   parking a change set over exactly that gap is a feature.
-  `app_field_layout` is what makes a longer lifetime safe.
-- **A field layout is stored, not just hashed.** A hash alone detects
+  `app_field_set` is what makes a longer lifetime safe.
+- **A field set is stored, not just hashed.** A hash alone detects
   that the mask moved; the list lets us move it back, so a deployment
   costs no accuracy instead of degrading every older mask to "assume
   everything changed". Remapping happens on read, so there is no
-  migration to run, nothing to lock, and mixed layouts in one table are
-  legal.
+  migration to run, nothing to lock, and mixed field sets in one table
+  are legal.
 - **A stash keeps the base version it was taken with.** Adopting the
   version of the freshly queried row would turn a parked conflict into a
   silent clobber three days later.
@@ -1202,8 +1204,8 @@ type analysis.
    chain walk, the cleanup task. This is where the pseudo-conflict case
    starts merging silently.
 
-   `app_field_layout` and the read-time remapping land here as well,
-   since this is where a mask first exists. The `field_layout` column is
+   `app_field_set` and the read-time remapping land here as well,
+   since this is where a mask first exists. The `field_set` column is
    already in the schema from step 1 and nothing writes it before this.
 5. **Client WorkingSet.** Registration, proxy drafts, dirty state,
    scalar changes, `merge()`, refresh on success.

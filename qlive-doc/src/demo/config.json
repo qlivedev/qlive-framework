@@ -126,14 +126,14 @@
       }
     ],
     "types": {
-      "AppFieldLayout": {
+      "AppFieldSet": {
         "meta": {
           "uniqueKeys": [
             {
               "fields": [
                 "id"
               ],
-              "name": "pk_app_field_layout",
+              "name": "pk_app_field_set",
               "nullable": false,
               "primary": true
             }
@@ -407,7 +407,7 @@
     "types": [
       {
         "kind": "OBJECT",
-        "name": "AppFieldLayout",
+        "name": "AppFieldSet",
         "description": null,
         "fields": [
           {
@@ -819,7 +819,7 @@
             "deprecationReason": null
           },
           {
-            "name": "fieldLayout",
+            "name": "fieldSet",
             "description": null,
             "args": [],
             "type": {

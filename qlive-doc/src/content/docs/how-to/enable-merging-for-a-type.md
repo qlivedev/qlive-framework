@@ -46,27 +46,27 @@ CREATE TABLE public.app_version
     entity_type  character varying(100)      NOT NULL,
     entity_id    character varying(36)       NOT NULL,
     prev         character varying(36),
-    field_layout character varying(64)       NOT NULL,
+    field_set    character varying(64)       NOT NULL,
     CONSTRAINT pk_app_version PRIMARY KEY (id),
     CONSTRAINT fk_app_version_owner_id FOREIGN KEY (owner_id)
         REFERENCES public.app_user (id)
 );
 
-CREATE TABLE public.app_field_layout
+CREATE TABLE public.app_field_set
 (
     id          character varying(64)  NOT NULL,
     entity_type character varying(100) NOT NULL,
     fields      text                   NOT NULL,
-    CONSTRAINT pk_app_field_layout PRIMARY KEY (id)
+    CONSTRAINT pk_app_field_set PRIMARY KEY (id)
 );
 ```
 
 One `app_version` row per recorded change: which fields it touched, under
-which field layout, and the version it was made against. `prev` chains the
+which field set, and the version it was made against. `prev` chains the
 records for one row, and walking that chain is what lets two edits that
 touched different fields both land instead of one of them failing.
 
-`app_field_layout` holds the ordered field list a mask was written against,
+`app_field_set` holds the ordered field list a mask was written against,
 so a mask stays readable across a deployment that added a field.
 
 **`owner_id` references the user table.** The merge records

@@ -20,7 +20,7 @@ template for applications, but it is three things at once:
   proxy rules, login entry), `main.tsx`, `login.tsx`/`login.html`, the
   frontend, jOOQ and DocsExtractor plugins in the pom, and the four
   tables the `qlive` module reaches by name: `app_user`, `app_login`,
-  `app_field_layout`, `app_version`.
+  `app_field_set`, `app_version`.
 - **Test scenarios.** Foo/Bar/Baz/Qux, their `configureRelation` calls,
   `ExampleMetadataProvider`, `pageSize(5)`, `TestComponent`, the quick
   login users, the regression tests.

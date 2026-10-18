@@ -29,7 +29,7 @@ to the point where any of it runs.
 ## 1. The tables and columns QLive requires
 
 **What exists.** `MergeTables` names `app_version` and
-`app_field_layout` as constants, deliberately not configurable, reached
+`app_field_set` as constants, deliberately not configurable, reached
 through plain jOOQ names because the generated classes live in the
 application. `AppUserDetailsService` and `DefaultPersistentTokenRepository` read a
 user table and a remember-me table whose names are constructor arguments

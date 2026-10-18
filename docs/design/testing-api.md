@@ -251,7 +251,7 @@ qlive-ts's tests now.
 delivers an `EntityVersion` change to every subscription that watches
 it. The helper builds the frame: the field mask from the field names
 with `maskOf()`, which stays unexported because its bit positions have
-to match `FieldLayout` on the Java side, and the rest of the payload
+to match `FieldSet` on the Java side, and the rest of the payload
 with fixed values. This is what `publish()` does in
 `useDocumentWatch.test.tsx` and `gridWatch.test.tsx`, without the test
 knowing the frame format or the subscription ids.

@@ -4,7 +4,7 @@
 package io.github.qlivedev.qlivetest.domain;
 
 
-import io.github.qlivedev.qlivetest.domain.tables.AppFieldLayout;
+import io.github.qlivedev.qlivetest.domain.tables.AppFieldSet;
 import io.github.qlivedev.qlivetest.domain.tables.AppLogin;
 import io.github.qlivedev.qlivetest.domain.tables.AppUser;
 import io.github.qlivedev.qlivetest.domain.tables.AppVersion;
@@ -33,9 +33,9 @@ import javax.annotation.processing.Generated;
 public class Tables {
 
     /**
-     * The table <code>public.app_field_layout</code>.
+     * The table <code>public.app_field_set</code>.
      */
-    public static final AppFieldLayout APP_FIELD_LAYOUT = AppFieldLayout.APP_FIELD_LAYOUT;
+    public static final AppFieldSet APP_FIELD_SET = AppFieldSet.APP_FIELD_SET;
 
     /**
      * The table <code>public.app_login</code>.

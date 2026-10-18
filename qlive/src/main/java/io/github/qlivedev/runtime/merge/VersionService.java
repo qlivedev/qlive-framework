@@ -17,7 +17,7 @@ public interface VersionService
     void write(List<EntityVersion> versions);
 
 
-    /// Drops the records made before the given point, and the field layouts no remaining record names.
+    /// Drops the records made before the given point, and the field sets no remaining record names.
     /// Answers how many records went.
     int prune(Timestamp before);
 }

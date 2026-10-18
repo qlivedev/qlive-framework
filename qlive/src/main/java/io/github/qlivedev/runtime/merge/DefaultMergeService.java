@@ -81,7 +81,7 @@ public class DefaultMergeService
 
     private final DSLContext dslContext;
 
-    private final FieldLayoutService fieldLayouts;
+    private final FieldSetService fieldSets;
 
     private final VersionService versions;
 
@@ -91,22 +91,22 @@ public class DefaultMergeService
 
 
     /// A chain longer than this is not a chain anybody can usefully diff, and walking it would be the merge
-    /// paying for somebody else's write storm. Reading past it is refused the same way an unknown layout is:
-    /// assume every field changed.
+    /// paying for somebody else's write storm. Reading past it is refused the same way an unknown field set
+    /// is: assume every field changed.
     private final static int MAX_CHAIN_LENGTH = 1000;
 
 
     public DefaultMergeService(
         QLiveDomain domain,
         DSLContext dslContext,
-        FieldLayoutService fieldLayouts,
+        FieldSetService fieldSets,
         VersionService versions
     )
     {
         this.domain = domain;
         this.types = domain.getTypeRegistry();
         this.dslContext = dslContext;
-        this.fieldLayouts = fieldLayouts;
+        this.fieldSets = fieldSets;
         this.versions = versions;
 
         final Map<Name, String> byTable = new HashMap<>();
@@ -580,7 +580,7 @@ public class DefaultMergeService
     /// The walk goes backwards, each record naming the version it was made against, until it meets the
     /// version we read. It gives up rather than guesses in every case where it cannot get there: a record
     /// that was pruned, a chain that runs out before our base -- which is what a version written by
-    /// something other than this merge looks like -- a field layout that is no longer stored, and a chain
+    /// something other than this merge looks like -- a field set that is no longer stored, and a chain
     /// too long to be worth walking.
     private Set<String> theirFields(PreparedChange change, String storedVersion)
     {
@@ -613,8 +613,8 @@ public class DefaultMergeService
                 return null;
             }
 
-            final Set<String> fields = fieldLayouts.fields(
-                record.getFieldLayout(), change.typeName, record.getFieldMask()
+            final Set<String> fields = fieldSets.fields(
+                record.getFieldSet(), change.typeName, record.getFieldMask()
             );
 
             if (fields == null)
@@ -641,7 +641,7 @@ public class DefaultMergeService
             return;
         }
 
-        final FieldLayout layout = fieldLayouts.current(change.typeName);
+        final FieldSet fieldSet = fieldSets.current(change.typeName);
 
         written.add(
             new EntityVersion(
@@ -649,8 +649,8 @@ public class DefaultMergeService
                 change.typeName,
                 change.change.getId(),
                 prev,
-                layout.mask(change.conflictFields.keySet()),
-                layout.getId(),
+                fieldSet.mask(change.conflictFields.keySet()),
+                fieldSet.getId(),
                 AppAuthentication.current().getId(),
                 new Timestamp(System.currentTimeMillis())
             )
@@ -879,7 +879,7 @@ public class DefaultMergeService
 
             if (count != 0 && newVersion != null && linkId != null)
             {
-                final FieldLayout layout = fieldLayouts.current(linkType);
+                final FieldSet fieldSet = fieldSets.current(linkType);
 
                 written.add(
                     new EntityVersion(
@@ -887,8 +887,8 @@ public class DefaultMergeService
                         linkType,
                         linkId,
                         null,
-                        layout.mask(fields),
-                        layout.getId(),
+                        fieldSet.mask(fields),
+                        fieldSet.getId(),
                         AppAuthentication.current().getId(),
                         new Timestamp(System.currentTimeMillis())
                     )

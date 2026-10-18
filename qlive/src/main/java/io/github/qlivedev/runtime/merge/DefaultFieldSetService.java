@@ -20,21 +20,21 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-/// Default {@link FieldLayoutService}, keeping the layouts in `app_field_layout`.
+/// Default {@link FieldSetService}, keeping the field sets in `app_field_set`.
 ///
-/// The current layout of every versioned type is worked out once, at startup, which is also where a type
+/// The current field set of every versioned type is worked out once, at startup, which is also where a type
 /// with more fields than a mask has bits is refused. Storing them is an upsert -- the id being the hash of
-/// the layout, a row that is already there is the same layout -- so a rolling deployment writes both
-/// layouts and neither node has to wait for the other.
+/// the field set, a row that is already there is the same field set -- so a rolling deployment writes both
+/// field sets and neither node has to wait for the other.
 ///
-/// Older layouts are read on demand and kept. That only happens on the conflict path, which is rare, and a
-/// layout never changes under its id, so there is nothing to invalidate.
-public class DefaultFieldLayoutService
-    implements FieldLayoutService, InitializingBean
+/// Older field sets are read on demand and kept. That only happens on the conflict path, which is rare, and a
+/// field set never changes under its id, so there is nothing to invalidate.
+public class DefaultFieldSetService
+    implements FieldSetService, InitializingBean
 {
-    private final static Logger log = LoggerFactory.getLogger(DefaultFieldLayoutService.class);
+    private final static Logger log = LoggerFactory.getLogger(DefaultFieldSetService.class);
 
-    private final static Table<?> TABLE = DSL.table(DSL.name(MergeTables.APP_FIELD_LAYOUT));
+    private final static Table<?> TABLE = DSL.table(DSL.name(MergeTables.APP_FIELD_SET));
 
     private final static Field<String> ID = DSL.field(DSL.name("id"), String.class);
 
@@ -46,76 +46,76 @@ public class DefaultFieldLayoutService
 
     private final DSLContext dslContext;
 
-    /// The layout of every versioned type as this deployment has it. Built in the constructor: the domain
+    /// The field set of every versioned type as this deployment has it. Built in the constructor: the domain
     /// does not change after startup, and neither does what a mask written from here on means.
-    private final Map<String, FieldLayout> current = new LinkedHashMap<>();
+    private final Map<String, FieldSet> current = new LinkedHashMap<>();
 
-    /// Every layout we have looked up, current ones included, by id. A layout is its hash, so a hit is
+    /// Every field set we have looked up, current ones included, by id. A field set is its hash, so a hit is
     /// final.
-    private final Map<String, FieldLayout> byId = new ConcurrentHashMap<>();
+    private final Map<String, FieldSet> byId = new ConcurrentHashMap<>();
 
 
-    public DefaultFieldLayoutService(QLiveDomain domain, DSLContext dslContext)
+    public DefaultFieldSetService(QLiveDomain domain, DSLContext dslContext)
     {
         this.dslContext = dslContext;
 
         for (String typeName : MergeMeta.versionedTypes(domain))
         {
-            final FieldLayout layout = FieldLayout.of(domain, typeName);
+            final FieldSet fieldSet = FieldSet.of(domain, typeName);
 
-            current.put(typeName, layout);
-            byId.put(layout.getId(), layout);
+            current.put(typeName, fieldSet);
+            byId.put(fieldSet.getId(), fieldSet);
         }
     }
 
 
-    /// Writes the current layouts, and fails the startup where one of them is already stored as a different
-    /// list of fields.
+    /// Writes the current field sets, and fails the startup where one of them is already stored as a
+    /// different list of fields.
     ///
     /// That collision cannot happen at the rate SHA-256 collides, and the check costs nothing anyway: the
-    /// row has to be read to find out whether to write it. What it actually catches is a layout id computed
-    /// from something other than the list that assigns the bit indices, which is a mistake with no
+    /// row has to be read to find out whether to write it. What it actually catches is a field set id
+    /// computed from something other than the list that assigns the bit indices, which is a mistake with no
     /// symptoms otherwise -- masks would simply name the wrong fields.
     @Override
     public void afterPropertiesSet()
     {
-        for (FieldLayout layout : current.values())
+        for (FieldSet fieldSet : current.values())
         {
-            store(layout);
+            store(fieldSet);
         }
 
-        log.debug("Stored field layouts: {}", current.values());
+        log.debug("Stored field sets: {}", current.values());
     }
 
 
     @Override
-    public FieldLayout current(String typeName)
+    public FieldSet current(String typeName)
     {
-        final FieldLayout layout = current.get(typeName);
+        final FieldSet fieldSet = current.get(typeName);
 
-        if (layout == null)
+        if (fieldSet == null)
         {
             throw new QLiveException(
-                "No field layout for '" + typeName + "'. Layouts exist for the versioned types of the " +
+                "No field set for '" + typeName + "'. Field sets exist for the versioned types of the " +
                     "domain, and only a versioned type has masks to read."
             );
         }
 
-        return layout;
+        return fieldSet;
     }
 
 
     @Override
-    public Set<String> fields(String layoutId, String typeName, BigInteger mask)
+    public Set<String> fields(String fieldSetId, String typeName, BigInteger mask)
     {
-        final FieldLayout layout = lookup(layoutId, typeName);
+        final FieldSet fieldSet = lookup(fieldSetId, typeName);
 
-        if (layout == null)
+        if (fieldSet == null)
         {
             return null;
         }
 
-        final Set<String> named = layout.fields(mask);
+        final Set<String> named = fieldSet.fields(mask);
 
         // the fields the type no longer has go: a field that is gone cannot be in conflict, and this is the
         // whole of "permute the mask into today's positions" once the mask is names rather than bits
@@ -128,7 +128,7 @@ public class DefaultFieldLayoutService
     @Override
     public int pruneUnused(Timestamp storedBefore)
     {
-        final List<String> keep = current.values().stream().map(FieldLayout::getId).toList();
+        final List<String> keep = current.values().stream().map(FieldSet::getId).toList();
 
         final int dropped = dslContext.deleteFrom(TABLE)
             .where(CREATED.lessThan(storedBefore))
@@ -136,25 +136,25 @@ public class DefaultFieldLayoutService
             .andNotExists(
                 dslContext.selectOne()
                     .from(DSL.table(DSL.name(MergeTables.APP_VERSION)))
-                    .where(DSL.field(DSL.name("field_layout"), String.class).eq(ID))
+                    .where(DSL.field(DSL.name("field_set"), String.class).eq(ID))
             )
             .execute();
 
-        log.debug("Pruned {} field layouts", dropped);
+        log.debug("Pruned {} field sets", dropped);
 
         return dropped;
     }
 
 
-    /// The layout under the given id, from what we have or from the table, or null where it is not stored.
-    private FieldLayout lookup(String layoutId, String typeName)
+    /// The field set under the given id, from what we have or from the table, or null where it is not stored.
+    private FieldSet lookup(String fieldSetId, String typeName)
     {
-        if (layoutId == null)
+        if (fieldSetId == null)
         {
             return null;
         }
 
-        final FieldLayout known = byId.get(layoutId);
+        final FieldSet known = byId.get(fieldSetId);
 
         if (known != null)
         {
@@ -163,32 +163,32 @@ public class DefaultFieldLayoutService
 
         final Record stored = dslContext.select(ENTITY_TYPE, FIELDS)
             .from(TABLE)
-            .where(ID.eq(layoutId))
+            .where(ID.eq(fieldSetId))
             .fetchOne();
 
         if (stored == null)
         {
             // not cached as absent: another node of a rolling deployment may be about to write it
-            log.debug("No field layout {} of '{}' stored", layoutId, typeName);
+            log.debug("No field set {} of '{}' stored", fieldSetId, typeName);
             return null;
         }
 
-        final FieldLayout layout = FieldLayout.of(
+        final FieldSet fieldSet = FieldSet.of(
             stored.get(ENTITY_TYPE),
-            List.of(stored.get(FIELDS).split(FieldLayout.SEPARATOR))
+            List.of(stored.get(FIELDS).split(FieldSet.SEPARATOR))
         );
 
-        byId.put(layoutId, layout);
+        byId.put(fieldSetId, fieldSet);
 
-        return layout;
+        return fieldSet;
     }
 
 
-    private void store(FieldLayout layout)
+    private void store(FieldSet fieldSet)
     {
         final String stored = dslContext.select(FIELDS)
             .from(TABLE)
-            .where(ID.eq(layout.getId()))
+            .where(ID.eq(fieldSet.getId()))
             .fetchOne(FIELDS);
 
         if (stored == null)
@@ -197,20 +197,20 @@ public class DefaultFieldLayoutService
             dslContext.insertInto(TABLE)
                 .columns(ID, ENTITY_TYPE, FIELDS, CREATED)
                 .values(
-                    layout.getId(),
-                    layout.getTypeName(),
-                    layout.getJoinedFields(),
+                    fieldSet.getId(),
+                    fieldSet.getTypeName(),
+                    fieldSet.getJoinedFields(),
                     new Timestamp(System.currentTimeMillis())
                 )
                 .onConflict(ID)
                 .doNothing()
                 .execute();
         }
-        else if (!stored.equals(layout.getJoinedFields()))
+        else if (!stored.equals(fieldSet.getJoinedFields()))
         {
             throw new QLiveException(
-                "Field layout " + layout.getId() + " of '" + layout.getTypeName() + "' is stored as [" +
-                    stored + "] and computed as [" + layout.getJoinedFields() + "]. The id is a hash of " +
+                "Field set " + fieldSet.getId() + " of '" + fieldSet.getTypeName() + "' is stored as [" +
+                    stored + "] and computed as [" + fieldSet.getJoinedFields() + "]. The id is a hash of " +
                     "the field list, so the two cannot disagree unless the id is computed from something " +
                     "other than the list that assigns the bit indices."
             );

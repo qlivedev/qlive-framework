@@ -13,10 +13,10 @@ public final class MergeTables
         // no instances
     }
 
-    /// One row per recorded change to a versioned row: which fields it touched, under which field layout,
+    /// One row per recorded change to a versioned row: which fields it touched, under which field set,
     /// and the version it was made against.
     public final static String APP_VERSION = "app_version";
 
-    /// One row per field layout any stored mask was written against.
-    public final static String APP_FIELD_LAYOUT = "app_field_layout";
+    /// One row per field set any stored mask was written against.
+    public final static String APP_FIELD_SET = "app_field_set";
 }

@@ -60,7 +60,7 @@ function publish(entityId: string, fields: string[])
                 entityId,
                 prev: "v1",
                 fieldMask: maskOf("Bar", fields).toString(),
-                fieldLayout: "layout-1",
+                fieldSet: "field-set-1",
                 ownerId: "somebody",
                 created: "2026-09-11T10:00:00Z"
             }

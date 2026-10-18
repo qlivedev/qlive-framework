@@ -19,7 +19,7 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /// What a field mask means, which is a question about a list of names and needs no database to answer.
-class FieldLayoutTest
+class FieldSetTest
 {
     private static QLiveDomain domain;
 
@@ -38,7 +38,7 @@ class FieldLayoutTest
     void numbersEveryFieldOfTheTypeAlphabetically()
     {
         assertThat(
-            FieldLayout.of(domain, "TestFoo").getFields(),
+            FieldSet.of(domain, "TestFoo").getFields(),
             contains(
                 "created", "description", "flag", "fooType", "id", "name", "num", "owner", "ownerId",
                 "type", "version"
@@ -52,37 +52,37 @@ class FieldLayoutTest
     @Test
     void turnsNamesIntoBitsAndBack()
     {
-        final FieldLayout layout = FieldLayout.of(domain, "TestFoo");
+        final FieldSet fieldSet = FieldSet.of(domain, "TestFoo");
 
-        final BigInteger mask = layout.mask(List.of("name", "num"));
+        final BigInteger mask = fieldSet.mask(List.of("name", "num"));
 
         // 'name' is the sixth field and 'num' the seventh
         assertThat(mask, is(BigInteger.ZERO.setBit(5).setBit(6)));
-        assertThat(List.copyOf(layout.fields(mask)), contains("name", "num"));
+        assertThat(List.copyOf(fieldSet.fields(mask)), contains("name", "num"));
     }
 
 
-    /// A field the layout does not have is left out rather than refused, at both ends: a change may name a
+    /// A field the field set does not have is left out rather than refused, at both ends: a change may name a
     /// field this deployment added, and a mask written by one that had more fields sets bits past the end
     /// of the list. Neither is an error and a field that is gone cannot be in conflict.
     @Test
     void ignoresTheFieldsItDoesNotHave()
     {
-        final FieldLayout layout = FieldLayout.of("Small", List.of("a", "b"));
+        final FieldSet fieldSet = FieldSet.of("Small", List.of("a", "b"));
 
-        assertThat(layout.mask(List.of("a", "somethingElse")), is(BigInteger.ONE));
-        assertThat(List.copyOf(layout.fields(BigInteger.ZERO.setBit(1).setBit(40))), contains("b"));
+        assertThat(fieldSet.mask(List.of("a", "somethingElse")), is(BigInteger.ONE));
+        assertThat(List.copyOf(fieldSet.fields(BigInteger.ZERO.setBit(1).setBit(40))), contains("b"));
     }
 
 
     /// The separator is what keeps the hash honest. Without one the same characters in a different
-    /// arrangement are the same input, and two layouts that assign different bits would share an id.
+    /// arrangement are the same input, and two field sets that assign different bits would share an id.
     @Test
     void doesNotLetTheNamesRunTogether()
     {
         assertThat(
-            FieldLayout.of("T", List.of("ab", "c")).getId(),
-            is(not(FieldLayout.of("T", List.of("a", "bc")).getId()))
+            FieldSet.of("T", List.of("ab", "c")).getId(),
+            is(not(FieldSet.of("T", List.of("a", "bc")).getId()))
         );
     }
 
@@ -94,20 +94,20 @@ class FieldLayoutTest
     void tellsTwoTypesWithTheSameFieldsApart()
     {
         assertThat(
-            FieldLayout.of("Bar", List.of("id", "name")).getId(),
-            is(not(FieldLayout.of("Baz", List.of("id", "name")).getId()))
+            FieldSet.of("Bar", List.of("id", "name")).getId(),
+            is(not(FieldSet.of("Baz", List.of("id", "name")).getId()))
         );
     }
 
 
-    /// The same list is the same layout wherever it is computed, which is what lets a version record name
-    /// its layout in one column and what makes storing one an upsert.
+    /// The same list is the same field set wherever it is computed, which is what lets a version record name
+    /// its field set in one column and what makes storing one an upsert.
     @Test
-    void isTheSameLayoutWhereverItIsComputed()
+    void isTheSameFieldSetWhereverItIsComputed()
     {
         assertThat(
-            FieldLayout.of(domain, "TestFoo").getId(),
-            is(FieldLayout.of("TestFoo", FieldLayout.of(domain, "TestFoo").getFields()).getId())
+            FieldSet.of(domain, "TestFoo").getId(),
+            is(FieldSet.of("TestFoo", FieldSet.of(domain, "TestFoo").getFields()).getId())
         );
     }
 
@@ -119,13 +119,13 @@ class FieldLayoutTest
     void refusesATypeWithMoreFieldsThanAMaskHasBits()
     {
         final List<String> tooMany = new ArrayList<>();
-        for (int i = 0; i <= FieldLayout.MAX_FIELDS; i++)
+        for (int i = 0; i <= FieldSet.MAX_FIELDS; i++)
         {
             tooMany.add("field" + i);
         }
 
         assertThat(
-            assertThrows(QLiveException.class, () -> FieldLayout.of("Wide", tooMany)).getMessage(),
+            assertThrows(QLiveException.class, () -> FieldSet.of("Wide", tooMany)).getMessage(),
             containsString("128")
         );
     }

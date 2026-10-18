@@ -4,7 +4,7 @@
 package io.github.qlivedev.qlivetest.domain.tables.records;
 
 
-import io.github.qlivedev.qlivetest.domain.tables.AppFieldLayout;
+import io.github.qlivedev.qlivetest.domain.tables.AppFieldSet;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -34,22 +34,22 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 @Entity
 @Table(
-    name = "app_field_layout",
+    name = "app_field_set",
     schema = "public"
 )
-public class AppFieldLayoutRecord extends UpdatableRecordImpl<AppFieldLayoutRecord> {
+public class AppFieldSetRecord extends UpdatableRecordImpl<AppFieldSetRecord> {
 
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>public.app_field_layout.id</code>.
+     * Setter for <code>public.app_field_set.id</code>.
      */
     public void setId(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>public.app_field_layout.id</code>.
+     * Getter for <code>public.app_field_set.id</code>.
      */
     @Id
     @Column(name = "id", nullable = false, length = 64)
@@ -60,14 +60,14 @@ public class AppFieldLayoutRecord extends UpdatableRecordImpl<AppFieldLayoutReco
     }
 
     /**
-     * Setter for <code>public.app_field_layout.entity_type</code>.
+     * Setter for <code>public.app_field_set.entity_type</code>.
      */
     public void setEntityType(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>public.app_field_layout.entity_type</code>.
+     * Getter for <code>public.app_field_set.entity_type</code>.
      */
     @Column(name = "entity_type", nullable = false, length = 100)
     @NotNull
@@ -77,14 +77,14 @@ public class AppFieldLayoutRecord extends UpdatableRecordImpl<AppFieldLayoutReco
     }
 
     /**
-     * Setter for <code>public.app_field_layout.fields</code>.
+     * Setter for <code>public.app_field_set.fields</code>.
      */
     public void setFields(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>public.app_field_layout.fields</code>.
+     * Getter for <code>public.app_field_set.fields</code>.
      */
     @Column(name = "fields", nullable = false)
     @NotNull
@@ -93,14 +93,14 @@ public class AppFieldLayoutRecord extends UpdatableRecordImpl<AppFieldLayoutReco
     }
 
     /**
-     * Setter for <code>public.app_field_layout.created</code>.
+     * Setter for <code>public.app_field_set.created</code>.
      */
     public void setCreated(Timestamp value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>public.app_field_layout.created</code>.
+     * Getter for <code>public.app_field_set.created</code>.
      */
     @Column(name = "created", nullable = false, precision = 6)
     @NotNull
@@ -122,17 +122,17 @@ public class AppFieldLayoutRecord extends UpdatableRecordImpl<AppFieldLayoutReco
     // -------------------------------------------------------------------------
 
     /**
-     * Create a detached AppFieldLayoutRecord
+     * Create a detached AppFieldSetRecord
      */
-    public AppFieldLayoutRecord() {
-        super(AppFieldLayout.APP_FIELD_LAYOUT);
+    public AppFieldSetRecord() {
+        super(AppFieldSet.APP_FIELD_SET);
     }
 
     /**
-     * Create a detached, initialised AppFieldLayoutRecord
+     * Create a detached, initialised AppFieldSetRecord
      */
-    public AppFieldLayoutRecord(String id, String entityType, String fields, Timestamp created) {
-        super(AppFieldLayout.APP_FIELD_LAYOUT);
+    public AppFieldSetRecord(String id, String entityType, String fields, Timestamp created) {
+        super(AppFieldSet.APP_FIELD_SET);
 
         setId(id);
         setEntityType(entityType);
@@ -142,10 +142,10 @@ public class AppFieldLayoutRecord extends UpdatableRecordImpl<AppFieldLayoutReco
     }
 
     /**
-     * Create a detached, initialised AppFieldLayoutRecord
+     * Create a detached, initialised AppFieldSetRecord
      */
-    public AppFieldLayoutRecord(io.github.qlivedev.qlivetest.domain.tables.pojos.AppFieldLayout value) {
-        super(AppFieldLayout.APP_FIELD_LAYOUT);
+    public AppFieldSetRecord(io.github.qlivedev.qlivetest.domain.tables.pojos.AppFieldSet value) {
+        super(AppFieldSet.APP_FIELD_SET);
 
         if (value != null) {
             setId(value.getId());

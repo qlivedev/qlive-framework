@@ -160,19 +160,19 @@ public class AppVersionRecord extends UpdatableRecordImpl<AppVersionRecord> {
     }
 
     /**
-     * Setter for <code>public.app_version.field_layout</code>.
+     * Setter for <code>public.app_version.field_set</code>.
      */
-    public void setFieldLayout(String value) {
+    public void setFieldSet(String value) {
         set(7, value);
     }
 
     /**
-     * Getter for <code>public.app_version.field_layout</code>.
+     * Getter for <code>public.app_version.field_set</code>.
      */
-    @Column(name = "field_layout", nullable = false, length = 64)
+    @Column(name = "field_set", nullable = false, length = 64)
     @NotNull
     @Size(max = 64)
-    public String getFieldLayout() {
+    public String getFieldSet() {
         return (String) get(7);
     }
 
@@ -199,7 +199,7 @@ public class AppVersionRecord extends UpdatableRecordImpl<AppVersionRecord> {
     /**
      * Create a detached, initialised AppVersionRecord
      */
-    public AppVersionRecord(String id, BigInteger fieldMask, String ownerId, Timestamp created, String entityType, String entityId, String prev, String fieldLayout) {
+    public AppVersionRecord(String id, BigInteger fieldMask, String ownerId, Timestamp created, String entityType, String entityId, String prev, String fieldSet) {
         super(AppVersion.APP_VERSION);
 
         setId(id);
@@ -209,7 +209,7 @@ public class AppVersionRecord extends UpdatableRecordImpl<AppVersionRecord> {
         setEntityType(entityType);
         setEntityId(entityId);
         setPrev(prev);
-        setFieldLayout(fieldLayout);
+        setFieldSet(fieldSet);
         resetChangedOnNotNull();
     }
 
@@ -227,7 +227,7 @@ public class AppVersionRecord extends UpdatableRecordImpl<AppVersionRecord> {
             setEntityType(value.getEntityType());
             setEntityId(value.getEntityId());
             setPrev(value.getPrev());
-            setFieldLayout(value.getFieldLayout());
+            setFieldSet(value.getFieldSet());
             resetChangedOnNotNull();
         }
     }

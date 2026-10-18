@@ -18,7 +18,7 @@ describe("fieldMask", () => {
 
     it("assigns a bit per field, alphabetically", () => {
 
-        // The order FieldLayout.of(QLiveDomain, String) assigns on the Java side. Both ends derive it from
+        // The order FieldSet.of(QLiveDomain, String) assigns on the Java side. Both ends derive it from
         // the same schema, and a mask read under another order names other fields without saying so.
         expect(fieldOrder("Bar")).toEqual(
             ["bazLinks", "bazes", "created", "description", "id", "name", "num", "version"]
@@ -38,7 +38,7 @@ describe("fieldMask", () => {
 
     it("leaves out a name the type does not have", () => {
 
-        // The same as the Java side: a caller naming fields is not in a position to know what the layout
+        // The same as the Java side: a caller naming fields is not in a position to know what the field set
         // has, and neither is one reading a mask back.
         expect(maskOf("Bar", ["name", "nosuchfield"])).toBe(maskOf("Bar", ["name"]))
     })

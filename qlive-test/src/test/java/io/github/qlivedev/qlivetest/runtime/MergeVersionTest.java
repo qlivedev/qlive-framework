@@ -5,8 +5,8 @@ import io.github.qlivedev.model.merge.FieldChange;
 import io.github.qlivedev.model.merge.MergeConfig;
 import io.github.qlivedev.runtime.auth.AppAuthentication;
 import io.github.qlivedev.runtime.merge.EntityVersionsEvent;
-import io.github.qlivedev.runtime.merge.FieldLayout;
-import io.github.qlivedev.runtime.merge.FieldLayoutService;
+import io.github.qlivedev.runtime.merge.FieldSet;
+import io.github.qlivedev.runtime.merge.FieldSetService;
 import io.github.qlivedev.runtime.merge.MergeService;
 import io.github.qlivedev.runtime.merge.VersionCleanup;
 import io.github.qlivedev.runtime.merge.VersionHolder;
@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static io.github.qlivedev.qlivetest.domain.Tables.APP_FIELD_LAYOUT;
+import static io.github.qlivedev.qlivetest.domain.Tables.APP_FIELD_SET;
 import static io.github.qlivedev.qlivetest.domain.Tables.APP_VERSION;
 import static io.github.qlivedev.qlivetest.domain.Tables.BAR;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -56,7 +56,7 @@ class MergeVersionTest
     private VersionHolder versionHolder;
 
     @Autowired
-    private FieldLayoutService fieldLayoutService;
+    private FieldSetService fieldSetService;
 
     @Autowired
     private DSLContext dslContext;
@@ -96,9 +96,9 @@ class MergeVersionTest
         assertThat(record.get(APP_VERSION.OWNER_ID), is(AppAuthentication.ANONYMOUS_ID));
         assertThat(record.get(APP_VERSION.CREATED), is(notNullValue()));
 
-        final FieldLayout layout = fieldLayoutService.current("Bar");
-        assertThat(record.get(APP_VERSION.FIELD_LAYOUT), is(layout.getId()));
-        assertThat(layout.fields(record.get(APP_VERSION.FIELD_MASK)), contains("name"));
+        final FieldSet fieldSet = fieldSetService.current("Bar");
+        assertThat(record.get(APP_VERSION.FIELD_SET), is(fieldSet.getId()));
+        assertThat(fieldSet.fields(record.get(APP_VERSION.FIELD_MASK)), contains("name"));
     }
 
 
@@ -115,7 +115,7 @@ class MergeVersionTest
 
         // 'created' is declared ignored by no type here, so all three fields the insert wrote are in
         assertThat(
-            fieldLayoutService.current("Bar").fields(record.get(APP_VERSION.FIELD_MASK)),
+            fieldSetService.current("Bar").fields(record.get(APP_VERSION.FIELD_MASK)),
             containsInAnyOrder("created", "name", "num")
         );
     }
@@ -172,7 +172,7 @@ class MergeVersionTest
         final String version = bar(id).get(BAR.VERSION);
         assertThat(versionService.get(version), is(notNullValue()));
 
-        new VersionCleanup(versionService, versionHolder, fieldLayoutService, Duration.ZERO).expire();
+        new VersionCleanup(versionService, versionHolder, fieldSetService, Duration.ZERO).expire();
 
         assertThat(versionHolder.size(), is(0));
         assertThat(versionService.get(version), is(nullValue()));
@@ -180,31 +180,31 @@ class MergeVersionTest
         // the row and its version column stay, which is why nothing has a foreign key onto app_version
         assertThat(bar(id).get(BAR.VERSION), is(version));
 
-        // and the layouts this deployment writes stay, being about to be named by the next merge
-        assertThat(fieldLayoutService.current("Bar"), is(notNullValue()));
+        // and the field sets this deployment writes stay, being about to be named by the next merge
+        assertThat(fieldSetService.current("Bar"), is(notNullValue()));
     }
 
 
     /// The sweep leaves alone what a node of a rolling deployment has stored but not yet written a record
     /// against.
     ///
-    /// A node coming up stores its layouts at startup, and until its first merge nothing references them.
-    /// To a node still on the old code such a layout is neither current nor referenced, so without the
+    /// A node coming up stores its field sets at startup, and until its first merge nothing references them.
+    /// To a node still on the old code such a field set is neither current nor referenced, so without the
     /// cutoff the old node would take it away between the new one storing it and using it -- and the
-    /// records that follow would name a layout that is gone, permanently.
+    /// records that follow would name a field set that is gone, permanently.
     @Test
-    void leavesALayoutNothingHasUsedYet()
+    void leavesAFieldSetNothingHasUsedYet()
     {
         final String id = "0000000000000000000000000000000000000000000000000000000000000000";
 
-        // what the other node's startup writes: a layout of a type this one does not have and no record
+        // what the other node's startup writes: a field set of a type this one does not have and no record
         // names, stored a moment ago
-        dslContext.insertInto(APP_FIELD_LAYOUT)
+        dslContext.insertInto(APP_FIELD_SET)
             .columns(
-                APP_FIELD_LAYOUT.ID,
-                APP_FIELD_LAYOUT.ENTITY_TYPE,
-                APP_FIELD_LAYOUT.FIELDS,
-                APP_FIELD_LAYOUT.CREATED
+                APP_FIELD_SET.ID,
+                APP_FIELD_SET.ENTITY_TYPE,
+                APP_FIELD_SET.FIELDS,
+                APP_FIELD_SET.CREATED
             )
             .values(id, "Bar", "bazLinks,created,description,flag,id,name,num,version", now())
             .execute();
@@ -212,28 +212,28 @@ class MergeVersionTest
         try
         {
             new VersionCleanup(
-                versionService, versionHolder, fieldLayoutService, Duration.ofDays(7)
+                versionService, versionHolder, fieldSetService, Duration.ofDays(7)
             ).expire();
 
-            assertThat(layout(id), is(notNullValue()));
+            assertThat(fieldSet(id), is(notNullValue()));
 
             // once it is older than any surviving record could be, nothing can still be about to name it
-            new VersionCleanup(versionService, versionHolder, fieldLayoutService, Duration.ZERO).expire();
+            new VersionCleanup(versionService, versionHolder, fieldSetService, Duration.ZERO).expire();
 
-            assertThat(layout(id), is(nullValue()));
+            assertThat(fieldSet(id), is(nullValue()));
         }
         finally
         {
-            dslContext.deleteFrom(APP_FIELD_LAYOUT).where(APP_FIELD_LAYOUT.ID.eq(id)).execute();
+            dslContext.deleteFrom(APP_FIELD_SET).where(APP_FIELD_SET.ID.eq(id)).execute();
         }
     }
 
 
     // -----------------------------------------------------------------------------------------------------
 
-    private Record layout(String id)
+    private Record fieldSet(String id)
     {
-        return dslContext.selectFrom(APP_FIELD_LAYOUT).where(APP_FIELD_LAYOUT.ID.eq(id)).fetchOne();
+        return dslContext.selectFrom(APP_FIELD_SET).where(APP_FIELD_SET.ID.eq(id)).fetchOne();
     }
 
 

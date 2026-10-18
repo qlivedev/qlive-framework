@@ -156,7 +156,7 @@ class EntityVersionPushTest
             UUID.randomUUID().toString(),
             null,
             BigInteger.ONE,
-            "no layout of this deployment's",
+            "no field set of this deployment's",
             "nobody",
             // in the past, so that the version cleanup takes this back out again like any other record
             Timestamp.valueOf("2020-01-01 00:00:00")

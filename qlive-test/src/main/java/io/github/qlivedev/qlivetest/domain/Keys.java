@@ -4,7 +4,7 @@
 package io.github.qlivedev.qlivetest.domain;
 
 
-import io.github.qlivedev.qlivetest.domain.tables.AppFieldLayout;
+import io.github.qlivedev.qlivetest.domain.tables.AppFieldSet;
 import io.github.qlivedev.qlivetest.domain.tables.AppLogin;
 import io.github.qlivedev.qlivetest.domain.tables.AppUser;
 import io.github.qlivedev.qlivetest.domain.tables.AppVersion;
@@ -15,7 +15,7 @@ import io.github.qlivedev.qlivetest.domain.tables.Foo;
 import io.github.qlivedev.qlivetest.domain.tables.FooType;
 import io.github.qlivedev.qlivetest.domain.tables.Quux;
 import io.github.qlivedev.qlivetest.domain.tables.Qux;
-import io.github.qlivedev.qlivetest.domain.tables.records.AppFieldLayoutRecord;
+import io.github.qlivedev.qlivetest.domain.tables.records.AppFieldSetRecord;
 import io.github.qlivedev.qlivetest.domain.tables.records.AppLoginRecord;
 import io.github.qlivedev.qlivetest.domain.tables.records.AppUserRecord;
 import io.github.qlivedev.qlivetest.domain.tables.records.AppVersionRecord;
@@ -54,7 +54,7 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
-    public static final UniqueKey<AppFieldLayoutRecord> PK_APP_FIELD_LAYOUT = Internal.createUniqueKey(AppFieldLayout.APP_FIELD_LAYOUT, DSL.name("pk_app_field_layout"), new TableField[] { AppFieldLayout.APP_FIELD_LAYOUT.ID }, true);
+    public static final UniqueKey<AppFieldSetRecord> PK_APP_FIELD_SET = Internal.createUniqueKey(AppFieldSet.APP_FIELD_SET, DSL.name("pk_app_field_set"), new TableField[] { AppFieldSet.APP_FIELD_SET.ID }, true);
     public static final UniqueKey<AppLoginRecord> PK_APP_LOGIN = Internal.createUniqueKey(AppLogin.APP_LOGIN, DSL.name("pk_app_login"), new TableField[] { AppLogin.APP_LOGIN.SERIES }, true);
     public static final UniqueKey<AppUserRecord> PK_APP_USER = Internal.createUniqueKey(AppUser.APP_USER, DSL.name("pk_app_user"), new TableField[] { AppUser.APP_USER.ID }, true);
     public static final UniqueKey<AppUserRecord> UC_APP_USER_LOGIN = Internal.createUniqueKey(AppUser.APP_USER, DSL.name("uc_app_user_login"), new TableField[] { AppUser.APP_USER.LOGIN }, true);

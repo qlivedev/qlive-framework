@@ -4,7 +4,7 @@
 package io.github.qlivedev.qlivetest.domain;
 
 
-import io.github.qlivedev.qlivetest.domain.tables.AppFieldLayout;
+import io.github.qlivedev.qlivetest.domain.tables.AppFieldSet;
 import io.github.qlivedev.qlivetest.domain.tables.AppLogin;
 import io.github.qlivedev.qlivetest.domain.tables.AppUser;
 import io.github.qlivedev.qlivetest.domain.tables.AppVersion;
@@ -47,9 +47,9 @@ public class Public extends SchemaImpl {
     public static final Public PUBLIC = new Public();
 
     /**
-     * The table <code>public.app_field_layout</code>.
+     * The table <code>public.app_field_set</code>.
      */
-    public final AppFieldLayout APP_FIELD_LAYOUT = AppFieldLayout.APP_FIELD_LAYOUT;
+    public final AppFieldSet APP_FIELD_SET = AppFieldSet.APP_FIELD_SET;
 
     /**
      * The table <code>public.app_login</code>.
@@ -118,7 +118,7 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
-            AppFieldLayout.APP_FIELD_LAYOUT,
+            AppFieldSet.APP_FIELD_SET,
             AppLogin.APP_LOGIN,
             AppUser.APP_USER,
             AppVersion.APP_VERSION,

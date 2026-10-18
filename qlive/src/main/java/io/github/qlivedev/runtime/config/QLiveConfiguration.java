@@ -1,10 +1,10 @@
 package io.github.qlivedev.runtime.config;
 
-import io.github.qlivedev.runtime.merge.DefaultFieldLayoutService;
+import io.github.qlivedev.runtime.merge.DefaultFieldSetService;
 import io.github.qlivedev.runtime.merge.DefaultMergeService;
 import io.github.qlivedev.runtime.merge.DefaultVersionHolder;
 import io.github.qlivedev.runtime.merge.DefaultVersionService;
-import io.github.qlivedev.runtime.merge.FieldLayoutService;
+import io.github.qlivedev.runtime.merge.FieldSetService;
 import io.github.qlivedev.runtime.merge.MergeLogic;
 import io.github.qlivedev.runtime.merge.MergeService;
 import io.github.qlivedev.runtime.merge.VersionCleanup;
@@ -131,20 +131,20 @@ public class QLiveConfiguration
     public MergeService mergeService(
         QLiveDomain domain,
         DSLContext dslContext,
-        FieldLayoutService fieldLayoutService,
+        FieldSetService fieldSetService,
         VersionService versionService
     )
     {
-        return new DefaultMergeService(domain, dslContext, fieldLayoutService, versionService);
+        return new DefaultMergeService(domain, dslContext, fieldSetService, versionService);
     }
 
 
-    /// The field layouts masks are written against, and the startup check that no versioned type has more
+    /// The field sets masks are written against, and the startup check that no versioned type has more
     /// fields than a mask has bits.
     @Bean
-    public FieldLayoutService fieldLayoutService(QLiveDomain domain, DSLContext dslContext)
+    public FieldSetService fieldSetService(QLiveDomain domain, DSLContext dslContext)
     {
-        return new DefaultFieldLayoutService(domain, dslContext);
+        return new DefaultFieldSetService(domain, dslContext);
     }
 
 
@@ -177,11 +177,11 @@ public class QLiveConfiguration
     public VersionCleanup versionCleanup(
         VersionService versionService,
         VersionHolder versionHolder,
-        FieldLayoutService fieldLayoutService,
+        FieldSetService fieldSetService,
         @Value("${qlive.merge.versionLifetime:P7D}") Duration versionLifetime
     )
     {
-        return new VersionCleanup(versionService, versionHolder, fieldLayoutService, versionLifetime);
+        return new VersionCleanup(versionService, versionHolder, fieldSetService, versionLifetime);
     }
 
 

@@ -8,7 +8,7 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 
-/// Drops the version records that have outlived their use, and the field layouts nothing names any more.
+/// Drops the version records that have outlived their use, and the field sets nothing names any more.
 ///
 /// The lifetime is what a base version is worth. Past it the chain walk cannot say what changed since, so a
 /// concurrent change becomes a conflict on every field rather than the silent merge it would have been --
@@ -17,7 +17,7 @@ import java.time.Instant;
 /// `app_version`.
 ///
 /// Seven days rather than the two Automaton kept. Friday evening to Monday morning is 72 hours and a change
-/// set parked across exactly that gap is the case this feature exists for; storing the field layouts is what
+/// set parked across exactly that gap is the case this feature exists for; storing the field sets is what
 /// makes the longer window safe, a deployment in between costing accuracy rather than a mask.
 public class VersionCleanup
 {
@@ -27,7 +27,7 @@ public class VersionCleanup
 
     private final VersionHolder versionHolder;
 
-    private final FieldLayoutService fieldLayoutService;
+    private final FieldSetService fieldSetService;
 
     private final Duration versionLifetime;
 
@@ -35,13 +35,13 @@ public class VersionCleanup
     public VersionCleanup(
         VersionService versionService,
         VersionHolder versionHolder,
-        FieldLayoutService fieldLayoutService,
+        FieldSetService fieldSetService,
         Duration versionLifetime
     )
     {
         this.versionService = versionService;
         this.versionHolder = versionHolder;
-        this.fieldLayoutService = fieldLayoutService;
+        this.fieldSetService = fieldSetService;
         this.versionLifetime = versionLifetime;
     }
 
@@ -65,16 +65,16 @@ public class VersionCleanup
         final int dropped = versionService.prune(before);
         final int forgotten = versionHolder.dropOlderThan(before);
 
-        // after the records, so that a layout is dropped only once nothing names it, and held to the same
-        // cutoff -- a layout stored since then may be a node coming up that has not written its first
+        // after the records, so that a field set is dropped only once nothing names it, and held to the same
+        // cutoff -- a field set stored since then may be a node coming up that has not written its first
         // record yet
-        final int layouts = fieldLayoutService.pruneUnused(before);
+        final int fieldSets = fieldSetService.pruneUnused(before);
 
-        if (dropped != 0 || forgotten != 0 || layouts != 0)
+        if (dropped != 0 || forgotten != 0 || fieldSets != 0)
         {
             log.info(
-                "Expired {} version records ({} of them held), and {} field layouts",
-                dropped, forgotten, layouts
+                "Expired {} version records ({} of them held), and {} field sets",
+                dropped, forgotten, fieldSets
             );
         }
 

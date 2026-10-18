@@ -7,7 +7,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.Objects;
 
-/// One recorded change to one row: which fields it touched, under which field layout, and the version it was
+/// One recorded change to one row: which fields it touched, under which field set, and the version it was
 /// made against.
 ///
 /// This is a row of `app_version` and it is also the whole of what a subscriber to a change needs -- the
@@ -34,7 +34,7 @@ public final class EntityVersion
 
     private final BigInteger fieldMask;
 
-    private final String fieldLayout;
+    private final String fieldSet;
 
     private final String ownerId;
 
@@ -47,7 +47,7 @@ public final class EntityVersion
         String entityId,
         String prev,
         BigInteger fieldMask,
-        String fieldLayout,
+        String fieldSet,
         String ownerId,
         Timestamp created
     )
@@ -57,7 +57,7 @@ public final class EntityVersion
         this.entityId = entityId;
         this.prev = prev;
         this.fieldMask = fieldMask;
-        this.fieldLayout = fieldLayout;
+        this.fieldSet = fieldSet;
         this.ownerId = ownerId;
         this.created = created;
     }
@@ -93,7 +93,7 @@ public final class EntityVersion
 
 
     /// Bit per field of the type, set for the fields this change touched, in the positions
-    /// {@link #getFieldLayout()} assigns.
+    /// {@link #getFieldSet()} assigns.
     ///
     /// Out of the JSON, which carries {@link #getFieldMaskValue()} instead.
     @JSONProperty(ignore = true)
@@ -116,10 +116,10 @@ public final class EntityVersion
     }
 
 
-    /// Id of the {@link FieldLayout} the mask was written against.
-    public String getFieldLayout()
+    /// Id of the {@link FieldSet} the mask was written against.
+    public String getFieldSet()
     {
-        return fieldLayout;
+        return fieldSet;
     }
 
 

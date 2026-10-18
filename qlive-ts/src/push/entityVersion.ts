@@ -34,8 +34,8 @@ export interface EntityVersionMessage
     /** the fields that changed, as a decimal string: 128 bits is past what a number holds exactly */
     fieldMask: string | null
 
-    /** id of the field layout the mask was written against */
-    fieldLayout: string
+    /** id of the field set the mask was written against */
+    fieldSet: string
 
     /** who made the change */
     ownerId: string | null

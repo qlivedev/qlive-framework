@@ -27,17 +27,17 @@
     "name":"AllScalars"
   },
   {
-    "description":"The ordered field-name list one field mask was written against, under the hash of that list. A version record names its layout, so a mask written before a deployment that reordered a type's fields is permuted back into today's positions instead of being read as a different set of fields. Written idempotently -- the id being the hash makes it an upsert -- and swept by the same task that prunes version records, minus the layout currently in use and minus anything stored too recently to have been used yet.",
+    "description":"The ordered field-name list one field mask was written against, under the hash of that list. A version record names its field set, so a mask written before a deployment that reordered a type's fields is permuted back into today's positions instead of being read as a different set of fields. Written idempotently -- the id being the hash makes it an upsert -- and swept by the same task that prunes version records, minus the field set currently in use and minus anything stored too recently to have been used yet.",
     "fieldDocs":[
       {
-        "description":"When this layout was first stored in this database. What keeps the sweep from taking a layout a node of a rolling deployment has stored but not yet written a record against, and the only account of when a layout appeared once the records naming it have been pruned.",
+        "description":"When this field set was first stored in this database. What keeps the sweep from taking a field set a node of a rolling deployment has stored but not yet written a record against, and the only account of when a field set appeared once the records naming it have been pruned.",
         "name":"created",
         "paramDocs":[
           
         ]
       },
       {
-        "description":"GraphQL name of the type the layout belongs to. In the hashed input as well, so that two types whose field lists happen to be identical do not share a row and \"what did this type look like then\" stays answerable.",
+        "description":"GraphQL name of the type the field set belongs to. In the hashed input as well, so that two types whose field lists happen to be identical do not share a row and \"what did this type look like then\" stays answerable.",
         "name":"entityType",
         "paramDocs":[
           
@@ -51,14 +51,14 @@
         ]
       },
       {
-        "description":"SHA-256 of the type name and the ordered field names, which is what makes writing a layout an upsert rather than a decision",
+        "description":"SHA-256 of the type name and the ordered field names, which is what makes writing a field set an upsert rather than a decision",
         "name":"id",
         "paramDocs":[
           
         ]
       }
     ],
-    "name":"AppFieldLayout"
+    "name":"AppFieldSet"
   },
   {
     "description":"Database storage for spring security's remember-me feature",
@@ -174,15 +174,15 @@
         ]
       },
       {
-        "description":"Hash of the field-name list the mask was written against. A record whose layout does not match the schema in front of us has its mask read as unknown, so a deployment that reorders fields makes a mask conservative rather than wrong.",
-        "name":"fieldLayout",
+        "description":"Bit per field of the type, set for the fields this change touched. The bit index is the position of the field in the type's alphabetically sorted field list, and fieldSet is what makes reading that back safe.",
+        "name":"fieldMask",
         "paramDocs":[
           
         ]
       },
       {
-        "description":"Bit per field of the type, set for the fields this change touched. The bit index is the position of the field in the type's alphabetically sorted field list, and fieldLayout is what makes reading that back safe.",
-        "name":"fieldMask",
+        "description":"Hash of the field-name list the mask was written against. A record whose field set does not match the schema in front of us has its mask read as unknown, so a deployment that reorders fields makes a mask conservative rather than wrong.",
+        "name":"fieldSet",
         "paramDocs":[
           
         ]

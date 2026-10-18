@@ -19,15 +19,15 @@ conflict per row that stood in the way. */
     /** Everything in the working set landed. Nothing else is written, and the transaction committed. */
     "DONE"
 
-/** The ordered field-name list one field mask was written against, under the hash of that list. A version record names its layout, so a mask written before a deployment that reordered a type's fields is permuted back into today's positions instead of being read as a different set of fields. Written idempotently -- the id being the hash makes it an upsert -- and swept by the same task that prunes version records, minus the layout currently in use and minus anything stored too recently to have been used yet. */
-export type AppFieldLayout = {
-    /** When this layout was first stored in this database. What keeps the sweep from taking a layout a node of a rolling deployment has stored but not yet written a record against, and the only account of when a layout appeared once the records naming it have been pruned. */
+/** The ordered field-name list one field mask was written against, under the hash of that list. A version record names its field set, so a mask written before a deployment that reordered a type's fields is permuted back into today's positions instead of being read as a different set of fields. Written idempotently -- the id being the hash makes it an upsert -- and swept by the same task that prunes version records, minus the field set currently in use and minus anything stored too recently to have been used yet. */
+export type AppFieldSet = {
+    /** When this field set was first stored in this database. What keeps the sweep from taking a field set a node of a rolling deployment has stored but not yet written a record against, and the only account of when a field set appeared once the records naming it have been pruned. */
     created: Temporal.Instant
-    /** GraphQL name of the type the layout belongs to. In the hashed input as well, so that two types whose field lists happen to be identical do not share a row and "what did this type look like then" stays answerable. */
+    /** GraphQL name of the type the field set belongs to. In the hashed input as well, so that two types whose field lists happen to be identical do not share a row and "what did this type look like then" stays answerable. */
     entityType: string
     /** The field names in the order that assigns the mask bit indices, joined by a character no GraphQL name can contain. Kept rather than only hashed: a hash detects that the bits moved, the list is what moves them back. */
     fields: string
-    /** SHA-256 of the type name and the ordered field names, which is what makes writing a layout an upsert rather than a decision */
+    /** SHA-256 of the type name and the ordered field names, which is what makes writing a field set an upsert rather than a decision */
     id: string
 }
 
@@ -82,10 +82,10 @@ export type AppVersion = {
     entityId: string
     /** GraphQL name of the type whose row changed */
     entityType: string
-    /** Hash of the field-name list the mask was written against. A record whose layout does not match the schema in front of us has its mask read as unknown, so a deployment that reorders fields makes a mask conservative rather than wrong. */
-    fieldLayout: string
-    /** Bit per field of the type, set for the fields this change touched. The bit index is the position of the field in the type's alphabetically sorted field list, and fieldLayout is what makes reading that back safe. */
+    /** Bit per field of the type, set for the fields this change touched. The bit index is the position of the field in the type's alphabetically sorted field list, and fieldSet is what makes reading that back safe. */
     fieldMask: bigint
+    /** Hash of the field-name list the mask was written against. A record whose field set does not match the schema in front of us has its mask read as unknown, so a deployment that reorders fields makes a mask conservative rather than wrong. */
+    fieldSet: string
     /** Version id, and what the version column of the changed row holds */
     id: string
     /** The user who made the change. What lets a subscriber filter out its own writes. */
@@ -373,6 +373,6 @@ export type QuxDocument = {
     type: string
 }
 
-export type DomainObject = AppFieldLayout | AppLogin | AppUser | AppUserDocument | AppVersion | Bar | BarDocument | BarLink |
+export type DomainObject = AppFieldSet | AppLogin | AppUser | AppUserDocument | AppVersion | Bar | BarDocument | BarLink |
     Baz | BazDocument | Foo | FooDocument | FooType | FooTypeDocument | MergeConflict | MergeConflictField |
     MergeResult | MutationType | QueryType | Quux | QuuxDocument | Qux | QuxDocument

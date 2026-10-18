@@ -47,7 +47,7 @@ public class AppVersion extends GeneratedDomainObject implements Serializable {
     private String entityType;
     private String entityId;
     private String prev;
-    private String fieldLayout;
+    private String fieldSet;
 
     public AppVersion() {}
 
@@ -59,7 +59,7 @@ public class AppVersion extends GeneratedDomainObject implements Serializable {
         this.entityType = value.entityType;
         this.entityId = value.entityId;
         this.prev = value.prev;
-        this.fieldLayout = value.fieldLayout;
+        this.fieldSet = value.fieldSet;
     }
 
     public AppVersion(
@@ -70,7 +70,7 @@ public class AppVersion extends GeneratedDomainObject implements Serializable {
         String entityType,
         String entityId,
         String prev,
-        String fieldLayout
+        String fieldSet
     ) {
         this.id = id;
         this.fieldMask = fieldMask;
@@ -79,7 +79,7 @@ public class AppVersion extends GeneratedDomainObject implements Serializable {
         this.entityType = entityType;
         this.entityId = entityId;
         this.prev = prev;
-        this.fieldLayout = fieldLayout;
+        this.fieldSet = fieldSet;
     }
 
     /**
@@ -200,20 +200,20 @@ public class AppVersion extends GeneratedDomainObject implements Serializable {
     }
 
     /**
-     * Getter for <code>public.app_version.field_layout</code>.
+     * Getter for <code>public.app_version.field_set</code>.
      */
-    @Column(name = "field_layout", nullable = false, length = 64)
+    @Column(name = "field_set", nullable = false, length = 64)
     @NotNull
     @Size(max = 64)
-    public String getFieldLayout() {
-        return this.fieldLayout;
+    public String getFieldSet() {
+        return this.fieldSet;
     }
 
     /**
-     * Setter for <code>public.app_version.field_layout</code>.
+     * Setter for <code>public.app_version.field_set</code>.
      */
-    public void setFieldLayout(String fieldLayout) {
-        this.fieldLayout = fieldLayout;
+    public void setFieldSet(String fieldSet) {
+        this.fieldSet = fieldSet;
     }
 
     @Override
@@ -267,11 +267,11 @@ public class AppVersion extends GeneratedDomainObject implements Serializable {
         }
         else if (!this.prev.equals(other.prev))
             return false;
-        if (this.fieldLayout == null) {
-            if (other.fieldLayout != null)
+        if (this.fieldSet == null) {
+            if (other.fieldSet != null)
                 return false;
         }
-        else if (!this.fieldLayout.equals(other.fieldLayout))
+        else if (!this.fieldSet.equals(other.fieldSet))
             return false;
         return true;
     }
@@ -287,7 +287,7 @@ public class AppVersion extends GeneratedDomainObject implements Serializable {
         result = prime * result + ((this.entityType == null) ? 0 : this.entityType.hashCode());
         result = prime * result + ((this.entityId == null) ? 0 : this.entityId.hashCode());
         result = prime * result + ((this.prev == null) ? 0 : this.prev.hashCode());
-        result = prime * result + ((this.fieldLayout == null) ? 0 : this.fieldLayout.hashCode());
+        result = prime * result + ((this.fieldSet == null) ? 0 : this.fieldSet.hashCode());
         return result;
     }
 
@@ -302,7 +302,7 @@ public class AppVersion extends GeneratedDomainObject implements Serializable {
         sb.append(", ").append(entityType);
         sb.append(", ").append(entityId);
         sb.append(", ").append(prev);
-        sb.append(", ").append(fieldLayout);
+        sb.append(", ").append(fieldSet);
 
         sb.append(")");
         return sb.toString();

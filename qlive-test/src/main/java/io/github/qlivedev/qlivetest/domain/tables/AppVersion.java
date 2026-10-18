@@ -103,9 +103,9 @@ public class AppVersion extends TableImpl<AppVersionRecord> {
     public final TableField<AppVersionRecord, String> PREV = createField(DSL.name("prev"), SQLDataType.VARCHAR(36), this, "");
 
     /**
-     * The column <code>public.app_version.field_layout</code>.
+     * The column <code>public.app_version.field_set</code>.
      */
-    public final TableField<AppVersionRecord, String> FIELD_LAYOUT = createField(DSL.name("field_layout"), SQLDataType.VARCHAR(64).nullable(false), this, "");
+    public final TableField<AppVersionRecord, String> FIELD_SET = createField(DSL.name("field_set"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     private AppVersion(Name alias, Table<AppVersionRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);

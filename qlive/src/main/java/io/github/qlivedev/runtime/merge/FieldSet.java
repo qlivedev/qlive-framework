@@ -17,23 +17,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/// The ordered field names of one type, and the bit each of them owns in a field mask.
+/// The field names of one type, alphabetically, and the bit each of them owns in a field mask.
 ///
 /// A field mask says which fields one write touched, by position. The position is not stable across
 /// deployments -- adding a `flag` field to a type shifts every field from `f` on, and so does renaming a
-/// relation, which involves no database change at all -- so a mask read under a different layout than it was
-/// written under names a different set of fields, confidently and silently.
+/// relation, which involves no database change at all -- so a mask read under a different field set than
+/// it was written under names other fields, confidently and silently.
 ///
-/// This is the layout a mask was written against, kept so that reading one back stays a matter of looking up
-/// names rather than trusting positions. Its {@link #getId()} is a hash of the type name and the ordered
-/// names, which is what lets a version record name its layout in one column and what makes storing a layout
-/// an upsert with nothing to decide.
+/// This is the field set a mask was written against, kept so that reading one back stays a matter of
+/// looking up names rather than trusting positions. Its {@link #getId()} is a hash of the type name and the
+/// ordered names, which is what lets a version record name its field set in one column and what makes
+/// storing a field set an upsert with nothing to decide.
 ///
-/// The names are what a mask is compared in. Turning a mask into names under the layout it was written with,
-/// and then keeping only the names the type still has, is what "permute the mask into today's positions"
-/// means -- and it drops the bits of fields that no longer exist, which is right: a field that is gone
-/// cannot be in conflict.
-public final class FieldLayout
+/// The names are what a mask is compared in. Turning a mask into names under the field set it was written
+/// with, and then keeping only the names the type still has, is what "permute the mask into today's
+/// positions" means -- and it drops the bits of fields that no longer exist, which is right: a field that is
+/// gone cannot be in conflict.
+public final class FieldSet
 {
     /// What a mask can hold, and therefore how many fields a versioned type may have. `numeric(39,0)` is
     /// 128 bits, 39 being `ceil(log10(2^128))`. A type with more fields is refused at startup rather than
@@ -54,7 +54,7 @@ public final class FieldLayout
     private final String id;
 
 
-    private FieldLayout(String typeName, List<String> fields)
+    private FieldSet(String typeName, List<String> fields)
     {
         if (fields.size() > MAX_FIELDS)
         {
@@ -79,13 +79,13 @@ public final class FieldLayout
     }
 
 
-    /// The layout of the given type as the schema in front of us has it: every field of the GraphQL type,
+    /// The field set of the given type as the schema in front of us has it: every field of the GraphQL type,
     /// alphabetically.
     ///
     /// Sorted here rather than taken in the order the schema happens to hand them over, because this is the
     /// order that assigns the bit indices and the order the hash is taken of. Those three have to be the
-    /// same list or the hash certifies a layout nothing ever used.
-    public static FieldLayout of(QLiveDomain domain, String typeName)
+    /// same list or the hash certifies a field set nothing ever used.
+    public static FieldSet of(QLiveDomain domain, String typeName)
     {
         final GraphQLNamedType type = domain.getGraphQLSchema().getTypeMap().get(typeName);
 
@@ -105,17 +105,17 @@ public final class FieldLayout
     }
 
 
-    /// The layout of a type as it was, read back from a stored field list.
-    public static FieldLayout of(String typeName, List<String> fields)
+    /// The field set of a type as it was, read back from a stored field list.
+    public static FieldSet of(String typeName, List<String> fields)
     {
-        return new FieldLayout(typeName, fields);
+        return new FieldSet(typeName, fields);
     }
 
 
     /// SHA-256 of the type name and the ordered field names, in hex.
     ///
     /// The type name is hashed in even though the bit semantics do not need it: two types whose field lists
-    /// happen to be identical would otherwise share one row, which makes the layout's own type meaningless
+    /// happen to be identical would otherwise share one row, which makes the field set's own type meaningless
     /// and "what did this type look like then" unanswerable.
     public String getId()
     {
@@ -143,9 +143,9 @@ public final class FieldLayout
     }
 
 
-    /// The mask naming the given fields. A name this layout does not have is left out rather than refused:
+    /// The mask naming the given fields. A name this field set does not have is left out rather than refused:
     /// the callers are a change naming fields and a mask being read back, and neither is in a position to
-    /// know what the layout has.
+    /// know what the field set has.
     public BigInteger mask(Iterable<String> fieldNames)
     {
         BigInteger mask = BigInteger.ZERO;
@@ -164,7 +164,7 @@ public final class FieldLayout
     }
 
 
-    /// The fields the given mask names, in this layout's order. Bits past the end of the field list are
+    /// The fields the given mask names, in this field set's order. Bits past the end of the field list are
     /// ignored -- they belong to fields that no longer exist, and a field that is gone cannot be in conflict.
     public Set<String> fields(BigInteger mask)
     {
@@ -185,7 +185,7 @@ public final class FieldLayout
     @Override
     public boolean equals(Object o)
     {
-        return o instanceof FieldLayout that && id.equals(that.id);
+        return o instanceof FieldSet that && id.equals(that.id);
     }
 
 
@@ -199,7 +199,7 @@ public final class FieldLayout
     @Override
     public String toString()
     {
-        return "FieldLayout " + id + " of '" + typeName + "': " + fields;
+        return "FieldSet " + id + " of '" + typeName + "': " + fields;
     }
 
 

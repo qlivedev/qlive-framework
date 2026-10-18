@@ -368,7 +368,7 @@ export type {
  *                                       that and not a thing to drive
  *   merge/fieldMask.maskOf/maskedFields/fieldOrder
  *                                       bit positions of a type's fields,
- *                                       which have to agree with FieldLayout on
+ *                                       which have to agree with FieldSet on
  *                                       the Java side exactly. A caller that
  *                                       needs a mask is building a subscription
  *                                       by hand, and the watchers do that

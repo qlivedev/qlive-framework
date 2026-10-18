@@ -35,7 +35,7 @@ public class DefaultVersionService
 
     private final static Field<BigInteger> FIELD_MASK = DSL.field(DSL.name("field_mask"), BigInteger.class);
 
-    private final static Field<String> FIELD_LAYOUT = DSL.field(DSL.name("field_layout"), String.class);
+    private final static Field<String> FIELD_SET = DSL.field(DSL.name("field_set"), String.class);
 
     private final static Field<String> OWNER_ID = DSL.field(DSL.name("owner_id"), String.class);
 
@@ -76,7 +76,7 @@ public class DefaultVersionService
         }
 
         final Record stored = dslContext.select(
-                ID, ENTITY_TYPE, ENTITY_ID, PREV, FIELD_MASK, FIELD_LAYOUT, OWNER_ID, CREATED
+                ID, ENTITY_TYPE, ENTITY_ID, PREV, FIELD_MASK, FIELD_SET, OWNER_ID, CREATED
             )
             .from(TABLE)
             .where(ID.eq(versionId))
@@ -88,7 +88,7 @@ public class DefaultVersionService
             stored.get(ENTITY_ID),
             stored.get(PREV),
             stored.get(FIELD_MASK),
-            stored.get(FIELD_LAYOUT),
+            stored.get(FIELD_SET),
             stored.get(OWNER_ID),
             stored.get(CREATED)
         );
@@ -105,7 +105,7 @@ public class DefaultVersionService
 
         // the untyped column list rather than the eight-argument one, which insists on a typed table
         InsertValuesStepN<?> insert = dslContext.insertInto(TABLE)
-            .columns(List.of(ID, ENTITY_TYPE, ENTITY_ID, PREV, FIELD_MASK, FIELD_LAYOUT, OWNER_ID, CREATED));
+            .columns(List.of(ID, ENTITY_TYPE, ENTITY_ID, PREV, FIELD_MASK, FIELD_SET, OWNER_ID, CREATED));
 
         for (EntityVersion version : versions)
         {
@@ -115,7 +115,7 @@ public class DefaultVersionService
                 version.getEntityId(),
                 version.getPrev(),
                 version.getFieldMask(),
-                version.getFieldLayout(),
+                version.getFieldSet(),
                 version.getOwnerId(),
                 version.getCreated()
             );

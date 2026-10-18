@@ -32,10 +32,10 @@ import javax.annotation.processing.Generated;
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 @Entity
 @Table(
-    name = "app_field_layout",
+    name = "app_field_set",
     schema = "public"
 )
-public class AppFieldLayout extends GeneratedDomainObject implements Serializable {
+public class AppFieldSet extends GeneratedDomainObject implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -44,16 +44,16 @@ public class AppFieldLayout extends GeneratedDomainObject implements Serializabl
     private String fields;
     private Timestamp created;
 
-    public AppFieldLayout() {}
+    public AppFieldSet() {}
 
-    public AppFieldLayout(AppFieldLayout value) {
+    public AppFieldSet(AppFieldSet value) {
         this.id = value.id;
         this.entityType = value.entityType;
         this.fields = value.fields;
         this.created = value.created;
     }
 
-    public AppFieldLayout(
+    public AppFieldSet(
         String id,
         String entityType,
         String fields,
@@ -66,7 +66,7 @@ public class AppFieldLayout extends GeneratedDomainObject implements Serializabl
     }
 
     /**
-     * Getter for <code>public.app_field_layout.id</code>.
+     * Getter for <code>public.app_field_set.id</code>.
      */
     @Id
     @Column(name = "id", nullable = false, length = 64)
@@ -77,14 +77,14 @@ public class AppFieldLayout extends GeneratedDomainObject implements Serializabl
     }
 
     /**
-     * Setter for <code>public.app_field_layout.id</code>.
+     * Setter for <code>public.app_field_set.id</code>.
      */
     public void setId(String id) {
         this.id = id;
     }
 
     /**
-     * Getter for <code>public.app_field_layout.entity_type</code>.
+     * Getter for <code>public.app_field_set.entity_type</code>.
      */
     @Column(name = "entity_type", nullable = false, length = 100)
     @NotNull
@@ -94,14 +94,14 @@ public class AppFieldLayout extends GeneratedDomainObject implements Serializabl
     }
 
     /**
-     * Setter for <code>public.app_field_layout.entity_type</code>.
+     * Setter for <code>public.app_field_set.entity_type</code>.
      */
     public void setEntityType(String entityType) {
         this.entityType = entityType;
     }
 
     /**
-     * Getter for <code>public.app_field_layout.fields</code>.
+     * Getter for <code>public.app_field_set.fields</code>.
      */
     @Column(name = "fields", nullable = false)
     @NotNull
@@ -110,14 +110,14 @@ public class AppFieldLayout extends GeneratedDomainObject implements Serializabl
     }
 
     /**
-     * Setter for <code>public.app_field_layout.fields</code>.
+     * Setter for <code>public.app_field_set.fields</code>.
      */
     public void setFields(String fields) {
         this.fields = fields;
     }
 
     /**
-     * Getter for <code>public.app_field_layout.created</code>.
+     * Getter for <code>public.app_field_set.created</code>.
      */
     @Column(name = "created", nullable = false, precision = 6)
     @NotNull
@@ -126,7 +126,7 @@ public class AppFieldLayout extends GeneratedDomainObject implements Serializabl
     }
 
     /**
-     * Setter for <code>public.app_field_layout.created</code>.
+     * Setter for <code>public.app_field_set.created</code>.
      */
     public void setCreated(Timestamp created) {
         this.created = created;
@@ -140,7 +140,7 @@ public class AppFieldLayout extends GeneratedDomainObject implements Serializabl
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final AppFieldLayout other = (AppFieldLayout) obj;
+        final AppFieldSet other = (AppFieldSet) obj;
         if (this.id == null) {
             if (other.id != null)
                 return false;
@@ -181,7 +181,7 @@ public class AppFieldLayout extends GeneratedDomainObject implements Serializabl
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("AppFieldLayout (");
+        StringBuilder sb = new StringBuilder("AppFieldSet (");
 
         sb.append(id);
         sb.append(", ").append(entityType);

@@ -56,8 +56,8 @@ class EntityVersionPublisherTest
 
 
     /// The mask is a decimal string on the wire, not a number: it is 128 bits wide and a JavaScript number
-    /// holds 53 of them exactly. The client reads it with `BigInt`. The layout the positions were assigned by
-    /// travels with it, because a client decoding the mask has to know which one it was written against.
+    /// holds 53 of them exactly. The client reads it with `BigInt`. The field set the positions were assigned
+    /// by travels with it, because a client decoding the mask has to know which one it was written against.
     @Test
     void sendsTheFieldMaskAsADecimalString()
     {
@@ -68,7 +68,7 @@ class EntityVersionPublisherTest
         final Map<String, Object> record = subscriber.records().get(0);
 
         assertThat(record.get("fieldMask"), is(WIDE_MASK.toString()));
-        assertThat(record.get("fieldLayout"), is("layout-1"));
+        assertThat(record.get("fieldSet"), is("field-set-1"));
     }
 
 
@@ -140,7 +140,7 @@ class EntityVersionPublisherTest
             entityId,
             prev,
             mask,
-            "layout-1",
+            "field-set-1",
             "owner-1",
             Timestamp.valueOf("2026-09-10 12:00:00")
         );

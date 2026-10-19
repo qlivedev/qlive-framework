@@ -40,6 +40,8 @@ export {
     registerConverter,
     getConverter,
     formatValue,
+    inputText,
+    parseInput,
     convertToServer,
     convertSelectionFromServer,
     convertResultFromServer,

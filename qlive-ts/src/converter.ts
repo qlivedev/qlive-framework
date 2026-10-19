@@ -4,6 +4,7 @@ import {QueryDocument} from "./QueryDocument";
 import config from "./config";
 import {Temporal} from "./temporal";
 import {GenericScalar} from "./GraphQL";
+import i18n from "./i18n";
 
 /**
  * Converts a value between its wire format and its live JavaScript form. Never
@@ -60,6 +61,25 @@ export type Converter<Wire = any, Live = any> = {
      * values are objects needs one to be ordered at all.
      */
     compare?: (a: Live, b: Live, type: string) => number
+
+    /**
+     * Turns a live value into the text an input edits, e.g. `2026-10-19` for a
+     * date input. Not the same as format(): what a user reads and what an input
+     * takes differ for a Timestamp, and a Currency amount reads as `1.15` either
+     * way but is held as `11500`. Never called with null or undefined, which edit
+     * as an empty input.
+     *
+     * Optional along with fromInput(): a type without either has no input, see
+     * inputText().
+     */
+    toInput?: (value: Live, type: string) => string
+
+    /**
+     * Turns what the user typed back into a live value. Called with the text
+     * trimmed and never with blank text, which is null. Throws an Error whose
+     * message the user can read where the text is no value of the type.
+     */
+    fromInput?: (text: string, type: string) => Live
 }
 
 const converterRegistry: { [type: string]: Converter } = {}
@@ -112,6 +132,177 @@ export function formatValue(value: unknown, type: string): string
     }
     const format = converterRegistry[type]?.format
     return format ? format(value, type) : String(value)
+}
+
+/**
+ * A type's way between live values and input text: its converter's, or a built-in
+ * one for the scalars whose live value is their wire value.
+ */
+type InputConversion = {
+    toInput: (value: any, type: string) => string
+    fromInput: (text: string, type: string) => unknown
+}
+
+/**
+ * The text types, whose text is the value as it is, blank included.
+ */
+const TEXT_TYPES = new Set(["String", "ID"])
+
+const INTEGER = /^[+-]?\d+$/
+
+/**
+ * Number.MAX_SAFE_INTEGER as a bigint, the largest a Number or Currency holds exactly.
+ */
+const MAX_SAFE = BigInt(Number.MAX_SAFE_INTEGER)
+
+/**
+ * Parses a whole number in the given range.
+ */
+function wholeNumber(text: string, min: bigint, max: bigint): bigint
+{
+    if (!INTEGER.test(text))
+    {
+        throw new Error(i18n("Not a whole number"))
+    }
+    const value = BigInt(text)
+    if (value < min || value > max)
+    {
+        throw new Error(i18n("Not between {0} and {1}", String(min), String(max)))
+    }
+    return value
+}
+
+function integerInput(min: bigint, max: bigint): InputConversion
+{
+    return {
+        toInput: value => String(value),
+        fromInput: text => Number(wholeNumber(text, min, max))
+    }
+}
+
+/**
+ * The fraction digits a Currency amount holds: it counts 1/10000th units.
+ */
+const CURRENCY_DIGITS = 4
+
+const DECIMAL_TEXT = /^([+-]?)(\d*)(?:\.(\d*))?$/
+
+const BUILT_IN_INPUT: { [type: string]: InputConversion } = {
+    String: {toInput: value => value, fromInput: text => text},
+    ID: {toInput: value => value, fromInput: text => text},
+    Boolean: {
+        toInput: value => String(value),
+        fromInput: text => {
+            if (text !== "true" && text !== "false")
+            {
+                throw new Error(i18n("Not true or false"))
+            }
+            return text === "true"
+        }
+    },
+    Byte: integerInput(-128n, 127n),
+    Short: integerInput(-32768n, 32767n),
+    Int: integerInput(-2147483648n, 2147483647n),
+    Number: integerInput(-MAX_SAFE, MAX_SAFE),
+    Float: {
+        toInput: value => String(value),
+        fromInput: text => {
+            const value = Number(text)
+            if (!Number.isFinite(value))
+            {
+                throw new Error(i18n("Not a number"))
+            }
+            return value
+        }
+    },
+    Currency: {
+        // whole units with at least two decimals, the way an amount is written: 11500 is "1.15", 10000 "1.00"
+        toInput: (value: number) => {
+            const units = BigInt(value)
+            const magnitude = units < 0n ? -units : units
+            const scale = 10n ** BigInt(CURRENCY_DIGITS)
+            const fraction = String(magnitude % scale).padStart(CURRENCY_DIGITS, "0").replace(/0+$/, "").padEnd(2, "0")
+            return (units < 0n ? "-" : "") + String(magnitude / scale) + "." + fraction
+        },
+        fromInput: text => {
+            const match = DECIMAL_TEXT.exec(text)
+            if (!match || (match[2] === "" && !match[3]))
+            {
+                throw new Error(i18n("Not a number"))
+            }
+            const [, sign, whole, fraction = ""] = match
+            if (fraction.length > CURRENCY_DIGITS)
+            {
+                throw new Error(i18n("At most {0} decimal places", String(CURRENCY_DIGITS)))
+            }
+            const magnitude = BigInt(whole || "0") * 10n ** BigInt(CURRENCY_DIGITS) +
+                BigInt(fraction.padEnd(CURRENCY_DIGITS, "0"))
+            if (magnitude > MAX_SAFE)
+            {
+                throw new Error(i18n("Amount too large"))
+            }
+            return Number(sign === "-" ? -magnitude : magnitude)
+        }
+    }
+}
+
+function inputConversion(type: string): InputConversion
+{
+    const converter = converterRegistry[type]
+    if (converter?.toInput && converter.fromInput)
+    {
+        return converter as InputConversion
+    }
+    const builtIn = BUILT_IN_INPUT[type]
+    if (!builtIn)
+    {
+        throw new Error(
+            "No input for " + type + ". Register a converter for it with toInput() and fromInput()."
+        )
+    }
+    return builtIn
+}
+
+/**
+ * Turns a live value into the text an input edits: its converter's toInput() where it has one, the built-in
+ * conversion of String, ID, Boolean, Byte, Short, Int, Number, Float and Currency otherwise. Null and undefined are
+ * empty text.
+ *
+ * @param value     live value, as in a query result or a draft
+ * @param type      GraphQL type name of the value, e.g. "Date"
+ *
+ * @returns input text
+ *
+ * @throws Error for a type without an input: BigDecimal until a decimal type is chosen, and an application's own
+ *         scalar until its converter has toInput() and fromInput()
+ */
+export function inputText(value: unknown, type: string): string
+{
+    const conversion = inputConversion(type)
+    return value === null || value === undefined ? "" : conversion.toInput(value, type)
+}
+
+/**
+ * Turns what the user typed into a live value of the type, the reverse of inputText(). Blank text is null, except
+ * for a String or an ID, whose text is the value as it is.
+ *
+ * @param text      input text
+ * @param type      GraphQL type name of the value, e.g. "Date"
+ *
+ * @returns live value
+ *
+ * @throws Error with a message for the user where the text is no value of the type, and Error for a type without
+ *         an input, see inputText()
+ */
+export function parseInput(text: string, type: string): unknown
+{
+    const conversion = inputConversion(type)
+    if (TEXT_TYPES.has(type) && conversion === BUILT_IN_INPUT[type])
+    {
+        return text
+    }
+    const trimmed = text.trim()
+    return trimmed === "" ? null : conversion.fromInput(trimmed, type)
 }
 
 /**
@@ -434,7 +625,22 @@ registerConverter<string, Temporal.Instant>(
         fromServer: value => Temporal.Instant.from(value),
         toServer: value => value.toString(),
         format: value => value.toLocaleString(),
-        compare: (a, b) => Temporal.Instant.compare(a, b)
+        compare: (a, b) => Temporal.Instant.compare(a, b),
+
+        // as a datetime-local input takes it, in the user's time zone
+        toInput: value => value.toZonedDateTimeISO(Temporal.Now.timeZoneId()).toPlainDateTime().toString(),
+        fromInput: text => {
+            try
+            {
+                return Temporal.PlainDateTime.from(text, {overflow: "reject"})
+                    .toZonedDateTime(Temporal.Now.timeZoneId())
+                    .toInstant()
+            }
+            catch (e)
+            {
+                throw new Error(i18n("Not a date and time"))
+            }
+        }
     }
 )
 
@@ -442,12 +648,33 @@ registerConverter<string, Temporal.Instant>(
  * Longs and BigIntegers travel as decimal strings, since a JSON number past 2^53 is rounded before anything can convert
  * it, and are bigints in the application. A plain number is accepted on the way out.
  */
-const bigintConverter: Converter<string, bigint> = {
-    fromServer: value => BigInt(value),
-    toServer: value => value.toString()
-}
-registerConverter("Long", bigintConverter)
-registerConverter("BigInteger", bigintConverter)
+const MAX_LONG = 2n ** 63n - 1n
+
+registerConverter<string, bigint>(
+    "Long",
+    {
+        fromServer: value => BigInt(value),
+        toServer: value => value.toString(),
+        toInput: value => value.toString(),
+        fromInput: text => wholeNumber(text, -MAX_LONG - 1n, MAX_LONG)
+    }
+)
+
+registerConverter<string, bigint>(
+    "BigInteger",
+    {
+        fromServer: value => BigInt(value),
+        toServer: value => value.toString(),
+        toInput: value => value.toString(),
+        fromInput: text => {
+            if (!INTEGER.test(text))
+            {
+                throw new Error(i18n("Not a whole number"))
+            }
+            return BigInt(text)
+        }
+    }
+)
 
 /**
  * Dates are ISO-8601 calendar dates on the wire, `2026-10-19`, and display in the user's locale.
@@ -458,7 +685,18 @@ registerConverter<string, Temporal.PlainDate>(
         fromServer: value => Temporal.PlainDate.from(value),
         toServer: value => value.toString(),
         format: value => value.toLocaleString(),
-        compare: (a, b) => Temporal.PlainDate.compare(a, b)
+        compare: (a, b) => Temporal.PlainDate.compare(a, b),
+        toInput: value => value.toString(),
+        fromInput: text => {
+            try
+            {
+                return Temporal.PlainDate.from(text, {overflow: "reject"})
+            }
+            catch (e)
+            {
+                throw new Error(i18n("Not a date"))
+            }
+        }
     }
 )
 

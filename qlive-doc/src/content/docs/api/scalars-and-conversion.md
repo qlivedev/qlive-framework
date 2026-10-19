@@ -96,6 +96,51 @@ type's converter formats it as where it has a format(), String(value) otherwise.
 
 **Returns** display text
 
+## inputText()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function inputText(value: unknown, type: string): string;
+```
+
+Turns a live value into the text an input edits: its converter's toInput() where it has one, the built-in
+conversion of String, ID, Boolean, Byte, Short, Int, Number, Float and Currency otherwise. Null and undefined are
+empty text.
+
+**Parameters**
+
+| | |
+|---|---|
+| `value` | live value, as in a query result or a draft |
+| `type` | GraphQL type name of the value, e.g. "Date"  |
+
+**Returns** input text 
+
+**Throws** Error for a type without an input: BigDecimal until a decimal type is chosen, and an application's own scalar until its converter has toInput() and fromInput()
+
+## parseInput()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function parseInput(text: string, type: string): unknown;
+```
+
+Turns what the user typed into a live value of the type, the reverse of inputText(). Blank text is null, except
+for a String or an ID, whose text is the value as it is.
+
+**Parameters**
+
+| | |
+|---|---|
+| `text` | input text |
+| `type` | GraphQL type name of the value, e.g. "Date"  |
+
+**Returns** live value 
+
+**Throws** Error with a message for the user where the text is no value of the type, and Error for a type without an input, see inputText()
+
 ## Converter
 
 <span class="api-kind">type</span>
@@ -132,6 +177,23 @@ type Converter<Wire = any, Live = any> = {
    * values are objects needs one to be ordered at all.
    */
   compare?: (a: Live, b: Live, type: string) => number;
+  /**
+   * Turns a live value into the text an input edits, e.g. `2026-10-19` for a
+   * date input. Not the same as format(): what a user reads and what an input
+   * takes differ for a Timestamp, and a Currency amount reads as `1.15` either
+   * way but is held as `11500`. Never called with null or undefined, which edit
+   * as an empty input.
+   *
+   * Optional along with fromInput(): a type without either has no input, see
+   * inputText().
+   */
+  toInput?: (value: Live, type: string) => string;
+  /**
+   * Turns what the user typed back into a live value. Called with the text
+   * trimmed and never with blank text, which is null. Throws an Error whose
+   * message the user can read where the text is no value of the type.
+   */
+  fromInput?: (text: string, type: string) => Live;
 };
 ```
 

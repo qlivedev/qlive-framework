@@ -84,9 +84,16 @@ not fall back to a text input; in dev it renders a visible placeholder
 naming what is missing ("no widget for `Money` on `Invoice.total`").
 An application's own scalars go through the same registry.
 
-Parsing what an input hands over needs `parse(string, type)` in
-`converter.ts`, next to `format`. It replaces `typed()`, and an
-unparseable value becomes a client-side error.
+Between a live value and what an input edits, each scalar converts
+both ways: `inputText(value, type)` and `parseInput(text, type)` in
+`converter.ts`, next to `formatValue`, from a converter's `toInput` and
+`fromInput` or a built-in for the scalars without a converter. This is
+not `format`: a Timestamp reads one way and goes into a datetime-local
+input another, and a Currency amount is held in 1/10000th units. Most
+inputs edit text; a checkbox takes a Boolean as it is. Blank text is
+null except for a String. `parseInput` replaces `typed()`, and an
+unparseable value becomes a client-side error. BigDecimal has no
+input until a decimal type is chosen for it.
 
 ## Field modes and editability
 

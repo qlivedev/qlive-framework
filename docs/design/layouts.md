@@ -123,10 +123,9 @@ picker on the key field itself; a nullable key's picker can clear it.
 **A field's mode is state.** The layout initializes it: the derived
 default, or the mode a layout node or `Field` gives. Rules change it
 while the form is open -- a field enabled once another is filled.
-**An authorization rule locks it**: a field the user may see but not
-edit is held in the mode authorization sets, and no rule changes it
-after that. Authorization can only lock, never unlock what the layout
-or another rule made read-only.
+**An authorization rule locks it**, and no rule changes it after that.
+How it locks, and in which mode, is left to the authorization work
+(`authorization.md`).
 
 ## The building blocks (sketch)
 
@@ -465,6 +464,8 @@ concept settled:
   nest, and an edit screen contains other forms, a grid's filter or a
   picker's search. Each group renders its own `<form>`, or none, and all
   submit to the same screen layer. A group may render as `<fieldset>`.
+  **Saving one group alone is not supported**: a screen whose parts are
+  saved separately opens a working set per part.
 - **Sections** such as "delivery address" hold on any device; where
   they are placed depends on the device.
 
@@ -476,11 +477,7 @@ the ambiguity.
 
 ## Open items
 
-- **Field-level authorization** in a derived layout: "may see the row,
-  not the salary".
 - **Rules that act**: a change in one group enabling or recomputing
   fields in another, and whether that is a layout's concern or view
   code.
 - **Asynchronous checks** and their pending state.
-- **Saving one group alone**, merging only its own entity while other
-  groups stay dirty.

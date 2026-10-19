@@ -106,6 +106,10 @@ far:
 - **Action input and results** travel through their own REST endpoint
   (`actions.md`).
 - **Push payloads**, see the open item below.
+- **Locked field modes** (`layouts.md`, "Field modes and editability"):
+  an authorization rule locks a form field's mode so no other rule
+  changes it. How it locks and in which mode is open, and a mode on the
+  client is presentation, not enforcement.
 
 ## Open items
 

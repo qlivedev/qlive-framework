@@ -488,7 +488,9 @@ perhaps the layout as one node with a socket per field -- whatever is
 easiest.
 
 **Rules act on the client only**, on client events or on the result of
-a validation expression, setting a field's mode or value. The DAG is
+a validation expression, setting a field's mode or value. **Reaction**
+is the working term for that: an event, or a validation result, wired
+to an action, as Unreal Blueprints wire execution. The DAG is
 constant. **A computed value is continuous and one-way**: gross follows
 net, nothing flows back. Whether the user may override it is the
 target's mode, not a kind of rule: gross in `text` is derived, city in
@@ -500,8 +502,8 @@ blur where recomputing on every keystroke is too slow.
 **The server regards only the validation expressions** and fails a
 write where one doesn't hold. It has no event system: **a value a rule
 set is a change like an edit**, the merge sends it, and validation
-checks it there like any other. Whether some validations should be
-marked client-only is unresolved. Sinks may not be needed; errors
+checks it there like any other. Marking some validations client-only
+stays an option; the start is without it. Sinks may not be needed; errors
 could be one.
 
 **Form rules come from two places**: the layout, situational to one
@@ -547,12 +549,13 @@ cheap.
 
 **Questions.**
 
-- Two-way links (edit net or gross, the other follows): not asked for
-  yet, and not covered by one-way rules.
-- Client-only validations: whether some need marking so the server
-  skips them.
 - Chains (A sets B, B enables C) and conflicts (two rules on one
-  field's mode): rule order, fixed point, or a cycle error?
+  field's mode): probably a cycle error, perhaps with a maximum depth;
+  to be seen once there are rules to try it on. A two-way link -- edit
+  net or gross, the other follows -- is a reaction on each field, which
+  makes it a cycle by construction. It only settles if setting a value
+  equal to the current one (`scalarEqual`) fires no event, which the
+  cycle check has to allow for.
 
 ## Naming
 

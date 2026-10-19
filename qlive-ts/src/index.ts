@@ -137,6 +137,9 @@ export { useGridRows } from "./grid/useGridRows";
 export { default as DataGrid } from "./grid/DataGrid";
 export { unawaited } from "./grid/unawaited";
 
+// What a form does with a field where nothing says otherwise.
+export { defaultFieldMode } from "./form/fieldMode";
+
 // ---------------------------------------------------------------------------
 // TYPESCRIPT TYPES
 // ---------------------------------------------------------------------------
@@ -189,6 +192,7 @@ export type { Flag } from "./grid/flagSetFilter";
 export type { FieldPath, DataGridColumn, GridColumn, ResolvedColumn } from "./grid/columns";
 export type { GridRowStatus, GridRowsOptions, GridRows } from "./grid/useGridRows";
 export type { GridDocument, DataGridProps } from "./grid/DataGrid";
+export type { FieldMode } from "./form/fieldMode";
 export type { GraphQLParams, GraphQLError, GraphQLErrorLocation } from "./util/graphql";
 export type {
     QueryConfig,

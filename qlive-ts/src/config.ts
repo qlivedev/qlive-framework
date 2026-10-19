@@ -486,6 +486,13 @@ export interface DomainFieldMeta {
     computed?: boolean
 
     /**
+     * false if a form shows the field without editing it, see defaultFieldMode(). Written by an application for
+     * columns only the server writes, such as created and modified stamps. A primary key, a computed field and the
+     * version field are not edited without it.
+     */
+    editable?: boolean
+
+    /**
      * The most characters a string field holds -- or elements a list field, or entries a map field. Written by
      * QLive's SizeMetadataProvider from the field's `@Size(max = n)`, which jOOQ generates from the column length, so
      * a table-backed field of limited length has it. Absent where nothing limits the field.

@@ -125,8 +125,9 @@ picker on the key field itself; a nullable key's picker can clear it.
 API sketch, not built. The shape follows the grid: headless hooks
 carrying all the logic, default components that are nothing but those
 hooks plus markup, and an auto-form composed from those components
-alone. Names are working names; `Form` is a proposal for the open
-naming item.
+alone. `Form` is decided: a form references a layout, and imported from
+the package's namespace it can sit next to other `<Form/>` components.
+The other names are working names.
 
 ### `Form`, the context and its provider
 
@@ -172,11 +173,16 @@ function useFormContext(): FormContext   // throws outside a Form
 set: initialized from the action's definition, written through the same
 fields. How the action is issued with it is `actions.md`'s.
 
-`invalid` is the form's share of the field errors that are still
-carried over: text a field holds but couldn't turn into a value never
-reaches the draft, and something has to know it exists before a merge.
-Where that lands once the screen layer is designed is open; the
-context is the one place it can be found until then.
+**`invalid` lives in the form context.** Text a field holds but
+couldn't turn into a value, `"12x"` in an Int field, never reaches the
+draft, which holds live values, and the input still has to show it.
+Kept in the field's own state, it would vanish when the field unmounts;
+kept in the context, it lasts as long as the form, and a save from the
+form checks it. Automaton kept it as the first of a field's stored error
+messages, which was a hack but showed that it belongs with the form and
+not with the values. A parse error is therefore not one of the
+working set's field errors (see "Carried over"), and `merge()` doesn't
+see it.
 
 ### `useField` and `Field`
 
@@ -186,7 +192,7 @@ function useField(path: string, options?: FieldOptions): FieldState
 interface FieldOptions
 {
     mode?: FieldMode
-    widget?: string
+    widget?: Widget
     label?: ReactNode
 }
 
@@ -216,9 +222,8 @@ interface FieldState
     /** parse error of the text, a message for the user */
     error: string | null
 
-    /** merge status of the field, and its class */
+    /** merge status of the field, and the class it carries */
     merge: MergeField
-    className: string
 }
 
 function Field(props: { path: string } & FieldOptions): JSX.Element
@@ -235,7 +240,8 @@ starts with `input.`. A to-one relation is named by its object field,
 `statusField` does. A path one relation hop further, `owner.login`, is
 a field group's business and not a field's.
 
-`Field` is `useField` plus markup: a label, the widget, the error. In
+`Field` is `useField` plus markup: a label, the widget, the error,
+and the merge status class. In
 `text` mode it renders no widget at all but the formatted value -- the
 related row's name fields for a relation, as a grid cell shows them --
 in a span with `qlive-field-text`. Widgets then only ever see `normal`,
@@ -246,20 +252,68 @@ in a span with `qlive-field-text`. Widgets then only ever see `normal`,
 ```ts
 type Widget = ComponentType<{ field: FieldState }>
 
+/** a component around a field's widget, see "Conflicts" */
+type FieldWrapper = ComponentType<{ field: FieldState, children: ReactNode }>
+
+interface WidgetOverride
+{
+    /** root type of the layout the field is in, `"*"` for any */
+    layout: string
+    /** field path from that root */
+    field?: string
+    /** scalar type of the field */
+    scalar?: string
+    widget?: Widget
+    wrapper?: FieldWrapper
+}
+
+config().widgets: WidgetOverride[]
 function registerWidget(name: string, widget: Widget): void
-function defaultWidget(scalarType: string, name: string): void
 ```
 
 A widget gets the whole `FieldState` and renders the input only; label
-and error are `Field`'s. The built-ins are registered by name -- `text`,
-`number`, `checkbox`, `date`, `datetime`, `select` for enums, `toOne`,
-`manyToMany` -- and made the default of their scalar types the same
-way an application does it, so `defaultWidget("Money", "money")` is the
-per-application level.
+and error are `Field`'s.
 
-Resolution, first hit wins: the name the layout node or `Field` gives,
-the `widget` field meta, the default of the scalar type, the relation
-kind. No hit is the dev placeholder.
+**On the client a widget is a component type.** A view writing TSX
+passes it to `Field` directly, and a layout object built in TSX carries
+it in its node. Names exist only for layouts the server delivers, which
+can't hold a component: `registerWidget` gives a component the name such
+a layout uses.
+
+**Overrides are matchers in config**, applied to what the application
+didn't write itself: layouts from the server and from `deriveLayout()`.
+A hand-written form names its components and needs none. A matcher
+keys on `layout`, `field` and `scalar` and nothing else. `layout` is
+the layout's root type rather than its name, since field paths start
+there; two layouts of one type are told apart by the field paths they
+use, if at all, and the derived layout, which has no name, is matched
+by its type like any other. Matching an action seemed too esoteric to
+be worth a key.
+
+```ts
+config().widgets = [
+    { layout: "*", scalar: "Money", widget: MoneyInput },
+    { layout: "Bar", field: "num", widget: Slider }
+]
+```
+
+**The most specific matcher wins**, and the later of two equally
+specific ones: a field beats a scalar, a named root type beats `"*"`.
+
+Resolution for a field, first hit wins: the component the layout node
+or `Field` gives, the name a server layout gives, an override, the
+built-in for the scalar type or relation kind -- `text`, `number`,
+`checkbox`, `date`, `datetime`, `select` for enums, `toOne`,
+`manyToMany`. No hit is the dev placeholder.
+
+**Conflicts are a wrapper.** The buttons that resolve a conflicting
+field are merge UI, not a field's, so QLive ships them as a
+`FieldWrapper` around the widget, matched like a widget override. The
+auto-form applies it; a hand-written form uses it or not, which lets an
+escape hatch that doesn't merge ignore merging entirely. Conflict UI
+varies by application -- inline buttons, a popover, a side-by-side
+view -- and a wrapper is where that variety goes, without every widget
+having to cooperate.
 
 ### The layout format
 
@@ -272,7 +326,7 @@ interface Layout
 }
 
 type LayoutNode =
-    { field: string, widget?: string, mode?: FieldMode, label?: string } |
+    { field: string, widget?: Widget | string, mode?: FieldMode, label?: string } |
     { section: string, nodes: LayoutNode[] } |
     { component: string, props?: Record<string, unknown>, nodes?: LayoutNode[] }
 
@@ -303,9 +357,42 @@ an application can keep in a module of its own.
 { bars.rows.map(row => <Form key={ row.id } row={ ws.edit(row) }/>) }
 ```
 
-The conflict buttons are the open question here: they are merge UI,
-not a field's, and belong either in `Field` as an optional part or in
-a widget wrapper an application registers.
+The conflict buttons become the wrapper the auto-form applies.
+
+### Related rows: the catalog
+
+A to-one picker needs the rows it offers, and a field whose query
+selected the key without the relation object needs the name of the row
+the key points at. `pick()` has the same need today and gets a
+document handed in. For an explicit field a view can still pass one; a
+derived layout knows the target type but has no query for it -- none
+may exist, and an application query that does may carry conditions of
+its own.
+
+Putting a generated query per type into the schema is hard without an
+explicit annotation per query, so this fakes GraphQL instead:
+
+- **One REST endpoint** takes a type name and a `QueryConfig` (condition,
+  sort, page) and runs it through the query document machinery, which
+  already yields a map graph with every scalar coerced; the endpoint
+  only serializes it. It selects the key and the name fields.
+- **Valid types** are those a foreign key references, so the endpoint
+  serves pickers and nothing else.
+- The type's `queryConfig` meta, the condition every query of the type
+  carries, applies as it does everywhere.
+
+**`catalog: true`** is type meta for a type whose rows are constant for
+the lifetime of an application run. Its rows ship in the cached part of
+the bootstrap, so a picker over it never asks the server. The user
+documentation must stress what that costs: every row of every catalog
+type is in every client's bootstrap, and a constant table can still be
+too large to be a catalog.
+
+**A catalog type is visible to everyone** -- or at least to everyone who
+can see a form using it, once there is authorization: there is no
+filtering what is already in the bootstrap. A non-catalog type goes
+through the endpoint, where `authorization.md`'s row-level rules apply
+as they do to any query.
 
 ## The format on the server
 
@@ -335,7 +422,8 @@ concept settled:
 - **Field errors in the working set**, as their own axis next to
   `MergeFieldStatus`: invariant results evaluated on every change, and
   server verdicts keyed by (type, id, field). `merge()` refuses while
-  client-side errors exist.
+  client-side errors exist. Text that didn't parse is not among them;
+  it stays in the form context.
 - **A screen layer**, one per screen, holding what only exists while
   there is a screen: touched state, a save attempt, the display policy
   for errors, one submit across all groups, mapping server verdicts onto
@@ -359,14 +447,14 @@ the ambiguity.
 
 ## Open items
 
-- **The auto-form component's name**, which has to fit its second role
-  as the form context's provider. `Form` is proposed in the sketch.
-- **The conflict buttons**: part of `Field`, or a wrapper widget.
-- **A foreign key selected without its relation object**: the picker
-  has no name fields to show, so the derived layout either shows the
-  key as text or demands the relation in the query.
-- **Where `invalid` goes** once field errors and the screen layer are
-  designed.
+- **The catalog endpoint's execution**: the query document service
+  builds a query from a `DataFetchingEnvironment`, so the endpoint
+  either synthesizes the selection or runs a GraphQL execution
+  internally.
+- **View-specific candidates**: a picker offering only the members of
+  this project, or a manager from the same department, needs a condition
+  from the field; whether the endpoint takes one from the client as it
+  is, and how that squares with authorization.
 - **Where a field's mode comes from** beyond the derived default: the
   layout, authorization, rules -- and which of them wins.
 - **Field-level authorization** in a derived layout: "may see the row,

@@ -415,7 +415,7 @@ scalar ID
 
 scalar Int
 
-"64-bit/53-bit integer"
+"64-bit integer, serialized as a decimal string"
 scalar Long
 
 scalar String

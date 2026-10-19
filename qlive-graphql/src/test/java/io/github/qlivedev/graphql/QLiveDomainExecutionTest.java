@@ -1396,7 +1396,7 @@ public class QLiveDomainExecutionTest
         assertThat(executionResult.getErrors(), is(Collections.emptyList()));
         assertThat(
             JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()),
-            is("{\"walkViewPojoRelation\":[{\"count\":123,\"target\":{\"id\":\"target-id\",\"name\":\"target 9 name\"}}]}")
+            is("{\"walkViewPojoRelation\":[{\"count\":\"123\",\"target\":{\"id\":\"target-id\",\"name\":\"target 9 name\"}}]}")
         );
     }
 
@@ -1417,7 +1417,7 @@ public class QLiveDomainExecutionTest
         assertThat(executionResult.getErrors(), is(Collections.emptyList()));
         assertThat(
             JSONUtil.DEFAULT_GENERATOR.forValue(executionResult.getData()),
-            is("{\"walkViewPojoRelationBackwards\":[{\"id\":\"target-id\",\"name\":\"target 9 name\",\"targetNineCounts\":{\"count\":234}}]}")
+            is("{\"walkViewPojoRelationBackwards\":[{\"id\":\"target-id\",\"name\":\"target 9 name\",\"targetNineCounts\":{\"count\":\"234\"}}]}")
         );
     }
 

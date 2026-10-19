@@ -12,12 +12,12 @@ import java.math.BigInteger;
 
 
 /**
- * A long integer scalar implementation. On the Java side it has full 64-bit, but keep in mind that the javascript side
- * will convert it to just a JavaScript Number, so the real range is only between
- * Number.MIN_SAFE_INTEGER (-9007199254740991) and Number.MAX_SAFE_INTEGER ( 9007199254740991 ). If that is not sufficient,
- * you need a BigInteger or BigDecimal.
+ * A 64-bit integer, the scalar a long field has unless it is annotated with another. It is serialized as a decimal
+ * string: a JSON number past Number.MAX_SAFE_INTEGER is rounded by the browser's JSON.parse before anything can convert
+ * it, so the full range only survives as text, and the browser holds the value as a bigint. Input is accepted as a
+ * string or a number.
  *
- * The scalar implementation was part of GraphQL-java where it was removed. We restored it here because we need it.
+ * A field known to stay in the range a JavaScript number holds exactly can be a {@link NumberScalar} instead.
  */
 public class LongScalar
 {
@@ -31,14 +31,14 @@ public class LongScalar
     {
         return GraphQLScalarType.newScalar()
             .name("Long")
-            .description("64-bit/53-bit integer")
+            .description("64-bit integer, serialized as a decimal string")
             .coercing(new Coercing())
             .build();
     }
 
 
     public static class Coercing
-        implements graphql.schema.Coercing<Long, Long>
+        implements graphql.schema.Coercing<Long, String>
     {
 
         private static final BigInteger LONG_MAX = BigInteger.valueOf(Long.MAX_VALUE);
@@ -81,7 +81,7 @@ public class LongScalar
 
 
         @Override
-        public Long serialize(Object input)
+        public String serialize(Object input)
         {
             Long result = convertImpl(input);
             if (result == null)
@@ -90,7 +90,7 @@ public class LongScalar
                     "Expected type 'Long' but was '" + typeName(input) + "'."
                 );
             }
-            return result;
+            return result.toString();
         }
 
 

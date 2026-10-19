@@ -399,8 +399,11 @@ annotation per query, so it fakes GraphQL instead:
   only serializes it. It selects every scalar field of the type and no
   relation, a selection it builds itself. A query string per type, to
   select something else, may come later.
-- **Valid types** are those a foreign key references, so the endpoint
-  serves pickers and nothing else.
+- **Valid types** are those a foreign key references and that are not
+  catalog types, so the endpoint serves pickers and nothing else. Any
+  other type is an error, a catalog type included: its rows are in the
+  bootstrap, and a request for them means a client took the wrong
+  path.
 - The type's `queryConfig` meta, the condition every query of the type
   carries, applies as it does everywhere, and so do
   `authorization.md`'s row-level rules.

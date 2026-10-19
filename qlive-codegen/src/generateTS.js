@@ -13,9 +13,11 @@ import { isListType, unwrapAll } from "./type-utils.js"
  * have to be imported are spelled the way they are imported: the filter node
  * types live in qlive-ts's FilterDSL namespace, and Temporal is the polyfill
  * namespace qlive-ts re-exports.
+ *
+ * BigDecimal is the string it travels as: no decimal type is chosen for it yet.
  */
 const GRAPHQL_TO_TYPESCRIPT = {
-    "BigDecimal" : "bigint",
+    "BigDecimal" : "string",
     "BigInteger" : "bigint",
     "Boolean" : "boolean",
     "Byte" : "number",
@@ -29,7 +31,8 @@ const GRAPHQL_TO_TYPESCRIPT = {
     "GenericScalar" : "GenericScalar",
     "Int" : "number",
     "JSONB" : "any",
-    "Long" : "number",
+    "Long" : "bigint",
+    "Number" : "number",
     "QueryConfig" : "QueryConfig",
     "String" : "string",
     "Timestamp" : "Temporal.Instant"

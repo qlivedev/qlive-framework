@@ -85,6 +85,14 @@ describe("generated type definitions", () => {
         expect(generated).not.toContain("Colour |")
     })
 
+    it("types the integers by how they travel", () => {
+        // Long arrives as a string and becomes a bigint, Number stays a number,
+        // and BigDecimal is the string it travels as until a decimal type is chosen
+        expect(generated).toMatch(/big\?: bigint/)
+        expect(generated).toMatch(/size\?: number/)
+        expect(generated).toMatch(/amount\?: string/)
+    })
+
     it("typechecks against qlive-ts", () => {
         fs.writeFileSync(path.join(outDir, "tsconfig.json"), JSON.stringify(tsconfig, null, 4), "utf8")
 

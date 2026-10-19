@@ -2,6 +2,7 @@ import type {ComponentType} from "react";
 
 import type {QueryConfigDelta} from "./QueryDocument";
 import type {MergeTypeMeta} from "./merge/meta";
+import type {WidgetOverride} from "./form/widgets";
 
 import {GraphQLSchema, GraphQLType} from "./GraphQLSchema";
 import {addData, initData} from "./data";
@@ -337,6 +338,14 @@ export type QLiveConfig = {
      *     config.translations = {"Foo.name": "Name", "Filter {0}": "{0} filtern"}
      */
     translations?: Record<string, string>
+
+    /**
+     * Widgets and wrappers for the form fields the application doesn't name one for, matched by type, field path and
+     * scalar type, see WidgetOverride. Written by the application like errorView, in startup()'s init hook.
+     *
+     *     config.widgets = [{layout: "*", scalar: "Money", widget: MoneyInput}]
+     */
+    widgets?: WidgetOverride[]
 }
 
 /**

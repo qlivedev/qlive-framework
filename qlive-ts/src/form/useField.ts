@@ -1,0 +1,241 @@
+/*
+ * useField: one field of a form, resolved against the schema and bound to the draft.
+ */
+import type {ReactNode} from "react";
+
+import config, {DomainFieldMeta} from "../config";
+import {hasInput, inputText, parseInput} from "../converter";
+import i18n from "../i18n";
+import type {MergeField} from "../merge/MergeAccessor";
+import {manyToManyField} from "../merge/meta";
+import {findType, isListType, isNonNull, objectFields, unwrapAll} from "../type-utils";
+import {scalarEqual} from "../util/scalar";
+import {defaultFieldMode, FieldMode} from "./fieldMode";
+import {FormState, useFormState} from "./FormContext";
+import type {FieldWrapper, Widget} from "./widgets";
+
+/**
+ * What a field is given where it is written, in place of what is derived.
+ */
+export interface FieldOptions
+{
+    /** the mode the field starts in, see FormContext.modes */
+    mode?: FieldMode
+    /** the widget, or the name it is registered under (registerWidget()) */
+    widget?: Widget | string
+    /** the component around the widget, `null` for none, see WidgetOverride */
+    wrapper?: FieldWrapper | null
+    /** the label, in place of the i18n() of `Type.field` */
+    label?: ReactNode
+}
+
+/**
+ * One field of a form, as of this render: what it is, the mode it is in, its value and its text.
+ */
+export interface FieldState
+{
+    /** the path the field was asked for by */
+    path: string
+    /** the form's type */
+    type: string
+    /** the field's name in it */
+    name: string
+    /** the scalar type of the field, or the related type for a relation */
+    scalarType: string
+    /**
+     * - `scalar`: a scalar or enum field
+     * - `toOne`: a to-one relation, named by its object field and edited through its foreign key
+     * - `manyToMany`: a many-to-many field, holding the related rows
+     */
+    kind: "scalar" | "toOne" | "manyToMany"
+    label: ReactNode
+    /** the input's element id, for the label's htmlFor */
+    id: string
+    mode: FieldMode
+    /** non-null in the schema */
+    required: boolean
+    /** the field's meta data, maxLength and the like */
+    meta: DomainFieldMeta
+
+    /** the value, read through the draft: the foreign key for a to-one relation */
+    value: unknown
+    /** writes a value to the draft, and drops text the field held */
+    setValue(value: unknown): void
+
+    /** what a text input shows: the text being typed, else the input text of the value */
+    text: string
+    /** takes what the user typed: text that parses sets the value, text that doesn't stays, with an error */
+    setText(text: string): void
+    /** why the text didn't parse, a message for the user; null where it did */
+    error: string | null
+
+    /** the merge state of the field the value is in */
+    merge: MergeField
+}
+
+/** what a path resolves to */
+interface Resolved
+{
+    name: string
+    kind: FieldState["kind"]
+    scalarType: string
+    /** the field the value is in */
+    storage: string
+    required: boolean
+}
+
+function fieldError(type: string, path: string, message: string)
+{
+    return new Error("Field " + JSON.stringify(path) + " of " + type + ": " + message)
+}
+
+function resolve(type: string, path: string): Resolved
+{
+    if (path.startsWith("input."))
+    {
+        throw fieldError(type, path, "action input isn't supported yet.")
+    }
+    if (path.includes("."))
+    {
+        throw fieldError(type, path, "a form edits its own row's fields; a related row's are a field group's.")
+    }
+    const fields = objectFields(type)
+    const field = fields.find(f => f.name === path)
+    if (!field)
+    {
+        throw fieldError(type, path, "no such field.")
+    }
+    const named = unwrapAll(field.type)
+    if (isListType(field.type))
+    {
+        if (!manyToManyField(type, path))
+        {
+            throw fieldError(type, path, "a list, and not a many-to-many field.")
+        }
+        return {name: path, kind: "manyToMany", scalarType: named.name!, storage: path, required: false}
+    }
+    if (named.kind === "OBJECT")
+    {
+        const relation = config().meta.relations.find(r => r.sourceType === type && r.leftSideObjectName === path)
+        if (!relation)
+        {
+            throw fieldError(type, path, "an object, and not a to-one relation.")
+        }
+        if (relation.sourceFields.length !== 1)
+        {
+            throw fieldError(type, path, "a relation over a key of several fields, which a form can't edit yet.")
+        }
+        const key = relation.sourceFields[0]
+        const keyField = fields.find(f => f.name === key)
+        return {
+            name: path,
+            kind: "toOne",
+            scalarType: named.name!,
+            storage: key,
+            required: keyField ? isNonNull(keyField.type) : false
+        }
+    }
+    return {name: path, kind: "scalar", scalarType: named.name!, storage: path, required: isNonNull(field.type)}
+}
+
+/** whether the field's value is edited as text */
+function textual(resolved: Resolved): boolean
+{
+    return resolved.kind === "scalar" && hasInput(resolved.scalarType)
+}
+
+/**
+ * The state of one field, built from the form's state. What useField() returns, without being a hook.
+ *
+ * @internal
+ */
+export function fieldState(form: FormState, path: string, options: FieldOptions = {}): FieldState
+{
+    const {row, type} = form
+    const resolved = resolve(type, path)
+    const {storage, scalarType} = resolved
+    const draft = row as Record<string, unknown>
+    const value = draft[storage]
+    const edit = form.edits.get(path)
+
+    const write = (next: unknown) => { draft[storage] = next }
+
+    let text: string
+    if (edit && (edit.error !== null || scalarEqual(edit.value, value)))
+    {
+        text = edit.text
+    }
+    else if (textual(resolved))
+    {
+        text = inputText(value, scalarType)
+    }
+    else
+    {
+        text = value === null || value === undefined ? "" : String(value)
+    }
+
+    return {
+        path,
+        type,
+        name: resolved.name,
+        scalarType,
+        kind: resolved.kind,
+        label: options.label ?? i18n(type + "." + resolved.name),
+        id: form.idPrefix + path,
+        mode: form.modes.get(path) ?? options.mode ?? defaultFieldMode(type, storage),
+        required: resolved.required,
+        meta: config().meta.types[type]?.fields?.[storage] ?? {},
+
+        value,
+        setValue: next => {
+            form.setEdit(path, null)
+            write(next)
+        },
+
+        text,
+        setText: next => {
+            if (!textual(resolved) && !(resolved.kind === "scalar" && findType(scalarType).kind === "ENUM"))
+            {
+                throw fieldError(type, path, "a " + scalarType + " has no input text.")
+            }
+            let parsed: unknown
+            try
+            {
+                parsed = textual(resolved) ? parseInput(next, scalarType) : next.trim() === "" ? null : next
+            }
+            catch (e)
+            {
+                form.setEdit(path, {text: next, value: undefined, error: (e as Error).message})
+                return
+            }
+            form.setEdit(path, {text: next, value: parsed, error: null})
+            write(parsed)
+        },
+        error: edit?.error ?? null,
+
+        merge: form.merge.field(storage)
+    }
+}
+
+/**
+ * One field of the form the calling component is in: what it is, the mode it is in, its value, and its text.
+ *
+ * A path is a field of the form's row. A to-one relation is named by its object field, `owner`, and edits the
+ * foreign key behind it; a many-to-many field holds the related rows. A field of a related row, `owner.login`, is
+ * not a form field.
+ *
+ * A widget editing text calls `setText()`: text that parses (parseInput()) sets the value, text that doesn't stays as
+ * it was typed, with an `error`, and is listed in the form's `invalid`. A widget editing a value, a checkbox or a
+ * picker, calls `setValue()` and never has an error.
+ *
+ * Rules of hooks apply.
+ *
+ * @param path      field path
+ * @param options   what is given in place of what is derived
+ *
+ * @throws Error outside a Form, and for a path the form's type has no field for
+ */
+export function useField(path: string, options?: FieldOptions): FieldState
+{
+    return fieldState(useFormState(), path, options)
+}

@@ -139,8 +139,24 @@ export { useGridRows } from "./grid/useGridRows";
 export { default as DataGrid } from "./grid/DataGrid";
 export { unawaited } from "./grid/unawaited";
 
-// What a form does with a field where nothing says otherwise.
+// Forms: the context and its provider, fields, widgets and layouts.
 export { defaultFieldMode } from "./form/fieldMode";
+export { Form } from "./form/Form";
+export { useFormContext } from "./form/FormContext";
+export { useField } from "./form/useField";
+export { FormField, ConflictResolution, fieldText } from "./form/FormField";
+export {
+    registerWidget,
+    TextInput,
+    NumberInput,
+    DateInput,
+    DateTimeInput,
+    Checkbox,
+    EnumSelect,
+    BooleanSelect,
+    MissingWidget
+} from "./form/widgets";
+export { deriveLayout, registerComponent } from "./form/layout";
 
 // ---------------------------------------------------------------------------
 // TYPESCRIPT TYPES
@@ -195,6 +211,11 @@ export type { FieldPath, DataGridColumn, GridColumn, ResolvedColumn } from "./gr
 export type { GridRowStatus, GridRowsOptions, GridRows } from "./grid/useGridRows";
 export type { GridDocument, DataGridProps } from "./grid/DataGrid";
 export type { FieldMode } from "./form/fieldMode";
+export type { FormProps } from "./form/Form";
+export type { FormContext } from "./form/FormContext";
+export type { FieldOptions, FieldState } from "./form/useField";
+export type { Widget, WidgetProps, FieldWrapper, FieldWrapperProps, WidgetOverride } from "./form/widgets";
+export type { Layout, LayoutNode, LayoutFieldNode, LayoutSectionNode, LayoutComponentNode } from "./form/layout";
 export type { GraphQLParams, GraphQLError, GraphQLErrorLocation } from "./util/graphql";
 export type {
     QueryConfig,

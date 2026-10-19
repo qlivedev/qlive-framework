@@ -264,6 +264,17 @@ function inputConversion(type: string): InputConversion
 }
 
 /**
+ * Whether values of the type have an input text, see inputText().
+ *
+ * @internal
+ */
+export function hasInput(type: string): boolean
+{
+    const converter = converterRegistry[type]
+    return Boolean(converter?.toInput && converter.fromInput) || type in BUILT_IN_INPUT
+}
+
+/**
  * Turns a live value into the text an input edits: its converter's toInput() where it has one, the built-in
  * conversion of String, ID, Boolean, Byte, Short, Int, Number, Float and Currency otherwise. Null and undefined are
  * empty text.

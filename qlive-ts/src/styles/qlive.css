@@ -660,4 +660,64 @@
         opacity: 1;
     }
 
+
+    /*
+     * Forms. A field is a label beside its control, and a form a grid of
+     * them, so that the controls of one form line up whatever their labels.
+     */
+    .qlive-form,
+    .qlive-form-section
+    {
+        display: grid;
+        grid-template-columns: max-content minmax(0, 1fr);
+        gap: var(--qlive-space-2) var(--qlive-space-3);
+        align-items: baseline;
+    }
+    .qlive-form-section
+    {
+        grid-column: 1 / -1;
+        margin: 0;
+        padding: var(--qlive-space-2) var(--qlive-space-3);
+        border: 1px solid var(--qlive-color-border);
+        border-radius: var(--qlive-radius-md);
+    }
+    .qlive-field
+    {
+        display: contents;
+    }
+    .qlive-field-body
+    {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--qlive-space-1) var(--qlive-space-2);
+        align-items: baseline;
+    }
+    .qlive-field-error
+    {
+        flex-basis: 100%;
+        color: var(--qlive-color-error);
+        font-size: 0.9em;
+    }
+    .qlive-field-resolve
+    {
+        display: flex;
+        gap: var(--qlive-space-1);
+    }
+
+    /*
+     * A value no form edits, as text where an input would be: the same
+     * padding and border width, the border transparent, so that it lines up
+     * with the inputs around it -- what Bootstrap's form-control-plaintext is.
+     */
+    .qlive-field-text
+    {
+        display: inline-block;
+        padding: var(--qlive-space-1) 0;
+        border: 1px solid transparent;
+    }
+    .qlive-field-missing small
+    {
+        color: var(--qlive-color-muted);
+    }
+
 }

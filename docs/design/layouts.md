@@ -1,7 +1,8 @@
 # Layouts (design)
 
-Status: concept settled, details open. Written 2026-10-18, revised
-2026-10-19. Not built.
+Status: concept settled, building blocks sketched, details open.
+Written 2026-10-18, revised 2026-10-19. Field modes and input
+conversion are built, the rest is not.
 The companion concept is `actions.md`.
 
 The auto-form. A layout says which fields a form shows, how they are
@@ -119,6 +120,193 @@ which stay editable by default until it does.
 **A foreign key is edited**, nullable or not, through a default to-one
 picker on the key field itself; a nullable key's picker can clear it.
 
+## The building blocks (sketch)
+
+API sketch, not built. The shape follows the grid: headless hooks
+carrying all the logic, default components that are nothing but those
+hooks plus markup, and an auto-form composed from those components
+alone. Names are working names; `Form` is a proposal for the open
+naming item.
+
+### `Form`, the context and its provider
+
+```tsx
+<Form row={ bar }/>                           // derived layout
+<Form row={ bar } layout={ barLayout }/>      // given layout
+<Form row={ bar } layout="barEdit"/>          // named layout
+<Form row={ bar } action="approveBar"/>       // derived, plus the action's input
+<Form row={ bar }>                            // provider only
+    <Field path="name"/>
+    <Field path="owner"/>
+</Form>
+```
+
+- **`row`** is a draft, `ws.edit(row)` or `ws.create(type)`. One form,
+  one entity: its type comes from the working set that made the draft
+  (`useMerge(draft).type`), its merge state from the same accessor. A
+  screen editing several rows has several forms, which is also where
+  field groups go.
+- **`layout`** or **`children`**, never both, and a form given both is
+  an error, not a precedence rule.
+- **`action`** names the action whose input the form also edits.
+
+The context holds the three sources and what only a form has:
+
+```ts
+interface FormContext
+{
+    /** the draft, the first source; the second is the working set it came from */
+    row: object
+    type: string
+    merge: MergeAccessor
+    /** the action's input, the third source; null without an action */
+    input: ActionInput | null
+    /** the fields whose text didn't parse, by path */
+    invalid: ReadonlyMap<string, string>
+}
+
+function useFormContext(): FormContext   // throws outside a Form
+```
+
+`input` is state the form owns, since action input lives in no working
+set: initialized from the action's definition, written through the same
+fields. How the action is issued with it is `actions.md`'s.
+
+`invalid` is the form's share of the field errors that are still
+carried over: text a field holds but couldn't turn into a value never
+reaches the draft, and something has to know it exists before a merge.
+Where that lands once the screen layer is designed is open; the
+context is the one place it can be found until then.
+
+### `useField` and `Field`
+
+```ts
+function useField(path: string, options?: FieldOptions): FieldState
+
+interface FieldOptions
+{
+    mode?: FieldMode
+    widget?: string
+    label?: ReactNode
+}
+
+interface FieldState
+{
+    path: string
+    /** owning type and field name, after following the path */
+    type: string
+    name: string
+    /** scalar type name, or the related type for a relation */
+    scalarType: string
+    kind: "scalar" | "toOne" | "manyToMany"
+    label: ReactNode            // i18n("Type.field"), as a grid heading
+    id: string                  // for the label's htmlFor
+    mode: FieldMode
+    required: boolean           // non-null in the schema
+    meta: DomainFieldMeta       // maxLength, precision, ...
+
+    /** the live value, through the draft or the input */
+    value: unknown
+    setValue(value: unknown): void
+
+    /** what a text input shows: the text being typed, else inputText(value) */
+    text: string
+    setText(text: string): void
+
+    /** parse error of the text, a message for the user */
+    error: string | null
+
+    /** merge status of the field, and its class */
+    merge: MergeField
+    className: string
+}
+
+function Field(props: { path: string } & FieldOptions): JSX.Element
+```
+
+`setText` runs `parseInput`: valid text sets the value, invalid text
+stays in the field as typed and is reported to `invalid`. A widget that
+edits a value rather than text -- a checkbox, a picker -- uses
+`setValue` and never has an error.
+
+A path is a field of the form's entity, or the action input's when it
+starts with `input.`. A to-one relation is named by its object field,
+`owner`, and edits the foreign key behind it, as a grid column's
+`statusField` does. A path one relation hop further, `owner.login`, is
+a field group's business and not a field's.
+
+`Field` is `useField` plus markup: a label, the widget, the error. In
+`text` mode it renders no widget at all but the formatted value -- the
+related row's name fields for a relation, as a grid cell shows them --
+in a span with `qlive-field-text`. Widgets then only ever see `normal`,
+`disabled` and `readOnly`.
+
+### Widgets
+
+```ts
+type Widget = ComponentType<{ field: FieldState }>
+
+function registerWidget(name: string, widget: Widget): void
+function defaultWidget(scalarType: string, name: string): void
+```
+
+A widget gets the whole `FieldState` and renders the input only; label
+and error are `Field`'s. The built-ins are registered by name -- `text`,
+`number`, `checkbox`, `date`, `datetime`, `select` for enums, `toOne`,
+`manyToMany` -- and made the default of their scalar types the same
+way an application does it, so `defaultWidget("Money", "money")` is the
+per-application level.
+
+Resolution, first hit wins: the name the layout node or `Field` gives,
+the `widget` field meta, the default of the scalar type, the relation
+kind. No hit is the dev placeholder.
+
+### The layout format
+
+```ts
+interface Layout
+{
+    type: string
+    action?: string
+    nodes: LayoutNode[]
+}
+
+type LayoutNode =
+    { field: string, widget?: string, mode?: FieldMode, label?: string } |
+    { section: string, nodes: LayoutNode[] } |
+    { component: string, props?: Record<string, unknown>, nodes?: LayoutNode[] }
+
+function deriveLayout(type: string, row: object, action?: string): Layout
+function registerComponent(name: string, component: ComponentType<any>): void
+```
+
+`field` nodes are `Field`s with their options; `section` is a labeled
+group (`<fieldset>`, legend `i18n(section)`); `component` is an
+application's own, registered by name like a widget, with its nodes as
+children.
+
+**`deriveLayout`** takes the fields the row has -- which are the fields
+the query selected, in its order -- and drops what a form doesn't show:
+lists other than many-to-many fields, and a foreign key whose relation
+object is selected too, since the relation's field edits it. With an
+action, the action's input fields follow. The scaffold is
+`deriveLayout` plus a printer from `Layout` to TSX.
+
+**A layout name** is looked up in the bootstrap, where a
+`LayoutProvider` would put them. With none implemented the lookup
+always fails, so until then the form takes layout objects only, which
+an application can keep in a module of its own.
+
+### What `Edit.tsx` would become
+
+```tsx
+{ bars.rows.map(row => <Form key={ row.id } row={ ws.edit(row) }/>) }
+```
+
+The conflict buttons are the open question here: they are merge UI,
+not a field's, and belong either in `Field` as an optional part or in
+a widget wrapper an application registers.
+
 ## The format on the server
 
 **The data format exists on the server too**, as Java classes rooted
@@ -171,9 +359,14 @@ the ambiguity.
 
 ## Open items
 
-- **The building blocks**: what the parts are.
 - **The auto-form component's name**, which has to fit its second role
-  as the form context's provider.
+  as the form context's provider. `Form` is proposed in the sketch.
+- **The conflict buttons**: part of `Field`, or a wrapper widget.
+- **A foreign key selected without its relation object**: the picker
+  has no name fields to show, so the derived layout either shows the
+  key as text or demands the relation in the query.
+- **Where `invalid` goes** once field errors and the screen layer are
+  designed.
 - **Where a field's mode comes from** beyond the derived default: the
   layout, authorization, rules -- and which of them wins.
 - **Field-level authorization** in a derived layout: "may see the row,

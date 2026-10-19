@@ -87,29 +87,23 @@ body
     color: var(--qlive-color-fg);
 }
 
-.bar-edit .field
-{
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0.25rem 0;
-}
-
-.bar-edit .field > label
-{
-    width: 8rem;
-    font-size: 0.85rem;
-    color: var(--qlive-color-muted);
-}
-
 /*
+ * The fields are QLive's FormFields, laid out by QLive's form grid; what is
+ * styled here is the control.
+ *
  * The input group: a bordered wrapper carries the merge mark, an icon addon
  * that only shows up once a status sets --qlive-mark-icon, and the input
  * itself sits borderless inside it. Marking the wrapper rather than the
  * input is what keeps this out of the border-color fight the input used to
  * lose to the app's own base border rule.
  */
-.bar-edit .field .field-control
+.bar-edit .qlive-field > label
+{
+    font-size: 0.85rem;
+    color: var(--qlive-color-muted);
+}
+
+.bar-edit .qlive-field-control
 {
     display: flex;
     align-items: center;
@@ -120,24 +114,19 @@ body
     overflow: hidden;
 }
 
-.bar-edit .field .field-control:focus-within
+.bar-edit .qlive-field-control:focus-within
 {
     outline: 2px solid var(--qlive-color-accent);
     outline-offset: 1px;
 }
 
-.bar-edit .field .field-control.qlive-changed,
-.bar-edit .field .field-control.qlive-conflict,
-.bar-edit .field .field-control.qlive-conflict-resolved,
-.bar-edit .field .field-control.qlive-remote-changed
+.bar-edit .qlive-field-control:is(.qlive-changed, .qlive-conflict, .qlive-conflict-resolved, .qlive-remote-changed)
 {
     border-color: var(--qlive-mark-color);
+    box-shadow: none;
 }
 
-.bar-edit .field .field-control.qlive-changed::before,
-.bar-edit .field .field-control.qlive-conflict::before,
-.bar-edit .field .field-control.qlive-conflict-resolved::before,
-.bar-edit .field .field-control.qlive-remote-changed::before
+.bar-edit .qlive-field-control:is(.qlive-changed, .qlive-conflict, .qlive-conflict-resolved, .qlive-remote-changed)::before
 {
     content: "";
     flex: none;
@@ -162,7 +151,7 @@ body
     mask-size: contain;
 }
 
-.bar-edit .field .field-control input
+.bar-edit .qlive-field-control input
 {
     flex: 1;
     min-width: 0;
@@ -173,16 +162,11 @@ body
     outline: none;
 }
 
-.bar-edit .resolve
-{
-    display: flex;
-    gap: 0.25rem;
-}
-
 /* the association editor, which is one control for the whole link array and is
    marked as one */
 .bar-edit .associations
 {
+    flex: 1;
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;

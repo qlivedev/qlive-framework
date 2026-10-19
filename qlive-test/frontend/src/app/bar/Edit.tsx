@@ -1,9 +1,11 @@
 import { useState } from "react";
 import {
-    MergeAccessor,
+    ConflictResolution,
+    Form,
+    FormField,
     MergeView,
+    useFormContext,
     useInjection,
-    useMerge,
     useWorkingSet,
     WorkingSet
 } from "@qlivedev/qlive-ts";
@@ -14,9 +16,9 @@ import { Q_BazList, Q_BazListResult } from "./Q_BazList";
  * Editing rows through a working set: scalar fields, a many-to-many, and the resolution of a clash in the
  * form the user was already looking at.
  *
- * Nothing below is a framework component. QLive hands out the state -- what changed, what clashed, which
- * class a field carries -- and the application renders the inputs, which is the whole of the split. The
- * conflict path is worth trying twice in two browser windows: save in one, then save in the other.
+ * The row forms are QLive's Form with the application's choice of fields in it, plus an association editor
+ * of its own that reads the form's context. The conflict path is worth trying twice in two browser windows:
+ * save in one, then save in the other.
  *
  * With push wired in, the second window does not have to save to find out. A field somebody else changed is
  * marked while the user is still typing, which is the same marking the merge does, arriving early rather
@@ -30,22 +32,12 @@ import { Q_BazList, Q_BazListResult } from "./Q_BazList";
 type EditRow = Q_BarResult["rows"][number]
 
 /**
- * The fields the form renders, which could as well come from the schema or from a config. Nothing below is
- * written per field, and that is what an accessor buys over a hook per field.
+ * The fields the form renders. A Form without children would derive them from the row, but this one adds the
+ * association editor of its own, which is what children are for.
  */
-const FIELDS: Array<keyof EditRow> = ["name", "num", "description"]
+const FIELDS: Array<keyof EditRow & string> = ["name", "num", "description"]
 
 const VIEWS: MergeView[] = ["merged", "mine", "stored"]
-
-
-/**
- * What goes into the draft for one field. An input hands over a string whatever the field is, and a working
- * set records the value it is given -- Bar.num is an Int, and "3" is not one.
- */
-function typed(name: keyof EditRow, value: string): string | number
-{
-    return name === "num" ? Number(value) : value
-}
 
 
 export default function Edit()
@@ -121,6 +113,10 @@ export default function Edit()
 /**
  * One row. The draft is read on every render rather than kept in state -- it is not the row, and the
  * working set is what holds it.
+ *
+ * The fields are QLive's: a FormField turns what is typed into a value of the field's type, keeps text that
+ * isn't one with an error, and carries the merge mark. The conflict buttons are QLive's too, given here as the
+ * wrapper -- a form rendering a layout applies them by itself, a hand-written one says where it wants them.
  */
 function BarForm({ ws, row, bazes }: {
     ws: WorkingSet,
@@ -128,67 +124,18 @@ function BarForm({ ws, row, bazes }: {
     bazes: Q_BazListResult["rows"]
 })
 {
-    const bar = ws.edit(row)
-    const merge = useMerge(bar)
-
     return (
         <div className="domain-type">
             <h1>{ row.id }</h1>
 
-            {
-                FIELDS.map(name => {
-
-                    const field = merge.field(name)
-
-                    return (
-                        <div className="field" key={ name }>
-                            <label htmlFor={ row.id + "-" + name }>{ name }</label>
-
-                            <div className={ "field-control " + field.className }>
-                                <input
-                                    id={ row.id + "-" + name }
-                                    value={ (bar[name] as string | number | null) ?? "" }
-                                    onChange={ e => { (bar as any)[name] = typed(name, e.target.value) } }
-                                />
-                            </div>
-
-                            {
-                                // Nothing is undecided and nothing blocks: the user's value already stands,
-                                // and these two buttons are how they say otherwise.
-                                field.status === "conflict" && field.storedKnown && (
-                                    <span className="resolve">
-                                        <button
-                                            className="btn"
-                                            type="button"
-                                            onClick={ () => field.resolve("mine") }
-                                        >
-                                            yours: { String(field.mine) }
-                                        </button>
-                                        <button
-                                            className="btn"
-                                            type="button"
-                                            onClick={ () => field.resolve("stored") }
-                                        >
-                                            saved: { String(field.stored) }
-                                        </button>
-                                    </span>
-                                )
-                            }
-
-                            {
-                                // A push message says which fields changed and carries no values, so there
-                                // is no second value to offer yet. Saving asks the server, which answers
-                                // with both -- and the two buttons above appear then.
-                                field.status === "conflict" && !field.storedKnown && (
-                                    <span className="resolve">somebody else changed this too</span>
-                                )
-                            }
-                        </div>
-                    )
-                })
-            }
-
-            <Associations bar={ bar } bazes={ bazes } merge={ merge }/>
+            <Form row={ ws.edit(row) }>
+                <div className="qlive-form">
+                    {
+                        FIELDS.map(name => <FormField key={ name } path={ name } wrapper={ ConflictResolution }/>)
+                    }
+                    <Associations bazes={ bazes }/>
+                </div>
+            </Form>
 
             <button className="btn" type="button" onClick={ () => ws.delete(row) }>
                 Delete
@@ -199,20 +146,19 @@ function BarForm({ ws, row, bazes }: {
 
 
 /**
- * The many-to-many. Bar.bazes is set to the Bazes the row is to be associated with, and the merge turns the
- * difference into associations gained and lost -- nothing here writes a Baz, and nothing here knows the link
- * table that holds the associations.
+ * The many-to-many, the part of the form that is the application's own: it reads the row and its merge state
+ * from the form it is in. Bar.bazes is set to the Bazes the row is to be associated with, and the merge turns
+ * the difference into associations gained and lost -- nothing here writes a Baz, and nothing here knows the
+ * link table that holds the associations.
  */
-function Associations({ bar, bazes, merge }: {
-    bar: EditRow,
-    bazes: Q_BazListResult["rows"],
-    merge: MergeAccessor
-})
+function Associations({ bazes }: { bazes: Q_BazListResult["rows"] })
 {
+    const { row, merge } = useFormContext()
+    const bar = row as EditRow
     const linked = new Set(bar.bazes.map(baz => baz.id))
 
     return (
-        <div className="field">
+        <div className="qlive-field">
             <label>bazes</label>
 
             <div className={ "associations " + merge.field("bazes").className }>

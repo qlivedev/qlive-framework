@@ -52,10 +52,18 @@ and referred to by name, the way widgets are.
 (`design-done/datagrid.md`): the auto-form is built only from the public
 parts an application gets, so a hand-written form can do everything the
 generated one does. The grid can do that because the query document
-holds all its state. For a form, the state is the query document, the
-working set's drafts and the action's input; if all three are reachable
-without a form context, the parts stay as independent as `<Pager/>`
-and `<SortHeader/>`.
+holds all its state. A form's state has three sources -- the query
+document, the working set's drafts and the action's input -- and the
+parts reach them through a form context. The context is public, so the
+rule holds: a hand-written form sets it up the same way the auto-form
+does.
+
+**The auto-form takes a layout or children, never both.** It refers to a
+layout by name or is handed one, and renders it. Given children
+instead, it renders nothing of its own and only provides the context,
+which saves a separate provider export. There is no middle step where
+children replace or extend parts of a layout: whatever children could
+do there, a layout does.
 
 **A scaffold** turns a layout, the derived one included, into TSX, a
 codegen command next to `generate-ts`. Ejecting from a form library
@@ -79,6 +87,27 @@ An application's own scalars go through the same registry.
 Parsing what an input hands over needs `parse(string, type)` in
 `converter.ts`, next to `format`. It replaces `typed()`, and an
 unparseable value becomes a client-side error.
+
+## Field modes and editability
+
+Every field renders in one of four modes, carried over from Automaton:
+
+- **NORMAL**: editable.
+- **DISABLED**: a disabled input.
+- **READ_ONLY**: a read-only input, where the widget has one.
+- **TEXT**: the value as a plain text span with a class, styled to line
+  up with the inputs next to it, the way Bootstrap's
+  `form-control-plaintext` does.
+
+**A derived layout edits every field except** primary key fields,
+computed fields (the `computed` field meta `@GraphQLComputed` sets) and
+fields flagged as not editable; those render as TEXT. The flag is field
+metadata that `version` fields carry automatically and an application
+can set on others, such as created and modified columns, which stay
+editable by default until it does.
+
+**A foreign key is edited**, nullable or not, through a default to-one
+picker on the key field itself; a nullable key's picker can clear it.
 
 ## The format on the server
 
@@ -132,11 +161,11 @@ the ambiguity.
 
 ## Open items
 
-- **Editability in a derived layout**: whether query fields are
-  editable by default, as on a plain edit screen.
-- **The building blocks**: what the parts are, and whether the three
-  sources of state can really be reached without a form context.
-- **The auto-form component's name.**
+- **The building blocks**: what the parts are.
+- **The auto-form component's name**, which has to fit its second role
+  as the form context's provider.
+- **Where a field's mode comes from** beyond the derived default: the
+  layout, authorization, rules -- and which of them wins.
 - **Field-level authorization** in a derived layout: "may see the row,
   not the salary".
 - **Rules that act**: a change in one group enabling or recomputing

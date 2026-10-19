@@ -333,7 +333,7 @@ export type QuuxDocument = {
 /** Every scalar type the framework supports, one column each, and the example of a schema type a handwritten class stands in for -- see io.github.qlivedev.qlivetest.model.types.Qux, which is where the documentation of the fields no column backs would otherwise live. */
 export type Qux = {
     /** DB column 'big_decimal_value' */
-    bigDecimalValue?: bigint
+    bigDecimalValue?: string
     /** DB column 'bool' */
     bool?: boolean
     /** DB column 'byte_value' */
@@ -351,7 +351,7 @@ export type Qux = {
     /** JSONB example. An object, so that what comes back is read as one and not as the string it travels as. */
     jsonbValue?: any
     /** DB column 'long_value' */
-    longValue?: number
+    longValue?: bigint
     /** Qux name */
     name: string
     /** DB column 'string_value' */

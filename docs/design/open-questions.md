@@ -114,6 +114,10 @@ From `done/push.md`, "Open items".
 - **Connection-scoped notices**, with no channel behind them: the
   session is about to expire, the server is draining. `Recipient.send`
   can carry one and nothing sends one yet.
+- **Scalar-typed payloads.** A payload is parsed by Svenson alone, so a
+  `long` in it travels as a JSON number and the browser rounds it. Action
+  input coerces through the schema's scalars (`design/actions.md`);
+  payloads have the same problem and are left as they are for now.
 
 ## The grid
 

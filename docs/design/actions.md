@@ -156,12 +156,18 @@ actions and asks the implementations which one handles each.
 dev, the action gets a stand-in that logs that it was invoked, with the
 data it was invoked with.
 
-**The input reaches the implementation as `E`**, parsed by Svenson. The
-input is not part of the GraphQL domain and not backed by the database:
-like a pub/sub payload, `E` is a plain POJO, and its field values are
-whatever Svenson makes of them. There are no GraphQL scalars involved.
-An implementation that handles several actions declares `E` and `R` as
-`Map` and gets Svenson's plain graph.
+**The input reaches the implementation as `E`**, a plain POJO. The
+input is not part of the GraphQL domain and not backed by the database,
+but its fields are still scalar-typed: a form editing it picks widgets
+and converts values by scalar, and a `long` sent as a JSON number is
+rounded by the browser before any converter sees it. **Each field has
+the scalar the schema says it has**, the same as a domain field, and
+both directions go through that scalar's coercing. The endpoint parses
+the body into a `Map`/`List` graph and recasts it into `E`, the way
+`PayloadRecast` does for pub/sub, converting each field with its
+scalar's coercing on the way; the result is serialized the same way. An
+implementation that handles several actions declares `E` and `R` as
+`Map` and gets the graph with the field values coerced.
 
 **The input's shape** comes from the definition, or from `E` when the
 definition leaves it out. When both describe it, they must match, and a
@@ -174,8 +180,8 @@ shape to check or type.
 Both type parameters are available at runtime, which makes actions a
 second registry for `client-types.md`, next to pub/sub's channels: a map
 from action name to `E` and `R`. The emitter turns the classes into
-TypeScript types, and the generated map types the async function by
-name:
+TypeScript types, mapping each field's scalar as for the domain types,
+and the generated map types the async function by name:
 
 ```ts
 export interface Actions {

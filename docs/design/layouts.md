@@ -502,6 +502,41 @@ even a hundred layouts don't justify a per-route mechanism -- and views
 refer to them by name, so delivery could change later without touching
 them.
 
+### Named layouts and where they come from (raw notes, 2026-10-20)
+
+Thinking aloud, not settled. This shifts the paragraph above: the server
+is now meant to create named layouts, from a builder or an editor,
+neither of which exists yet.
+
+- **A name is what makes a layout resolvable.** `<Form layout="barEdit"/>`
+  looks it up; only a layout object handed to `Form` directly can do
+  without one (`Layout.name` is optional for that reason).
+- **Generation is a source of its own**, beyond the defaults
+  `deriveLayout()` gives. Prior art: in Automaton's predecessor, a
+  customer with a huge database of tiny parts -- screws and the like --
+  had "view models" in OpenSAGA terms generated from stereotype or
+  blueprint templates filled in from the tables and columns. A view
+  model mirrors a layout here, except that a layout isn't bound to a
+  view either: it belongs to a domain type, and any view renders it.
+- **On the client it is all data arriving.** Layouts come in the
+  bootstrap and can be read and changed in startup's `init` before
+  anything renders. An application generating its own in TypeScript
+  registers them there too: no reason seen to do it beyond taste, and
+  none to forbid it.
+- **A generated layout may share its domain type's name.** No danger
+  seen in a layout `Screw` for the type `Screw`; `ScrewLayout` might
+  read better, but isn't a must. The name is the generator's choice,
+  not a rule QLive applies.
+- **One namespace for all sources**, server providers, generators and
+  the application's `init` alike, and they have to arrange themselves
+  in it. Open: whether a name may be overridden -- the application
+  patching a server layout, as `registerConverter` overrides QLive's
+  own -- or the sources only merge by distinct names, a duplicate
+  being an error as for providers above.
+- Open: generated layouts in the cached bootstrap add up for many types
+  -- the catalog warning again -- unless layouts are fetched by name on
+  first use.
+
 ## Carried over, not discussed again
 
 From the earlier sketch, still plausible, but worked out before the

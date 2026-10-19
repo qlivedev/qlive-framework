@@ -375,11 +375,19 @@ explicit annotation per query, so this fakes GraphQL instead:
 - **One REST endpoint** takes a type name and a `QueryConfig` (condition,
   sort, page) and runs it through the query document machinery, which
   already yields a map graph with every scalar coerced; the endpoint
-  only serializes it. It selects the key and the name fields.
+  only serializes it. It selects every scalar field of the type and no
+  relation, a selection it builds itself. A query string per type, to
+  select something else, may come later.
 - **Valid types** are those a foreign key references, so the endpoint
   serves pickers and nothing else.
 - The type's `queryConfig` meta, the condition every query of the type
   carries, applies as it does everywhere.
+- **A field may add a condition**, which is how a picker offers only
+  the members of this project. The endpoint takes it from the client as
+  it is: it can only narrow what the type's own condition and
+  authorization already allow, never widen it. For a catalog type the
+  same condition is evaluated in memory over the bootstrap's rows
+  (`conditionPredicate()`), so the picker reads the same either way.
 
 **`catalog: true`** is type meta for a type whose rows are constant for
 the lifetime of an application run. Its rows ship in the cached part of
@@ -447,14 +455,6 @@ the ambiguity.
 
 ## Open items
 
-- **The catalog endpoint's execution**: the query document service
-  builds a query from a `DataFetchingEnvironment`, so the endpoint
-  either synthesizes the selection or runs a GraphQL execution
-  internally.
-- **View-specific candidates**: a picker offering only the members of
-  this project, or a manager from the same department, needs a condition
-  from the field; whether the endpoint takes one from the client as it
-  is, and how that squares with authorization.
 - **Where a field's mode comes from** beyond the derived default: the
   layout, authorization, rules -- and which of them wins.
 - **Field-level authorization** in a derived layout: "may see the row,

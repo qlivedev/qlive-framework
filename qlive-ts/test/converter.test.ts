@@ -320,3 +320,33 @@ describe("formatValue", () => {
         expect(formatValue("abc", "SomethingUnknown")).toBe("abc")
     })
 })
+
+describe("integers and dates", () => {
+
+    it("holds a Long as a bigint, past what a number holds", () => {
+
+        expect(convertSelectionFromServer("9223372036854775807", {type: "Long"})).toBe(9223372036854775807n)
+        expect(getConverter("Long")!.toServer!(9223372036854775807n, "Long")).toBe("9223372036854775807")
+    })
+
+    it("holds a BigInteger as a bigint", () => {
+
+        expect(convertSelectionFromServer("-12345678901234567890", {type: "BigInteger"})).toBe(-12345678901234567890n)
+        expect(getConverter("BigInteger")!.toServer!(-12345678901234567890n, "BigInteger")).toBe("-12345678901234567890")
+    })
+
+    it("holds a Date as a PlainDate", () => {
+
+        const date = convertSelectionFromServer("2026-10-19", {type: "Date"})
+
+        expect(date).toBeInstanceOf(Temporal.PlainDate)
+        expect(date.equals(Temporal.PlainDate.from("2026-10-19"))).toBe(true)
+        expect(getConverter("Date")!.toServer!(date, "Date")).toBe("2026-10-19")
+    })
+
+    it("leaves a Number and a BigDecimal as they travel", () => {
+
+        expect(convertSelectionFromServer(123, {type: "Number"})).toBe(123)
+        expect(convertSelectionFromServer("1.50", {type: "BigDecimal"})).toBe("1.50")
+    })
+})

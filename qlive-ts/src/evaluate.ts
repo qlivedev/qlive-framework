@@ -260,10 +260,10 @@ const CONDITIONS: Record<string, { arity: number, impl: ConditionImpl }> = {
 // ---------------------------------------------------------------------------------------------------------------------
 
 /** the integer types, whose arithmetic is exact and whose division truncates */
-const INTEGER_TYPES = new Set(["Int", "Short", "Byte", "Long", "BigInteger"]);
+const INTEGER_TYPES = new Set(["Int", "Short", "Byte", "Long", "Number", "BigInteger"]);
 
 /** the integer types small enough to be JavaScript numbers */
-const SMALL_INTEGER_TYPES = new Set(["Int", "Short", "Byte"]);
+const SMALL_INTEGER_TYPES = new Set(["Int", "Short", "Byte", "Number"]);
 
 function integer(value: unknown): bigint
 {

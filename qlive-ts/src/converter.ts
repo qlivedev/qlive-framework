@@ -439,6 +439,30 @@ registerConverter<string, Temporal.Instant>(
 )
 
 /**
+ * Longs and BigIntegers travel as decimal strings, since a JSON number past 2^53 is rounded before anything can convert
+ * it, and are bigints in the application. A plain number is accepted on the way out.
+ */
+const bigintConverter: Converter<string, bigint> = {
+    fromServer: value => BigInt(value),
+    toServer: value => value.toString()
+}
+registerConverter("Long", bigintConverter)
+registerConverter("BigInteger", bigintConverter)
+
+/**
+ * Dates are ISO-8601 calendar dates on the wire, `2026-10-19`, and display in the user's locale.
+ */
+registerConverter<string, Temporal.PlainDate>(
+    "Date",
+    {
+        fromServer: value => Temporal.PlainDate.from(value),
+        toServer: value => value.toString(),
+        format: value => value.toLocaleString(),
+        compare: (a, b) => Temporal.PlainDate.compare(a, b)
+    }
+)
+
+/**
  * Splits a generic scalar's type name into the named type and whether it was a list of them, which is how
  * the server's coercing writes it: "Timestamp" or "[Timestamp]".
  */

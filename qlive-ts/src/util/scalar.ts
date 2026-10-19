@@ -55,7 +55,7 @@ export function genericScalarEqual(a: GenericScalar | null, b: GenericScalar | n
  * The scalar types whose values are numbers, whatever form a value of them takes: a number, a bigint, or a string
  * holding a decimal, as a BigDecimal arrives.
  */
-const NUMERIC_TYPES = new Set(["Int", "Short", "Byte", "Long", "Float", "BigInteger", "BigDecimal"])
+const NUMERIC_TYPES = new Set(["Int", "Short", "Byte", "Long", "Number", "Currency", "Float", "BigInteger", "BigDecimal"])
 
 /**
  * Whether the scalar type is a number type, `Int`, `Long`, `BigDecimal` and so on.

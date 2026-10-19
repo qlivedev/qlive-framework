@@ -32,7 +32,9 @@ export type GenericScalar = {
 
 export type GenericBigDecimal = {
     type: "BigDecimal"
-    value: bigint
+
+    /** the decimal as the string it travels as, no decimal type being chosen for it yet */
+    value: string
 }
 
 export type GenericByte = {
@@ -58,7 +60,7 @@ export type GenericCondition = {
 
 export type GenericDate = {
     type: "Date"
-    value: string
+    value: Temporal.PlainDate
 }
 
 

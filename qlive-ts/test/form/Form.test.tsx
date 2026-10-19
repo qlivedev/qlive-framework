@@ -154,6 +154,8 @@ describe("Form", () => {
         expect(query("[id$='-id']").tagName).toBe("SPAN")
         expect(query("[id$='-id']").textContent).toBe("bar-1")
         expect(query("[id$='-version']").className).toBe("qlive-field-text")
+        // the mode class of the field must not be the class of its text span
+        expect(query("[id$='-version']").closest(".qlive-field")!.className).toBe("qlive-field qlive-field-mode-text")
     })
 
     it("writes text that parses to the draft and keeps it as typed", async () => {

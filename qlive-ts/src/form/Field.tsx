@@ -154,7 +154,7 @@ export function Field(props: { path: string } & FieldOptions): JSX.Element
         : findOverride("wrapper", field.type, field) ?? (form.fromLayout ? ConflictResolution : null)
 
     return (
-        <div className={ "qlive-field qlive-field-" + field.mode }>
+        <div className={ "qlive-field qlive-field-mode-" + field.mode }>
             <label id={ labelId } htmlFor={ field.mode === "text" ? undefined : field.id }>{ field.label }</label>
             <div className="qlive-field-body">
                 { Wrapper ? <Wrapper field={ field }>{ control }</Wrapper> : control }

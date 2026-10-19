@@ -90,21 +90,24 @@ unparseable value becomes a client-side error.
 
 ## Field modes and editability
 
-Every field renders in one of four modes, carried over from Automaton:
+Every field renders in one of four modes, carried over from Automaton
+and spelled as a string union like `MergeFieldStatus`
+(`FieldMode` in `qlive-ts/src/form/fieldMode.ts`):
 
-- **NORMAL**: editable.
-- **DISABLED**: a disabled input.
-- **READ_ONLY**: a read-only input, where the widget has one.
-- **TEXT**: the value as a plain text span with a class, styled to line
-  up with the inputs next to it, the way Bootstrap's
+- **`normal`**: editable.
+- **`disabled`**: a disabled input.
+- **`readOnly`**: a read-only input, where the widget has one.
+- **`text`**: the value as a plain text span with a class, styled to
+  line up with the inputs next to it, the way Bootstrap's
   `form-control-plaintext` does.
 
 **A derived layout edits every field except** primary key fields,
-computed fields (the `computed` field meta `@GraphQLComputed` sets) and
-fields flagged as not editable; those render as TEXT. The flag is field
-metadata that `version` fields carry automatically and an application
-can set on others, such as created and modified columns, which stay
-editable by default until it does.
+computed fields (the `computed` field meta `@GraphQLComputed` sets),
+the `version` field and fields whose `editable` field meta is false;
+those render as `text` (`defaultFieldMode()`). The `version` field is
+recognized by its name, as the merge recognizes it. An application sets
+`editable: false` on others, such as created and modified columns,
+which stay editable by default until it does.
 
 **A foreign key is edited**, nullable or not, through a default to-one
 picker on the key field itself; a nullable key's picker can clear it.

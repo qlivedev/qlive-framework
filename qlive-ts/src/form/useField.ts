@@ -12,7 +12,7 @@ import {findType, isListType, isNonNull, objectFields, unwrapAll} from "../type-
 import {scalarEqual} from "../util/scalar";
 import {defaultFieldMode, FieldMode} from "./fieldMode";
 import {FormState, useFormState} from "./FormContext";
-import type {FieldWrapper, Widget} from "./widgets";
+import type {FieldDecorator, Widget} from "./widgets";
 
 /**
  * What a field is given where it is written, in place of what is derived.
@@ -24,7 +24,7 @@ export interface FieldOptions
     /** the widget, or the name it is registered under (registerWidget()) */
     widget?: Widget | string
     /** the component around the widget, `null` for none, see WidgetOverride */
-    wrapper?: FieldWrapper | null
+    decorator?: FieldDecorator | null
     /** the label, in place of the i18n() of `Type.field` */
     label?: ReactNode
 }

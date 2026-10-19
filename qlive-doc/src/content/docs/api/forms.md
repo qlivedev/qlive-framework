@@ -166,7 +166,7 @@ and says so.
 
 A field in `text` mode renders no widget at all, but the value as text in a `qlive-field-text` span.
 
-The control, widget or text, carries the merge mark; a wrapper goes around the control, so what it adds sits
+The control, widget or text, carries the merge mark; a decorator goes around the control, so what it adds sits
 beside the marked box rather than in it.
 
 **Parameters**
@@ -230,10 +230,10 @@ widget?: Widget | string;
 
 the widget, or the name it is registered under (registerWidget())
 
-### FieldOptions.wrapper
+### FieldOptions.decorator
 
 ```ts
-wrapper?: FieldWrapper | null;
+decorator?: FieldDecorator | null;
 ```
 
 the component around the widget, `null` for none, see WidgetOverride
@@ -473,34 +473,34 @@ Props of a Widget.
 field: FieldState;
 ```
 
-## FieldWrapper
+## FieldDecorator
 
 <span class="api-kind">type</span>
 
 ```ts
-type FieldWrapper = ComponentType<FieldWrapperProps>;
+type FieldDecorator = ComponentType<FieldDecoratorProps>;
 ```
 
-A component around a field's widget, rendering it as `children`. What QLive's conflict buttons are
+A component given a field's control as `children`, rendering it with whatever it adds around it. What QLive's conflict buttons are
 (ConflictResolution), and where an application puts UI about a field that no widget should have to know about.
 
-## FieldWrapperProps
+## FieldDecoratorProps
 
 <span class="api-kind">interface</span>
 
 ```ts
-interface FieldWrapperProps
+interface FieldDecoratorProps
 ```
 
-Props of a FieldWrapper.
+Props of a FieldDecorator.
 
-### FieldWrapperProps.field
+### FieldDecoratorProps.field
 
 ```ts
 field: FieldState;
 ```
 
-### FieldWrapperProps.children
+### FieldDecoratorProps.children
 
 ```ts
 children: ReactNode;
@@ -516,7 +516,7 @@ the field's control, widget and merge mark
 interface WidgetOverride
 ```
 
-A widget or wrapper for the fields an application doesn't name one for, matched by the form's type, the field
+A widget or decorator for the fields an application doesn't name one for, matched by the form's type, the field
 path and the field's scalar type. Listed in `config().widgets`.
 
     config.widgets = [
@@ -525,7 +525,7 @@ path and the field's scalar type. Listed in `config().widgets`.
     ]
 
 The most specific match wins, the later of two equally specific ones: a field beats a scalar, which beats neither,
-and a named type beats `"*"`. Widgets and wrappers are matched separately, so a wrapper override doesn't hide a
+and a named type beats `"*"`. Widgets and decorators are matched separately, so a decorator override doesn't hide a
 widget override that is less specific.
 
 ### WidgetOverride.layout
@@ -558,10 +558,10 @@ scalar type of the field, or the related type for a relation
 widget?: Widget;
 ```
 
-### WidgetOverride.wrapper
+### WidgetOverride.decorator
 
 ```ts
-wrapper?: FieldWrapper;
+decorator?: FieldDecorator;
 ```
 
 ## registerWidget()
@@ -587,15 +587,15 @@ name; a layout the server delivers can't hold one.
 <span class="api-kind">function</span>
 
 ```ts
-declare function ConflictResolution({ field, children }: FieldWrapperProps): JSX.Element;
+declare function ConflictResolution({ field, children }: FieldDecoratorProps): JSX.Element;
 ```
 
 The buttons that resolve a field both writes changed, around its widget: one keeping the user's value, one taking
 the saved one. Where the saved value isn't known yet -- a push message says which fields changed, not to what --
 a note instead, until a save brings both.
 
-What a form rendering a layout wraps every widget in, unless an override gives a wrapper (WidgetOverride). A
-hand-written form gives it where it wants it, `<Field path="name" wrapper={ ConflictResolution }/>`.
+What a form rendering a layout decorates every control with, unless an override gives a decorator (WidgetOverride). A
+hand-written form gives it where it wants it, `<Field path="name" decorator={ ConflictResolution }/>`.
 
 ## TextInput()
 

@@ -25,15 +25,15 @@ export interface WidgetProps
 }
 
 /**
- * A component around a field's widget, rendering it as `children`. What QLive's conflict buttons are
+ * A component given a field's control as `children`, rendering it with whatever it adds around it. What QLive's conflict buttons are
  * (ConflictResolution), and where an application puts UI about a field that no widget should have to know about.
  */
-export type FieldWrapper = ComponentType<FieldWrapperProps>
+export type FieldDecorator = ComponentType<FieldDecoratorProps>
 
 /**
- * Props of a FieldWrapper.
+ * Props of a FieldDecorator.
  */
-export interface FieldWrapperProps
+export interface FieldDecoratorProps
 {
     field: FieldState
     /** the field's control, widget and merge mark */
@@ -41,7 +41,7 @@ export interface FieldWrapperProps
 }
 
 /**
- * A widget or wrapper for the fields an application doesn't name one for, matched by the form's type, the field
+ * A widget or decorator for the fields an application doesn't name one for, matched by the form's type, the field
  * path and the field's scalar type. Listed in `config().widgets`.
  *
  *     config.widgets = [
@@ -50,7 +50,7 @@ export interface FieldWrapperProps
  *     ]
  *
  * The most specific match wins, the later of two equally specific ones: a field beats a scalar, which beats neither,
- * and a named type beats `"*"`. Widgets and wrappers are matched separately, so a wrapper override doesn't hide a
+ * and a named type beats `"*"`. Widgets and decorators are matched separately, so a decorator override doesn't hide a
  * widget override that is less specific.
  */
 export interface WidgetOverride
@@ -62,7 +62,7 @@ export interface WidgetOverride
     /** scalar type of the field, or the related type for a relation */
     scalar?: string
     widget?: Widget
-    wrapper?: FieldWrapper
+    decorator?: FieldDecorator
 }
 
 const widgetRegistry = new Map<string, Widget>()
@@ -112,7 +112,7 @@ function specificity(override: WidgetOverride, type: string, field: FieldState):
  *
  * @internal
  */
-export function findOverride<K extends "widget" | "wrapper">(
+export function findOverride<K extends "widget" | "decorator">(
     member: K,
     type: string,
     field: FieldState

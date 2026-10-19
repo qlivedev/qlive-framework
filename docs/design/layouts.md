@@ -152,11 +152,15 @@ The sketch below is what was built, apart from these, as of 2026-10-20:
 - **Overrides apply to every field that names no widget**, a
   hand-written `<Field path="price"/>` included, not only to layouts:
   an application's `Money` widget would otherwise be missing exactly
-  where the application wrote the form itself. The conflict wrapper is
+  where the application wrote the form itself. The conflict decorator is
   still a layout's default only, and a hand-written form gives it where
   it wants it.
-- **The wrapper goes around the control**, the box carrying the merge
+- **The decorator goes around the control**, the box carrying the merge
   mark, so conflict buttons sit beside the marked input, not inside it.
+  It is called a decorator rather than a wrapper: `Field` is given it
+  as a prop and applies it, while "wrapper" suggested a component the
+  application puts around `<Field/>` in JSX, which can't reach the
+  field's state or its place in the grid.
 - **Built-in widgets**: a text input; a number input that is a text
   input with `inputMode` (`type="number"` reports unparseable text as
   empty, which would hide it, and knows no bigint); `date` and
@@ -303,7 +307,7 @@ in a span with `qlive-field-text`. Widgets then only ever see `normal`,
 type Widget = ComponentType<{ field: FieldState }>
 
 /** a component around a field's widget, see "Conflicts" */
-type FieldWrapper = ComponentType<{ field: FieldState, children: ReactNode }>
+type FieldDecorator = ComponentType<{ field: FieldState, children: ReactNode }>
 
 interface WidgetOverride
 {
@@ -314,7 +318,7 @@ interface WidgetOverride
     /** scalar type of the field */
     scalar?: string
     widget?: Widget
-    wrapper?: FieldWrapper
+    decorator?: FieldDecorator
 }
 
 config().widgets: WidgetOverride[]
@@ -356,13 +360,13 @@ built-in for the scalar type or relation kind -- `text`, `number`,
 `checkbox`, `date`, `datetime`, `select` for enums, `toOne`,
 `manyToMany`. No hit is the dev placeholder.
 
-**Conflicts are a wrapper.** The buttons that resolve a conflicting
+**Conflicts are a decorator.** The buttons that resolve a conflicting
 field are merge UI, not a field's, so QLive ships them as a
-`FieldWrapper` around the widget, matched like a widget override. The
+`FieldDecorator` around the widget, matched like a widget override. The
 auto-form applies it; a hand-written form uses it or not, which lets an
 escape hatch that doesn't merge ignore merging entirely. Conflict UI
 varies by application -- inline buttons, a popover, a side-by-side
-view -- and a wrapper is where that variety goes, without every widget
+view -- and a decorator is where that variety goes, without every widget
 having to cooperate.
 
 ### The layout format
@@ -407,7 +411,7 @@ an application can keep in a module of its own.
 { bars.rows.map(row => <Form key={ row.id } row={ ws.edit(row) }/>) }
 ```
 
-The conflict buttons become the wrapper the auto-form applies.
+The conflict buttons become the decorator the auto-form applies.
 
 ### Related rows
 

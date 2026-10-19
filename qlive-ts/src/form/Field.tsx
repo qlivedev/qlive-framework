@@ -1,5 +1,5 @@
 /*
- * Field: a field's label, widget and error; and the conflict buttons QLive wraps a widget in.
+ * Field: a field's label, widget and error; and the conflict buttons QLive decorates a control with.
  */
 import type {JSX} from "react";
 
@@ -9,7 +9,7 @@ import i18n from "../i18n";
 import {objectFields, primaryKeyFields, unwrapAll} from "../type-utils";
 import {useFormState} from "./FormContext";
 import {FieldOptions, FieldState, fieldState} from "./useField";
-import {builtInWidget, FieldWrapperProps, findOverride, namedWidget, Widget} from "./widgets";
+import {builtInWidget, FieldDecoratorProps, findOverride, namedWidget, Widget} from "./widgets";
 
 /**
  * A related row named by its type's name fields, the key where it has none or the row isn't selected.
@@ -74,10 +74,10 @@ export function fieldText(field: FieldState, row: object, value: unknown = field
  * the saved one. Where the saved value isn't known yet -- a push message says which fields changed, not to what --
  * a note instead, until a save brings both.
  *
- * What a form rendering a layout wraps every widget in, unless an override gives a wrapper (WidgetOverride). A
- * hand-written form gives it where it wants it, `<Field path="name" wrapper={ ConflictResolution }/>`.
+ * What a form rendering a layout decorates every control with, unless an override gives a decorator (WidgetOverride). A
+ * hand-written form gives it where it wants it, `<Field path="name" decorator={ ConflictResolution }/>`.
  */
-export function ConflictResolution({field, children}: FieldWrapperProps): JSX.Element
+export function ConflictResolution({field, children}: FieldDecoratorProps): JSX.Element
 {
     const {merge} = field
     const {row} = useFormState()
@@ -127,7 +127,7 @@ function widgetOf(field: FieldState, given: Widget | string | undefined): Widget
  *
  * A field in `text` mode renders no widget at all, but the value as text in a `qlive-field-text` span.
  *
- * The control, widget or text, carries the merge mark; a wrapper goes around the control, so what it adds sits
+ * The control, widget or text, carries the merge mark; a decorator goes around the control, so what it adds sits
  * beside the marked box rather than in it.
  *
  * @param props     the field path, and the options of useField()
@@ -149,15 +149,15 @@ export function Field(props: { path: string } & FieldOptions): JSX.Element
         content = <FieldWidget field={ field }/>
     }
     const control = <div className={ ("qlive-field-control " + field.merge.className).trim() }>{ content }</div>
-    const Wrapper = props.wrapper !== undefined
-        ? props.wrapper
-        : findOverride("wrapper", field.type, field) ?? (form.fromLayout ? ConflictResolution : null)
+    const Decorator = props.decorator !== undefined
+        ? props.decorator
+        : findOverride("decorator", field.type, field) ?? (form.fromLayout ? ConflictResolution : null)
 
     return (
         <div className={ "qlive-field qlive-field-mode-" + field.mode }>
             <label id={ labelId } htmlFor={ field.mode === "text" ? undefined : field.id }>{ field.label }</label>
             <div className="qlive-field-body">
-                { Wrapper ? <Wrapper field={ field }>{ control }</Wrapper> : control }
+                { Decorator ? <Decorator field={ field }>{ control }</Decorator> : control }
                 { field.error !== null && <div className="qlive-field-error" role="alert">{ field.error }</div> }
             </div>
         </div>

@@ -214,7 +214,7 @@ export type { FieldMode } from "./form/fieldMode";
 export type { FormProps } from "./form/Form";
 export type { FormContext } from "./form/FormContext";
 export type { FieldOptions, FieldState } from "./form/useField";
-export type { Widget, WidgetProps, FieldWrapper, FieldWrapperProps, WidgetOverride } from "./form/widgets";
+export type { Widget, WidgetProps, FieldDecorator, FieldDecoratorProps, WidgetOverride } from "./form/widgets";
 export type { Layout, LayoutNode, LayoutFieldNode, LayoutSectionNode, LayoutComponentNode } from "./form/layout";
 export type { GraphQLParams, GraphQLError, GraphQLErrorLocation } from "./util/graphql";
 export type {

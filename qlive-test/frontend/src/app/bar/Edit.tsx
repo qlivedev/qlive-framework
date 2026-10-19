@@ -116,7 +116,7 @@ export default function Edit()
  *
  * The fields are QLive's: a Field turns what is typed into a value of the field's type, keeps text that
  * isn't one with an error, and carries the merge mark. The conflict buttons are QLive's too, given here as the
- * wrapper -- a form rendering a layout applies them by itself, a hand-written one says where it wants them.
+ * decorator -- a form rendering a layout applies them by itself, a hand-written one says where it wants them.
  */
 function BarForm({ ws, row, bazes }: {
     ws: WorkingSet,
@@ -131,7 +131,7 @@ function BarForm({ ws, row, bazes }: {
             <Form row={ ws.edit(row) }>
                 <div className="qlive-form">
                     {
-                        FIELDS.map(name => <Field key={ name } path={ name } wrapper={ ConflictResolution }/>)
+                        FIELDS.map(name => <Field key={ name } path={ name } decorator={ ConflictResolution }/>)
                     }
                     <Associations bazes={ bazes }/>
                 </div>

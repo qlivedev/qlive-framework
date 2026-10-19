@@ -120,6 +120,14 @@ which stay editable by default until it does.
 **A foreign key is edited**, nullable or not, through a default to-one
 picker on the key field itself; a nullable key's picker can clear it.
 
+**A field's mode is state.** The layout initializes it: the derived
+default, or the mode a layout node or `Field` gives. Rules change it
+while the form is open -- a field enabled once another is filled.
+**An authorization rule locks it**: a field the user may see but not
+edit is held in the mode authorization sets, and no rule changes it
+after that. Authorization can only lock, never unlock what the layout
+or another rule made read-only.
+
 ## The building blocks (sketch)
 
 API sketch, not built. The shape follows the grid: headless hooks
@@ -164,6 +172,10 @@ interface FormContext
     input: ActionInput | null
     /** the fields whose text didn't parse, by path */
     invalid: ReadonlyMap<string, string>
+    /** each field's current mode, initialized from the layout */
+    modes: ReadonlyMap<string, FieldMode>
+    /** changes a field's mode; refused for a field authorization locked */
+    setMode(path: string, mode: FieldMode): void
 }
 
 function useFormContext(): FormContext   // throws outside a Form
@@ -464,8 +476,6 @@ the ambiguity.
 
 ## Open items
 
-- **Where a field's mode comes from** beyond the derived default: the
-  layout, authorization, rules -- and which of them wins.
 - **Field-level authorization** in a derived layout: "may see the row,
   not the salary".
 - **Rules that act**: a change in one group enabling or recomputing

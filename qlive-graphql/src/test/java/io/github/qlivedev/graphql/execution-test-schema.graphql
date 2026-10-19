@@ -400,9 +400,6 @@ scalar Boolean
 "8-bit integer"
 scalar Byte
 
-"Currency value"
-scalar Currency
-
 "Container for generic domain objects as scalar"
 scalar DomainObject
 

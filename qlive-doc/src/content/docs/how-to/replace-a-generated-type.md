@@ -102,20 +102,18 @@ public Long getCurrencyValue()
 }
 ```
 
-The default mapping runs both ways, so the annotation is what settles
-either direction:
+A `long` or `Long` is a `Long` unless annotated: a 64-bit integer that
+travels as a decimal string and is a `bigint` in the browser, since a JSON
+number past 2^53 is rounded before anything can convert it. The other
+scalars for a long are chosen by annotation:
 
-| Java type | Scalar without the annotation |
-| --- | --- |
-| `long` | `Currency` |
-| `Long` | `Long` |
+| Scalar | Live type | For |
+| --- | --- | --- |
+| `Long` (default) | `bigint` | any 64-bit integer |
+| `Number` | `number` | a count, a size, a position: values that stay within ±2^53, refused beyond it |
+| `Currency` | `number` | an amount in 1/10000th units |
 
-A nullable currency column arrives as `Long` and needs pinning to
-`Currency`. A plain count that is not null arrives as `long` and needs
-pinning to `Long`. Nullability is all the default has to go on, so a column
-whose meaning does not follow from it says so here.
-
-The name has to be a scalar the schema knows. `Currency`, `Long`,
+The name has to be a scalar the schema knows. `Currency`, `Number`, `Long`,
 `Timestamp`, `Date`, `Byte`, `BigDecimal` and `BigInteger` come with QLive;
 a scalar of your own needs
 [a converter](/qlive-framework/how-to/register-a-converter/) on the client

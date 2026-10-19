@@ -7,9 +7,11 @@ import io.github.qlivedev.graphql.config.ManyToManyField;
 import io.github.qlivedev.graphql.config.ManyToManyModel;
 import io.github.qlivedev.graphql.config.RelationModel;
 import io.github.qlivedev.graphql.scalar.ByteScalar;
+import io.github.qlivedev.graphql.scalar.CurrencyScalar;
 import io.github.qlivedev.graphql.scalar.DateScalar;
 import io.github.qlivedev.graphql.scalar.TimestampScalar;
 import io.github.qlivedev.graphql.scalar.LongScalar;
+import io.github.qlivedev.graphql.scalar.NumberScalar;
 import io.github.qlivedev.graphql.util.DegenerificationUtil;
 import io.github.qlivedev.graphql.util.MethodOrder;
 import io.github.qlivedev.util.JSONUtil;
@@ -71,6 +73,15 @@ public class MutableTypeRegistry
         JAVA_TYPE_TO_GRAPHQL = Collections.unmodifiableMap(map);
     }
 
+    /**
+     * Scalars no Java type maps to, selected by name with {@code @GraphQLField(type = ...)}: a long that is a currency
+     * amount or a number in the browser rather than a Long.
+     */
+    private final static List<GraphQLScalarType> NAMED_ONLY = List.of(
+        CurrencyScalar.newScalar(),
+        NumberScalar.newScalar()
+    );
+
     private final Map<String, GraphQLScalarType> scalarTypeByName;
 
     private final Map<Class<?>, GraphQLScalarType> scalarTypeByClass;
@@ -115,7 +126,9 @@ public class MutableTypeRegistry
     {
         final Map<String, GraphQLScalarType> map = new HashMap<>();
 
-        for (GraphQLScalarType scalarType : scalarTypeByClass.values())
+        final List<GraphQLScalarType> scalarTypes = new ArrayList<>(NAMED_ONLY);
+        scalarTypes.addAll(scalarTypeByClass.values());
+        for (GraphQLScalarType scalarType : scalarTypes)
         {
             final String name = scalarType.getName();
             final GraphQLScalarType existing = map.put(name, scalarType);

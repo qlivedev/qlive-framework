@@ -17,7 +17,6 @@ import io.github.qlivedev.graphql.meta.UniqueKeyProvider;
 import io.github.qlivedev.graphql.param.DataFetchingEnvironmentProviderFactory;
 import io.github.qlivedev.graphql.param.ParameterProviderFactory;
 import io.github.qlivedev.graphql.param.TypeParameterProviderFactory;
-import io.github.qlivedev.graphql.scalar.CurrencyScalar;
 import io.github.qlivedev.util.JSONUtil;
 import graphql.Directives;
 import graphql.schema.GraphQLDirective;
@@ -143,9 +142,6 @@ public class QLiveDomainBuilder
         // add default factory
         parameterProviderFactories.add(new DataFetchingEnvironmentProviderFactory());
         parameterProviderFactories.add(new TypeParameterProviderFactory());
-
-        additionalScalarTypes.put(Long.TYPE, CurrencyScalar.newScalar());
-
 
     }
 

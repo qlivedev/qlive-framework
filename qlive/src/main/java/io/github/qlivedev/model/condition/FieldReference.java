@@ -2,16 +2,16 @@ package io.github.qlivedev.model.condition;
 
 import jakarta.validation.constraints.NotNull;
 
-public class Field
+public class FieldReference
     extends ValueNode
 {
     private String name;
-    public Field()
+    public FieldReference()
     {
         this(null);
     }
     
-    public Field(String name)
+    public FieldReference(String name)
     {
         this.name = name;
     }

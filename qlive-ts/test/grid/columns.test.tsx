@@ -48,7 +48,7 @@ describe("resolveColumn", () => {
         const num = resolveColumn("Foo", "num").filter!;
         expect(num.filter.toCondition(field("num"), ["12"])).toMatchObject({
             name: "eq",
-            operands: [{type: "Field", name: "num"}, {type: "Value", scalarType: "Int", value: 12}]
+            operands: [{type: "FieldReference", name: "num"}, {type: "Value", scalarType: "Int", value: 12}]
         });
         const ratio = resolveColumn("Foo", "ratio").filter!;
         expect(ratio.filter.toCondition(field("ratio"), ["0.5"])).toMatchObject({
@@ -167,8 +167,8 @@ describe("resolveColumn", () => {
         expect(column.nowrap).toBe(true);
         expect(column.maxWidth).toBe("20em");
 
-        expect(resolveColumn("Foo", {field: "num", sort: {type: "Field", name: "ratio"}}).sort)
-            .toEqual({type: "Field", name: "ratio"});
+        expect(resolveColumn("Foo", {field: "num", sort: {type: "FieldReference", name: "ratio"}}).sort)
+            .toEqual({type: "FieldReference", name: "ratio"});
     });
 
     test("formats what render returns unless it is an element", () => {

@@ -31,11 +31,11 @@
                     "operands": [
                       {
                         "name": "numA",
-                        "type": "Field"
+                        "type": "FieldReference"
                       },
                       {
                         "name": "numB",
-                        "type": "Field"
+                        "type": "FieldReference"
                       }
                     ],
                     "name": "add",

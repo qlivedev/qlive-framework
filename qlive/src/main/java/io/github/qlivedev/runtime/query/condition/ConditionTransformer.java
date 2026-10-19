@@ -2,6 +2,7 @@ package io.github.qlivedev.runtime.query.condition;
 
 import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.model.condition.Component;
+import io.github.qlivedev.model.condition.FieldReference;
 import io.github.qlivedev.model.condition.Operation;
 import io.github.qlivedev.model.condition.Value;
 import io.github.qlivedev.model.condition.Values;
@@ -258,7 +259,7 @@ public class ConditionTransformer
         {
             case null -> throw new QLiveException("Filter operand is null");
 
-            case io.github.qlivedev.model.condition.Field f ->
+            case FieldReference f ->
             {
                 final ResolvedField resolved = resolver.resolve(f.getName());
                 scopes.addAll(resolved.scopes());

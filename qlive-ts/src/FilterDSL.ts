@@ -5,7 +5,7 @@ import {Temporal} from "./temporal";
  */
 export interface FieldNode
 {
-    type: "Field",
+    type: "FieldReference",
     /**
      * Name of the field
      */
@@ -121,7 +121,7 @@ export type LogicalOperand = FilterExpression | null | undefined | false;
 export type FieldExpression = string | CNode
 
 const validTypeValues = [
-    "Field",
+    "FieldReference",
     "Condition",
     "Value",
     "Values",
@@ -385,7 +385,7 @@ function buildProto(
  */
 function FieldReference(this: FieldNode, name: string)
 {
-    this.type = "Field";
+    this.type = "FieldReference";
     this.name = name;
 }
 
@@ -707,7 +707,7 @@ export function conditionsEqual(a: CNode | null | undefined, b: CNode | null | u
 
     switch (a.type)
     {
-        case "Field":
+        case "FieldReference":
             return a.name === (b as FieldNode).name;
         case "Condition":
         case "Operation":
@@ -945,7 +945,7 @@ export function simplifySortField(sortField: FieldExpression): FieldExpression
     {
         return sortField;
     }
-    if (sortField.type === "Field")
+    if (sortField.type === "FieldReference")
     {
         return sortField.name;
     }
@@ -953,7 +953,7 @@ export function simplifySortField(sortField: FieldExpression): FieldExpression
         sortField.operands.length === 1)
     {
         const [operand] = sortField.operands;
-        if (operand.type === "Field")
+        if (operand.type === "FieldReference")
         {
             return (sortField.name === "desc" ? "!" : "") + operand.name;
         }
@@ -1121,7 +1121,7 @@ export function toJSON(condition: CNode | null): RawValue
             id,
             condition: toJSON(wrapped)
         }
-    } else if (type === "Field")
+    } else if (type === "FieldReference")
     {
         const {name} = condition;
 

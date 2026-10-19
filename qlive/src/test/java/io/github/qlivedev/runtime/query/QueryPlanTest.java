@@ -2,6 +2,7 @@ package io.github.qlivedev.runtime.query;
 
 import io.github.qlivedev.model.QueryConfig;
 import io.github.qlivedev.model.condition.CNode;
+import io.github.qlivedev.model.condition.FieldReference;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.domain.TestDomainConfig;
 import io.github.qlivedev.graphql.QLiveDomain;
@@ -301,7 +302,7 @@ class QueryPlanTest
         final List<CNode> sortFields = plan(FOO_ALONE, config, false).config().getSortFields();
         assertThat(
             sortFields.stream()
-                .map(node -> ((io.github.qlivedev.model.condition.Field) node).getName())
+                .map(node -> ((FieldReference) node).getName())
                 .toList(),
             contains("name")
         );
@@ -378,7 +379,7 @@ class QueryPlanTest
         final List<CNode> sortFields = plan(FOO_WITH_OWNER, config, true).config().getSortFields();
         assertThat(
             sortFields.stream()
-                .map(node -> ((io.github.qlivedev.model.condition.Field) node).getName())
+                .map(node -> ((FieldReference) node).getName())
                 .toList(),
             contains("owner.created")
         );

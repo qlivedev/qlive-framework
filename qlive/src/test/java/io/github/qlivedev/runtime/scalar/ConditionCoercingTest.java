@@ -57,7 +57,7 @@ class ConditionCoercingTest
         final CNode node = coercing.parseValue(
             comparison(
                 "lt",
-                Map.of("type", "Field", "name", "created"),
+                Map.of("type", "FieldReference", "name", "created"),
                 Map.of("type", "Value", "scalarType", "Timestamp", "value", "2018-11-01T19:58:59.000Z")
             ),
             CONTEXT,
@@ -83,7 +83,7 @@ class ConditionCoercingTest
                     "type", "Operation",
                     "name", "plus",
                     "operands", List.of(
-                        Map.of("type", "Field", "name", "num"),
+                        Map.of("type", "FieldReference", "name", "num"),
                         Map.of("type", "Value", "scalarType", "Int", "value", 1)
                     )
                 ),
@@ -111,7 +111,7 @@ class ConditionCoercingTest
     {
         final Map<String, Object> json = comparison(
             "eq",
-            Map.of("type", "Field", "name", "name"),
+            Map.of("type", "FieldReference", "name", "name"),
             Map.of("type", "Value", "scalarType", "String", "value", "Foo #1")
         );
 
@@ -128,7 +128,7 @@ class ConditionCoercingTest
     {
         final Map<String, Object> json = comparison(
             "between",
-            Map.of("type", "Field", "name", "created"),
+            Map.of("type", "FieldReference", "name", "created"),
             Map.of("type", "Value", "scalarType", "Timestamp", "value", "2018-11-01T19:58:59.000Z"),
             Map.of("type", "Value", "scalarType", "Timestamp", "value", "2019-06-21T14:00:00.000Z")
         );
@@ -151,7 +151,7 @@ class ConditionCoercingTest
             "id", "nameFilter",
             "condition", comparison(
                 "eq",
-                Map.of("type", "Field", "name", "name"),
+                Map.of("type", "FieldReference", "name", "name"),
                 Map.of("type", "Value", "scalarType", "String", "value", "Foo #1")
             )
         );
@@ -178,7 +178,7 @@ class ConditionCoercingTest
 
         final Map<String, Object> condition = comparison(
             "lt",
-            Map.of("type", "Field", "name", "created"),
+            Map.of("type", "FieldReference", "name", "created"),
             Map.of("type", "Value", "scalarType", "Timestamp", "value", "2018-11-01T19:58:59.000Z")
         );
 
@@ -198,7 +198,7 @@ class ConditionCoercingTest
 
         // the node types survive, so the config can be sent straight back in
         assertThat(serialized.get("type"), is("Condition"));
-        assertThat(((List<Map<String, Object>>) serialized.get("operands")).get(0).get("type"), is("Field"));
+        assertThat(((List<Map<String, Object>>) serialized.get("operands")).get(0).get("type"), is("FieldReference"));
     }
 
 

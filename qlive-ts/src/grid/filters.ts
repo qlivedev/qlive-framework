@@ -153,7 +153,7 @@ function expressionText(expression: FieldExpression): string
     }
     switch (expression.type)
     {
-        case "Field":
+        case "FieldReference":
             return expression.name;
         case "Value":
             return JSON.stringify(expression.value);

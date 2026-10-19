@@ -30,7 +30,7 @@ class ConditionParserTest
                 "type": "Condition",
                 "name": "eq",
                 "operands": [
-                    { "type": "Field", "name": "name" },
+                    { "type": "FieldReference", "name": "name" },
                     { "type": "Value", "scalarType": "String", "value": "Foo #1" }
                 ]
             }
@@ -45,9 +45,9 @@ class ConditionParserTest
 
         final List<CNode> operands = condition.getOperands();
 
-        final Field field = (Field) operands.get(0);
+        final FieldReference field = (FieldReference) operands.get(0);
         assertThat(field.getName(), is("name"));
-        assertThat(field.getType(), is("Field"));
+        assertThat(field.getType(), is("FieldReference"));
 
         final Value value = (Value) operands.get(1);
         assertThat(value.getScalarType(), is("String"));
@@ -78,7 +78,7 @@ class ConditionParserTest
                             "type": "Operation",
                             "name": "plus",
                             "operands": [
-                                { "type": "Field", "name": "num" },
+                                { "type": "FieldReference", "name": "num" },
                                 { "type": "Value", "scalarType": "Int", "value": 1 }
                             ]
                         },
@@ -96,7 +96,7 @@ class ConditionParserTest
 
         final Operation operation = (Operation) operands.get(0);
         assertThat(operation.getName(), is("plus"));
-        assertThat(((Field) operation.getOperands().get(0)).getName(), is("num"));
+        assertThat(((FieldReference) operation.getOperands().get(0)).getName(), is("num"));
         assertThat(((Value) operation.getOperands().get(1)).getValue(), is(1L));
 
         assertThat(((Values) operands.get(1)).getValues(), contains(1L, 2L, 3L));
@@ -115,7 +115,7 @@ class ConditionParserTest
 
         assertThrows(
             IllegalStateException.class,
-            () -> parser.parseCondition("{ \"type\": \"Field\", \"name\": \"name\" }")
+            () -> parser.parseCondition("{ \"type\": \"FieldReference\", \"name\": \"name\" }")
         );
     }
 
@@ -137,7 +137,7 @@ class ConditionParserTest
 
         final Operation operation = (Operation) read.getOperands().get(0);
         assertThat(operation.getName(), is("plus"));
-        assertThat(((Field) operation.getOperands().get(0)).getName(), is("num"));
+        assertThat(((FieldReference) operation.getOperands().get(0)).getName(), is("num"));
         assertThat(((Value) read.getOperands().get(1)).getValue(), is(10L));
         assertThat(((Value) read.getOperands().get(2)).getValue(), is(12L));
     }

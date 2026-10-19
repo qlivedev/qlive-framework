@@ -5,7 +5,7 @@ import io.github.qlivedev.graphql.QLiveDomainAware;
 import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.model.condition.Component;
 import io.github.qlivedev.model.condition.Condition;
-import io.github.qlivedev.model.condition.Field;
+import io.github.qlivedev.model.condition.FieldReference;
 import io.github.qlivedev.model.condition.Operation;
 import io.github.qlivedev.model.condition.Value;
 import io.github.qlivedev.model.condition.Values;
@@ -116,7 +116,7 @@ public final class ConditionCoercing
         }
         Map<String,Object> output;
 
-        if (input instanceof Field field)
+        if (input instanceof FieldReference field)
         {
             output = new HashMap<>();
             output.put("name", field.getName());
@@ -256,7 +256,7 @@ public final class ConditionCoercing
                 break;
             }
 
-            case "Field":
+            case "FieldReference":
                 return FilterDSL.field((String) input.get("name"));
             case "Value":
             {
@@ -329,7 +329,7 @@ public final class ConditionCoercing
 
         return switch (node)
         {
-            case Field field -> FilterDSL.field(field.getName());
+            case FieldReference field -> FilterDSL.field(field.getName());
 
             case Value v -> FilterDSL.value(
                 parseScalar(v.getScalarType(), v.getValue(), graphQLContext, locale),

@@ -127,7 +127,7 @@ class QueryDocumentExecutionTest
             "type", "Operation",
             "name", "mul",
             "operands", List.of(
-                Map.of("type", "Field", "name", "num"),
+                Map.of("type", "FieldReference", "name", "num"),
                 Map.of("type", "Value", "scalarType", "Int", "value", -1)
             )
         );
@@ -456,7 +456,7 @@ class QueryDocumentExecutionTest
             "type", "Condition",
             "name", name,
             "operands", List.of(
-                Map.of("type", "Field", "name", field),
+                Map.of("type", "FieldReference", "name", field),
                 Map.of("type", "Value", "scalarType", scalarType, "value", value)
             )
         );

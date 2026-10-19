@@ -3,7 +3,7 @@ package io.github.qlivedev.runtime.util;
 import io.github.qlivedev.util.JSONUtil;
 import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.model.condition.Component;
-import io.github.qlivedev.model.condition.Field;
+import io.github.qlivedev.model.condition.FieldReference;
 import io.github.qlivedev.model.condition.FunctionNode;
 import io.github.qlivedev.model.condition.Operation;
 import io.github.qlivedev.model.condition.Value;
@@ -121,7 +121,7 @@ public class FilterDSLDecompiler
         {
             return indent(level) + markerL + "component(" + JSONUtil.DEFAULT_GENERATOR.forValue(component.getId()) + ", " + decompile(component.getCondition(), match, true, nextLevel) + ")" + markerR;
         }
-        else if (node instanceof Field field)
+        else if (node instanceof FieldReference field)
         {
             return indent(level) + markerL + "field(" + JSONUtil.DEFAULT_GENERATOR.forValue(field.getName()) + ")" + markerR;
         }
@@ -162,7 +162,7 @@ public class FilterDSLDecompiler
 
     public static String getFilterExpression(CNode node)
     {
-        if (node instanceof Field field)
+        if (node instanceof FieldReference field)
         {
             return JSONUtil.DEFAULT_GENERATOR.forValue(field.getName());
         }
@@ -171,7 +171,7 @@ public class FilterDSLDecompiler
             if (operation.getName().equals("desc"))
             {
                 final CNode kid = operation.getOperands().get(0);
-                if (kid instanceof Field kf)
+                if (kid instanceof FieldReference kf)
                 {
                     return "!" + kf.getName();
                 }

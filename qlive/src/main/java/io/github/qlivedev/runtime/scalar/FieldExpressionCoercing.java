@@ -3,7 +3,7 @@ package io.github.qlivedev.runtime.scalar;
 import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.QLiveDomainAware;
 import io.github.qlivedev.model.condition.CNode;
-import io.github.qlivedev.model.condition.Field;
+import io.github.qlivedev.model.condition.FieldReference;
 import io.github.qlivedev.model.condition.Operation;
 import graphql.GraphQLContext;
 import graphql.execution.CoercedVariables;
@@ -46,7 +46,7 @@ public final class FieldExpressionCoercing
             throw new CoercingParseValueException(input + " is not a CNode");
         }
 
-        if (node instanceof Field field)
+        if (node instanceof FieldReference field)
         {
             return field.getName();
         }
@@ -56,7 +56,7 @@ public final class FieldExpressionCoercing
 
             final CNode operand = operation.getOperands().get(0);
 
-            if (operand instanceof Field operandField)
+            if (operand instanceof FieldReference operandField)
             {
                 if (name.equals("asc"))
                 {

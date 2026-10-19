@@ -91,7 +91,7 @@ interface FieldNode
 
 Field reference.
 
-`type: "Field"`
+`type: "FieldReference"`
 
 `name: string` -- Name of the field
 

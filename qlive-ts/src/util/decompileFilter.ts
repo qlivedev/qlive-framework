@@ -81,7 +81,7 @@ export function decompileFilter(condition: CNode | null, level: number = 0, matc
     const nextLevel = level >= 0 ? level + 1 : level
 
 
-    if (type === "Field")
+    if (type === "FieldReference")
     {
         return indent(level) + markerL + "field(" + JSON.stringify(condition.name) + ")" + markerR;
     } else if (type === "Condition" || type === "Operation")

@@ -3,7 +3,7 @@ package io.github.qlivedev.runtime.scalar;
 import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.model.condition.Component;
 import io.github.qlivedev.model.condition.Condition;
-import io.github.qlivedev.model.condition.Field;
+import io.github.qlivedev.model.condition.FieldReference;
 import io.github.qlivedev.model.condition.Value;
 import io.github.qlivedev.model.condition.ValueNode;
 import io.github.qlivedev.model.condition.Values;
@@ -33,9 +33,9 @@ public class FilterDSL
     }
 
 
-    public static Field field(String name)
+    public static FieldReference field(String name)
     {
-        return new Field(name);
+        return new FieldReference(name);
     }
 
 

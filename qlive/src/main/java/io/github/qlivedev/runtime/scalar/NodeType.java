@@ -3,7 +3,7 @@ package io.github.qlivedev.runtime.scalar;
 public enum NodeType
 {
     CONDITION("Condition"),
-    FIELD("Field"),
+    FIELD_REFERENCE("FieldReference"),
     VALUE("Value"),
     VALUES("Values"),
     OPERATION("Operation"),
@@ -24,6 +24,13 @@ public enum NodeType
 
     public static NodeType forName(String name)
     {
-        return NodeType.valueOf(name.toUpperCase());
+        for (NodeType type : values())
+        {
+            if (type.name.equals(name))
+            {
+                return type;
+            }
+        }
+        throw new IllegalArgumentException("No node type " + name);
     }
 }

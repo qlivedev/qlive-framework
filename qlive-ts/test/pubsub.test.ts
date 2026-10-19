@@ -128,7 +128,7 @@ describe("subscribing", () => {
                     type: "Condition",
                     name: "eq",
                     operands: [
-                        {type: "Field", name: "entityType"},
+                        {type: "FieldReference", name: "entityType"},
                         {type: "Value", scalarType: "String", value: "Bar"}
                     ]
                 },
@@ -136,7 +136,7 @@ describe("subscribing", () => {
                     type: "Condition",
                     name: "ne",
                     operands: [
-                        {type: "Field", name: "ownerId"},
+                        {type: "FieldReference", name: "ownerId"},
                         {type: "Value", scalarType: "String", value: "me"}
                     ]
                 }

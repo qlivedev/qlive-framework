@@ -36,7 +36,7 @@ public interface ConditionVisitor<D>
         return node.accept(this, data);
     }
 
-    default Object visit(Field field, D data)
+    default Object visit(FieldReference field, D data)
     {
         return null;
     }

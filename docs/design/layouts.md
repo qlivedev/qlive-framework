@@ -137,7 +137,7 @@ form references a layout, and imported from the package's namespace it
 can sit next to other `<Form/>` components. So is `Field`: it is the
 name an application writes, while FilterDSL's field type, which an
 application only gets from `field("name")`, became `FieldReference`
-to make way. The other names are working names.
+to make way, and the condition node with it, in Java and on the wire. The other names are working names.
 
 The sketch below is what was built, apart from these, as of 2026-10-20:
 

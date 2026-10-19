@@ -231,7 +231,7 @@ class QueryDocumentServiceTest
             "type", "Condition",
             "name", "eq",
             "operands", List.of(
-                Map.of("type", "Field", "name", field),
+                Map.of("type", "FieldReference", "name", field),
                 Map.of("type", "Value", "scalarType", scalarType, "value", value)
             )
         );

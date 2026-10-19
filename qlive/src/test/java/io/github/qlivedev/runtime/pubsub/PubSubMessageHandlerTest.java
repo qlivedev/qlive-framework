@@ -75,7 +75,7 @@ class PubSubMessageHandlerTest
             subscribe(
                 "mine",
                 "{\"type\":\"Condition\",\"name\":\"eq\",\"operands\":[" +
-                    "{\"type\":\"Field\",\"name\":\"author\"}," +
+                    "{\"type\":\"FieldReference\",\"name\":\"author\"}," +
                     "{\"type\":\"Value\",\"scalarType\":\"String\",\"value\":\"kim\"}]}"
             )
         );

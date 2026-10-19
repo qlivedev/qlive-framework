@@ -2,7 +2,7 @@ package io.github.qlivedev.runtime.meta;
 
 import io.github.qlivedev.model.bootstrap.QLiveConfig;
 import io.github.qlivedev.model.condition.Condition;
-import io.github.qlivedev.model.condition.Field;
+import io.github.qlivedev.model.condition.FieldReference;
 import io.github.qlivedev.model.condition.Value;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.domain.TestDomainConfig;
@@ -81,7 +81,7 @@ class QueryConfigMetadataProviderTest
         condition.setName("eq");
         condition.setOperands(
             List.of(
-                new Field("name"),
+                new FieldReference("name"),
                 new Value("String", "foo")
             )
         );

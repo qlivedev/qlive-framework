@@ -2,7 +2,7 @@ package io.github.qlivedev.runtime.filter;
 
 import io.github.qlivedev.model.condition.CNode;
 import io.github.qlivedev.model.condition.Component;
-import io.github.qlivedev.model.condition.Field;
+import io.github.qlivedev.model.condition.FieldReference;
 import io.github.qlivedev.model.condition.Operation;
 import io.github.qlivedev.model.condition.Value;
 import io.github.qlivedev.model.condition.Values;
@@ -215,7 +215,7 @@ public class FilterTransformer
         {
             case null -> throw new QLiveException("Filter operand is null");
 
-            case Field field ->
+            case FieldReference field ->
             {
                 final PropertyPath path = PropertyPath.compile(field.getName(), declaredType);
                 yield path::read;

@@ -1,7 +1,7 @@
 package io.github.qlivedev.model.push;
 
 import io.github.qlivedev.model.condition.Condition;
-import io.github.qlivedev.model.condition.Field;
+import io.github.qlivedev.model.condition.FieldReference;
 import io.github.qlivedev.model.condition.Value;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.util.JSONUtil;
@@ -42,7 +42,7 @@ class PushMessageParserTest
                     "type": "Condition",
                     "name": "eq",
                     "operands": [
-                        { "type": "Field", "name": "entityType" },
+                        { "type": "FieldReference", "name": "entityType" },
                         { "type": "Value", "scalarType": "String", "value": "Bar" }
                     ]
                 }
@@ -56,7 +56,7 @@ class PushMessageParserTest
 
         final Condition condition = (Condition) subscribe.getCondition();
         assertThat(condition.getName(), is("eq"));
-        assertThat(((Field) condition.getOperands().get(0)).getName(), is("entityType"));
+        assertThat(((FieldReference) condition.getOperands().get(0)).getName(), is("entityType"));
         assertThat(((Value) condition.getOperands().get(1)).getValue(), is("Bar"));
     }
 

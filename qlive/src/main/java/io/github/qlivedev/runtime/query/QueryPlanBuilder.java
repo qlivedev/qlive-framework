@@ -2,6 +2,7 @@ package io.github.qlivedev.runtime.query;
 
 import io.github.qlivedev.model.QueryConfig;
 import io.github.qlivedev.model.condition.CNode;
+import io.github.qlivedev.model.condition.FieldReference;
 import io.github.qlivedev.model.condition.Operation;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.runtime.query.condition.ConditionTransformer;
@@ -253,7 +254,7 @@ public class QueryPlanBuilder
             fieldNode = operation.getOperands().get(0);
         }
 
-        if (!(fieldNode instanceof io.github.qlivedev.model.condition.Field fieldRef))
+        if (!(fieldNode instanceof FieldReference fieldRef))
         {
             return null;
         }

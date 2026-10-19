@@ -535,7 +535,7 @@ function compileOperand(ctx: Context, node: CNode, hint: string | null): Operand
 {
     switch (node?.type)
     {
-        case "Field":
+        case "FieldReference":
             return compileField(ctx, node.name);
         case "Value":
             return compileValue(node.value, node.scalarType, hint);

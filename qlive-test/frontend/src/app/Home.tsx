@@ -17,6 +17,15 @@ const EXAMPLES = [
     {href: "/app/grid/everything", title: "Everything at once", text: "all of the above in one view"}
 ];
 
+/**
+ * The form examples, from the form nobody wrote to the one written entirely by hand.
+ */
+const FORMS = [
+    {href: "/app/form/derived", title: "A derived form", text: "a row and nothing else; the layout comes from the row"},
+    {href: "/app/form/layout", title: "A layout", text: "sections, widgets by name and by override, modes, a component of its own"},
+    {href: "/app/bar/edit", title: "A hand-written form", text: "the application's own fields, and a part reading the form's context"}
+];
+
 export default function Home()
 {
     return (
@@ -26,6 +35,16 @@ export default function Home()
             <ul className="nav-list">
                 {
                     EXAMPLES.map(example => (
+                        <li key={ example.href }>
+                            <a href={ example.href }>{ example.title }</a> -- { example.text }
+                        </li>
+                    ))
+                }
+            </ul>
+            <h2>Forms</h2>
+            <ul className="nav-list">
+                {
+                    FORMS.map(example => (
                         <li key={ example.href }>
                             <a href={ example.href }>{ example.title }</a> -- { example.text }
                         </li>

@@ -54,6 +54,7 @@ export {
     findType,
     objectFields,
     isQueryDocumentType,
+    primaryKeyFields,
     LIST,
     NON_NULL
 } from "./type-utils";

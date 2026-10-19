@@ -120,3 +120,13 @@ export function isQueryDocumentType(type: string): boolean
 
     return queryDocumentTypes!.has(type);
 }
+
+/**
+ * The fields of a type's primary key, from its `uniqueKeys` meta, or `id` for a type without one.
+ *
+ * @param type      GraphQL type name
+ */
+export function primaryKeyFields(type: string): string[]
+{
+    return config().meta.types[type]?.meta?.uniqueKeys?.find(k => k.primary)?.fields ?? ["id"]
+}

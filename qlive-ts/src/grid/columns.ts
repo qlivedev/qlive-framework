@@ -9,7 +9,7 @@ import {FieldExpression} from "../FilterDSL";
 import type {GenericScalar} from "../GraphQL";
 import i18n from "../i18n";
 import type {Temporal} from "../temporal";
-import {isListType, objectFields, unwrapAll} from "../type-utils";
+import {isListType, objectFields, primaryKeyFields, unwrapAll} from "../type-utils";
 import {booleanFilter} from "./booleanFilter";
 import {dateRangeFilter} from "./dateRangeFilter";
 import {ColumnFilter, FilterColumn, operatorFilter} from "./filters";
@@ -457,9 +457,7 @@ function display(value: unknown, scalarType: string): ReactNode
  */
 export function rowKey(type: string, row: any): string
 {
-    const primary = config().meta.types[type]?.meta?.uniqueKeys?.find(k => k.primary);
-    const fields = primary ? primary.fields : ["id"];
-    return fields.map(f => {
+    return primaryKeyFields(type).map(f => {
         if (!(f in row))
         {
             throw new Error(

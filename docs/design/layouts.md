@@ -469,6 +469,80 @@ concept settled:
 - **Sections** such as "delivery address" hold on any device; where
   they are placed depends on the device.
 
+## Rules that act (raw notes)
+
+Thinking aloud, not a design. Collected 2026-10-19.
+
+**What is assumed so far.** Rules change field modes and field values.
+The FilterDSL value operations (`add`, `mul`, `concat`, `upper`, ...)
+are enough for a first implementation of values, and a validation rule
+is already node data in `actions.md`: a condition, the fields it
+blames, a message key. The model holds no functions, which is what
+lets one rule run on the server and in the browser.
+
+**Rules are a DAG, layouts stay trees.** Node-based like Blender's
+editors: one subexpression feeding several nodes, nodes with several
+outputs, so the serialized form is nodes and links rather than nesting.
+Layouts stay plain POJO trees. An editor would present both together,
+perhaps the layout as one node with a socket per field -- whatever is
+easiest.
+
+**Sinks may not be needed.** Distinguishing state from event may be
+enough: a state rule's target is the field's mode or value itself, an
+event rule acts when something changes. Errors could be a sink.
+
+**The editor is half a contradiction** with "The format on the server",
+which says an editor serves a user group QLive doesn't have. QLive
+still targets developers, not people who only work in a graphical
+editor. But actions and rules are where developers talk to people who
+know the business rules without being developers, and a Java builder
+gives only structural compile-time support for concepts this unwieldy.
+A typed, generated DSL in the style of jOOQ would be serious
+complexity; next to it, a simple helper UI for actions and rules looks
+cheap.
+
+**Analogies.**
+
+- **Blender**: typed sockets with implicit conversion or refusal (QLive
+  scalars are typed everywhere now); node groups as reusable subgraphs
+  ("end >= start" for any type); geometry-node fields, a graph
+  evaluated per element in a context, like a condition per row;
+  drivers, a property computed from an expression. Pure dataflow, no
+  events.
+- **Unreal Blueprints**: execution wires say when, data wires carry
+  pure values -- the state/event split in node form.
+- **XForms binds**: per field `relevant`, `readonly`, `required`,
+  `constraint`, `calculate`, which maps almost one to one onto modes,
+  required, validation and computed values. `calculate` makes a field
+  derived and not overridable.
+
+**Scenarios.**
+
+1. Derived: net + tax = gross. Always computed, effectively `text`.
+   State.
+2. Prefill: postal code -> city, once, overridable afterwards, usually
+   an asynchronous lookup. Event.
+3. Mode toggle: "different delivery address" enables the address
+   fields. State.
+4. Cross-field validation: end date >= start date. Which field is
+   blamed, or both?
+5. Reset: changing the country clears the region. Event, or the state
+   "region belongs to country"?
+
+**Questions.**
+
+- State, events, or both? Both doubles the semantics; state alone
+  makes prefill awkward.
+- Does the merge re-run value rules on the server? Otherwise it stores
+  what the client computed, and only invariants check it.
+- Chains (A sets B, B enables C) and conflicts (two rules on one
+  field's mode): rule order, fixed point, or a cycle error?
+- Where form rules live: with the layout, with the type like
+  invariants, with the action -- or a third home next to the two
+  `actions.md` has.
+- Does a value a rule set count as `changed` in the merge, like an
+  edit?
+
 ## Naming
 
 **Layout.** The merge side's internal "field layout", the ordered fields
@@ -477,7 +551,5 @@ the ambiguity.
 
 ## Open items
 
-- **Rules that act**: a change in one group enabling or recomputing
-  fields in another, and whether that is a layout's concern or view
-  code.
+- **Rules that act**: see the raw notes above.
 - **Asynchronous checks** and their pending state.

@@ -8,7 +8,7 @@ import {
     CNode,
     condition,
     conditionsEqual,
-    Field,
+    FieldReference,
     field,
     fieldConditionArity,
     FieldConditionName,
@@ -78,7 +78,7 @@ export interface ColumnFilter<V extends unknown[] = unknown[]>
      *                  the builder methods, `target.between(from, to)`
      * @param values    one value per input
      */
-    toCondition(target: Field, values: V): FilterExpression | null;
+    toCondition(target: FieldReference, values: V): FilterExpression | null;
 
     /**
      * Recognizes a term as one this filter produced and returns the input values it came from, `null` for "not mine".
@@ -89,7 +89,7 @@ export interface ColumnFilter<V extends unknown[] = unknown[]>
      * @param target    what the column filters, as `toCondition` gets it
      * @param term      a term of the owner's part of the condition
      */
-    fromCondition?(target: Field, term: FilterExpression): V | null;
+    fromCondition?(target: FieldReference, term: FilterExpression): V | null;
 
     /**
      * Input component, where the default text inputs won't do.
@@ -119,19 +119,19 @@ const BUILDERS = Object.getPrototypeOf(field(""));
  * The node a filter compares, with the builder methods: a field path becomes a field node, an expression built with
  * the FilterDSL stays as it is, and a plain node like one parsed from JSON gets the methods on a copy.
  *
- * An expression has the methods of a field, as the DSL's builders give it, and its type says `Field` for that.
+ * An expression has the methods of a field, as the DSL's builders give it, and its type says `FieldReference` for that.
  *
  * @param expression    field path or expression
  */
-export function filterTarget(expression: FieldExpression): Field
+export function filterTarget(expression: FieldExpression): FieldReference
 {
     if (typeof expression === "string")
     {
         return field(expression);
     }
-    return (typeof (expression as Partial<Field>).eq === "function"
+    return (typeof (expression as Partial<FieldReference>).eq === "function"
         ? expression
-        : Object.assign(Object.create(BUILDERS), expression)) as Field;
+        : Object.assign(Object.create(BUILDERS), expression)) as FieldReference;
 }
 
 /**
@@ -223,7 +223,7 @@ export function operatorFilter(name: FieldConditionName, scalarType: string = "S
     return {
         arity,
 
-        toCondition(target: Field, values: string[]): FilterExpression | null
+        toCondition(target: FieldReference, values: string[]): FilterExpression | null
         {
             const operands: CNode[] = [];
             for (const text of values)
@@ -238,7 +238,7 @@ export function operatorFilter(name: FieldConditionName, scalarType: string = "S
             return condition(name, [target, ...operands]) as FilterExpression;
         },
 
-        fromCondition(target: Field, term: FilterExpression): string[] | null
+        fromCondition(target: FieldReference, term: FilterExpression): string[] | null
         {
             if (term.type !== "Condition" || term.name !== name || term.operands.length !== arity + 1)
             {

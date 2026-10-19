@@ -20,7 +20,7 @@ export interface Layout
 }
 
 /**
- * One field, rendered by FormField with these options.
+ * One field, rendered by Field with these options.
  */
 export interface LayoutFieldNode
 {

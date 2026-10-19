@@ -312,7 +312,7 @@
         "FormProps",
         "useFormContext",
         "FormContext",
-        "FormField",
+        "Field",
         "useField",
         "FieldOptions",
         "FieldState",

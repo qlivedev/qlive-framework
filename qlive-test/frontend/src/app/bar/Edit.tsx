@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
     ConflictResolution,
     Form,
-    FormField,
+    Field,
     MergeView,
     useFormContext,
     useInjection,
@@ -114,7 +114,7 @@ export default function Edit()
  * One row. The draft is read on every render rather than kept in state -- it is not the row, and the
  * working set is what holds it.
  *
- * The fields are QLive's: a FormField turns what is typed into a value of the field's type, keeps text that
+ * The fields are QLive's: a Field turns what is typed into a value of the field's type, keeps text that
  * isn't one with an error, and carries the merge mark. The conflict buttons are QLive's too, given here as the
  * wrapper -- a form rendering a layout applies them by itself, a hand-written one says where it wants them.
  */
@@ -131,7 +131,7 @@ function BarForm({ ws, row, bazes }: {
             <Form row={ ws.edit(row) }>
                 <div className="qlive-form">
                     {
-                        FIELDS.map(name => <FormField key={ name } path={ name } wrapper={ ConflictResolution }/>)
+                        FIELDS.map(name => <Field key={ name } path={ name } wrapper={ ConflictResolution }/>)
                     }
                     <Associations bazes={ bazes }/>
                 </div>

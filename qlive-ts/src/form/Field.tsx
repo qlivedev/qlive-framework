@@ -1,5 +1,5 @@
 /*
- * FormField: a field's label, widget and error; and the conflict buttons QLive wraps a widget in.
+ * Field: a field's label, widget and error; and the conflict buttons QLive wraps a widget in.
  */
 import type {JSX} from "react";
 
@@ -59,7 +59,7 @@ export function fieldText(field: FieldState, row: object, value: unknown = field
  * a note instead, until a save brings both.
  *
  * What a form rendering a layout wraps every widget in, unless an override gives a wrapper (WidgetOverride). A
- * hand-written form gives it where it wants it, `<FormField path="name" wrapper={ ConflictResolution }/>`.
+ * hand-written form gives it where it wants it, `<Field path="name" wrapper={ ConflictResolution }/>`.
  */
 export function ConflictResolution({field, children}: FieldWrapperProps): JSX.Element
 {
@@ -116,7 +116,7 @@ function widgetOf(field: FieldState, given: Widget | string | undefined): Widget
  *
  * @param props     the field path, and the options of useField()
  */
-export function FormField(props: { path: string } & FieldOptions): JSX.Element
+export function Field(props: { path: string } & FieldOptions): JSX.Element
 {
     const form = useFormState()
     const field = fieldState(form, props.path, props)

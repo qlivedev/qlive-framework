@@ -122,7 +122,7 @@ which stay editable by default until it does.
 picker on the key field itself; a nullable key's picker can clear it.
 
 **A field's mode is state.** The layout initializes it: the derived
-default, or the mode a layout node or `FormField` gives. Rules change it
+default, or the mode a layout node or `Field` gives. Rules change it
 while the form is open -- a field enabled once another is filled.
 **An authorization rule locks it**, and no rule changes it after that.
 How it locks, and in which mode, is left to the authorization work
@@ -134,9 +134,10 @@ The shape follows the grid: headless hooks carrying all the logic,
 default components that are nothing but those hooks plus markup, and an
 auto-form composed from those components alone. `Form` is decided: a
 form references a layout, and imported from the package's namespace it
-can sit next to other `<Form/>` components. The field component is
-`FormField`, since FilterDSL already exports a `Field`; the other names
-are working names.
+can sit next to other `<Form/>` components. So is `Field`: it is the
+name an application writes, while FilterDSL's field type, which an
+application only gets from `field("name")`, became `FieldReference`
+to make way. The other names are working names.
 
 The sketch below is what was built, apart from these, as of 2026-10-20:
 
@@ -146,10 +147,10 @@ The sketch below is what was built, apart from these, as of 2026-10-20:
 - **Nothing locks a mode.** `setMode` changes any field; locking is the
   authorization work's.
 - **`modes` holds what the layout gave and `setMode` set.** A field not
-  in it has the mode its `FormField` gives, or the default. A
+  in it has the mode its `Field` gives, or the default. A
   hand-written form's modes aren't known before its fields render.
 - **Overrides apply to every field that names no widget**, a
-  hand-written `<FormField path="price"/>` included, not only to layouts:
+  hand-written `<Field path="price"/>` included, not only to layouts:
   an application's `Money` widget would otherwise be missing exactly
   where the application wrote the form itself. The conflict wrapper is
   still a layout's default only, and a hand-written form gives it where
@@ -182,8 +183,8 @@ The sketch below is what was built, apart from these, as of 2026-10-20:
 <Form row={ bar } layout="barEdit"/>          // named layout
 <Form row={ bar } action="approveBar"/>       // derived, plus the action's input
 <Form row={ bar }>                            // provider only
-    <FormField path="name"/>
-    <FormField path="owner"/>
+    <Field path="name"/>
+    <Field path="owner"/>
 </Form>
 ```
 
@@ -233,7 +234,7 @@ not with the values. A parse error is therefore not one of the
 working set's field errors (see "Carried over"), and `merge()` doesn't
 see it.
 
-### `useField` and `FormField`
+### `useField` and `Field`
 
 ```ts
 function useField(path: string, options?: FieldOptions): FieldState
@@ -275,7 +276,7 @@ interface FieldState
     merge: MergeField
 }
 
-function FormField(props: { path: string } & FieldOptions): JSX.Element
+function Field(props: { path: string } & FieldOptions): JSX.Element
 ```
 
 `setText` runs `parseInput`: valid text sets the value, invalid text
@@ -289,7 +290,7 @@ starts with `input.`. A to-one relation is named by its object field,
 `statusField` does. A path one relation hop further, `owner.login`, is
 a field group's business and not a field's.
 
-`FormField` is `useField` plus markup: a label, the widget, the error,
+`Field` is `useField` plus markup: a label, the widget, the error,
 and the merge status class. In
 `text` mode it renders no widget at all but the formatted value -- the
 related row's name fields for a relation, as a grid cell shows them --
@@ -321,10 +322,10 @@ function registerWidget(name: string, widget: Widget): void
 ```
 
 A widget gets the whole `FieldState` and renders the input only; label
-and error are `FormField`'s.
+and error are `Field`'s.
 
 **On the client a widget is a component type.** A view writing TSX
-passes it to `FormField` directly, and a layout object built in TSX carries
+passes it to `Field` directly, and a layout object built in TSX carries
 it in its node. Names exist only for layouts the server delivers, which
 can't hold a component: `registerWidget` gives a component the name such
 a layout uses.
@@ -350,7 +351,7 @@ config().widgets = [
 specific ones: a field beats a scalar, a named root type beats `"*"`.
 
 Resolution for a field, first hit wins: the component the layout node
-or `FormField` gives, the name a server layout gives, an override, the
+or `Field` gives, the name a server layout gives, an override, the
 built-in for the scalar type or relation kind -- `text`, `number`,
 `checkbox`, `date`, `datetime`, `select` for enums, `toOne`,
 `manyToMany`. No hit is the dev placeholder.
@@ -383,7 +384,7 @@ function deriveLayout(type: string, row: object, action?: string): Layout
 function registerComponent(name: string, component: ComponentType<any>): void
 ```
 
-`field` nodes are `FormField`s with their options; `section` is a labeled
+`field` nodes are `Field`s with their options; `section` is a labeled
 group (`<fieldset>`, legend `i18n(section)`); `component` is an
 application's own, registered by name like a widget, with its nodes as
 children.

@@ -144,7 +144,7 @@ export { defaultFieldMode } from "./form/fieldMode";
 export { Form } from "./form/Form";
 export { useFormContext } from "./form/FormContext";
 export { useField } from "./form/useField";
-export { FormField, ConflictResolution, fieldText } from "./form/FormField";
+export { Field, ConflictResolution, fieldText } from "./form/Field";
 export {
     registerWidget,
     TextInput,
@@ -416,7 +416,7 @@ export type {
  *
  * FilterDSL machinery -- the constants whose keys generate the fluent methods,
  * and the mapped types generated from them. What an application names is the
- * result: FilterDSL.Condition, FilterDSL.Field, FilterDSL.Value.
+ * result: FilterDSL.Condition, FilterDSL.FieldReference, FilterDSL.Value.
  *
  *   FIELD_CONDITIONS, CONDITION_METHODS, FIELD_OPERATIONS
  *   CondFn, OpFn, FieldConditions, FieldOperations

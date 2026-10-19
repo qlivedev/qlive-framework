@@ -263,7 +263,7 @@ rather than its first name field (`"owner.login"`). For a relation whose foreign
 ### ColumnFilter.toCondition
 
 ```ts
-toCondition(target: Field, values: V): FilterExpression | null;
+toCondition(target: FieldReference, values: V): FilterExpression | null;
 ```
 
 Builds the term from the input values, `null` for "no filter". Only called once every input is filled, or with
@@ -279,7 +279,7 @@ Builds the term from the input values, `null` for "no filter". Only called once 
 ### ColumnFilter.fromCondition
 
 ```ts
-fromCondition?(target: Field, term: FilterExpression): V | null;
+fromCondition?(target: FieldReference, term: FilterExpression): V | null;
 ```
 
 Recognizes a term as one this filter produced and returns the input values it came from, `null` for "not mine".
@@ -401,13 +401,13 @@ what the inputs' accessible names call it, in place of the field path or the tex
 <span class="api-kind">function</span>
 
 ```ts
-declare function filterTarget(expression: FieldExpression): Field;
+declare function filterTarget(expression: FieldExpression): FieldReference;
 ```
 
 The node a filter compares, with the builder methods: a field path becomes a field node, an expression built with
 the FilterDSL stays as it is, and a plain node like one parsed from JSON gets the methods on a copy.
 
-An expression has the methods of a field, as the DSL's builders give it, and its type says `Field` for that.
+An expression has the methods of a field, as the DSL's builders give it, and its type says `FieldReference` for that.
 
 **Parameters**
 
@@ -676,7 +676,7 @@ what the checkbox says
 ### Flag.term
 
 ```ts
-term(target: Field): FilterExpression;
+term(target: FieldReference): FilterExpression;
 ```
 
 The term the flag stands for.

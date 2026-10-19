@@ -7,7 +7,7 @@ import {GraphQLQuery} from "../../src/GraphQLQuery";
 import {QueryDocument} from "../../src/QueryDocument";
 import {WorkingSet} from "../../src/merge/WorkingSet";
 import {Form} from "../../src/form/Form";
-import {FormField} from "../../src/form/FormField";
+import {Field} from "../../src/form/Field";
 import {FormContext, useFormContext} from "../../src/form/FormContext";
 import {deriveLayout, registerComponent} from "../../src/form/layout";
 import {FieldState, useField} from "../../src/form/useField";
@@ -176,7 +176,7 @@ describe("Form", () => {
         function Probe()
         {
             form = useFormContext()
-            return <FormField path="num"/>
+            return <Field path="num"/>
         }
         render(<Form row={ bar }><Probe/></Form>)
 
@@ -284,7 +284,7 @@ describe("Form", () => {
 
         const {ws, bar} = await editableBar()
         act(() => { bar.name = "Mine" })
-        render(<Form row={ bar }><FormField path="name"/></Form>)
+        render(<Form row={ bar }><Field path="name"/></Form>)
 
         act(() => {
             ws.storedState({type: "Bar", id: "bar-1", version: "v9", fields: {name: "Theirs"}})
@@ -371,9 +371,9 @@ describe("widgets", () => {
         registerWidget("stars", Stars)
         render(
             <Form row={ bar }>
-                <FormField path="num" widget={ Stars }/>
-                <FormField path="name" widget="stars"/>
-                <FormField path="description"/>
+                <Field path="num" widget={ Stars }/>
+                <Field path="name" widget="stars"/>
+                <Field path="description"/>
             </Form>
         )
 

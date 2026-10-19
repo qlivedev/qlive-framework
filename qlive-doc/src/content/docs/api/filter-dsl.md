@@ -69,12 +69,6 @@ Named condition Node.
 
 `operands: CNode[]` -- Operands of the condition
 
-### FilterDSL.Field
-
-```ts
-type Field = FieldNode & FieldConditions & FieldOperations;
-```
-
 ### FilterDSL.FieldConditionName
 
 ```ts
@@ -100,6 +94,12 @@ Field reference.
 `type: "Field"`
 
 `name: string` -- Name of the field
+
+### FilterDSL.FieldReference
+
+```ts
+type FieldReference = FieldNode & FieldConditions & FieldOperations;
+```
 
 ### FilterDSL.FilterExpression
 
@@ -288,7 +288,7 @@ to tell.
 ### FilterDSL.field()
 
 ```ts
-declare function field(name: string): Field;
+declare function field(name: string): FieldReference;
 ```
 
 Field / column reference.
@@ -307,7 +307,7 @@ technology](/qlive-framework/explanation/filter-dsl/#semantic-differences-per-te
 |---|---|
 | `{String}` | name     field name (e.g. "name", "owner.name") |
 
-**Returns** {Field}
+**Returns** {FieldReference}
 
 ### FilterDSL.fieldConditionArity()
 

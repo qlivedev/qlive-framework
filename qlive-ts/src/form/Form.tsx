@@ -5,7 +5,7 @@ import {Fragment, JSX, ReactNode, useCallback, useId, useMemo, useState} from "r
 
 import i18n from "../i18n";
 import {useMerge} from "../merge/useMerge";
-import {FormField} from "./FormField";
+import {Field} from "./Field";
 import type {FieldMode} from "./fieldMode";
 import {FieldEdit, FormState, FormStateContext} from "./FormContext";
 import {deriveLayout, Layout, LayoutNode, namedComponent} from "./layout";
@@ -48,7 +48,7 @@ function renderNodes(nodes: LayoutNode[]): ReactNode
     return nodes.map((node, index) => {
         if ("field" in node)
         {
-            return <FormField key={ node.field } path={ node.field } widget={ node.widget } mode={ node.mode } label={ node.label }/>
+            return <Field key={ node.field } path={ node.field } widget={ node.widget } mode={ node.mode } label={ node.label }/>
         }
         if ("section" in node)
         {
@@ -71,8 +71,8 @@ function renderNodes(nodes: LayoutNode[]): ReactNode
  * <Form row={ ws.edit(bar) }/>                          // the layout derived from the row
  * <Form row={ ws.edit(bar) } layout={ barLayout }/>     // a layout
  * <Form row={ ws.edit(bar) }>                           // the application's own fields
- *     <FormField path="name"/>
- *     <FormField path="owner"/>
+ *     <Field path="name"/>
+ *     <Field path="owner"/>
  * </Form>
  * ```
  *

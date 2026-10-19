@@ -236,8 +236,8 @@ function buildFn(name: string, numArgs: number): (...args: CNode[]) => CNode
 function buildOpFn(name: string, numArgs: number): (...args: CNode[]) => CNode
 {
     return function (this: CNode, ...args: CNode[]): CNode {
-        // Operations reuse the Field prototype - identical method set, different
-        // node type - so the node is constructed as a Field and relabelled.
+        // Operations reuse the FieldReference prototype - identical method set, different
+        // node type - so the node is constructed as a FieldReference and relabelled.
         const op = new FieldCtor(name) as unknown as OperationNode;
         op.type = "Operation";
         op.operands = [this, ...args.slice(0, numArgs)];
@@ -379,18 +379,18 @@ function buildProto(
 }
 
 /**
- * Field constructor
+ * FieldReference constructor
  * @param name
  * @constructor
  */
-function Field(this: FieldNode, name: string)
+function FieldReference(this: FieldNode, name: string)
 {
     this.type = "Field";
     this.name = name;
 }
 
-buildProto(Field.prototype, FIELD_CONDITIONS, buildFn);
-buildProto(Field.prototype, FIELD_OPERATIONS, buildOpFn);
+buildProto(FieldReference.prototype, FIELD_CONDITIONS, buildFn);
+buildProto(FieldReference.prototype, FIELD_OPERATIONS, buildOpFn);
 
 /*
  * buildProto() attaches the method set above at runtime, which TypeScript
@@ -399,7 +399,7 @@ buildProto(Field.prototype, FIELD_OPERATIONS, buildOpFn);
  * to the type system: they state the shape the prototype actually has, so
  * every `new` below - and every consumer - gets the fully typed node.
  */
-const FieldCtor = Field as unknown as { new (name: string): Field };
+const FieldCtor = FieldReference as unknown as { new (name: string): FieldReference };
 
 /**
  * Condition constructor
@@ -458,9 +458,9 @@ export function operation(name: string, operands: CNode[] = []): CNode
  * Field / column reference.
  *
  * @param {String} name     field name (e.g. "name", "owner.name")
- * @return {Field}
+ * @return {FieldReference}
  */
-export function field(name: string): Field
+export function field(name: string): FieldReference
 {
     return new FieldCtor(name);
 }
@@ -1201,9 +1201,9 @@ type CondFn<N extends number> =
     never;
 
 type OpFn<N extends number> =
-    N extends 0 ? () => Field :
-    N extends 1 ? (a: CNode) => Field :
-    N extends 2 ? (a: CNode, b: CNode) => Field :
+    N extends 0 ? () => FieldReference :
+    N extends 1 ? (a: CNode) => FieldReference :
+    N extends 2 ? (a: CNode, b: CNode) => FieldReference :
     never;
 
 type FieldConditions = {
@@ -1218,6 +1218,6 @@ export type Condition = ConditionNode & {
     [K in keyof typeof CONDITION_METHODS]: CondFn<(typeof CONDITION_METHODS)[K]>
 };
 
-export type Field = FieldNode & FieldConditions & FieldOperations; // Field prototype
+export type FieldReference = FieldNode & FieldConditions & FieldOperations; // FieldReference prototype
 export type Value = ValueNode & FieldConditions & FieldOperations; // Value prototype
 

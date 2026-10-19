@@ -25,7 +25,7 @@ export interface FormContext
     invalid: ReadonlyMap<string, string>
     /**
      * The modes the layout gave fields and setMode() changed them to, by path. A field not in it has the mode its
-     * FormField gives, or the default (defaultFieldMode()).
+     * Field gives, or the default (defaultFieldMode()).
      */
     modes: ReadonlyMap<string, FieldMode>
     /** changes a field's mode */

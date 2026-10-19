@@ -23,8 +23,8 @@ A form editing one row: the context of its fields, and what renders them.
 <Form row={ ws.edit(bar) }/>                          // the layout derived from the row
 <Form row={ ws.edit(bar) } layout={ barLayout }/>     // a layout
 <Form row={ ws.edit(bar) }>                           // the application's own fields
-    <FormField path="name"/>
-    <FormField path="owner"/>
+    <Field path="name"/>
+    <Field path="owner"/>
 </Form>
 ```
 
@@ -137,7 +137,7 @@ modes: ReadonlyMap<string, FieldMode>;
 ```
 
 The modes the layout gave fields and setMode() changed them to, by path. A field not in it has the mode its
-FormField gives, or the default (defaultFieldMode()).
+Field gives, or the default (defaultFieldMode()).
 
 ### FormContext.setMode
 
@@ -147,12 +147,12 @@ setMode(path: string, mode: FieldMode): void;
 
 changes a field's mode
 
-## FormField()
+## Field()
 
 <span class="api-kind">function</span>
 
 ```ts
-declare function FormField(props: {
+declare function Field(props: {
   path: string;
 } & FieldOptions): JSX.Element;
 ```
@@ -454,7 +454,7 @@ type Widget = ComponentType<WidgetProps>;
 ```
 
 The input of one field. It gets the whole field state and renders the input only: label, error and merge marks are
-FormField's. It only ever sees the modes `normal`, `disabled` and `readOnly`, since a field in `text` mode renders no
+Field's. It only ever sees the modes `normal`, `disabled` and `readOnly`, since a field in `text` mode renders no
 widget.
 
 ## WidgetProps
@@ -595,7 +595,7 @@ the saved one. Where the saved value isn't known yet -- a push message says whic
 a note instead, until a save brings both.
 
 What a form rendering a layout wraps every widget in, unless an override gives a wrapper (WidgetOverride). A
-hand-written form gives it where it wants it, `<FormField path="name" wrapper={ ConflictResolution }/>`.
+hand-written form gives it where it wants it, `<Field path="name" wrapper={ ConflictResolution }/>`.
 
 ## TextInput()
 
@@ -725,7 +725,7 @@ One node of a layout.
 interface LayoutFieldNode
 ```
 
-One field, rendered by FormField with these options.
+One field, rendered by Field with these options.
 
 ### LayoutFieldNode.field
 

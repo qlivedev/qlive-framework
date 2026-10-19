@@ -1,6 +1,6 @@
 import type {JSX, ReactNode} from "react";
 
-import {and, conditionsEqual, Field, FilterExpression} from "../FilterDSL";
+import {and, conditionsEqual, FieldReference, FilterExpression} from "../FilterDSL";
 import {ColumnFilter, ColumnFilterInputProps} from "./filters";
 
 /**
@@ -20,7 +20,7 @@ export interface Flag
      * @param target    what the column filters: a field node, or the expression of a computed column, either with
      *                  the builder methods
      */
-    term(target: Field): FilterExpression;
+    term(target: FieldReference): FilterExpression;
 }
 
 /** a flag set filter, with its flags for the input */

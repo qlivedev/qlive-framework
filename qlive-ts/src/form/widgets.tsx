@@ -11,7 +11,7 @@ import type {FieldState} from "./useField";
 
 /**
  * The input of one field. It gets the whole field state and renders the input only: label, error and merge marks are
- * FormField's. It only ever sees the modes `normal`, `disabled` and `readOnly`, since a field in `text` mode renders no
+ * Field's. It only ever sees the modes `normal`, `disabled` and `readOnly`, since a field in `text` mode renders no
  * widget.
  */
 export type Widget = ComponentType<WidgetProps>

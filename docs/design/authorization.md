@@ -90,14 +90,15 @@ can learn about data it may not see, and each of them has to be
 checked against this sketch before any of it is built. Collected so
 far:
 
-- **The catalog endpoint** (`layouts.md`, "Related rows: the catalog"):
-  a REST endpoint serving any type a foreign key references, outside
-  GraphQL, with a condition from the client. The condition can only
-  narrow which rows come back, but it can test fields the user may not
-  see -- `salary > 100000` reveals salaries through which rows return.
+- **The related-rows endpoint** (`layouts.md`, "Related rows"): a REST
+  endpoint serving any non-catalog type a foreign key references,
+  outside GraphQL, with a condition from the client. The condition can
+  only narrow which rows come back, but it can test fields the user may
+  not see -- `salary > 100000` reveals salaries through which rows
+  return.
 - **Catalog types in the bootstrap**: their rows reach every client that
-  loads the bootstrap, so a catalog is visible to everyone who can see a
-  form using it, and nothing filters it afterwards.
+  loads the bootstrap and are filtered in the browser, so a catalog is
+  visible to everyone who can see a form using it.
 - **The cached part of the bootstrap** in general: catalogs, layouts and
   action definitions are the same for every user.
 - **Conditions evaluated in the browser** over rows it already holds,

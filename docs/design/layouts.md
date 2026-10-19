@@ -359,7 +359,7 @@ an application can keep in a module of its own.
 
 The conflict buttons become the wrapper the auto-form applies.
 
-### Related rows: the catalog
+### Related rows
 
 A to-one picker needs the rows it offers, and a field whose query
 selected the key without the relation object needs the name of the row
@@ -369,8 +369,29 @@ derived layout knows the target type but has no query for it -- none
 may exist, and an application query that does may carry conditions of
 its own.
 
-Putting a generated query per type into the schema is hard without an
-explicit annotation per query, so this fakes GraphQL instead:
+**A field may add a condition**, which is how a picker offers only the
+members of this project. Where the rows come from, and where that
+condition is evaluated, depends on the target type, and the picker
+reads the same either way:
+
+- **A catalog type** (`catalog: true`): from the bootstrap, filtered in
+  the browser with the FilterDSL evaluator (`conditionPredicate()`).
+  The server is never asked.
+- **Any other type**: from the related-rows endpoint, filtered on the
+  server through the query document service.
+
+**`catalog: true`** is type meta for a type whose rows are constant for
+the lifetime of an application run. Its rows ship in the cached part of
+the bootstrap. The user documentation must stress what that costs:
+every row of every catalog type is in every client's bootstrap, and a
+constant table can still be too large to be a catalog. A catalog type
+is visible to everyone -- or at least to everyone who can see a form
+using it, once there is authorization: nothing filters what is already
+in the bootstrap.
+
+**The related-rows endpoint** serves the other types. Putting a
+generated query per type into the schema is hard without an explicit
+annotation per query, so it fakes GraphQL instead:
 
 - **One REST endpoint** takes a type name and a `QueryConfig` (condition,
   sort, page) and runs it through the query document machinery, which
@@ -381,26 +402,11 @@ explicit annotation per query, so this fakes GraphQL instead:
 - **Valid types** are those a foreign key references, so the endpoint
   serves pickers and nothing else.
 - The type's `queryConfig` meta, the condition every query of the type
-  carries, applies as it does everywhere.
-- **A field may add a condition**, which is how a picker offers only
-  the members of this project. The endpoint takes it from the client as
-  it is: it can only narrow what the type's own condition and
-  authorization already allow, never widen it. For a catalog type the
-  same condition is evaluated in memory over the bootstrap's rows
-  (`conditionPredicate()`), so the picker reads the same either way.
-
-**`catalog: true`** is type meta for a type whose rows are constant for
-the lifetime of an application run. Its rows ship in the cached part of
-the bootstrap, so a picker over it never asks the server. The user
-documentation must stress what that costs: every row of every catalog
-type is in every client's bootstrap, and a constant table can still be
-too large to be a catalog.
-
-**A catalog type is visible to everyone** -- or at least to everyone who
-can see a form using it, once there is authorization: there is no
-filtering what is already in the bootstrap. A non-catalog type goes
-through the endpoint, where `authorization.md`'s row-level rules apply
-as they do to any query.
+  carries, applies as it does everywhere, and so do
+  `authorization.md`'s row-level rules.
+- **The field's condition** comes from the client as it is. It can only
+  narrow what the type's own condition and authorization allow, never
+  widen it.
 
 ## The format on the server
 

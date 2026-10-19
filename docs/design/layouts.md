@@ -487,9 +487,18 @@ Layouts stay plain POJO trees. An editor would present both together,
 perhaps the layout as one node with a socket per field -- whatever is
 easiest.
 
-**Sinks may not be needed.** Distinguishing state from event may be
-enough: a state rule's target is the field's mode or value itself, an
-event rule acts when something changes. Errors could be a sink.
+**Events trigger actions, on the client only.** The DAG is constant;
+it contains events -- a field changed -- and actions on client state,
+setting a field's mode or value. A derived value is not a separate
+kind of rule: it is an event on every input of it plus a mode that
+keeps the user from overriding it (gross in `text`). The server has no
+event system: **a value a rule set is a change like an edit**, the
+merge sends it, and on the server only invariants check it. Sinks may
+not be needed; errors could be one.
+
+**Form rules come from two places**: the layout, situational to one
+form, and the type, as invariants are. A type's rules apply to every
+form over it.
 
 **The editor is half a contradiction** with "The format on the server",
 which says an editor serves a user group QLive doesn't have. QLive
@@ -518,30 +527,25 @@ cheap.
 
 **Scenarios.**
 
-1. Derived: net + tax = gross. Always computed, effectively `text`.
-   State.
+1. Derived: net + tax = gross. Set on every change of net, kept in
+   `text`.
 2. Prefill: postal code -> city, once, overridable afterwards, usually
-   an asynchronous lookup. Event.
+   an asynchronous lookup.
 3. Mode toggle: "different delivery address" enables the address
-   fields. State.
+   fields.
 4. Cross-field validation: end date >= start date. Which field is
    blamed, or both?
-5. Reset: changing the country clears the region. Event, or the state
-   "region belongs to country"?
+5. Reset: changing the country clears the region.
 
 **Questions.**
 
-- State, events, or both? Both doubles the semantics; state alone
-  makes prefill awkward.
-- Does the merge re-run value rules on the server? Otherwise it stores
-  what the client computed, and only invariants check it.
+- Does a type's rule act, or only validate? An invariant is a check
+  the merge enforces; a type rule that sets a value runs only in the
+  browser, so for a writer without a form -- an action, server code --
+  it never happens. Is that a different kind of type rule, or is a
+  type limited to checks?
 - Chains (A sets B, B enables C) and conflicts (two rules on one
   field's mode): rule order, fixed point, or a cycle error?
-- Where form rules live: with the layout, with the type like
-  invariants, with the action -- or a third home next to the two
-  `actions.md` has.
-- Does a value a rule set count as `changed` in the merge, like an
-  edit?
 
 ## Naming
 

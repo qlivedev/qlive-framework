@@ -1,8 +1,9 @@
 # Layouts (design)
 
-Status: concept settled, building blocks sketched, details open.
-Written 2026-10-18, revised 2026-10-19. Field modes and input
-conversion are built, the rest is not.
+Status: concept settled, client building blocks built, details open.
+Written 2026-10-18, revised 2026-10-20. Field modes, input conversion
+and the client building blocks are built (`qlive-ts/src/form/`); action
+input, related rows, pickers, server layouts and rules are not.
 The companion concept is `actions.md`.
 
 The auto-form. A layout says which fields a form shows, how they are
@@ -121,20 +122,57 @@ which stay editable by default until it does.
 picker on the key field itself; a nullable key's picker can clear it.
 
 **A field's mode is state.** The layout initializes it: the derived
-default, or the mode a layout node or `Field` gives. Rules change it
+default, or the mode a layout node or `FormField` gives. Rules change it
 while the form is open -- a field enabled once another is filled.
 **An authorization rule locks it**, and no rule changes it after that.
 How it locks, and in which mode, is left to the authorization work
 (`authorization.md`).
 
-## The building blocks (sketch)
+## The building blocks
 
-API sketch, not built. The shape follows the grid: headless hooks
-carrying all the logic, default components that are nothing but those
-hooks plus markup, and an auto-form composed from those components
-alone. `Form` is decided: a form references a layout, and imported from
-the package's namespace it can sit next to other `<Form/>` components.
-The other names are working names.
+The shape follows the grid: headless hooks carrying all the logic,
+default components that are nothing but those hooks plus markup, and an
+auto-form composed from those components alone. `Form` is decided: a
+form references a layout, and imported from the package's namespace it
+can sit next to other `<Form/>` components. The field component is
+`FormField`, since FilterDSL already exports a `Field`; the other names
+are working names.
+
+The sketch below is what was built, apart from these, as of 2026-10-20:
+
+- **No action input yet.** `Form` has no `action`, the context no
+  `input`, `deriveLayout` no action argument, and a path starting with
+  `input.` is an error, until actions exist.
+- **Nothing locks a mode.** `setMode` changes any field; locking is the
+  authorization work's.
+- **`modes` holds what the layout gave and `setMode` set.** A field not
+  in it has the mode its `FormField` gives, or the default. A
+  hand-written form's modes aren't known before its fields render.
+- **Overrides apply to every field that names no widget**, a
+  hand-written `<FormField path="price"/>` included, not only to layouts:
+  an application's `Money` widget would otherwise be missing exactly
+  where the application wrote the form itself. The conflict wrapper is
+  still a layout's default only, and a hand-written form gives it where
+  it wants it.
+- **The wrapper goes around the control**, the box carrying the merge
+  mark, so conflict buttons sit beside the marked input, not inside it.
+- **Built-in widgets**: a text input; a number input that is a text
+  input with `inputMode` (`type="number"` reports unparseable text as
+  empty, which would hide it, and knows no bigint); `date` and
+  `datetime-local` pickers; a checkbox for a non-null Boolean and a
+  yes/no select for a nullable one; a select for an enum, labeled
+  `Type.VALUE`. A checkbox and a select have no read-only state, so
+  `readOnly` disables them. Relations get `MissingWidget`, which shows
+  the value and says there is no widget, until related rows and pickers
+  exist; so does a scalar without input text, such as `BigDecimal`.
+- **Typed text survives while it means the current value.** A field
+  keeps the text it was given as long as it parses to the value the
+  draft holds, so `1.` in a Float isn't rewritten to `1` mid-typing; a
+  value set elsewhere -- undo, a rule, another window -- replaces it.
+- **Layout nodes**: a label is a `ReactNode`, and a component node takes
+  a component type as well as a registered name, as a widget does.
+- **A form with children adds no markup.** `qlive-form` is the grid the
+  layout renders into; a hand-written form uses the class or not.
 
 ### `Form`, the context and its provider
 
@@ -144,8 +182,8 @@ The other names are working names.
 <Form row={ bar } layout="barEdit"/>          // named layout
 <Form row={ bar } action="approveBar"/>       // derived, plus the action's input
 <Form row={ bar }>                            // provider only
-    <Field path="name"/>
-    <Field path="owner"/>
+    <FormField path="name"/>
+    <FormField path="owner"/>
 </Form>
 ```
 
@@ -195,7 +233,7 @@ not with the values. A parse error is therefore not one of the
 working set's field errors (see "Carried over"), and `merge()` doesn't
 see it.
 
-### `useField` and `Field`
+### `useField` and `FormField`
 
 ```ts
 function useField(path: string, options?: FieldOptions): FieldState
@@ -237,7 +275,7 @@ interface FieldState
     merge: MergeField
 }
 
-function Field(props: { path: string } & FieldOptions): JSX.Element
+function FormField(props: { path: string } & FieldOptions): JSX.Element
 ```
 
 `setText` runs `parseInput`: valid text sets the value, invalid text
@@ -251,7 +289,7 @@ starts with `input.`. A to-one relation is named by its object field,
 `statusField` does. A path one relation hop further, `owner.login`, is
 a field group's business and not a field's.
 
-`Field` is `useField` plus markup: a label, the widget, the error,
+`FormField` is `useField` plus markup: a label, the widget, the error,
 and the merge status class. In
 `text` mode it renders no widget at all but the formatted value -- the
 related row's name fields for a relation, as a grid cell shows them --
@@ -283,17 +321,17 @@ function registerWidget(name: string, widget: Widget): void
 ```
 
 A widget gets the whole `FieldState` and renders the input only; label
-and error are `Field`'s.
+and error are `FormField`'s.
 
 **On the client a widget is a component type.** A view writing TSX
-passes it to `Field` directly, and a layout object built in TSX carries
+passes it to `FormField` directly, and a layout object built in TSX carries
 it in its node. Names exist only for layouts the server delivers, which
 can't hold a component: `registerWidget` gives a component the name such
 a layout uses.
 
-**Overrides are matchers in config**, applied to what the application
-didn't write itself: layouts from the server and from `deriveLayout()`.
-A hand-written form names its components and needs none. A matcher
+**Overrides are matchers in config**, applied to every field that
+names no widget: layouts from the server and from `deriveLayout()`, and
+a hand-written form's fields where it names none. A matcher
 keys on `layout`, `field` and `scalar` and nothing else. `layout` is
 the layout's root type rather than its name, since field paths start
 there; two layouts of one type are told apart by the field paths they
@@ -312,7 +350,7 @@ config().widgets = [
 specific ones: a field beats a scalar, a named root type beats `"*"`.
 
 Resolution for a field, first hit wins: the component the layout node
-or `Field` gives, the name a server layout gives, an override, the
+or `FormField` gives, the name a server layout gives, an override, the
 built-in for the scalar type or relation kind -- `text`, `number`,
 `checkbox`, `date`, `datetime`, `select` for enums, `toOne`,
 `manyToMany`. No hit is the dev placeholder.
@@ -345,7 +383,7 @@ function deriveLayout(type: string, row: object, action?: string): Layout
 function registerComponent(name: string, component: ComponentType<any>): void
 ```
 
-`field` nodes are `Field`s with their options; `section` is a labeled
+`field` nodes are `FormField`s with their options; `section` is a labeled
 group (`<fieldset>`, legend `i18n(section)`); `component` is an
 application's own, registered by name like a widget, with its nodes as
 children.

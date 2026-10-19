@@ -148,7 +148,8 @@ class QueryDocumentServiceTest
             is(TimestampScalar.toISO8601(Timestamp.valueOf("2018-11-01 19:58:59")))
         );
         assertThat(full.get("dateValue"), is("2018-11-01"));
-        assertThat(full.get("longValue"), is(12345678901L));
+        // a Long goes out as a decimal string, which the browser holds as a bigint
+        assertThat(full.get("longValue"), is("12345678901"));
         assertThat(full.get("byteValue"), is((byte) 23));
         assertThat(full.get("jsonbValue"), is(notNullValue()));
 

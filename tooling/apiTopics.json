@@ -303,6 +303,16 @@
       ]
     },
     {
+      "slug": "forms",
+      "title": "Forms",
+      "description": "How a form renders a field, and which fields it edits where nothing says otherwise.",
+      "narrative": null,
+      "members": [
+        "FieldMode",
+        "defaultFieldMode"
+      ]
+    },
+    {
       "slug": "push-and-subscriptions",
       "title": "Push and subscriptions",
       "description": "Finding out that somebody else changed a row on screen.",
@@ -352,6 +362,7 @@
         "GraphQLModifiedTypes",
         "findType",
         "objectFields",
+        "primaryKeyFields",
         "unwrapAll",
         "unwrapNonNull",
         "isListType",

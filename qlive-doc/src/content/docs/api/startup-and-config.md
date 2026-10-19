@@ -651,6 +651,16 @@ computed?: boolean;
 
 true if the field is a GraphQLComputed-annotated property. Written by QLive's ComputedMetadataProvider.
 
+### DomainFieldMeta.editable
+
+```ts
+editable?: boolean;
+```
+
+false if a form shows the field without editing it, see defaultFieldMode(). Written by an application for
+columns only the server writes, such as created and modified stamps. A primary key, a computed field and the
+version field are not edited without it.
+
 ### DomainFieldMeta.maxLength
 
 ```ts

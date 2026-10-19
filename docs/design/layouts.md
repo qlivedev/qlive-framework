@@ -487,18 +487,27 @@ Layouts stay plain POJO trees. An editor would present both together,
 perhaps the layout as one node with a socket per field -- whatever is
 easiest.
 
-**Events trigger actions, on the client only.** The DAG is constant;
-it contains events -- a field changed -- and actions on client state,
-setting a field's mode or value. A derived value is not a separate
-kind of rule: it is an event on every input of it plus a mode that
-keeps the user from overriding it (gross in `text`). The server has no
-event system: **a value a rule set is a change like an edit**, the
-merge sends it, and on the server only invariants check it. Sinks may
-not be needed; errors could be one.
+**Rules act on the client only**, on client events or on the result of
+a validation expression, setting a field's mode or value. The DAG is
+constant. **A computed value is continuous and one-way**: gross follows
+net, nothing flows back. Whether the user may override it is the
+target's mode, not a kind of rule: gross in `text` is derived, city in
+`normal` is a prefill the user overwrites until the postal code
+changes again. So there is one mechanism with timing modes rather than
+continuous and triggered rules side by side: on every change, or on
+blur where recomputing on every keystroke is too slow.
+
+**The server regards only the validation expressions** and fails a
+write where one doesn't hold. It has no event system: **a value a rule
+set is a change like an edit**, the merge sends it, and validation
+checks it there like any other. Whether some validations should be
+marked client-only is unresolved. Sinks may not be needed; errors
+could be one.
 
 **Form rules come from two places**: the layout, situational to one
 form, and the type, as invariants are. A type's rules apply to every
-form over it.
+form over it; its validations hold for every writer, its actions only
+where a form runs them.
 
 **The editor is half a contradiction** with "The format on the server",
 which says an editor serves a user group QLive doesn't have. QLive
@@ -527,10 +536,9 @@ cheap.
 
 **Scenarios.**
 
-1. Derived: net + tax = gross. Set on every change of net, kept in
-   `text`.
-2. Prefill: postal code -> city, once, overridable afterwards, usually
-   an asynchronous lookup.
+1. Derived: net + tax = gross. Follows net, kept in `text`.
+2. Prefill: postal code -> city, overridable until the postal code
+   changes again, usually an asynchronous lookup.
 3. Mode toggle: "different delivery address" enables the address
    fields.
 4. Cross-field validation: end date >= start date. Which field is
@@ -539,11 +547,10 @@ cheap.
 
 **Questions.**
 
-- Does a type's rule act, or only validate? An invariant is a check
-  the merge enforces; a type rule that sets a value runs only in the
-  browser, so for a writer without a form -- an action, server code --
-  it never happens. Is that a different kind of type rule, or is a
-  type limited to checks?
+- Two-way links (edit net or gross, the other follows): not asked for
+  yet, and not covered by one-way rules.
+- Client-only validations: whether some need marking so the server
+  skips them.
 - Chains (A sets B, B enables C) and conflicts (two rules on one
   field's mode): rule order, fixed point, or a cycle error?
 

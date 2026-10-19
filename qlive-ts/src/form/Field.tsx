@@ -6,7 +6,7 @@ import type {JSX} from "react";
 import config from "../config";
 import {formatValue} from "../converter";
 import i18n from "../i18n";
-import {objectFields, unwrapAll} from "../type-utils";
+import {objectFields, primaryKeyFields, unwrapAll} from "../type-utils";
 import {useFormState} from "./FormContext";
 import {FieldOptions, FieldState, fieldState} from "./useField";
 import {builtInWidget, FieldWrapperProps, findOverride, namedWidget, Widget} from "./widgets";
@@ -29,6 +29,15 @@ function rowName(type: string, row: any, key: unknown): string
 }
 
 /**
+ * The field of the related type a to-one relation's foreign key holds.
+ */
+function targetKey(field: FieldState): string
+{
+    const relation = config().meta.relations.find(r => r.sourceType === field.type && r.leftSideObjectName === field.name)
+    return relation?.targetFields[0] ?? primaryKeyFields(field.scalarType)[0]
+}
+
+/**
  * The value of a field as text, what `text` mode shows: the formatted value, the related row's name for a relation.
  *
  * @param field     the field
@@ -43,13 +52,20 @@ export function fieldText(field: FieldState, row: object, value: unknown = field
             return formatValue(value, field.scalarType)
         case "toOne":
         {
+            if (value === null || value === undefined)
+            {
+                return ""
+            }
+            // the relation object is what the row was read with, so it names the key only while that is unchanged
             const related = (row as any)[field.name]
-            return value === null || value === undefined
-                ? ""
-                : rowName(field.scalarType, related?.id === value ? related : null, value)
+            const key = targetKey(field)
+            return rowName(field.scalarType, related && related[key] === value ? related : null, value)
         }
         case "manyToMany":
-            return ((value ?? []) as any[]).map(related => rowName(field.scalarType, related, related.id)).join(", ")
+        {
+            const key = primaryKeyFields(field.scalarType)[0]
+            return ((value ?? []) as any[]).map(related => rowName(field.scalarType, related, related[key])).join(", ")
+        }
     }
 }
 

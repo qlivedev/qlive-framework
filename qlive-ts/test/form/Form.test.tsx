@@ -7,7 +7,7 @@ import {GraphQLQuery} from "../../src/GraphQLQuery";
 import {QueryDocument} from "../../src/QueryDocument";
 import {WorkingSet} from "../../src/merge/WorkingSet";
 import {Form} from "../../src/form/Form";
-import {Field} from "../../src/form/Field";
+import {Field, fieldText} from "../../src/form/Field";
 import {FormContext, useFormContext} from "../../src/form/FormContext";
 import {deriveLayout, registerComponent} from "../../src/form/layout";
 import {FieldState, useField} from "../../src/form/useField";
@@ -317,6 +317,34 @@ describe("useField", () => {
 
         expect(owner).toMatchObject({kind: "toOne", scalarType: "AppUser", value: "u-1", required: true})
         expect(owner.merge.name).toBe("ownerId")
+    })
+
+    it("names a related row by its name fields, matched on the relation's target key", () => {
+
+        const meta = config().meta
+        const relation = meta.relations.find(r => r.sourceType === "Foo" && r.leftSideObjectName === "fooType")!
+        const targetFields = relation.targetFields
+        relation.targetFields = ["name"]
+        meta.types.AppUser = {meta: {nameFields: ["login"]}}
+        meta.types.FooType = {meta: {nameFields: ["name"]}}
+        try
+        {
+            const row = {ownerId: "u-1", owner: {id: "u-1", login: "admin"}, type: "A", fooType: {name: "A"}}
+            const toOne = (name: string, scalarType: string, value: unknown) =>
+                ({kind: "toOne", type: "Foo", name, scalarType, value}) as FieldState
+
+            expect(fieldText(toOne("owner", "AppUser", "u-1"), row)).toBe("admin")
+            expect(fieldText(toOne("fooType", "FooType", "A"), row)).toBe("A")
+
+            // a key changed away from the relation object the row was read with shows as the key
+            expect(fieldText(toOne("owner", "AppUser", "u-2"), row)).toBe("u-2")
+        }
+        finally
+        {
+            relation.targetFields = targetFields
+            delete meta.types.AppUser
+            delete meta.types.FooType
+        }
     })
 
     it("refuses a path through a relation, and a field outside a form", async () => {

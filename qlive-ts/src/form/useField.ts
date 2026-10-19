@@ -37,11 +37,11 @@ export interface FieldState
     /** the path the field was asked for by */
     path: string
     /** the form's type */
-    type: string
+    domainType: string
     /** the field's name in it */
     name: string
-    /** the scalar type of the field, or the related type for a relation */
-    scalarType: string
+    /** the field's type: a scalar or enum type, or the related type for a relation */
+    fieldType: string
     /**
      * - `scalar`: a scalar or enum field
      * - `toOne`: a to-one relation, named by its object field and edited through its foreign key
@@ -78,7 +78,7 @@ interface Resolved
 {
     name: string
     kind: FieldState["kind"]
-    scalarType: string
+    fieldType: string
     /** the field the value is in */
     storage: string
     required: boolean
@@ -112,7 +112,7 @@ function resolve(type: string, path: string): Resolved
         {
             throw fieldError(type, path, "a list, and not a many-to-many field.")
         }
-        return {name: path, kind: "manyToMany", scalarType: named.name!, storage: path, required: false}
+        return {name: path, kind: "manyToMany", fieldType: named.name!, storage: path, required: false}
     }
     if (named.kind === "OBJECT")
     {
@@ -130,18 +130,18 @@ function resolve(type: string, path: string): Resolved
         return {
             name: path,
             kind: "toOne",
-            scalarType: named.name!,
+            fieldType: named.name!,
             storage: key,
             required: keyField ? isNonNull(keyField.type) : false
         }
     }
-    return {name: path, kind: "scalar", scalarType: named.name!, storage: path, required: isNonNull(field.type)}
+    return {name: path, kind: "scalar", fieldType: named.name!, storage: path, required: isNonNull(field.type)}
 }
 
 /** whether the field's value is edited as text */
 function textual(resolved: Resolved): boolean
 {
-    return resolved.kind === "scalar" && hasInput(resolved.scalarType)
+    return resolved.kind === "scalar" && hasInput(resolved.fieldType)
 }
 
 /**
@@ -151,9 +151,9 @@ function textual(resolved: Resolved): boolean
  */
 export function fieldState(form: FormState, path: string, options: FieldOptions = {}): FieldState
 {
-    const {row, type} = form
+    const {row, domainType: type} = form
     const resolved = resolve(type, path)
-    const {storage, scalarType} = resolved
+    const {storage, fieldType} = resolved
     const draft = row as Record<string, unknown>
     const value = draft[storage]
     const edit = form.edits.get(path)
@@ -167,7 +167,7 @@ export function fieldState(form: FormState, path: string, options: FieldOptions 
     }
     else if (textual(resolved))
     {
-        text = inputText(value, scalarType)
+        text = inputText(value, fieldType)
     }
     else
     {
@@ -176,9 +176,9 @@ export function fieldState(form: FormState, path: string, options: FieldOptions 
 
     return {
         path,
-        type,
+        domainType: type,
         name: resolved.name,
-        scalarType,
+        fieldType,
         kind: resolved.kind,
         label: options.label ?? i18n(type + "." + resolved.name),
         id: form.idPrefix + path,
@@ -194,14 +194,14 @@ export function fieldState(form: FormState, path: string, options: FieldOptions 
 
         text,
         setText: next => {
-            if (!textual(resolved) && !(resolved.kind === "scalar" && findType(scalarType).kind === "ENUM"))
+            if (!textual(resolved) && !(resolved.kind === "scalar" && findType(fieldType).kind === "ENUM"))
             {
-                throw fieldError(type, path, "a " + scalarType + " has no input text.")
+                throw fieldError(type, path, "a " + fieldType + " has no input text.")
             }
             let parsed: unknown
             try
             {
-                parsed = textual(resolved) ? parseInput(next, scalarType) : next.trim() === "" ? null : next
+                parsed = textual(resolved) ? parseInput(next, fieldType) : next.trim() === "" ? null : next
             }
             catch (e)
             {

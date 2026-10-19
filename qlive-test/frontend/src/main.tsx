@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             // Applies wherever a form shows Foo.num without naming a widget: the derived form, a layout, and a
             // hand-written <Field path="num"/> alike.
             config.widgets = [
-                { layout: "Foo", field: "num", widget: Stepper }
+                { domainType: "Foo", path: "num", widget: Stepper }
             ]
         }
     });

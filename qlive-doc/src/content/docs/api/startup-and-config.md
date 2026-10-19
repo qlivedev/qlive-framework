@@ -324,10 +324,10 @@ type QLiveConfig = {
    */
   translations?: Record<string, string>;
   /**
-   * Widgets and decorators for the form fields the application doesn't name one for, matched by type, field path and
-   * scalar type, see WidgetOverride. Written by the application like errorView, in startup()'s init hook.
+   * Widgets and decorators for the form fields the application doesn't name one for, matched by where the field is
+   * and what it is, see WidgetOverride. Written by the application like errorView, in startup()'s init hook.
    *
-   *     config.widgets = [{layout: "*", scalar: "Money", widget: MoneyInput}]
+   *     config.widgets = [{fieldType: "Money", widget: MoneyInput}]
    */
   widgets?: WidgetOverride[];
 };

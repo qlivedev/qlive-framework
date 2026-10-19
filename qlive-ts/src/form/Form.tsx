@@ -93,9 +93,9 @@ export function Form({row, layout, children}: FormProps): JSX.Element
     {
         throw new Error("A form renders a layout or its children, not both.")
     }
-    if (layout && layout.type !== type)
+    if (layout && layout.domainType !== type)
     {
-        throw new Error("A layout of " + layout.type + " can't render a " + type + ".")
+        throw new Error("A layout of " + layout.domainType + " can't render a " + type + ".")
     }
 
     const fromLayout = children === undefined
@@ -131,8 +131,9 @@ export function Form({row, layout, children}: FormProps): JSX.Element
                 invalid.set(path, edit.text)
             }
         }
-        return {row, type, merge, invalid, modes, setMode, edits, setEdit, idPrefix, fromLayout}
-    }, [row, type, merge, modes, setMode, edits, setEdit, idPrefix, fromLayout])
+        const layoutName = resolvedLayout?.name ?? null
+        return {row, domainType: type, layoutName, merge, invalid, modes, setMode, edits, setEdit, idPrefix, fromLayout}
+    }, [row, type, resolvedLayout, merge, modes, setMode, edits, setEdit, idPrefix, fromLayout])
 
     return (
         <FormStateContext.Provider value={ state }>

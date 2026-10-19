@@ -14,8 +14,10 @@ import type {Widget} from "./widgets";
  */
 export interface Layout
 {
+    /** the name overrides match it by (WidgetOverride), if it has one */
+    name?: string
     /** the type of the row the form edits */
-    type: string
+    domainType: string
     nodes: LayoutNode[]
 }
 
@@ -155,5 +157,5 @@ export function deriveLayout(type: string, row: object): Layout
         add(relationByKey(type, name)?.leftSideObjectName ?? name)
     }
 
-    return {type, nodes: paths.map(field => ({field}))}
+    return {domainType: type, nodes: paths.map(field => ({field}))}
 }

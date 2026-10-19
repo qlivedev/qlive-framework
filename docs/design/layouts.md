@@ -208,7 +208,9 @@ interface FormContext
 {
     /** the draft, the first source; the second is the working set it came from */
     row: object
-    type: string
+    domainType: string
+    /** the name of the layout the form renders, null for none */
+    layoutName: string | null
     merge: MergeAccessor
     /** the action's input, the third source; null without an action */
     input: ActionInput | null
@@ -254,10 +256,10 @@ interface FieldState
 {
     path: string
     /** owning type and field name, after following the path */
-    type: string
+    domainType: string
     name: string
-    /** scalar type name, or the related type for a relation */
-    scalarType: string
+    /** scalar or enum type, or the related type for a relation */
+    fieldType: string
     kind: "scalar" | "toOne" | "manyToMany"
     label: ReactNode            // i18n("Type.field"), as a grid heading
     id: string                  // for the label's htmlFor
@@ -311,12 +313,12 @@ type FieldDecorator = ComponentType<{ field: FieldState, children: ReactNode }>
 
 interface WidgetOverride
 {
-    /** root type of the layout the field is in, `"*"` for any */
-    layout: string
-    /** field path from that root */
-    field?: string
-    /** scalar type of the field */
-    scalar?: string
+    // where the field is: one of
+    layout?: string         // the layout's name
+    domainType?: string     // the type of the row the form edits
+    // what the field is: one of
+    path?: string           // field path from that type
+    fieldType?: string      // scalar or enum type, or a relation's related type
     widget?: Widget
     decorator?: FieldDecorator
 }
@@ -336,27 +338,41 @@ a layout uses.
 
 **Overrides are matchers in config**, applied to every field that
 names no widget: layouts from the server and from `deriveLayout()`, and
-a hand-written form's fields where it names none. A matcher
-keys on `layout`, `field` and `scalar` and nothing else. `layout` is
-the layout's root type rather than its name, since field paths start
-there; two layouts of one type are told apart by the field paths they
-use, if at all, and the derived layout, which has no name, is matched
-by its type like any other. Matching an action seemed too esoteric to
-be worth a key.
+a hand-written form's fields where it names none. A matcher keys on
+where the field is and on what it is, and nothing else:
+
+- **Where**: the `layout` by its name, or the `domainType` of the row.
+  The two are nearly the same thing, but a layout is one indirection
+  away from its type: two layouts of one type are told apart by name,
+  and the derived layout and a hand-written form, which have no name,
+  are reached by their type.
+- **What**: the field's `path`, or its `fieldType`. A relation's field
+  type is the related type, since a relation field is named by its
+  relation object; that is how a picker for every foreign key to
+  `AppUser` is configured. "Scalar" was the wrong name for it.
+
+**One key of each kind at most.** An override giving both a layout and
+a domain type, or both a path and a field type, is an error rather than
+a ranking. A key left out matches anything. Matching an action seemed
+too esoteric to be worth a key.
 
 ```ts
 config().widgets = [
-    { layout: "*", scalar: "Money", widget: MoneyInput },
-    { layout: "Bar", field: "num", widget: Slider }
+    { fieldType: "Money", widget: MoneyInput },
+    { fieldType: "AppUser", widget: UserPicker },
+    { domainType: "Bar", path: "num", widget: Slider }
 ]
 ```
 
 **The most specific matcher wins**, and the later of two equally
-specific ones: a field beats a scalar, a named root type beats `"*"`.
+specific ones. What the field is counts first, a path over a field type
+over neither, then where it is, a layout over a domain type over
+neither; so `{ domainType: "Foo", path: "price" }` beats
+`{ layout: "fooEdit", fieldType: "Money" }`.
 
 Resolution for a field, first hit wins: the component the layout node
 or `Field` gives, the name a server layout gives, an override, the
-built-in for the scalar type or relation kind -- `text`, `number`,
+built-in for the field type or relation kind -- `text`, `number`,
 `checkbox`, `date`, `datetime`, `select` for enums, `toOne`,
 `manyToMany`. No hit is the dev placeholder.
 
@@ -374,7 +390,8 @@ having to cooperate.
 ```ts
 interface Layout
 {
-    type: string
+    name?: string
+    domainType: string
     action?: string
     nodes: LayoutNode[]
 }

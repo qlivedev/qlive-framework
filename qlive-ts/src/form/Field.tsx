@@ -7,7 +7,7 @@ import config from "../config";
 import {formatValue} from "../converter";
 import i18n from "../i18n";
 import {objectFields, primaryKeyFields, unwrapAll} from "../type-utils";
-import {useFormState} from "./FormContext";
+import {FormContext, useFormState} from "./FormContext";
 import {FieldOptions, FieldState, fieldState} from "./useField";
 import {builtInWidget, FieldDecoratorProps, findOverride, namedWidget, Widget} from "./widgets";
 
@@ -33,8 +33,8 @@ function rowName(type: string, row: any, key: unknown): string
  */
 function targetKey(field: FieldState): string
 {
-    const relation = config().meta.relations.find(r => r.sourceType === field.type && r.leftSideObjectName === field.name)
-    return relation?.targetFields[0] ?? primaryKeyFields(field.scalarType)[0]
+    const relation = config().meta.relations.find(r => r.sourceType === field.domainType && r.leftSideObjectName === field.name)
+    return relation?.targetFields[0] ?? primaryKeyFields(field.fieldType)[0]
 }
 
 /**
@@ -49,7 +49,7 @@ export function fieldText(field: FieldState, row: object, value: unknown = field
     switch (field.kind)
     {
         case "scalar":
-            return formatValue(value, field.scalarType)
+            return formatValue(value, field.fieldType)
         case "toOne":
         {
             if (value === null || value === undefined)
@@ -59,12 +59,12 @@ export function fieldText(field: FieldState, row: object, value: unknown = field
             // the relation object is what the row was read with, so it names the key only while that is unchanged
             const related = (row as any)[field.name]
             const key = targetKey(field)
-            return rowName(field.scalarType, related && related[key] === value ? related : null, value)
+            return rowName(field.fieldType, related && related[key] === value ? related : null, value)
         }
         case "manyToMany":
         {
-            const key = primaryKeyFields(field.scalarType)[0]
-            return ((value ?? []) as any[]).map(related => rowName(field.scalarType, related, related[key])).join(", ")
+            const key = primaryKeyFields(field.fieldType)[0]
+            return ((value ?? []) as any[]).map(related => rowName(field.fieldType, related, related[key])).join(", ")
         }
     }
 }
@@ -108,13 +108,13 @@ export function ConflictResolution({field, children}: FieldDecoratorProps): JSX.
  * The widget of a field: the one given, by component or name, else an override, else QLive's own for the field's
  * type.
  */
-function widgetOf(field: FieldState, given: Widget | string | undefined): Widget
+function widgetOf(form: FormContext, field: FieldState, given: Widget | string | undefined): Widget
 {
     if (typeof given === "string")
     {
         return namedWidget(given)
     }
-    return given ?? findOverride("widget", field.type, field) ?? builtInWidget(field)
+    return given ?? findOverride("widget", form, field) ?? builtInWidget(field)
 }
 
 /**
@@ -145,13 +145,13 @@ export function Field(props: { path: string } & FieldOptions): JSX.Element
     }
     else
     {
-        const FieldWidget = widgetOf(field, props.widget)
+        const FieldWidget = widgetOf(form, field, props.widget)
         content = <FieldWidget field={ field }/>
     }
     const control = <div className={ ("qlive-field-control " + field.merge.className).trim() }>{ content }</div>
     const Decorator = props.decorator !== undefined
         ? props.decorator
-        : findOverride("decorator", field.type, field) ?? (form.fromLayout ? ConflictResolution : null)
+        : findOverride("decorator", form, field) ?? (form.fromLayout ? ConflictResolution : null)
 
     return (
         <div className={ "qlive-field qlive-field-mode-" + field.mode }>

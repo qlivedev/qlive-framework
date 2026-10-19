@@ -105,13 +105,21 @@ row: object;
 
 the draft the form edits
 
-### FormContext.type
+### FormContext.domainType
 
 ```ts
-type: string;
+domainType: string;
 ```
 
 its type
+
+### FormContext.layoutName
+
+```ts
+layoutName: string | null;
+```
+
+the name of the layout the form renders, null for a derived layout and a form with children
 
 ### FormContext.merge
 
@@ -264,10 +272,10 @@ path: string;
 
 the path the field was asked for by
 
-### FieldState.type
+### FieldState.domainType
 
 ```ts
-type: string;
+domainType: string;
 ```
 
 the form's type
@@ -280,13 +288,13 @@ name: string;
 
 the field's name in it
 
-### FieldState.scalarType
+### FieldState.fieldType
 
 ```ts
-scalarType: string;
+fieldType: string;
 ```
 
-the scalar type of the field, or the related type for a relation
+the field's type: a scalar or enum type, or the related type for a relation
 
 ### FieldState.kind
 
@@ -516,41 +524,56 @@ the field's control, widget and merge mark
 interface WidgetOverride
 ```
 
-A widget or decorator for the fields an application doesn't name one for, matched by the form's type, the field
-path and the field's scalar type. Listed in `config().widgets`.
+A widget or decorator for the fields an application doesn't name one for, listed in `config().widgets`. It matches
+on where the field is and on what it is, each by one key at most:
+
+- where: the `layout` the field is in, by name, or the `domainType` of the row the form edits
+- what: the field's `path`, or its `fieldType`
+
+A key left out matches anything, and an override giving both keys of one kind is an error.
 
     config.widgets = [
-        {layout: "*", scalar: "Money", widget: MoneyInput},
-        {layout: "Bar", field: "num", widget: Slider}
+        {fieldType: "Money", widget: MoneyInput},
+        {fieldType: "AppUser", widget: UserPicker},
+        {domainType: "Bar", path: "num", widget: Slider}
     ]
 
-The most specific match wins, the later of two equally specific ones: a field beats a scalar, which beats neither,
-and a named type beats `"*"`. Widgets and decorators are matched separately, so a decorator override doesn't hide a
-widget override that is less specific.
+Of the overrides that match, the most specific wins: what the field is counts first, a path over a field type over
+neither, then where it is, a layout over a domain type over neither. Of two equally specific ones the later wins.
+Widgets and decorators are matched separately, so a decorator override doesn't hide a widget override that is less
+specific.
 
 ### WidgetOverride.layout
 
 ```ts
-layout: string;
+layout?: string;
 ```
 
-the type of the row the form edits, `"*"` for any
+the name of the layout the field is in
 
-### WidgetOverride.field
+### WidgetOverride.domainType
 
 ```ts
-field?: string;
+domainType?: string;
 ```
 
-field path from that type
+the type of the row the form edits
 
-### WidgetOverride.scalar
+### WidgetOverride.path
 
 ```ts
-scalar?: string;
+path?: string;
 ```
 
-scalar type of the field, or the related type for a relation
+the field's path from that type
+
+### WidgetOverride.fieldType
+
+```ts
+fieldType?: string;
+```
+
+the field's type: a scalar or enum type, or the related type for a relation
 
 ### WidgetOverride.widget
 
@@ -693,10 +716,18 @@ interface Layout
 
 What a form renders for one entity: its fields, grouped and arranged by the nodes.
 
-### Layout.type
+### Layout.name
 
 ```ts
-type: string;
+name?: string;
+```
+
+the name overrides match it by (WidgetOverride), if it has one
+
+### Layout.domainType
+
+```ts
+domainType: string;
 ```
 
 the type of the row the form edits

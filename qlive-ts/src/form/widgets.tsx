@@ -7,6 +7,7 @@ import config from "../config";
 import {formatValue, hasInput} from "../converter";
 import i18n from "../i18n";
 import {findType} from "../type-utils";
+import type {FormContext} from "./FormContext";
 import type {FieldState} from "./useField";
 
 /**
@@ -41,26 +42,35 @@ export interface FieldDecoratorProps
 }
 
 /**
- * A widget or decorator for the fields an application doesn't name one for, matched by the form's type, the field
- * path and the field's scalar type. Listed in `config().widgets`.
+ * A widget or decorator for the fields an application doesn't name one for, listed in `config().widgets`. It matches
+ * on where the field is and on what it is, each by one key at most:
+ *
+ * - where: the `layout` the field is in, by name, or the `domainType` of the row the form edits
+ * - what: the field's `path`, or its `fieldType`
+ *
+ * A key left out matches anything, and an override giving both keys of one kind is an error.
  *
  *     config.widgets = [
- *         {layout: "*", scalar: "Money", widget: MoneyInput},
- *         {layout: "Bar", field: "num", widget: Slider}
+ *         {fieldType: "Money", widget: MoneyInput},
+ *         {fieldType: "AppUser", widget: UserPicker},
+ *         {domainType: "Bar", path: "num", widget: Slider}
  *     ]
  *
- * The most specific match wins, the later of two equally specific ones: a field beats a scalar, which beats neither,
- * and a named type beats `"*"`. Widgets and decorators are matched separately, so a decorator override doesn't hide a
- * widget override that is less specific.
+ * Of the overrides that match, the most specific wins: what the field is counts first, a path over a field type over
+ * neither, then where it is, a layout over a domain type over neither. Of two equally specific ones the later wins.
+ * Widgets and decorators are matched separately, so a decorator override doesn't hide a widget override that is less
+ * specific.
  */
 export interface WidgetOverride
 {
-    /** the type of the row the form edits, `"*"` for any */
-    layout: string
-    /** field path from that type */
-    field?: string
-    /** scalar type of the field, or the related type for a relation */
-    scalar?: string
+    /** the name of the layout the field is in */
+    layout?: string
+    /** the type of the row the form edits */
+    domainType?: string
+    /** the field's path from that type */
+    path?: string
+    /** the field's type: a scalar or enum type, or the related type for a relation */
+    fieldType?: string
     widget?: Widget
     decorator?: FieldDecorator
 }
@@ -94,27 +104,47 @@ export function namedWidget(name: string): Widget
     return widget
 }
 
-/** how specific a matching override is, -1 for one that doesn't match */
-function specificity(override: WidgetOverride, type: string, field: FieldState): number
+/**
+ * Refuses an override that gives two keys of one kind, which leaves open which of them it means.
+ */
+function checkOverride(override: WidgetOverride): void
 {
-    if (override.layout !== "*" && override.layout !== type ||
-        override.field !== undefined && override.field !== field.path ||
-        override.scalar !== undefined && override.scalar !== field.scalarType)
+    if (override.layout !== undefined && override.domainType !== undefined ||
+        override.path !== undefined && override.fieldType !== undefined)
+    {
+        throw new Error(
+            "A widget override gives a layout or a domain type, and a path or a field type, not both: " +
+            JSON.stringify({...override, widget: undefined, decorator: undefined})
+        )
+    }
+}
+
+/** how specific a matching override is, -1 for one that doesn't match */
+function specificity(override: WidgetOverride, form: FormContext, field: FieldState): number
+{
+    checkOverride(override)
+    if (override.layout !== undefined && override.layout !== form.layoutName ||
+        override.domainType !== undefined && override.domainType !== form.domainType ||
+        override.path !== undefined && override.path !== field.path ||
+        override.fieldType !== undefined && override.fieldType !== field.fieldType)
     {
         return -1
     }
-    const key = override.field !== undefined ? 2 : override.scalar !== undefined ? 1 : 0
-    return key * 2 + (override.layout !== "*" ? 1 : 0)
+    const what = override.path !== undefined ? 2 : override.fieldType !== undefined ? 1 : 0
+    const where = override.layout !== undefined ? 2 : override.domainType !== undefined ? 1 : 0
+    return what * 3 + where
 }
 
 /**
  * The most specific override in `config().widgets` that gives the member asked for, `null` for none.
  *
+ * @throws Error for an override giving two keys of one kind
+ *
  * @internal
  */
 export function findOverride<K extends "widget" | "decorator">(
     member: K,
-    type: string,
+    form: FormContext,
     field: FieldState
 ): NonNullable<WidgetOverride[K]> | null
 {
@@ -123,7 +153,7 @@ export function findOverride<K extends "widget" | "decorator">(
     for (const override of config().widgets ?? [])
     {
         const candidate = override[member]
-        const score = candidate ? specificity(override, type, field) : -1
+        const score = candidate ? specificity(override, form, field) : -1
         if (score >= 0 && score >= bestScore)
         {
             best = candidate as NonNullable<WidgetOverride[K]>
@@ -171,7 +201,7 @@ export function TextInput({field, type = "text", inputMode}: {
  */
 export function NumberInput({field}: WidgetProps): JSX.Element
 {
-    const whole = field.scalarType !== "Float" && field.scalarType !== "Currency" && field.scalarType !== "BigDecimal"
+    const whole = field.fieldType !== "Float" && field.fieldType !== "Currency" && field.fieldType !== "BigDecimal"
     return <TextInput field={ field } inputMode={ whole ? "numeric" : "decimal" }/>
 }
 
@@ -230,11 +260,11 @@ function Choice({field, options}: { field: FieldState, options: { key: string, v
  */
 export function EnumSelect({field}: WidgetProps): JSX.Element
 {
-    const values = findType(field.scalarType).enumValues ?? []
+    const values = findType(field.fieldType).enumValues ?? []
     return (
         <Choice
             field={ field }
-            options={ values.map(v => ({key: v.name, value: v.name, label: i18n(field.scalarType + "." + v.name)})) }
+            options={ values.map(v => ({key: v.name, value: v.name, label: i18n(field.fieldType + "." + v.name)})) }
         />
     )
 }
@@ -263,9 +293,9 @@ export function MissingWidget({field}: WidgetProps): JSX.Element
 {
     return (
         <span id={ field.id } className="qlive-field-missing">
-            { formatValue(field.value, field.kind === "scalar" ? field.scalarType : "String") }
+            { formatValue(field.value, field.kind === "scalar" ? field.fieldType : "String") }
             { " " }
-            <small>({ i18n("No widget for {0}", field.scalarType) })</small>
+            <small>({ i18n("No widget for {0}", field.fieldType) })</small>
         </span>
     )
 }
@@ -283,7 +313,7 @@ export function builtInWidget(field: FieldState): Widget
     {
         return MissingWidget
     }
-    const type = field.scalarType
+    const type = field.fieldType
     if (findType(type).kind === "ENUM")
     {
         return EnumSelect

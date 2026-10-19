@@ -15,7 +15,9 @@ export interface FormContext
     /** the draft the form edits */
     row: object
     /** its type */
-    type: string
+    domainType: string
+    /** the name of the layout the form renders, null for a derived layout and a form with children */
+    layoutName: string | null
     /** its merge state */
     merge: MergeAccessor
     /**

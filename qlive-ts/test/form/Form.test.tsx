@@ -218,7 +218,7 @@ describe("Form", () => {
             return null
         }
         registerComponent("Probe", Probe)
-        render(<Form row={ bar } layout={ {type: "Bar", nodes: [{field: "name", mode: "readOnly"}, {component: "Probe"}]} }/>)
+        render(<Form row={ bar } layout={ {domainType: "Bar", nodes: [{field: "name", mode: "readOnly"}, {component: "Probe"}]} }/>)
 
         expect(fieldInput("name").readOnly).toBe(true)
 
@@ -242,7 +242,7 @@ describe("Form", () => {
         }
         render(
             <Form row={ bar } layout={ {
-                type: "Bar",
+                domainType: "Bar",
                 nodes: [{section: "Bar.main", nodes: [{field: "name"}]}, {component: Box, nodes: [{field: "num"}]}]
             } }/>
         )
@@ -257,9 +257,9 @@ describe("Form", () => {
         const {bar} = await editableBar()
         vi.spyOn(console, "error").mockImplementation(() => {})
 
-        expect(() => render(<Form row={ bar } layout={ {type: "Bar", nodes: []} }><span/></Form>))
+        expect(() => render(<Form row={ bar } layout={ {domainType: "Bar", nodes: []} }><span/></Form>))
             .toThrowError(/layout or its children/)
-        expect(() => render(<Form row={ bar } layout={ {type: "Baz", nodes: []} }/>))
+        expect(() => render(<Form row={ bar } layout={ {domainType: "Baz", nodes: []} }/>))
             .toThrowError(/layout of Baz/)
     })
 
@@ -317,7 +317,7 @@ describe("useField", () => {
         const foo = ws.create<any>("Foo", {name: "f", ownerId: "u-1"})
         const owner = stateOf("owner", probe => <Form row={ foo }>{ probe }</Form>)
 
-        expect(owner).toMatchObject({kind: "toOne", scalarType: "AppUser", value: "u-1", required: true})
+        expect(owner).toMatchObject({kind: "toOne", fieldType: "AppUser", value: "u-1", required: true})
         expect(owner.merge.name).toBe("ownerId")
     })
 
@@ -332,8 +332,8 @@ describe("useField", () => {
         try
         {
             const row = {ownerId: "u-1", owner: {id: "u-1", login: "admin"}, type: "A", fooType: {name: "A"}}
-            const toOne = (name: string, scalarType: string, value: unknown) =>
-                ({kind: "toOne", type: "Foo", name, scalarType, value}) as FieldState
+            const toOne = (name: string, fieldType: string, value: unknown) =>
+                ({kind: "toOne", domainType: "Foo", name, fieldType, value}) as unknown as FieldState
 
             expect(fieldText(toOne("owner", "AppUser", "u-1"), row)).toBe("admin")
             expect(fieldText(toOne("fooType", "FooType", "A"), row)).toBe("A")
@@ -372,32 +372,70 @@ describe("widgets", () => {
         return <span className="slider">{ String(field.value) }</span>
     }
 
-    it("takes the most specific override, the later of equals", async () => {
+    it("takes the most specific override, what the field is before where, the later of equals", async () => {
 
         const {bar} = await editableBar()
         config().widgets = [
-            {layout: "Bar", field: "num", widget: Slider},
-            {layout: "*", scalar: "Int", widget: Stars},
-            {layout: "*", field: "num", widget: Stars}
+            {path: "num", widget: Slider},
+            {domainType: "Bar", fieldType: "Int", widget: Stars}
         ]
         render(<Form row={ bar }/>)
 
+        // a path beats a field type, even one in a narrower place
         expect(query(".slider").textContent).toBe("1")
 
         config().widgets = [
-            {layout: "*", scalar: "Int", widget: Stars},
-            {layout: "*", scalar: "Int", widget: Slider}
+            {fieldType: "Int", widget: Slider},
+            {domainType: "Bar", fieldType: "Int", widget: Stars},
+            {fieldType: "Int", widget: Slider}
         ]
-        render(<Form key="again" row={ bar }/>)
+        render(<Form key="where" row={ bar }/>)
+
+        // with what the same, a domain type beats nothing, and the later doesn't help the less specific
+        expect(query(".stars").textContent).toBe("1")
+
+        config().widgets = [
+            {fieldType: "Int", widget: Stars},
+            {fieldType: "Int", widget: Slider}
+        ]
+        render(<Form key="later" row={ bar }/>)
 
         expect(query(".slider").textContent).toBe("1")
         expect(container.querySelector(".stars")).toBeNull()
     })
 
+    it("matches a layout by its name, before a domain type", async () => {
+
+        const {bar} = await editableBar()
+        config().widgets = [
+            {layout: "barNumbers", path: "num", widget: Slider},
+            {domainType: "Bar", path: "num", widget: Stars}
+        ]
+        render(<Form row={ bar } layout={ {name: "barNumbers", domainType: "Bar", nodes: [{field: "num"}]} }/>)
+
+        expect(query(".slider").textContent).toBe("1")
+
+        render(<Form key="derived" row={ bar }/>)
+
+        expect(query(".stars").textContent).toBe("1")
+    })
+
+    it("refuses an override giving two keys of one kind", async () => {
+
+        const {bar} = await editableBar()
+        vi.spyOn(console, "error").mockImplementation(() => {})
+
+        config().widgets = [{layout: "barNumbers", domainType: "Bar", widget: Slider}]
+        expect(() => render(<Form row={ bar }/>)).toThrowError(/a layout or a domain type/)
+
+        config().widgets = [{path: "num", fieldType: "Int", widget: Slider}]
+        expect(() => render(<Form key="what" row={ bar }/>)).toThrowError(/a path or a field type/)
+    })
+
     it("prefers the widget a field names, by component or name", async () => {
 
         const {bar} = await editableBar()
-        config().widgets = [{layout: "*", widget: Slider}]
+        config().widgets = [{widget: Slider}]
         registerWidget("stars", Stars)
         render(
             <Form row={ bar }>

@@ -14,7 +14,7 @@ import { Q_FooList, Q_FooListResult } from "../grid/Q_FooList";
  *   lock below changes the mode of the name field while the form is open.
  */
 const FOO_LAYOUT: Layout = {
-    type: "Foo",
+    domainType: "Foo",
     nodes: [
         {
             section: "Foo.identity",

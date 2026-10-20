@@ -167,11 +167,28 @@ The sketch below is what was built, apart from these, as of 2026-10-20:
   empty, which would hide it, and knows no bigint); `date` and
   `datetime-local` pickers; a checkbox for a non-null Boolean and a
   yes/no select for a nullable one; a select for an enum, labeled
-  `Type.VALUE`. A checkbox and a select have no read-only state, so
-  `readOnly` disables them. A to-one relation gets `RowPicker` (see
+  `Type.VALUE`, until it becomes the filtering picker (see below). A
+  checkbox and a select have no read-only state, so `readOnly` disables
+  them. A to-one relation gets `RowPicker` (see
   Related rows). A many-to-many field gets `MissingWidget`, which shows
   the value and says there is no widget, until its row set exists; so
   does a scalar without input text, such as `BigDecimal`.
+- **One widget for every closed set** (decided 2026-10-20): an enum, a
+  catalog type and any other related type all get the picker with a
+  text filter, `RowPicker`. A select loses to it as soon as there are
+  enough values to scroll, and the point where a radio group is better
+  can't be pinned to a count: it depends on how long the labels are, too.
+  So there is no threshold and no rule by count; a radio group and a
+  select may come later as widgets an override names, not as defaults.
+  For a set the client knows -- an enum's values, a catalog's rows --
+  the picker filters in the browser, without the endpoint and without
+  a search delay; an enum's values are labeled `Type.VALUE` through
+  `i18n()`. `EnumSelect` gives way to this; `Choice`, the select under
+  it, stays only for the nullable Boolean.
+- **A nullable Boolean keeps its select** of yes, no and nothing. Three
+  fixed words are no closed set worth filtering, and a three-state
+  checkbox can't show "nothing" in a way people read reliably. A
+  non-null Boolean stays a checkbox.
 - **Typed text survives while it means the current value.** A field
   keeps the text it was given as long as it parses to the value the
   draft holds, so `1.` in a Float isn't rewritten to `1` mid-typing; a
@@ -443,15 +460,48 @@ may exist, and an application query that does may carry conditions of
 its own.
 
 **A field may add a condition**, which is how a picker offers only the
-members of this project. Where the rows come from, and where that
-condition is evaluated, depends on the target type, and the picker
-reads the same either way:
+members of this project. The condition is rooted at the form's type, not
+at the related one, and reaches the candidate through the relation
+itself (decided 2026-10-20):
+
+```ts
+// on Foo.owner: the users of the Foo's project
+{ field: "owner", condition: field("owner.projectId").eq(field("projectId")) }
+```
+
+A candidate qualifies when the condition holds for the form's row with
+the candidate in the relation's place, `{ ...row, owner: candidate }`
+as the root. The form's row is implicit in the field references, so the
+condition needs no node of its own for it, stays plain FilterDSL, and
+travels as data in a layout from the server.
+
+Where the rows come from, and where that condition is evaluated,
+depends on the target type, and the picker reads the same either way:
 
 - **A catalog type** (`catalog: true`): from the bootstrap, filtered in
-  the browser with the FilterDSL evaluator (`conditionPredicate()`).
-  The server is never asked.
+  the browser with the FilterDSL evaluator (`conditionPredicate()`),
+  against that root. The server is never asked.
 - **Any other type**: from the related-rows endpoint, filtered on the
-  server through the query document service.
+  server through the query document service. The endpoint wants a
+  condition rooted at the target type, so the client rewrites it before
+  sending: `owner.projectId` becomes the candidate's `projectId`, and
+  `projectId` becomes `value(row.projectId)`, a constant from the
+  form's row.
+
+What follows from the rooting:
+
+- **The picker depends on the references outside the relation.** When
+  one of those fields changes in the draft, the rows are asked for
+  again.
+- **Whether the current value still qualifies** is the same evaluation
+  with the current related row in place: free for a catalog type, one
+  request otherwise. Whether a value that no longer qualifies shows as
+  invalid or is cleared is open.
+- **References through another relation read its relation object**,
+  which may be stale after its key changed, as for `fieldText()`. Not
+  the fields the foreign key references: `fooType.name` is `row.type`
+  itself and is folded into it. Any other field of a stale relation
+  object should be an error rather than a silent wrong answer.
 
 **`catalog: true`** is type meta for a type whose rows are constant for
 the lifetime of an application run. Its rows ship in the cached part of
@@ -461,6 +511,22 @@ constant table can still be too large to be a catalog. A catalog type
 is visible to everyone -- or at least to everyone who can see a form
 using it, once there is authorization: nothing filters what is already
 in the bootstrap.
+
+**A catalog type is an enum bound at application start** rather than at
+compile time: a closed set known before any view renders, its values
+named and able to carry data, as a Java enum's constants can. The
+relational form of an enum is the lookup table, which is what a catalog
+type usually is. Whether application code names particular values -- a
+rule on `TYPE_A`, a special user -- is the application author's
+decision; QLive neither checks such names at startup nor generates
+constants for them. Naming a particular row isn't tied to catalogs
+anyway: `AppUser` is none, and some of its rows can still be special.
+
+In qlive-test, `FooType` is the candidate: four rows, nothing writes
+them, and `foo.type` references `foo_type.name`, a unique key beside
+the surrogate primary key `ordinal`. It would be the first catalog
+there; `Q_OwnerCatalog` is named like one, but users are added at
+runtime, so `AppUser` stays with the endpoint.
 
 **The related-rows endpoint** serves the other types. Putting a
 generated query per type into the schema is hard without an explicit
@@ -480,9 +546,9 @@ annotation per query, so it fakes GraphQL instead:
 - The type's `queryConfig` meta, the condition every query of the type
   carries, applies as it does everywhere, and so do
   `authorization.md`'s row-level rules.
-- **The field's condition** comes from the client as it is. It can only
-  narrow what the type's own condition and authorization allow, never
-  widen it.
+- **The field's condition** comes from the client, rewritten to the
+  target type as above. It can only narrow what the type's own condition
+  and authorization allow, never widen it.
 
 **Built so far** (2026-10-20): the endpoint, `POST /api/related-rows`
 (`RelatedRowsController`, which an application declares as a bean like
@@ -505,8 +571,7 @@ endpoint.
   fields with `containsIgnoreCase`, after a pause; the list shows the
   first 20 rows sorted by the name fields and says how many more there
   are. Choosing sets the foreign key; emptying the input clears a
-  nullable one; typed text that chose nothing is dropped on blur. A
-  select of all rows would not do for a type that is not a catalog.
+  nullable one; typed text that chose nothing is dropped on blur.
 - **A key picked is named by the row the picker fetched.** The row's
   relation object names the key it was read with only, and a draft
   can't be given a new relation object, so `relatedRows()` remembers the
@@ -693,3 +758,5 @@ the ambiguity.
 
 - **Rules that act**: see the raw notes above.
 - **Asynchronous checks** and their pending state.
+- **A picked value the field's condition no longer allows**, after a
+  field it depends on changed: shown as invalid, or cleared.

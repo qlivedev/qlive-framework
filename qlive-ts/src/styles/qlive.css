@@ -700,6 +700,16 @@
     {
         baseline-source: first;
     }
+    /*
+     * A field's mark goes beside its control, into the gap after the label,
+     * not inside it: a widget fills the control, and an input's background or
+     * a row set's first row would cover an inset bar. An outer shadow is only
+     * painted outside the box, so this still moves nothing.
+     */
+    .qlive-field-control:is(.qlive-changed, .qlive-conflict, .qlive-conflict-resolved, .qlive-remote-changed)
+    {
+        box-shadow: calc(-1 * var(--qlive-space-1)) 0 0 0 var(--qlive-mark-color);
+    }
     .qlive-field-error
     {
         flex-basis: 100%;

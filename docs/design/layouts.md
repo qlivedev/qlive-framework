@@ -562,8 +562,26 @@ reads their rows once at startup (`Catalogs.load()`, every scalar and
 enum field, the type's sort or else primary key order) into the full
 config's `catalogs`, `catalogRows()` reads them on the client, the
 picker filters them in the browser, and the endpoint refuses a catalog
-type. In qlive-test, `FooType` is one. The field's condition is not
-built yet.
+type. In qlive-test, `FooType` is one.
+
+The field's condition is built as `FieldOptions.condition` and
+`LayoutFieldNode.condition`, for to-one fields only. A catalog's rows
+are tested in the browser with the candidate in the relation's place;
+any other type gets the condition rewritten for the endpoint, and the
+picker asks again when the rewritten condition changes, which is when a
+value it reads from the row did. qlive-test's layout example offers
+TYPE_D only to foos without the flag. Whether the current value still
+qualifies is not checked yet (see Open items).
+
+- **A changed relation reads only its key.** Another relation the
+  condition reads through is its relation object while its key is
+  unchanged, the catalog row where its target is a catalog type, and
+  otherwise an object knowing the key alone: reading another field of
+  it throws, naming the key to read instead.
+- **The endpoint's boundary holds for conditions too.** The rewritten
+  condition filters by the fields the endpoint serves, the key and name
+  fields, like the search. `owner.login` works; `owner.disabled` is
+  refused (see Open items).
 
 - **Departure: the endpoint serves the key and name fields only**, the
   fields foreign keys reference plus the type's `nameFields`, not every
@@ -772,3 +790,7 @@ the ambiguity.
 - **Asynchronous checks** and their pending state.
 - **A picked value the field's condition no longer allows**, after a
   field it depends on changed: shown as invalid, or cleared.
+- **Which fields a field condition may read on the endpoint.** Only the
+  served ones today, so "enabled users only" can't be said. Widening it
+  per request would let a client probe any column, `AppUser.password`
+  included; a per-type list of fields pickers may filter by would not.

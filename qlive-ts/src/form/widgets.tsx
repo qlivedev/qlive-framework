@@ -9,6 +9,7 @@ import i18n from "../i18n";
 import {findType} from "../type-utils";
 import type {FormContext} from "./FormContext";
 import {RowPicker} from "./RowPicker";
+import {RowSet} from "./RowSet";
 import type {FieldState} from "./useField";
 
 /**
@@ -274,8 +275,8 @@ export function BooleanSelect({field}: WidgetProps): JSX.Element
 }
 
 /**
- * What a field gets where QLive has no widget for it, which a form shows rather than failing: a many-to-many field
- * until its row set exists, and a scalar without an input text.
+ * What a field gets where QLive has no widget for it, which a form shows rather than failing: a scalar without an
+ * input text.
  */
 export function MissingWidget({field}: WidgetProps): JSX.Element
 {
@@ -292,7 +293,7 @@ const NUMBER_TYPES = new Set(["Byte", "Short", "Int", "Number", "Long", "BigInte
 
 /**
  * The widget QLive has for a field: by its scalar type, or its relation kind. Every closed set, an enum or a to-one
- * relation, gets RowPicker.
+ * relation, gets RowPicker; a many-to-many field gets RowSet.
  *
  * @internal
  */
@@ -302,9 +303,9 @@ export function builtInWidget(field: FieldState): Widget
     {
         return RowPicker
     }
-    if (field.kind !== "scalar")
+    if (field.kind === "manyToMany")
     {
-        return MissingWidget
+        return RowSet
     }
     const type = field.fieldType
     if (type === "Boolean")

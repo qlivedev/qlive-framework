@@ -158,6 +158,7 @@ export {
 } from "./form/widgets";
 export { deriveLayout, registerComponent } from "./form/layout";
 export { RowPicker } from "./form/RowPicker";
+export { RowSet } from "./form/RowSet";
 export { relatedRows } from "./form/relatedRows"
 export { catalogRows, isCatalog } from "./catalog";
 

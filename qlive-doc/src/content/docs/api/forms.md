@@ -169,8 +169,8 @@ One field of the form it is in: a label, the widget, the error, with the merge m
 
 The widget is the one given, else the most specific override in `config().widgets` (WidgetOverride), else QLive's
 own for the type: a text input, a number input, a date or date-time picker, a checkbox, a select for a nullable
-Boolean, a RowPicker for an enum or a to-one relation. A field QLive has none for -- a many-to-many field, until its row set exists, or
-a scalar without input text -- shows its value and says so.
+Boolean, a RowPicker for an enum or a to-one relation, a RowSet for a many-to-many field. A field QLive has none
+for, a scalar without input text, shows its value and says so.
 
 A field in `text` mode renders no widget at all, but the value as text in a `qlive-field-text` span.
 
@@ -716,8 +716,8 @@ Edits a nullable Boolean: yes, no, or nothing.
 declare function MissingWidget({ field }: WidgetProps): JSX.Element;
 ```
 
-What a field gets where QLive has no widget for it, which a form shows rather than failing: a many-to-many field
-until its row set exists, and a scalar without an input text.
+What a field gets where QLive has no widget for it, which a form shows rather than failing: a scalar without an
+input text.
 
 ## RowPicker()
 
@@ -746,6 +746,24 @@ to the endpoint otherwise, where the rows are asked for again when a value of th
 
 QLive's widget for all of them, so a form edits a closed set without being told how, and the same way however large the
 set grows.
+
+## RowSet()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function RowSet({ field }: WidgetProps): JSX.Element;
+```
+
+Edits a many-to-many field: the associated rows, each named and with a button removing it, and a picker adding one
+of the rows not yet associated, searched as RowPicker searches a to-one relation's -- through the related-rows
+endpoint, or in the browser for a catalog type. The field is set to the new list of rows, and the merge writes the
+difference as associations gained and lost.
+
+A row added comes from the picker, with its key and name fields only: other fields of it read as missing until
+the row's query is read again.
+
+In `disabled` and `readOnly` the rows are listed without the buttons and without the picker.
 
 ## relatedRows()
 

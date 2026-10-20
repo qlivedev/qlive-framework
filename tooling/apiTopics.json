@@ -334,6 +334,7 @@
         "BooleanSelect",
         "MissingWidget",
         "RowPicker",
+        "RowSet",
         "relatedRows",
         "RelatedRows",
         "catalogRows",

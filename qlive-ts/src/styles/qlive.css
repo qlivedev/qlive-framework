@@ -764,6 +764,38 @@
         font-size: 0.9em;
         cursor: default;
     }
+    /*
+     * A row set: the associated rows as removable entries, the picker adding one after them.
+     */
+    .qlive-rowset
+    {
+        display: inline-flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--qlive-space-1);
+    }
+    .qlive-rowset-rows
+    {
+        display: contents;
+        list-style: none;
+    }
+    .qlive-rowset-rows > li
+    {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--qlive-space-1);
+        padding: 0 var(--qlive-space-2);
+        border: 1px solid var(--qlive-color-border);
+        border-radius: 1em;
+    }
+    .qlive-rowset-remove
+    {
+        padding: 0;
+        border: none;
+        background: none;
+        color: var(--qlive-color-muted);
+        cursor: pointer;
+    }
     .qlive-field-missing small
     {
         color: var(--qlive-color-muted);

@@ -62,8 +62,8 @@ function widgetOf(form: FormContext, field: FieldState, given: Widget | string |
  *
  * The widget is the one given, else the most specific override in `config().widgets` (WidgetOverride), else QLive's
  * own for the type: a text input, a number input, a date or date-time picker, a checkbox, a select for a nullable
- * Boolean, a RowPicker for an enum or a to-one relation. A field QLive has none for -- a many-to-many field, until its row set exists, or
- * a scalar without input text -- shows its value and says so.
+ * Boolean, a RowPicker for an enum or a to-one relation, a RowSet for a many-to-many field. A field QLive has none
+ * for, a scalar without input text, shows its value and says so.
  *
  * A field in `text` mode renders no widget at all, but the value as text in a `qlive-field-text` span.
  *

@@ -125,6 +125,23 @@ body
     box-shadow: none;
 }
 
+/*
+ * The form's live region, which QLive hides for screen readers only, shown
+ * here: what somebody else changed, said in words below the fields.
+ */
+.bar-edit .qlive-form-status
+{
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0.5rem 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    color: var(--qlive-color-muted);
+    font-size: 0.85rem;
+}
+
 .bar-edit .qlive-field-control input
 {
     flex: 1;

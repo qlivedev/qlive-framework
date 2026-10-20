@@ -3,6 +3,7 @@ import {
     ConflictResolution,
     Form,
     Field,
+    FormStatus,
     MergeView,
     useInjection,
     useWorkingSet,
@@ -113,6 +114,9 @@ export default function Edit()
  * The fields are QLive's: a Field turns what is typed into a value of the field's type, keeps text that
  * isn't one with an error, and carries the merge mark. The conflict buttons are QLive's too, given here as the
  * decorator -- a form rendering a layout applies them by itself, a hand-written one says where it wants them.
+ *
+ * FormStatus places the form's live region below the fields, where it would otherwise sit above them. QLive keeps
+ * it for screen readers; the app's CSS shows it, so what somebody else changed is said in words here too.
  */
 function BarForm({ ws, row }: {
     ws: WorkingSet,
@@ -129,6 +133,7 @@ function BarForm({ ws, row }: {
                         FIELDS.map(name => <Field key={ name } path={ name } decorator={ ConflictResolution }/>)
                     }
                 </div>
+                <FormStatus/>
             </Form>
 
             <button className="btn" type="button" onClick={ () => ws.delete(row) }>

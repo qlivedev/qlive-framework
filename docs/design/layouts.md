@@ -2,8 +2,9 @@
 
 Status: concept settled, client building blocks built, details open.
 Written 2026-10-18, revised 2026-10-20. Field modes, input conversion
-and the client building blocks are built (`qlive-ts/src/form/`); action
-input, related rows, pickers, server layouts and rules are not.
+and the client building blocks are built (`qlive-ts/src/form/`), and
+so are the to-one picker and the related-rows endpoint; action input,
+catalog types, field conditions, server layouts and rules are not.
 The companion concept is `actions.md`.
 
 The auto-form. A layout says which fields a form shows, how they are
@@ -167,9 +168,10 @@ The sketch below is what was built, apart from these, as of 2026-10-20:
   `datetime-local` pickers; a checkbox for a non-null Boolean and a
   yes/no select for a nullable one; a select for an enum, labeled
   `Type.VALUE`. A checkbox and a select have no read-only state, so
-  `readOnly` disables them. Relations get `MissingWidget`, which shows
-  the value and says there is no widget, until related rows and pickers
-  exist; so does a scalar without input text, such as `BigDecimal`.
+  `readOnly` disables them. A to-one relation gets `RowPicker` (see
+  Related rows). A many-to-many field gets `MissingWidget`, which shows
+  the value and says there is no widget, until its row set exists; so
+  does a scalar without input text, such as `BigDecimal`.
 - **Typed text survives while it means the current value.** A field
   keeps the text it was given as long as it parses to the value the
   draft holds, so `1.` in a Float isn't rewritten to `1` mid-typing; a
@@ -481,6 +483,35 @@ annotation per query, so it fakes GraphQL instead:
 - **The field's condition** comes from the client as it is. It can only
   narrow what the type's own condition and authorization allow, never
   widen it.
+
+**Built so far** (2026-10-20): the endpoint, `POST /api/related-rows`
+(`RelatedRowsController`, which an application declares as a bean like
+its other controllers), and on the client `relatedRows()` and
+`RowPicker`, the built-in widget of every to-one relation. Catalog types
+and the field's condition are not built yet; every picker asks the
+endpoint.
+
+- **Departure: the endpoint serves the key and name fields only**, the
+  fields foreign keys reference plus the type's `nameFields`, not every
+  scalar. Being a foreign key's target says nothing about whether all of
+  a row is for everyone to read; `AppUser` has a password hash. The
+  config filters and sorts by those fields only. A picker wanting more,
+  a second line under the name, is what the later per-type query string
+  would be for.
+- **The query document service takes a field list** besides a GraphQL
+  environment (`buildQuery(type, fields, config)`), since the endpoint
+  has no selection set to plan from.
+- **`RowPicker` is a combobox**: typing searches the type's String name
+  fields with `containsIgnoreCase`, after a pause; the list shows the
+  first 20 rows sorted by the name fields and says how many more there
+  are. Choosing sets the foreign key; emptying the input clears a
+  nullable one; typed text that chose nothing is dropped on blur. A
+  select of all rows would not do for a type that is not a catalog.
+- **A key picked is named by the row the picker fetched.** The row's
+  relation object names the key it was read with only, and a draft
+  can't be given a new relation object, so `relatedRows()` remembers the
+  rows it fetched and `fieldText()` names a changed key by them -- in the
+  input, in `text` mode and on the conflict buttons.
 
 ## The format on the server
 

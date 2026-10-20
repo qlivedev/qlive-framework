@@ -460,10 +460,9 @@ As built: `FieldState.descriptionId`, `fieldStatusText()` (public, for
 an application's own inputs and tables), `GridRows.fieldStatus`, the
 `{status: true}` layout node, and `qlive-visually-hidden`. Open:
 
-- The region names the fields by `Type.field` translations of the
-  merge's names, so a to-one relation is called by its foreign key's
-  tag, and it covers the whole row, not only the fields the form
-  shows.
+- Fields register with the form through useField(), and the region
+  names only those, by their label's text. A field an application
+  renders without useField() is never announced.
 - Grid cells have the text but no icon; 1.4.1 asks the same of them.
 - Push leaves out the user's own writes, so remote-changed can't be
   shown with one login in two windows; qlive-test needs a second user

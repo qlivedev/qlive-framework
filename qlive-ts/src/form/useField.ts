@@ -4,6 +4,7 @@
 import type {ReactNode} from "react";
 
 import config, {DomainFieldMeta} from "../config";
+import type {FilterExpression} from "../FilterDSL";
 import {hasInput, inputText, parseInput} from "../converter";
 import i18n from "../i18n";
 import type {MergeField} from "../merge/MergeAccessor";
@@ -27,6 +28,16 @@ export interface FieldOptions
     decorator?: FieldDecorator | null
     /** the label, in place of the i18n() of `Type.field` */
     label?: ReactNode
+    /**
+     * For a to-one relation, which related rows it offers: a FilterDSL condition written against the form's row, which
+     * reaches the related row through the relation. A related row is offered where the condition holds for the form's
+     * row with that row in the relation's place.
+     *
+     *     <Field path="owner" condition={ field("owner.login").ne(field("name")) }/>
+     *
+     * Since it reads the form's row, the rows on offer follow it as it is edited.
+     */
+    condition?: FilterExpression | null
 }
 
 /**
@@ -56,6 +67,8 @@ export interface FieldState
     required: boolean
     /** the field's meta data, maxLength and the like */
     meta: DomainFieldMeta
+    /** which related rows a to-one relation offers, see FieldOptions.condition; null for all */
+    condition: FilterExpression | null
 
     /** the value, read through the draft: the foreign key for a to-one relation */
     value: unknown
@@ -153,6 +166,10 @@ export function fieldState(form: FormState, path: string, options: FieldOptions 
 {
     const {row, domainType: type} = form
     const resolved = resolve(type, path)
+    if (options.condition && resolved.kind !== "toOne")
+    {
+        throw fieldError(type, path, "a condition narrows the rows a to-one relation offers, and this is none.")
+    }
     const {storage, fieldType} = resolved
     const draft = row as Record<string, unknown>
     const value = draft[storage]
@@ -185,6 +202,7 @@ export function fieldState(form: FormState, path: string, options: FieldOptions 
         mode: form.modes.get(path) ?? options.mode ?? defaultFieldMode(type, storage),
         required: resolved.required,
         meta: config().meta.types[type]?.fields?.[storage] ?? {},
+        condition: options.condition ?? null,
 
         value,
         setValue: next => {

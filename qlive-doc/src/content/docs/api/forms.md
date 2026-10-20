@@ -168,8 +168,8 @@ declare function Field(props: {
 One field of the form it is in: a label, the widget, the error, with the merge mark on the control.
 
 The widget is the one given, else the most specific override in `config().widgets` (WidgetOverride), else QLive's
-own for the type: a text input, a number input, a date or date-time picker, a checkbox, a select for an enum, a
-RowPicker for a to-one relation. A field QLive has none for -- a many-to-many field, until its row set exists, or
+own for the type: a text input, a number input, a date or date-time picker, a checkbox, a select for a nullable
+Boolean, a RowPicker for an enum or a to-one relation. A field QLive has none for -- a many-to-many field, until its row set exists, or
 a scalar without input text -- shows its value and says so.
 
 A field in `text` mode renders no widget at all, but the value as text in a `qlive-field-text` span.
@@ -253,6 +253,20 @@ label?: ReactNode;
 ```
 
 the label, in place of the i18n() of `Type.field`
+
+### FieldOptions.condition
+
+```ts
+condition?: FilterExpression | null;
+```
+
+For a to-one relation, which related rows it offers: a FilterDSL condition written against the form's row, which
+reaches the related row through the relation. A related row is offered where the condition holds for the form's
+row with that row in the relation's place.
+
+    <Field path="owner" condition={ field("owner.login").ne(field("name")) }/>
+
+Since it reads the form's row, the rows on offer follow it as it is edited.
 
 ## FieldState
 
@@ -341,6 +355,14 @@ meta: DomainFieldMeta;
 ```
 
 the field's meta data, maxLength and the like
+
+### FieldState.condition
+
+```ts
+condition: FilterExpression | null;
+```
+
+which related rows a to-one relation offers, see FieldOptions.condition; null for all
 
 ### FieldState.value
 
@@ -719,7 +741,10 @@ What the set is depends on the field:
 - an enum field picks one of the type's values, but the deprecated ones, each called by its `Type.VALUE`
   translation. The set is known in the browser too.
 
-QLive's widget for both, so a form edits a closed set without being told how, and the same way however large the
+A to-one field's condition (FieldOptions.condition) narrows the rows: tested on each catalog row in the browser, sent
+to the endpoint otherwise, where the rows are asked for again when a value of the form's row it reads changes.
+
+QLive's widget for all of them, so a form edits a closed set without being told how, and the same way however large the
 set grows.
 
 ## relatedRows()
@@ -903,6 +928,14 @@ the mode the field starts in
 ```ts
 label?: ReactNode;
 ```
+
+### LayoutFieldNode.condition
+
+```ts
+condition?: FilterExpression | null;
+```
+
+which related rows a to-one relation offers, see FieldOptions.condition
 
 ## LayoutSectionNode
 

@@ -8,6 +8,10 @@ import {Form} from "../../src/form/Form";
 import {Field} from "../../src/form/Field";
 import {relatedRows} from "../../src/form/relatedRows";
 import {catalogRows} from "../../src/catalog";
+import {field, value} from "../../src/FilterDSL";
+import {candidatePredicate} from "../../src/form/fieldCondition";
+import {fieldState} from "../../src/form/useField";
+import {useFormState as useFormStateProbe} from "../../src/form/FormContext";
 import {mergeConfig} from "../fixtures/mergeConfig";
 import {respondWith} from "../fixtures/graphqlMock";
 import {testAuthentication} from "../fixtures/testConfig";
@@ -319,5 +323,90 @@ describe("RowPicker over a catalog type", () => {
         expect(foo.type).toBe("C")
         expect(input().value).toBe("Gamma")
         expect(fetchMock).not.toHaveBeenCalled()
+    })
+})
+
+
+describe("A field condition", () => {
+
+    const FOO_TYPES = [{id: "A", name: "Alpha"}, {id: "B", name: "Beta"}, {id: "C", name: "Gamma"}]
+
+    beforeEach(() => {
+        config().meta.types.FooType = {meta: {nameFields: ["name"], catalog: true}}
+        config().catalogs = {FooType: FOO_TYPES}
+    })
+
+    afterEach(() => {
+        delete config().meta.types.FooType
+        delete config().catalogs
+    })
+
+    function foo(name: string)
+    {
+        return new WorkingSet().create<any>("Foo", {name, ownerId: "u-1", type: "A"})
+    }
+
+    it("lets through the catalog rows it holds for, with each in the relation's place, as the row changes", () => {
+
+        const row = foo("Beta")
+        const notNamed = field("fooType.name").ne(field("name"))
+        render(<Form row={ row }><Field path="fooType" condition={ notNamed }/></Form>)
+
+        press("ArrowDown")
+        expect(options()).toEqual(["Alpha", "Gamma"])
+
+        row.name = "Gamma"
+        render(<Form row={ row }><Field path="fooType" condition={ notNamed }/></Form>)
+        expect(options()).toEqual(["Alpha", "Beta"])
+    })
+
+    it("goes to the endpoint rooted at the related type, the row's own fields as values, and asks again as they change", async () => {
+
+        const fetchMock = respondWith({type: "AppUser", rows: [USERS[1]], rowCount: 1, config: {}})
+        const row = foo("admin")
+        const notNamed = field("owner.login").ne(field("name"))
+        render(<Form row={ row }><Field path="owner" condition={ notNamed }/></Form>)
+
+        press("ArrowDown")
+        await act(() => new Promise(resolve => setTimeout(resolve, 10)))
+
+        expect(sentBody(fetchMock).config.condition).toEqual({
+            type: "Condition",
+            name: "ne",
+            operands: [{type: "FieldReference", name: "login"}, {type: "Value", scalarType: "String", value: "admin"}]
+        })
+        expect(options()).toEqual(["adele"])
+
+        row.name = "adele"
+        render(<Form row={ row }><Field path="owner" condition={ notNamed }/></Form>)
+        await act(() => new Promise(resolve => setTimeout(resolve, 10)))
+
+        expect(fetchMock).toHaveBeenCalledTimes(2)
+        expect(sentBody(fetchMock, 1).config.condition.operands[1].value).toBe("adele")
+    })
+
+    it("refuses to read more than the key of a relation changed since the row was read", () => {
+
+        const ws = new WorkingSet()
+        const row = ws.create<any>("Foo", {name: "f", ownerId: "u-1", type: "A"})
+        row.ownerId = "u-2"
+        let test: (candidate: unknown) => boolean = () => false
+        function Probe()
+        {
+            test = candidatePredicate(
+                {...fieldState(useFormStateProbe(), "fooType"), condition: field("fooType.name").ne(field("owner.login"))},
+                row
+            )
+            return null
+        }
+        render(<Form row={ row }><Probe/></Form>)
+
+        expect(() => test(FOO_TYPES[0])).toThrowError(/owner was changed since the row was read/)
+    })
+
+    it("is for to-one relations only", () => {
+
+        expect(() => render(<Form row={ foo("f") }><Field path="name" condition={ field("name").ne(value("x")) }/></Form>))
+            .toThrowError(/a condition narrows the rows a to-one relation offers/)
     })
 })

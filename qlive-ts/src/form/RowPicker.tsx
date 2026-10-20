@@ -5,9 +5,10 @@ import {JSX, KeyboardEvent, useEffect, useRef, useState} from "react";
 
 import {catalogRows, isCatalog} from "../catalog";
 import config from "../config";
-import {condition, field as fieldRef, FilterExpression, value} from "../FilterDSL";
+import {and, condition, field as fieldRef, FilterExpression, toJSON, value} from "../FilterDSL";
 import i18n from "../i18n";
 import {findType, objectFields, unwrapAll} from "../type-utils";
+import {candidatePredicate, endpointCondition} from "./fieldCondition";
 import {enumLabel, fieldText, rowName, targetKey} from "./fieldText";
 import {useFormState} from "./FormContext";
 import {relatedRows} from "./relatedRows";
@@ -85,7 +86,10 @@ function findKnown(known: Choice[], text: string): Found
  * - an enum field picks one of the type's values, but the deprecated ones, each called by its `Type.VALUE`
  *   translation. The set is known in the browser too.
  *
- * QLive's widget for both, so a form edits a closed set without being told how, and the same way however large the
+ * A to-one field's condition (FieldOptions.condition) narrows the rows: tested on each catalog row in the browser, sent
+ * to the endpoint otherwise, where the rows are asked for again when a value of the form's row it reads changes.
+ *
+ * QLive's widget for all of them, so a form edits a closed set without being told how, and the same way however large the
  * set grows.
  */
 export function RowPicker({field}: WidgetProps): JSX.Element
@@ -93,9 +97,25 @@ export function RowPicker({field}: WidgetProps): JSX.Element
     const {row} = useFormState()
     const type = field.fieldType
     const key = field.kind === "scalar" ? null : targetKey(field)
+    const catalog = key !== null && isCatalog(type)
     const known = key === null ? enumChoices(type)
-        : isCatalog(type) ? catalogRows(type).map(row => ({value: row[key], label: rowName(type, row, row[key])}))
+        : catalog ? offeredRows(catalogRows(type)).map(row => ({value: row[key], label: rowName(type, row, row[key])}))
             : null
+
+    // the endpoint's part of the field's condition, and what asks for the rows again when the row changes it
+    const narrowed = key !== null && !catalog ? endpointCondition(field, row) : null
+    const narrowedKey = JSON.stringify(toJSON(narrowed))
+
+    /** the catalog rows the field's condition lets through */
+    function offeredRows(rows: any[]): any[]
+    {
+        if (!field.condition)
+        {
+            return rows
+        }
+        const offered = candidatePredicate(field, row)
+        return rows.filter(offered)
+    }
 
     /** what the user typed, null while the input shows the chosen row's name */
     const [typed, setTyped] = useState<string | null>(null)
@@ -117,7 +137,7 @@ export function RowPicker({field}: WidgetProps): JSX.Element
     {
         const id = ++request.current
         relatedRows(type, {
-            condition: searchCondition(type, text),
+            condition: and(searchCondition(type, text), narrowed),
             sortFields: config().meta.types[type]?.meta?.nameFields ?? [key!],
             offset: 0,
             pageSize: PAGE_SIZE
@@ -150,7 +170,7 @@ export function RowPicker({field}: WidgetProps): JSX.Element
         }
         const timer = setTimeout(() => search(typed ?? ""), typed === null ? 0 : SEARCH_DELAY)
         return () => clearTimeout(timer)
-    }, [open, typed])
+    }, [open, typed, narrowedKey])
 
     function close()
     {

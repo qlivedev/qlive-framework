@@ -4,6 +4,7 @@
 import type {ComponentType, ReactNode} from "react";
 
 import config from "../config";
+import type {FilterExpression} from "../FilterDSL";
 import {manyToManyField} from "../merge/meta";
 import {isListType, objectFields, unwrapAll} from "../type-utils";
 import type {FieldMode} from "./fieldMode";
@@ -33,6 +34,8 @@ export interface LayoutFieldNode
     /** the mode the field starts in */
     mode?: FieldMode
     label?: ReactNode
+    /** which related rows a to-one relation offers, see FieldOptions.condition */
+    condition?: FilterExpression | null
 }
 
 /**

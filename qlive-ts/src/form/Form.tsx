@@ -48,7 +48,16 @@ function renderNodes(nodes: LayoutNode[]): ReactNode
     return nodes.map((node, index) => {
         if ("field" in node)
         {
-            return <Field key={ node.field } path={ node.field } widget={ node.widget } mode={ node.mode } label={ node.label }/>
+            return (
+                <Field
+                    key={ node.field }
+                    path={ node.field }
+                    widget={ node.widget }
+                    mode={ node.mode }
+                    label={ node.label }
+                    condition={ node.condition }
+                />
+            )
         }
         if ("section" in node)
         {

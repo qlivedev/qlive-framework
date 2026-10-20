@@ -493,25 +493,20 @@ What follows from the rooting:
 - **The picker depends on the references outside the relation.** When
   one of those fields changes in the draft, the rows are asked for
   again.
-- **Whether the current value still qualifies** is the same evaluation
-  with the current related row in place: free for a catalog type, one
-  request otherwise -- the rewritten condition and `key eq current`,
-  sent when the rewritten condition changes, which is when the picker
-  asks again anyway.
-- **A value that doesn't qualify is invalid, never cleared**
-  (decided 2026-10-20). The input keeps showing the row's name, marked
-  `aria-invalid`, with a message that the value isn't offered here, and
-  the field is listed in the form's `invalid`, as text that doesn't
-  parse is; whether Save then refuses is the application's call, as it
-  is for a parse error. Clearing is out for three reasons: a non-null
-  key has nothing to clear to; data older than the condition (a flagged
-  foo already holding TYPE_D) would make a form dirty just by opening
-  it, and saving would write a change nobody made; and undoing the
-  change that disqualified the value -- unticking the flag -- should
-  bring the value back by itself, not only through Undo. This is no
-  enforcement: a layout's condition is about what the browser offers,
-  and the server doesn't see it as a rule; refusing such a value on the
-  server belongs to rules.
+- **A value that no longer qualifies is left alone** (decided
+  2026-10-20). The condition narrows what the picker offers and nothing
+  else: QLive neither checks the current value against it nor clears or
+  marks it. Clearing is out for three reasons: a non-null key has
+  nothing to clear to; data older than the condition (a flagged foo
+  already holding TYPE_D) would make a form dirty just by opening it,
+  and saving would write a change nobody made; and undoing the change
+  that disqualified the value -- unticking the flag -- should bring the
+  value back by itself, not only through Undo. Marking it invalid would
+  cost a request per change for a non-catalog type and still enforce
+  nothing. Where it matters, the application author decides by rule:
+  clear the value when the flag is set, or disable the input while it
+  holds. A value the server must refuse is a validation rule, which
+  also sees related rows that changed after the form read them.
 - **References through another relation read its relation object**,
   which may be stale after its key changed, as for `fieldText()`. Not
   the fields the foreign key references: `fooType.name` is `row.type`
@@ -585,8 +580,8 @@ are tested in the browser with the candidate in the relation's place;
 any other type gets the condition rewritten for the endpoint, and the
 picker asks again when the rewritten condition changes, which is when a
 value it reads from the row did. qlive-test's layout example offers
-TYPE_D only to foos without the flag. Whether the current value still
-qualifies is not checked yet; it is to show as invalid (see above).
+TYPE_D only to foos without the flag. The current value is not checked
+against the condition (see above).
 
 - **A changed relation reads only its key.** Another relation the
   condition reads through is its relation object while its key is

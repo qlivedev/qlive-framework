@@ -284,6 +284,11 @@ type QLiveConfig = {
    * which is transmitted here.
    */
   meta: DomainMeta;
+  /**
+   * Every row of every catalog type, by type name, in the wire format; read them with catalogRows(). Empty in a
+   * reduced config, and absent from a fixture recorded before there were catalogs.
+   */
+  catalogs?: Record<string, Record<string, unknown>[]>;
   csrfToken?: CSRFToken;
   /**
    * Who is looking at this page. Not part of the config the server renders -- that one is per module and
@@ -578,6 +583,16 @@ also what a page size of 0 asks for.
 Written server-side by QLive's QueryConfigMetadataProvider and enforced there: a config asking for a larger page
 -- or for all rows -- is held to this, and the config that comes back on the document says so. Read it to keep a
 page size control from offering what the server will not give, not to enforce anything.
+
+### DomainTypeMetaProps.catalog
+
+```ts
+catalog?: boolean;
+```
+
+true for a catalog type: a closed set of rows, constant while the application runs, which the bootstrap ships
+whole (see catalogRows()). A picker filters them in the browser rather than asking the server. Written by
+QLive's CatalogMetadataProvider.
 
 ### DomainTypeMetaProps.merge
 

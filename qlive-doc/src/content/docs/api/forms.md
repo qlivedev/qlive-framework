@@ -714,8 +714,10 @@ What the set is depends on the field:
 
 - a to-one relation picks a related row and sets the foreign key. The rows come from relatedRows(), the server's
   related-rows endpoint, found by their name fields and sorted by them.
+- a to-one relation to a catalog type picks one of its rows, which the bootstrap brought (see catalogRows()). The
+  set is known in the browser and searched there, by the rows' names, in the order the server read them.
 - an enum field picks one of the type's values, but the deprecated ones, each called by its `Type.VALUE`
-  translation. The set is known in the browser and searched there.
+  translation. The set is known in the browser too.
 
 QLive's widget for both, so a form edits a closed set without being told how, and the same way however large the
 set grows.
@@ -776,6 +778,49 @@ rowCount: number;
 ```
 
 how many rows the condition finds, the page aside
+
+## catalogRows()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function catalogRows<R = any>(type: string): R[];
+```
+
+Every row of a catalog type, with every scalar and enum field, in the order the server read them: the type's sort
+fields, else its primary key.
+
+A catalog type is an enum bound at application start: a table whose rows don't change while the application runs,
+declared with the server's CatalogMetadataProvider. Its rows come with the bootstrap, so reading them takes no
+request, and a picker of a relation to it filters them in the browser.
+
+    const fooTypes = catalogRows<FooType>("FooType")
+
+The rows are shared: treat them as read-only.
+
+**Parameters**
+
+| | |
+|---|---|
+| `type` | the catalog type  |
+
+**Throws** Error for a type that is no catalog type, or a page whose config came without its rows -- a reduced one, for a view that declared noSchema()
+
+## isCatalog()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function isCatalog(type: string): boolean;
+```
+
+Whether the type is a catalog type, see catalogRows().
+
+**Parameters**
+
+| | |
+|---|---|
+| `type` | a type name, e.g. "FooType" |
 
 ## Layout
 

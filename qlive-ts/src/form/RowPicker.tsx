@@ -3,6 +3,7 @@
  */
 import {JSX, KeyboardEvent, useEffect, useRef, useState} from "react";
 
+import {catalogRows, isCatalog} from "../catalog";
 import config from "../config";
 import {condition, field as fieldRef, FilterExpression, value} from "../FilterDSL";
 import i18n from "../i18n";
@@ -79,8 +80,10 @@ function findKnown(known: Choice[], text: string): Found
  *
  * - a to-one relation picks a related row and sets the foreign key. The rows come from relatedRows(), the server's
  *   related-rows endpoint, found by their name fields and sorted by them.
+ * - a to-one relation to a catalog type picks one of its rows, which the bootstrap brought (see catalogRows()). The
+ *   set is known in the browser and searched there, by the rows' names, in the order the server read them.
  * - an enum field picks one of the type's values, but the deprecated ones, each called by its `Type.VALUE`
- *   translation. The set is known in the browser and searched there.
+ *   translation. The set is known in the browser too.
  *
  * QLive's widget for both, so a form edits a closed set without being told how, and the same way however large the
  * set grows.
@@ -89,8 +92,10 @@ export function RowPicker({field}: WidgetProps): JSX.Element
 {
     const {row} = useFormState()
     const type = field.fieldType
-    const known = field.kind === "scalar" ? enumChoices(type) : null
-    const key = known ? null : targetKey(field)
+    const key = field.kind === "scalar" ? null : targetKey(field)
+    const known = key === null ? enumChoices(type)
+        : isCatalog(type) ? catalogRows(type).map(row => ({value: row[key], label: rowName(type, row, row[key])}))
+            : null
 
     /** what the user typed, null while the input shows the chosen row's name */
     const [typed, setTyped] = useState<string | null>(null)

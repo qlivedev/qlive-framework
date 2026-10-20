@@ -7,6 +7,7 @@ import {WorkingSet} from "../../src/merge/WorkingSet";
 import {Form} from "../../src/form/Form";
 import {Field} from "../../src/form/Field";
 import {relatedRows} from "../../src/form/relatedRows";
+import {catalogRows} from "../../src/catalog";
 import {mergeConfig} from "../fixtures/mergeConfig";
 import {respondWith} from "../fixtures/graphqlMock";
 import {testAuthentication} from "../fixtures/testConfig";
@@ -268,5 +269,55 @@ describe("RowPicker over an enum", () => {
         render(<Form row={ garply() }><Field path="color" mode="text"/></Form>)
 
         expect(container.querySelector(".qlive-field-text")!.textContent).toBe("[Color.RED]")
+    })
+})
+
+
+describe("RowPicker over a catalog type", () => {
+
+    const FOO_TYPES = [{id: "A", name: "Alpha"}, {id: "B", name: "Beta"}, {id: "C", name: "Gamma"}]
+
+    beforeEach(() => {
+        config().meta.types.FooType = {meta: {nameFields: ["name"], catalog: true}}
+        config().catalogs = {FooType: FOO_TYPES}
+    })
+
+    afterEach(() => {
+        delete config().meta.types.FooType
+        delete config().catalogs
+    })
+
+    function typedFoo()
+    {
+        return new WorkingSet().create<any>("Foo", {name: "f", ownerId: "u-1", type: "A"})
+    }
+
+    it("reads the rows the bootstrap brought, and refuses a type that is no catalog", () => {
+
+        expect(catalogRows("FooType")).toEqual(FOO_TYPES)
+        expect(catalogRows("FooType")).toBe(catalogRows("FooType"))
+        expect(() => catalogRows("AppUser")).toThrowError(/AppUser is no catalog type/)
+    })
+
+    it("searches the rows' names in the browser and names a picked key by its row", async () => {
+
+        const fetchMock = vi.fn()
+        vi.stubGlobal("fetch", fetchMock)
+        const foo = typedFoo()
+        render(<Form row={ foo }><Field path="fooType"/></Form>)
+
+        // named by its catalog row, although the new row has no relation object
+        expect(input().value).toBe("Alpha")
+
+        press("ArrowDown")
+        expect(options()).toEqual(["Alpha", "Beta", "Gamma"])
+
+        await typeAndWait("am")
+        expect(options()).toEqual(["Gamma"])
+        press("Enter")
+
+        expect(foo.type).toBe("C")
+        expect(input().value).toBe("Gamma")
+        expect(fetchMock).not.toHaveBeenCalled()
     })
 })

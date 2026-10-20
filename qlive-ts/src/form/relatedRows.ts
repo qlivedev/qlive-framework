@@ -60,8 +60,10 @@ export function seenRow(type: string, field: string, key: unknown): any
 
 /**
  * Converts a row from its wire format, field by field along the type.
+ *
+ * @internal
  */
-function convertRow(type: string, row: Record<string, unknown>): Record<string, unknown>
+export function convertRow(type: string, row: Record<string, unknown>): Record<string, unknown>
 {
     const fields = objectFields(type)
     const converted: Record<string, unknown> = {}

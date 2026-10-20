@@ -294,6 +294,12 @@ export type QLiveConfig = {
      */
     meta: DomainMeta,
 
+    /**
+     * Every row of every catalog type, by type name, in the wire format; read them with catalogRows(). Empty in a
+     * reduced config, and absent from a fixture recorded before there were catalogs.
+     */
+    catalogs?: Record<string, Record<string, unknown>[]>
+
     // client-side only
     csrfToken?: CSRFToken
 
@@ -467,6 +473,13 @@ export interface DomainTypeMetaProps {
      * page size control from offering what the server will not give, not to enforce anything.
      */
     maxPageSize?: number
+
+    /**
+     * true for a catalog type: a closed set of rows, constant while the application runs, which the bootstrap ships
+     * whole (see catalogRows()). A picker filters them in the browser rather than asking the server. Written by
+     * QLive's CatalogMetadataProvider.
+     */
+    catalog?: boolean
 
     /**
      * What this type declares about merging it: whether a conflict comes back to the view to resolve, which fields

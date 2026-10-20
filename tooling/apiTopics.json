@@ -336,6 +336,8 @@
         "RowPicker",
         "relatedRows",
         "RelatedRows",
+        "catalogRows",
+        "isCatalog",
         "Layout",
         "LayoutNode",
         "LayoutFieldNode",

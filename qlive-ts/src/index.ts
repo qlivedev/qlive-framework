@@ -158,7 +158,8 @@ export {
 } from "./form/widgets";
 export { deriveLayout, registerComponent } from "./form/layout";
 export { RowPicker } from "./form/RowPicker";
-export { relatedRows } from "./form/relatedRows";
+export { relatedRows } from "./form/relatedRows"
+export { catalogRows, isCatalog } from "./catalog";
 
 // ---------------------------------------------------------------------------
 // TYPESCRIPT TYPES

@@ -1,6 +1,7 @@
 /*
  * fieldText: a field's value as the text a user reads, and the names of related rows.
  */
+import {catalogRows, isCatalog} from "../catalog";
 import config from "../config";
 import {formatValue} from "../converter";
 import i18n from "../i18n";
@@ -71,10 +72,12 @@ export function fieldText(field: FieldState, row: object, value: unknown = field
                 return ""
             }
             // the relation object is what the row was read with, so it names the key only while that is unchanged;
-            // a key picked since is named by the row the picker fetched
+            // a key picked since is named by its catalog row, or by the row the picker fetched
             const related = (row as any)[field.name]
             const key = targetKey(field)
-            const named = related && related[key] === value ? related : seenRow(field.fieldType, key, value)
+            const named = related && related[key] === value ? related
+                : isCatalog(field.fieldType) ? catalogRows(field.fieldType).find(candidate => candidate[key] === value)
+                    : seenRow(field.fieldType, key, value)
             return rowName(field.fieldType, named, value)
         }
         case "manyToMany":

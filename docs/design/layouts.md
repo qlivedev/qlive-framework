@@ -429,10 +429,21 @@ built yet. Three parts, by who needs what:
   what the user didn't do: a field marked remote-changed by push, a
   conflict after a save -- once per event, not once per marked field.
   The user's own "changed" isn't announced. It sits at the top of the
-  form by default, and the layout can place it elsewhere. It is
-  rendered from the start, empty while there is nothing to say: a
+  form by default; a layout or a hand-written form places it elsewhere
+  with `<FormStatus/>`, which a layout's node for it renders as well. It
+  is rendered from the start, empty while there is nothing to say: a
   screen reader announces changes only to a region it already knows,
   so placing it can never mean leaving it out.
+- **`FormStatus` reports itself to the form** (decided 2026-10-20). It
+  registers with the form's context in a layout effect, and `Form`
+  renders its default region only while none has. The default is gone
+  before anything is painted or announced, so one region exists from
+  the start, and placement works at any depth -- inside wrappers and
+  the application's own components, which looking through `Form`'s
+  children would miss, announcing everything twice. A dev warning
+  catches two in one form. This is the one exception to "a form with
+  children adds no markup": a hand-written form gets the region at the
+  top unless it places one, and forgetting it loses nothing.
 - **An icon beside the bar** for 1.4.1, the shape `--qlive-mark-icon`
   already defines per state, so the states differ by more than color.
 
@@ -898,8 +909,3 @@ the ambiguity.
   served ones today, so "enabled users only" can't be said. Widening it
   per request would let a client probe any column, `AppUser.password`
   included; a per-type list of fields pickers may filter by would not.
-- **The live region in a hand-written form.** A form with children
-  adds no markup, so either it gets the region at the top anyway, an
-  exception to that rule, or it places a component (`<FormStatus/>`)
-  itself, and a form that forgets it announces nothing -- the
-  description's documented duty again, in a second place.

@@ -711,17 +711,24 @@ is already node data in `actions.md`: a condition, the fields it
 blames, a message key. The model holds no functions, which is what
 lets one rule run on the server and in the browser.
 
-**Rules are a DAG, layouts stay trees.** Node-based like Blender's
-editors: one subexpression feeding several nodes, nodes with several
-outputs, so the serialized form is nodes and links rather than nesting.
-Layouts stay plain POJO trees. An editor would present both together,
-perhaps the layout as one node with a socket per field -- whatever is
-easiest.
+**Rules are trees, as layouts are** (revised 2026-10-20; the first
+take was a node DAG like Blender's editors). Each condition is a tree,
+and everything else is a string reference: field paths, error classes,
+names of actions, widgets and components. A subexpression several rules
+need is shared through a computed field they reference by name, not a
+link; a reusable rule ("end >= start" for any type) is a template with
+field parameters. The dependency graph between fields -- values feed
+rules, rules raise errors, errors trigger reactions, reactions set
+values -- is derived from the references when needed (cycle check,
+what to re-evaluate on a change, showing chains in an editor), never
+stored. String references can dangle where links couldn't: server
+definitions are checked at startup, TSX ones can be typed by field
+path.
 
 **Rules act on the client only**, on client events or on the result of
 a validation expression, setting a field's mode or value. **Reaction**
 is the working term for that: an event, or a validation result, wired
-to an action, as Unreal Blueprints wire execution. The DAG is
+to an action, as Unreal Blueprints wire execution. The rules are
 constant. **A computed value is continuous and one-way**: gross follows
 net, nothing flows back. Whether the user may override it is the
 target's mode, not a kind of rule: gross in `text` is derived, city in

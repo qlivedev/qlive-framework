@@ -556,8 +556,14 @@ its other controllers), and on the client `relatedRows()` and
 `RowPicker`, the built-in widget of every to-one relation and every enum
 field. An enum's picker searches its values' labels in the browser and
 never asks the endpoint; it leaves deprecated values out, and `text`
-mode shows the label too. Catalog types and the field's condition are
-not built yet; every relation's picker asks the endpoint.
+mode shows the label too. Catalog types are built: an application
+declares them with `CatalogMetadataProvider`, the bootstrap service
+reads their rows once at startup (`Catalogs.load()`, every scalar and
+enum field, the type's sort or else primary key order) into the full
+config's `catalogs`, `catalogRows()` reads them on the client, the
+picker filters them in the browser, and the endpoint refuses a catalog
+type. In qlive-test, `FooType` is one. The field's condition is not
+built yet.
 
 - **Departure: the endpoint serves the key and name fields only**, the
   fields foreign keys reference plus the type's `nameFields`, not every
@@ -566,6 +572,10 @@ not built yet; every relation's picker asks the endpoint.
   config filters and sorts by those fields only. A picker wanting more,
   a second line under the name, is what the later per-type query string
   would be for.
+- **A catalog that isn't whole fails startup.** A maximum page size
+  holding back some of a catalog's rows would offer a value as missing
+  that the database has, so `Catalogs.load()` refuses it rather than
+  shipping part of the set.
 - **The query document service takes a field list** besides a GraphQL
   environment (`buildQuery(type, fields, config)`), since the endpoint
   has no selection set to plan from.

@@ -12,7 +12,9 @@ import io.github.qlivedev.qlivetest.domain.tables.pojos.AppUser;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Bar;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Baz;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Foo;
+import io.github.qlivedev.qlivetest.domain.tables.pojos.FooType;
 import io.github.qlivedev.runtime.domain.QLiveDefaultDomain;
+import io.github.qlivedev.runtime.meta.CatalogMetadataProvider;
 import io.github.qlivedev.runtime.meta.MergeMetadataProvider;
 import io.github.qlivedev.runtime.meta.QueryConfigMetadataProvider;
 import io.github.qlivedev.runtime.query.DefaultQueryDocumentService;
@@ -122,7 +124,12 @@ public class QLiveDomainConfiguration {
 
                                 // Set when the row is written and never again, so no two users can hold different opinions about
                                 // it and there is nothing to gain from spending a mask bit on it.
-                                .ignoreFields(Foo.class, "created")
+                                .ignoreFields(Foo.class, "created"),
+
+                        // Four foo types that nothing writes: their rows ship with the bootstrap, and a picker of
+                        // Foo.fooType filters them in the browser.
+                        CatalogMetadataProvider.newProvider()
+                                .catalog(FooType.class)
                 )
 
                 // documentation for the types defined in the QLive library

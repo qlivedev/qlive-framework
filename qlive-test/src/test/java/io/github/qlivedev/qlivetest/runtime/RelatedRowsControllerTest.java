@@ -78,6 +78,17 @@ class RelatedRowsControllerTest
 
 
     @Test
+    void refusesACatalogType()
+    {
+        final QLiveException e = assertThrows(
+            QLiveException.class,
+            () -> controller.relatedRows(Map.of("type", "FooType"))
+        );
+        assertThat(e.getMessage(), containsString("'FooType' is a catalog type"));
+    }
+
+
+    @Test
     void refusesAFilterOnAFieldItDoesNotServe()
     {
         assertThrows(

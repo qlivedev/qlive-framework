@@ -94,6 +94,10 @@ export interface PickerInputProps
 {
     /** the input's id, which the field's label names */
     id: string
+    /** the id of the field's label, which names the list too */
+    labelId: string
+    /** the ids of what describes the input, besides its label */
+    describedBy?: string
     mode: FieldMode
     required: boolean
     /** what the input shows while it isn't typed into */
@@ -120,11 +124,15 @@ export interface PickerInputProps
  * A set the browser knows is searched there, by label; any other is asked of the related-rows endpoint once typing
  * pauses, found by the type's String name fields and sorted by its name fields.
  *
+ * The list is a listbox named by the field's label. What the list says about itself, that nothing was found or how
+ * many more there are, sits below it, outside the listbox, and is announced through a status region that is there
+ * from the start.
+ *
  * @internal
  */
 export function PickerInput(props: PickerInputProps): JSX.Element
 {
-    const {id, mode, required, shown, placeholder, known, type, keyField, narrowed, onChoose, onEmpty} = props
+    const {id, labelId, describedBy, mode, required, shown, placeholder, known, type, keyField, narrowed, onChoose, onEmpty} = props
     const narrowedKey = JSON.stringify(toJSON(narrowed))
 
     /** what the user typed, null while the input shows `shown` */
@@ -269,7 +277,8 @@ export function PickerInput(props: PickerInputProps): JSX.Element
                 autoComplete="off"
                 aria-autocomplete="list"
                 aria-expanded={ open }
-                aria-controls={ listId }
+                aria-controls={ open ? listId : undefined }
+                aria-describedby={ describedBy }
                 aria-activedescendant={ activeId }
                 value={ typed ?? shown }
                 placeholder={ placeholder }
@@ -286,27 +295,32 @@ export function PickerInput(props: PickerInputProps): JSX.Element
             />
             {
                 open && (
-                    <ul id={ listId } className="qlive-picker-rows" role="listbox">
-                        {
-                            choices.map((option, index) => (
-                                <li
-                                    key={ String(option.value) }
-                                    id={ listId + "-" + index }
-                                    role="option"
-                                    aria-selected={ index === active }
-                                    className={ index === active ? "qlive-picker-active" : undefined }
-                                    // before the input's blur, which would close the list under the click
-                                    onMouseDown={ e => e.preventDefault() }
-                                    onClick={ () => choose(option) }
-                                >
-                                    { option.label }
-                                </li>
-                            ))
-                        }
-                        { note !== null && <li className="qlive-picker-note" role="presentation">{ note }</li> }
-                    </ul>
+                    <span
+                        className="qlive-picker-popup"
+                        // before the input's blur, which would close the list under the click
+                        onMouseDown={ e => e.preventDefault() }
+                    >
+                        <ul id={ listId } className="qlive-picker-rows" role="listbox" aria-labelledby={ labelId }>
+                            {
+                                choices.map((option, index) => (
+                                    <li
+                                        key={ String(option.value) }
+                                        id={ listId + "-" + index }
+                                        role="option"
+                                        aria-selected={ index === active }
+                                        className={ index === active ? "qlive-picker-active" : undefined }
+                                        onClick={ () => choose(option) }
+                                    >
+                                        { option.label }
+                                    </li>
+                                ))
+                            }
+                        </ul>
+                        { note !== null && <span className="qlive-picker-note" aria-hidden="true">{ note }</span> }
+                    </span>
                 )
             }
+            <span className="qlive-visually-hidden" role="status">{ open ? note : null }</span>
         </span>
     )
 }

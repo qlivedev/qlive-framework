@@ -47,6 +47,7 @@ export function RowSet({field}: WidgetProps): JSX.Element
                 editable && (
                     <PickerInput
                         id={ field.id }
+                        labelId={ field.labelId }
                         mode={ field.mode }
                         required={ false }
                         shown=""

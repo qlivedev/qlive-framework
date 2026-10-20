@@ -205,6 +205,28 @@ describe("RowPicker", () => {
         expect(note()).toBe("Invalid query config")
     })
 
+    it("names the list by the field's label, and announces the note from outside the list", async () => {
+
+        respondWith({type: "AppUser", rows: USERS, rowCount: 45, config: {}})
+        render(<Form row={ ownedFoo() }><Field path="owner"/></Form>)
+        const status = container.querySelector("[role=status]")!
+
+        expect(input().hasAttribute("aria-controls")).toBe(false)
+        expect(status.textContent).toBe("")
+
+        await typeAndWait("a")
+
+        const list = container.querySelector("[role=listbox]")!
+        expect(input().getAttribute("aria-controls")).toBe(list.id)
+        expect(document.getElementById(list.getAttribute("aria-labelledby")!)!.tagName).toBe("LABEL")
+        expect(list.querySelector(".qlive-picker-note")).toBeNull()
+        expect(list.querySelectorAll(":scope > :not([role=option])")).toHaveLength(0)
+        expect(container.querySelector(".qlive-picker-note")!.getAttribute("aria-hidden")).toBe("true")
+        // the same region as before, so a screen reader hears the change
+        expect(container.querySelector("[role=status]")).toBe(status)
+        expect(status.textContent).toBe("[{0} more, type to narrow:43]")
+    })
+
     it("opens no list in a mode other than normal", () => {
 
         render(<Form row={ ownedFoo() }><Field path="owner" mode="readOnly"/></Form>)

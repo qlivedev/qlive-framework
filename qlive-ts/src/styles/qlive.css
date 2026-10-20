@@ -741,22 +741,27 @@
         position: relative;
         display: inline-block;
     }
-    .qlive-picker-rows
+    .qlive-picker-popup
     {
         position: absolute;
         z-index: 10;
         top: 100%;
         left: 0;
+        display: block;
         min-width: 100%;
         max-height: 16em;
         overflow-y: auto;
-        margin: 0;
         padding: var(--qlive-space-1) 0;
-        list-style: none;
         border: 1px solid var(--qlive-color-border);
         border-radius: var(--qlive-radius-md);
         background: var(--qlive-color-bg);
         color: var(--qlive-color-fg);
+    }
+    .qlive-picker-rows
+    {
+        margin: 0;
+        padding: 0;
+        list-style: none;
     }
     .qlive-picker-rows > li
     {
@@ -768,8 +773,11 @@
     {
         background: var(--qlive-color-border);
     }
-    .qlive-picker-rows > .qlive-picker-note
+    .qlive-picker-note
     {
+        display: block;
+        padding: var(--qlive-space-1) var(--qlive-space-2);
+        white-space: nowrap;
         color: var(--qlive-color-muted);
         font-size: 0.9em;
         cursor: default;
@@ -805,6 +813,22 @@
         background: none;
         color: var(--qlive-color-muted);
         cursor: pointer;
+    }
+    /*
+     * Text for screen readers only. It must stay clipped like this: display: none or visibility: hidden would hide it
+     * from them too.
+     */
+    .qlive-visually-hidden
+    {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+        border: 0;
     }
     .qlive-field-missing small
     {

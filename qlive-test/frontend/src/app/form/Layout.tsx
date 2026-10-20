@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Form, Layout, useFormContext, useInjection, useWorkingSet, WorkingSet } from "@qlivedev/qlive-ts";
+import { FilterDSL, Form, Layout, useFormContext, useInjection, useWorkingSet, WorkingSet } from "@qlivedev/qlive-ts";
+
+const { field, or, value } = FilterDSL
 import { Q_FooList, Q_FooListResult } from "../grid/Q_FooList";
 
 /**
@@ -10,6 +12,9 @@ import { Q_FooList, Q_FooListResult } from "../grid/Q_FooList";
  *   TSX could hold the component itself; the name is what a layout from the server would use.
  * - **A widget override**: num names no widget, and gets the stepper main.tsx configures for Foo.num.
  * - **Modes**: created is read-only, the owner shows as text -- the related row's name, not its key.
+ * - **A field condition** narrows what a picker offers, written against the form's row: TYPE_D is for foos without
+ *   the flag. FooType is a catalog, so the picker tests its rows in the browser; tick the flag and TYPE_D is gone
+ *   from the list at once.
  * - **A component of the application's own** sits in the layout like a field and reads the form's context: the
  *   lock below changes the mode of the name field while the form is open.
  */
@@ -29,6 +34,10 @@ const FOO_LAYOUT: Layout = {
             nodes: [
                 { field: "num" },
                 { field: "flag" },
+                {
+                    field: "fooType",
+                    condition: or(field("flag").eq(value(false)), field("fooType.name").ne(value("TYPE_D")))
+                },
                 { field: "created", mode: "readOnly" },
                 { field: "owner", mode: "text" }
             ]

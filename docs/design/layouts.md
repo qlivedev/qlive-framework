@@ -408,6 +408,43 @@ varies by application -- inline buttons, a popover, a side-by-side
 view -- and a decorator is where that variety goes, without every widget
 having to cooperate.
 
+### The merge state for everyone (decided 2026-10-20)
+
+A field's merge mark is a colored bar, and the four states differ by
+color alone; screen readers get nothing but a conflict's buttons. Not
+built yet. Three parts, by who needs what:
+
+- **A description, read on focus.** Each marked field gets visually
+  hidden text naming its state ("changed", "changed by someone else
+  too", ...), linked from the input with `aria-describedby`: the name
+  stays the field's, the state is read after name and role. `Field`
+  renders the text, but the input is the widget's, so `FieldState`
+  carries the description's id and **applying it is a widget's duty**,
+  as applying `field.id` is. The built-in widgets do; the duty must be
+  documented where an application learns to write a widget, since a
+  widget that skips it loses the state silently. The label was the
+  alternative that needs no widget's help, at the cost of the state
+  becoming part of the name.
+- **One live region per form** (`role="status"`, polite) announces
+  what the user didn't do: a field marked remote-changed by push, a
+  conflict after a save -- once per event, not once per marked field.
+  The user's own "changed" isn't announced. It sits at the top of the
+  form by default, and the layout can place it elsewhere. It is
+  rendered from the start, empty while there is nothing to say: a
+  screen reader announces changes only to a region it already knows,
+  so placing it can never mean leaving it out.
+- **An icon beside the bar** for 1.4.1, the shape `--qlive-mark-icon`
+  already defines per state, so the states differ by more than color.
+
+Look is CSS and overridable: the icon, the region and the hidden text
+have classes. Wording is i18n keys. Structure -- the `aria-describedby`
+link, the region's role, its place -- is markup. The visually hidden
+class must stay the clip pattern; an override with `display: none` or
+`visibility: hidden` takes the text out of the accessibility tree with
+nothing looking wrong, which the class's documentation has to say. The
+grid's marked cells need the same text inside the cell, which has no
+label to be described from.
+
 ### The layout format
 
 ```ts
@@ -861,3 +898,8 @@ the ambiguity.
   served ones today, so "enabled users only" can't be said. Widening it
   per request would let a client probe any column, `AppUser.password`
   included; a per-type list of fields pickers may filter by would not.
+- **The live region in a hand-written form.** A form with children
+  adds no markup, so either it gets the region at the top anyway, an
+  exception to that rule, or it places a component (`<FormStatus/>`)
+  itself, and a form that forgets it announces nothing -- the
+  description's documented duty again, in a second place.

@@ -1,5 +1,6 @@
 import {ManyToManyInfo, QLiveConfig, RelationInfo} from "../../src/config";
 import {
+    enumType,
     field,
     inputObject,
     inputValue,
@@ -128,6 +129,15 @@ export const mergeConfig: QLiveConfig = {
             ]),
 
             // unversioned on purpose
+            // a value of a closed set, required and not
+            object("Garply", [
+                field("id", NOT_NULL(STRING)),
+                field("size", NOT_NULL(NAMED("Size", "ENUM"))),
+                field("color", NAMED("Color", "ENUM"))
+            ]),
+            enumType("Size", ["SMALL", "MEDIUM", "LARGE"]),
+            enumType("Color", ["RED", "GREEN", "BLUE"]),
+
             object("Qux", [
                 field("id", NOT_NULL(STRING)),
                 field("name", NOT_NULL(STRING))

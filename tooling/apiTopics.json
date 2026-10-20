@@ -331,7 +331,6 @@
         "DateInput",
         "DateTimeInput",
         "Checkbox",
-        "EnumSelect",
         "BooleanSelect",
         "MissingWidget",
         "RowPicker",

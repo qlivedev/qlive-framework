@@ -210,3 +210,63 @@ describe("RowPicker", () => {
         expect(input().getAttribute("aria-expanded")).toBe("false")
     })
 })
+
+
+describe("RowPicker over an enum", () => {
+
+    function garply()
+    {
+        return new WorkingSet().create<any>("Garply", {size: "MEDIUM", color: "RED"})
+    }
+
+    it("is the widget of an enum field, searching the values' labels without asking the server", async () => {
+
+        const fetchMock = vi.fn()
+        vi.stubGlobal("fetch", fetchMock)
+        const row = garply()
+        render(<Form row={ row }><Field path="size"/></Form>)
+
+        expect(input().value).toBe("[Size.MEDIUM]")
+
+        press("ArrowDown")
+        expect(options()).toEqual(["[Size.SMALL]", "[Size.MEDIUM]", "[Size.LARGE]"])
+
+        await typeAndWait("lar")
+        expect(options()).toEqual(["[Size.LARGE]"])
+        press("Enter")
+
+        expect(row.size).toBe("LARGE")
+        expect(input().value).toBe("[Size.LARGE]")
+        expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it("clears a nullable value by emptying the input, and keeps a required one", async () => {
+
+        const row = garply()
+        render(<Form row={ row }><Field path="size"/><Field path="color"/></Form>)
+        const [size, color] = Array.from(container.querySelectorAll<HTMLInputElement>("input[role=combobox]"))
+
+        for (const picker of [size, color])
+        {
+            act(() => {
+                const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!
+                setter.call(picker, "")
+                picker.dispatchEvent(new Event("input", {bubbles: true}))
+            })
+            act(() => {
+                picker.dispatchEvent(new FocusEvent("focusout", {bubbles: true}))
+            })
+        }
+
+        expect(row.size).toBe("MEDIUM")
+        expect(row.color).toBe(null)
+        expect(color.value).toBe("")
+    })
+
+    it("names the value by its label in text mode", () => {
+
+        render(<Form row={ garply() }><Field path="color" mode="text"/></Form>)
+
+        expect(container.querySelector(".qlive-field-text")!.textContent).toBe("[Color.RED]")
+    })
+})

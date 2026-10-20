@@ -398,7 +398,8 @@ the merge state of the field the value is in
 declare function fieldText(field: FieldState, row: object, value?: unknown): string;
 ```
 
-The value of a field as text, what `text` mode shows: the formatted value, the related row's name for a relation.
+The value of a field as text, what `text` mode shows: the formatted value, an enum value's label, the related
+row's name for a relation.
 
 **Parameters**
 
@@ -675,16 +676,6 @@ declare function Checkbox({ field }: WidgetProps): JSX.Element;
 
 Edits a non-null Boolean. A checkbox has no read-only state, so `readOnly` disables it.
 
-## EnumSelect()
-
-<span class="api-kind">function</span>
-
-```ts
-declare function EnumSelect({ field }: WidgetProps): JSX.Element;
-```
-
-Picks a value of an enum type, labeled `Type.VALUE` through i18n(); a nullable field can be cleared.
-
 ## BooleanSelect()
 
 <span class="api-kind">function</span>
@@ -714,15 +705,20 @@ until its row set exists, and a scalar without an input text.
 declare function RowPicker({ field }: WidgetProps): JSX.Element;
 ```
 
-Picks the row a to-one relation points at: a text input searching the related rows by their name fields, and the
-list of the rows found, the first page of them. Choosing one sets the foreign key; a nullable key is cleared by
-emptying the input.
+Picks a value of a closed set: a text input searching the set by what its values are called, and the list of the
+values found, the first page of them. Choosing one sets the field; a nullable field is cleared by emptying the
+input. The input shows the chosen value's name while it isn't being typed into, and what the user typed while it
+is; typed text that chooses nothing is dropped when the input loses focus.
 
-The rows come from relatedRows(), the server's related-rows endpoint, sorted by the name fields. The input shows
-the chosen row's name while it isn't being typed into, and what the user typed while it is; typed text that
-chooses no row is dropped when the input loses focus.
+What the set is depends on the field:
 
-QLive's widget for every to-one relation, so a form edits a foreign key without being told how.
+- a to-one relation picks a related row and sets the foreign key. The rows come from relatedRows(), the server's
+  related-rows endpoint, found by their name fields and sorted by them.
+- an enum field picks one of the type's values, but the deprecated ones, each called by its `Type.VALUE`
+  translation. The set is known in the browser and searched there.
+
+QLive's widget for both, so a form edits a closed set without being told how, and the same way however large the
+set grows.
 
 ## relatedRows()
 

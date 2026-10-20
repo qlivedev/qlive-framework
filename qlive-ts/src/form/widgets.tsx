@@ -235,7 +235,8 @@ export function Checkbox({field}: WidgetProps): JSX.Element
 }
 
 /**
- * Picks one of a set of values. A select has no read-only state, so `readOnly` disables it.
+ * Picks one of a few fixed values, what a nullable Boolean is. A select has no read-only state, so `readOnly`
+ * disables it.
  */
 function Choice({field, options}: { field: FieldState, options: { key: string, value: unknown, label: string }[] }): JSX.Element
 {
@@ -253,20 +254,6 @@ function Choice({field, options}: { field: FieldState, options: { key: string, v
             { !known && current !== "" && <option value={ current }>{ current }</option> }
             { options.map(option => <option key={ option.key } value={ option.key }>{ option.label }</option>) }
         </select>
-    )
-}
-
-/**
- * Picks a value of an enum type, labeled `Type.VALUE` through i18n(); a nullable field can be cleared.
- */
-export function EnumSelect({field}: WidgetProps): JSX.Element
-{
-    const values = findType(field.fieldType).enumValues ?? []
-    return (
-        <Choice
-            field={ field }
-            options={ values.map(v => ({key: v.name, value: v.name, label: i18n(field.fieldType + "." + v.name)})) }
-        />
     )
 }
 
@@ -304,13 +291,14 @@ export function MissingWidget({field}: WidgetProps): JSX.Element
 const NUMBER_TYPES = new Set(["Byte", "Short", "Int", "Number", "Long", "BigInteger", "Float", "Currency", "BigDecimal"])
 
 /**
- * The widget QLive has for a field: by its scalar type, or its relation kind.
+ * The widget QLive has for a field: by its scalar type, or its relation kind. Every closed set, an enum or a to-one
+ * relation, gets RowPicker.
  *
  * @internal
  */
 export function builtInWidget(field: FieldState): Widget
 {
-    if (field.kind === "toOne")
+    if (field.kind === "toOne" || field.kind === "scalar" && findType(field.fieldType).kind === "ENUM")
     {
         return RowPicker
     }
@@ -319,10 +307,6 @@ export function builtInWidget(field: FieldState): Widget
         return MissingWidget
     }
     const type = field.fieldType
-    if (findType(type).kind === "ENUM")
-    {
-        return EnumSelect
-    }
     if (type === "Boolean")
     {
         return field.required ? Checkbox : BooleanSelect

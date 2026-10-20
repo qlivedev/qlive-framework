@@ -3,7 +3,8 @@
  */
 import config from "../config";
 import {formatValue} from "../converter";
-import {objectFields, primaryKeyFields, unwrapAll} from "../type-utils";
+import i18n from "../i18n";
+import {findType, objectFields, primaryKeyFields, unwrapAll} from "../type-utils";
 import {seenRow} from "./relatedRows";
 import type {FieldState} from "./useField";
 
@@ -27,6 +28,16 @@ export function rowName(type: string, row: any, key: unknown): string
 }
 
 /**
+ * A value of an enum type as a user reads it, translated as `Type.VALUE`.
+ *
+ * @internal
+ */
+export function enumLabel(type: string, value: unknown): string
+{
+    return i18n(type + "." + String(value))
+}
+
+/**
  * The field of the related type a to-one relation's foreign key holds.
  *
  * @internal
@@ -38,7 +49,8 @@ export function targetKey(field: FieldState): string
 }
 
 /**
- * The value of a field as text, what `text` mode shows: the formatted value, the related row's name for a relation.
+ * The value of a field as text, what `text` mode shows: the formatted value, an enum value's label, the related
+ * row's name for a relation.
  *
  * @param field     the field
  * @param row       the row it is a field of
@@ -49,7 +61,9 @@ export function fieldText(field: FieldState, row: object, value: unknown = field
     switch (field.kind)
     {
         case "scalar":
-            return formatValue(value, field.fieldType)
+            return value !== null && value !== undefined && findType(field.fieldType).kind === "ENUM"
+                ? enumLabel(field.fieldType, value)
+                : formatValue(value, field.fieldType)
         case "toOne":
         {
             if (value === null || value === undefined)

@@ -1,4 +1,5 @@
 import {
+    GraphQLEnumType,
     GraphQLField,
     GraphQLInputObjectType,
     GraphQLInputValue,
@@ -45,6 +46,20 @@ export function object(name: string, fields: GraphQLField[]): GraphQLObjectType
         inputFields: null,
         interfaces: [],
         enumValues: null,
+        possibleTypes: null
+    }
+}
+
+export function enumType(name: string, values: string[]): GraphQLEnumType
+{
+    return {
+        kind: "ENUM",
+        name,
+        description: null,
+        fields: null,
+        inputFields: null,
+        interfaces: null,
+        enumValues: values.map(value => ({name: value, description: null, isDeprecated: false, deprecationReason: null})),
         possibleTypes: null
     }
 }

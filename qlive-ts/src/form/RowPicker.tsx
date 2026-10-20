@@ -1,22 +1,36 @@
 /*
- * RowPicker: the widget of a to-one relation, choosing the related row by searching its name.
+ * RowPicker: the widget of a closed set, choosing a value by searching what the values are called.
  */
 import {JSX, KeyboardEvent, useEffect, useRef, useState} from "react";
 
 import config from "../config";
 import {condition, field as fieldRef, FilterExpression, value} from "../FilterDSL";
 import i18n from "../i18n";
-import {objectFields, unwrapAll} from "../type-utils";
-import {fieldText, rowName, targetKey} from "./fieldText";
+import {findType, objectFields, unwrapAll} from "../type-utils";
+import {enumLabel, fieldText, rowName, targetKey} from "./fieldText";
 import {useFormState} from "./FormContext";
 import {relatedRows} from "./relatedRows";
 import type {WidgetProps} from "./widgets";
 
-/** how many rows the list offers at a time */
+/** how many choices the list offers at a time */
 const PAGE_SIZE = 20
 
 /** how long typing pauses before the rows are asked for, in milliseconds */
 const SEARCH_DELAY = 250
+
+/** one entry of the list: the value choosing it sets, and what it is called */
+interface Choice
+{
+    value: unknown
+    label: string
+}
+
+/** what a search found: the first page of choices, and how many there are in all */
+interface Found
+{
+    choices: Choice[]
+    count: number
+}
 
 /**
  * The condition finding the rows whose name fields contain the text, ignoring case: those of them that are strings.
@@ -36,28 +50,53 @@ function searchCondition(type: string, text: string): FilterExpression | null
 }
 
 /**
- * Picks the row a to-one relation points at: a text input searching the related rows by their name fields, and the
- * list of the rows found, the first page of them. Choosing one sets the foreign key; a nullable key is cleared by
- * emptying the input.
+ * The values of an enum type, but the deprecated ones, as choices.
+ */
+function enumChoices(type: string): Choice[]
+{
+    return (findType(type).enumValues ?? [])
+        .filter(v => !v.isDeprecated)
+        .map(v => ({value: v.name, label: enumLabel(type, v.name)}))
+}
+
+/**
+ * The choices of a set known in the browser whose label contains the text, ignoring case.
+ */
+function findKnown(known: Choice[], text: string): Found
+{
+    const needle = text.trim().toLowerCase()
+    const choices = needle === "" ? known : known.filter(choice => choice.label.toLowerCase().includes(needle))
+    return {choices: choices.slice(0, PAGE_SIZE), count: choices.length}
+}
+
+/**
+ * Picks a value of a closed set: a text input searching the set by what its values are called, and the list of the
+ * values found, the first page of them. Choosing one sets the field; a nullable field is cleared by emptying the
+ * input. The input shows the chosen value's name while it isn't being typed into, and what the user typed while it
+ * is; typed text that chooses nothing is dropped when the input loses focus.
  *
- * The rows come from relatedRows(), the server's related-rows endpoint, sorted by the name fields. The input shows
- * the chosen row's name while it isn't being typed into, and what the user typed while it is; typed text that
- * chooses no row is dropped when the input loses focus.
+ * What the set is depends on the field:
  *
- * QLive's widget for every to-one relation, so a form edits a foreign key without being told how.
+ * - a to-one relation picks a related row and sets the foreign key. The rows come from relatedRows(), the server's
+ *   related-rows endpoint, found by their name fields and sorted by them.
+ * - an enum field picks one of the type's values, but the deprecated ones, each called by its `Type.VALUE`
+ *   translation. The set is known in the browser and searched there.
+ *
+ * QLive's widget for both, so a form edits a closed set without being told how, and the same way however large the
+ * set grows.
  */
 export function RowPicker({field}: WidgetProps): JSX.Element
 {
     const {row} = useFormState()
-    const key = targetKey(field)
     const type = field.fieldType
+    const known = field.kind === "scalar" ? enumChoices(type) : null
+    const key = known ? null : targetKey(field)
 
     /** what the user typed, null while the input shows the chosen row's name */
     const [typed, setTyped] = useState<string | null>(null)
     const [open, setOpen] = useState(false)
     /** the rows found, null while they are asked for */
-    const [rows, setRows] = useState<any[] | null>(null)
-    const [rowCount, setRowCount] = useState(0)
+    const [fetched, setFetched] = useState<Found | null>(null)
     const [active, setActive] = useState(-1)
     const [failure, setFailure] = useState<string | null>(null)
     const request = useRef(0)
@@ -65,37 +104,42 @@ export function RowPicker({field}: WidgetProps): JSX.Element
     const editable = field.mode === "normal"
     const listId = field.id + "-rows"
 
+    /** what the list shows, null while the rows are asked for */
+    const found = known ? (open ? findKnown(known, typed ?? "") : null) : fetched
+    const choices = found?.choices ?? []
+
     function search(text: string)
     {
         const id = ++request.current
         relatedRows(type, {
             condition: searchCondition(type, text),
-            sortFields: config().meta.types[type]?.meta?.nameFields ?? [key],
+            sortFields: config().meta.types[type]?.meta?.nameFields ?? [key!],
             offset: 0,
             pageSize: PAGE_SIZE
         })
-            .then(found => {
+            .then(answer => {
                 if (id === request.current)
                 {
-                    setRows(found.rows)
-                    setRowCount(found.rowCount)
-                    setActive(found.rows.length ? 0 : -1)
+                    setFetched({
+                        choices: answer.rows.map(row => ({value: row[key!], label: rowName(type, row, row[key!])})),
+                        count: answer.rowCount
+                    })
+                    setActive(answer.rows.length ? 0 : -1)
                     setFailure(null)
                 }
             })
             .catch((e: Error) => {
                 if (id === request.current)
                 {
-                    setRows([])
-                    setRowCount(0)
+                    setFetched({choices: [], count: 0})
                     setFailure(e.message)
                 }
             })
     }
 
-    // the rows are asked for once typing pauses, and while the list is open
+    // rows are asked for once typing pauses, and while the list is open
     useEffect(() => {
-        if (!open)
+        if (!open || known)
         {
             return
         }
@@ -107,14 +151,21 @@ export function RowPicker({field}: WidgetProps): JSX.Element
     {
         request.current++
         setOpen(false)
-        setRows(null)
+        setFetched(null)
         setTyped(null)
         setActive(-1)
     }
 
-    function choose(chosen: any)
+    /** opens the list, its first choice active; fetched rows set that again once they are there */
+    function openList()
     {
-        field.setValue(chosen[key])
+        setOpen(true)
+        setActive(0)
+    }
+
+    function choose(chosen: Choice)
+    {
+        field.setValue(chosen.value)
         close()
     }
 
@@ -136,11 +187,11 @@ export function RowPicker({field}: WidgetProps): JSX.Element
                 e.preventDefault()
                 if (!open)
                 {
-                    setOpen(true)
+                    openList()
                 }
                 else
                 {
-                    setActive(index => Math.min(index + 1, (rows?.length ?? 0) - 1))
+                    setActive(index => Math.min(index + 1, choices.length - 1))
                 }
                 break
             case "ArrowUp":
@@ -148,10 +199,10 @@ export function RowPicker({field}: WidgetProps): JSX.Element
                 setActive(index => Math.max(index - 1, 0))
                 break
             case "Enter":
-                if (open && active >= 0 && rows?.[active])
+                if (open && choices[active])
                 {
                     e.preventDefault()
-                    choose(rows[active])
+                    choose(choices[active])
                 }
                 else if (typed !== null)
                 {
@@ -169,12 +220,12 @@ export function RowPicker({field}: WidgetProps): JSX.Element
         }
     }
 
-    const activeId = open && active >= 0 ? listId + "-" + active : undefined
+    const activeId = open && choices[active] ? listId + "-" + active : undefined
 
     const note = failure ?? (
-        rows === null ? i18n("Searching...")
-            : rows.length === 0 ? i18n("Nothing found")
-                : rowCount > rows.length ? i18n("{0} more, type to narrow", String(rowCount - rows.length))
+        found === null ? i18n("Searching...")
+            : choices.length === 0 ? i18n("Nothing found")
+                : found.count > choices.length ? i18n("{0} more, type to narrow", String(found.count - choices.length))
                     : null
     )
 
@@ -194,9 +245,9 @@ export function RowPicker({field}: WidgetProps): JSX.Element
                 readOnly={ field.mode === "readOnly" }
                 onChange={ e => {
                     setTyped(e.target.value)
-                    setOpen(true)
+                    openList()
                 } }
-                onClick={ () => editable && setOpen(true) }
+                onClick={ () => editable && !open && openList() }
                 onKeyDown={ editable ? onKeyDown : undefined }
                 onBlur={ leave }
             />
@@ -204,9 +255,9 @@ export function RowPicker({field}: WidgetProps): JSX.Element
                 open && (
                     <ul id={ listId } className="qlive-picker-rows" role="listbox">
                         {
-                            (rows ?? []).map((option, index) => (
+                            choices.map((option, index) => (
                                 <li
-                                    key={ String(option[key]) }
+                                    key={ String(option.value) }
                                     id={ listId + "-" + index }
                                     role="option"
                                     aria-selected={ index === active }
@@ -215,7 +266,7 @@ export function RowPicker({field}: WidgetProps): JSX.Element
                                     onMouseDown={ e => e.preventDefault() }
                                     onClick={ () => choose(option) }
                                 >
-                                    { rowName(type, option, option[key]) }
+                                    { option.label }
                                 </li>
                             ))
                         }

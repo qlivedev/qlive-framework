@@ -153,7 +153,6 @@ export {
     DateInput,
     DateTimeInput,
     Checkbox,
-    EnumSelect,
     BooleanSelect,
     MissingWidget
 } from "./form/widgets";

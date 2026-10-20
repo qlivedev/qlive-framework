@@ -91,11 +91,11 @@ body
  * The fields are QLive's Fields, laid out by QLive's form grid; what is
  * styled here is the control.
  *
- * The input group: a bordered wrapper carries the merge mark, an icon addon
- * that only shows up once a status sets --qlive-mark-icon, and the input
- * itself sits borderless inside it. Marking the wrapper rather than the
- * input is what keeps this out of the border-color fight the input used to
- * lose to the app's own base border rule.
+ * The input group: a bordered wrapper carries the merge mark in its border
+ * color, and the input itself sits borderless inside it; the mark's icon is
+ * QLive's, beside the control. Marking the wrapper rather than the input is
+ * what keeps this out of the border-color fight the input used to lose to
+ * the app's own base border rule.
  */
 .bar-edit .qlive-field > label
 {
@@ -123,31 +123,6 @@ body
 {
     border-color: var(--qlive-mark-color);
     box-shadow: none;
-}
-
-.bar-edit .qlive-field-control:is(.qlive-changed, .qlive-conflict, .qlive-conflict-resolved, .qlive-remote-changed)::before
-{
-    content: "";
-    flex: none;
-    width: 1em;
-    height: 1em;
-    margin: 0 0.4rem 0 0.5rem;
-    background-color: var(--qlive-mark-color);
-
-    /*
-     * Longhands rather than the `mask` shorthand: Safari and older Firefox
-     * have shipped shorthand parsing quirks that the longhands avoid, and
-     * both prefixed and unprefixed forms are needed until -webkit-mask-*
-     * can be dropped (still required by Safari as of this writing).
-     */
-    -webkit-mask-image: var(--qlive-mark-icon);
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: center;
-    -webkit-mask-size: contain;
-    mask-image: var(--qlive-mark-icon);
-    mask-repeat: no-repeat;
-    mask-position: center;
-    mask-size: contain;
 }
 
 .bar-edit .qlive-field-control input

@@ -67,6 +67,22 @@ class RelatedRowsControllerTest
 
 
     @Test
+    @SuppressWarnings("unchecked")
+    void servesTheFarEndOfAManyToMany()
+    {
+        // Baz is referenced by the link type's foreign key only, which Bar.bazes stands in for
+        final Map<String, Object> answer = controller.relatedRows(Map.of(
+            "type", "Baz",
+            "config", Map.of("pageSize", 1)
+        ));
+
+        assertThat(answer.get("type"), is("Baz"));
+        final List<Map<String, Object>> rows = (List<Map<String, Object>>) answer.get("rows");
+        rows.forEach(row -> assertThat(List.copyOf(row.keySet()), contains("id", "name")));
+    }
+
+
+    @Test
     void refusesATypeNoForeignKeyReferences()
     {
         final QLiveException e = assertThrows(

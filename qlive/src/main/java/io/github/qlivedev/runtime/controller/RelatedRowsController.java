@@ -3,6 +3,7 @@ package io.github.qlivedev.runtime.controller;
 import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.TableLookup;
 import io.github.qlivedev.graphql.TypeRegistry;
+import io.github.qlivedev.graphql.config.RelationModel;
 import io.github.qlivedev.graphql.meta.DomainMeta;
 import io.github.qlivedev.graphql.meta.DomainTypeMeta;
 import io.github.qlivedev.runtime.QLiveException;
@@ -28,9 +29,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
-/// Serves the rows a to-one picker offers: the rows of a type a foreign key references, as a client's query
-/// config narrows them.
+/// Serves the rows a picker offers: the rows of a type a foreign key references, as a client's query config
+/// narrows them. That includes the foreign keys of many-to-many link types, so a row set picks the rows to
+/// associate here as well.
 ///
 /// A picker of a derived form knows the type it picks from but has no query for it, and the schema has no
 /// query per type to give it one. So this answers like a query document query without being one, through
@@ -115,8 +118,7 @@ public class RelatedRowsController
         }
 
         final TypeRegistry types = domain.getTypeRegistry();
-        final boolean referenced = types.getRelationModels().stream()
-            .anyMatch(relation -> relation.getTargetType().equals(type));
+        final boolean referenced = foreignKeys(types).anyMatch(relation -> relation.getTargetType().equals(type));
         final TableLookup lookup = types.lookupType(type);
         if (!referenced || lookup == null)
         {
@@ -142,7 +144,7 @@ public class RelatedRowsController
     private List<String> pickerFields(String type, TypeRegistry types)
     {
         final Set<String> fields = new LinkedHashSet<>();
-        types.getRelationModels().stream()
+        foreignKeys(types)
             .filter(relation -> relation.getTargetType().equals(type))
             .forEach(relation -> fields.addAll(relation.getTargetFields()));
 
@@ -153,5 +155,17 @@ public class RelatedRowsController
             fields.addAll(nameFields);
         }
         return new ArrayList<>(fields);
+    }
+
+
+    /// Every foreign key of the domain: the relations, and those of the many-to-many link types, which a
+    /// many-to-many field stands in for rather than lists among the relations.
+    private static Stream<RelationModel> foreignKeys(TypeRegistry types)
+    {
+        return Stream.concat(
+            types.getRelationModels().stream(),
+            types.getManyToManyModels().stream()
+                .flatMap(model -> Stream.of(model.getLeft().getRelation(), model.getRight().getRelation()))
+        );
     }
 }

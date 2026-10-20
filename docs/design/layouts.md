@@ -788,6 +788,54 @@ cheap.
   equal to the current one (`scalarEqual`) fires no event, which the
   cycle check has to allow for.
 
+### Layouts react to errors (raw notes)
+
+Collected 2026-10-20. Questions the paragraph on form rules above.
+
+**A layout carries no validations.** Merge knows nothing about forms,
+so the server never learns which layout produced a change set, and a
+validation written on a layout has nowhere to be enforced. Validations
+come from the type (invariants, every write) and the action (this one
+thing the user does). The test for where a rule goes: does it hold for
+every write, or only for this act? "Only in this form" is the case that
+shouldn't exist.
+
+**The form collects, the layout reacts.** The form knows its type and
+its action, evaluates their rules and produces errors. Layouts and
+widgets read the errors and never see a rule: `aria-invalid`, a
+message, Approve disabled while something is invalid. Reactions keep a
+trigger, but it is an error appearing rather than a validation
+expression wired in.
+
+**Errors are shaped like GraphQL's**: a user-facing `message` (the
+rule's message key through `i18n()`), a `path` naming the blamed field
+-- none for a form-level error, such as a cross-row action rule -- and,
+if configured, a class in `extensions` a layout or reaction can check
+on ("show the period-closed hint"). The browser's early check and the
+server's refusal produce the same shape, so the layout doesn't tell
+warning from enforcement apart. Parse errors become one more source
+with a framework class, and `invalid` becomes a list of errors rather
+than one message per path.
+
+**Scenarios.**
+
+1. End >= start: an invariant, blaming one or both fields.
+2. "Description required when approving": an action rule; the layout
+   shows the field because it shows the action's input.
+3. A pick a field condition no longer allows: a reaction by the
+   application, plus an invariant or action rule where the server must
+   refuse it.
+4. A form filling client-side state that reaches the server later,
+   validated before it is collected: the early check of whatever
+   receives it (a merge's invariants, an action's rules), or a client
+   type (`client-types.md`) carrying invariants only the browser
+   enforces.
+
+**Questions.**
+
+- Whether the state in scenario 4 always has a type, or is sometimes a
+  bag of values a view holds.
+
 ## Naming
 
 **Layout.** The merge side's internal "field layout", the ordered fields

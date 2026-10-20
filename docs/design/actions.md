@@ -146,6 +146,19 @@ The shared condition model makes it cheap to offer evaluating an
 action's rules on the drafts before anything is saved. It is an offer,
 not part of the design: everything above is correct without it.
 
+**Raw notes, 2026-10-20.** Usability needs the early check: action
+rules are to warn in the browser and are enforced only on the server,
+and writing them twice is what the shared condition model avoids. That
+moves the check from an offer into the design, and the client then
+needs the action's rules in its metadata. The browser can evaluate only
+what it holds: a rule reading references deeper than the form's query,
+or rows the form never fetched, is the same boundary field conditions
+hit on the related-rows endpoint. Either the browser checks what is
+loaded and the server reports the rest, or an action's references
+become part of what a form over it loads. Errors from either side have
+one shape, GraphQL's (`layouts.md`, "Layouts react to errors"), which
+also answers part of the open item on the endpoint's response.
+
 ## Implementations
 
 **An implementation is a Spring bean implementing `Action<E, R>`**, with

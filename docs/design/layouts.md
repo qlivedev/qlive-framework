@@ -553,9 +553,11 @@ annotation per query, so it fakes GraphQL instead:
 **Built so far** (2026-10-20): the endpoint, `POST /api/related-rows`
 (`RelatedRowsController`, which an application declares as a bean like
 its other controllers), and on the client `relatedRows()` and
-`RowPicker`, the built-in widget of every to-one relation. Catalog types
-and the field's condition are not built yet; every picker asks the
-endpoint.
+`RowPicker`, the built-in widget of every to-one relation and every enum
+field. An enum's picker searches its values' labels in the browser and
+never asks the endpoint; it leaves deprecated values out, and `text`
+mode shows the label too. Catalog types and the field's condition are
+not built yet; every relation's picker asks the endpoint.
 
 - **Departure: the endpoint serves the key and name fields only**, the
   fields foreign keys reference plus the type's `nameFields`, not every

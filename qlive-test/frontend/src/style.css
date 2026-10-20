@@ -162,27 +162,6 @@ body
     outline: none;
 }
 
-/* the association editor, which is one control for the whole link array and is
-   marked as one */
-.bar-edit .associations
-{
-    flex: 1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 0.25rem 0.5rem;
-    border: 1px solid var(--qlive-color-border);
-    border-radius: 0.25rem;
-}
-
-.bar-edit .associations label
-{
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.85rem;
-}
-
 /*
  * The live view. It has no field-control wrapper to mark, only table rows, so
  * it needs its own visible rendering of the mark instead of the library's

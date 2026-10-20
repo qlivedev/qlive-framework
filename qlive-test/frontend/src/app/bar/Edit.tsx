@@ -4,20 +4,18 @@ import {
     Form,
     Field,
     MergeView,
-    useFormContext,
     useInjection,
     useWorkingSet,
     WorkingSet
 } from "@qlivedev/qlive-ts";
 import { Q_Bar, Q_BarResult } from "./Q_Bar";
-import { Q_BazList, Q_BazListResult } from "./Q_BazList";
 
 /**
  * Editing rows through a working set: scalar fields, a many-to-many, and the resolution of a clash in the
  * form the user was already looking at.
  *
- * The row forms are QLive's Form with the application's choice of fields in it, plus an association editor
- * of its own that reads the form's context. The conflict path is worth trying twice in two browser windows:
+ * The row forms are QLive's Form with the application's choice of fields in it, the many-to-many Bar.bazes
+ * among them. The conflict path is worth trying twice in two browser windows:
  * save in one, then save in the other.
  *
  * With push wired in, the second window does not have to save to find out. A field somebody else changed is
@@ -32,10 +30,12 @@ import { Q_BazList, Q_BazListResult } from "./Q_BazList";
 type EditRow = Q_BarResult["rows"][number]
 
 /**
- * The fields the form renders. A Form without children would derive them from the row, but this one adds the
- * association editor of its own, which is what children are for.
+ * The fields the form renders. A Form without children would derive them from the row, but this one gives
+ * every field the conflict buttons, which is what children are for. bazes is a many-to-many field: its widget
+ * lists the associated Bazes and searches the others to add, and the merge turns the difference into
+ * associations gained and lost -- nothing here writes a Baz or knows the link table.
  */
-const FIELDS: Array<keyof EditRow & string> = ["name", "num", "description"]
+const FIELDS: Array<keyof EditRow & string> = ["name", "num", "description", "bazes"]
 
 const VIEWS: MergeView[] = ["merged", "mine", "stored"]
 
@@ -44,10 +44,6 @@ export default function Edit()
 {
     const bars: Q_BarResult = useInjection(Q_Bar);
 
-    // The one config this view spells out, and the shape of the exception: bazes are the options of a
-    // picker rather than a page to leaf through, so this view needs all of them at once. That is a fact
-    // about this form and not about the type, so it is said here and the domain's default is left alone.
-    const bazes: Q_BazListResult = useInjection(Q_BazList, { config: { pageSize: 50 } });
 
     // Made once and registered at once: the working set lives as long as the editing does, and a view that
     // rendered before its rows were registered could not edit them. A merge that lands refreshes the
@@ -103,7 +99,7 @@ export default function Edit()
             }
 
             {
-                bars.rows.map(row => <BarForm key={ row.id } ws={ ws } row={ row } bazes={ bazes.rows }/>)
+                bars.rows.map(row => <BarForm key={ row.id } ws={ ws } row={ row }/>)
             }
         </div>
     );
@@ -118,10 +114,9 @@ export default function Edit()
  * isn't one with an error, and carries the merge mark. The conflict buttons are QLive's too, given here as the
  * decorator -- a form rendering a layout applies them by itself, a hand-written one says where it wants them.
  */
-function BarForm({ ws, row, bazes }: {
+function BarForm({ ws, row }: {
     ws: WorkingSet,
-    row: EditRow,
-    bazes: Q_BazListResult["rows"]
+    row: EditRow
 })
 {
     return (
@@ -133,7 +128,6 @@ function BarForm({ ws, row, bazes }: {
                     {
                         FIELDS.map(name => <Field key={ name } path={ name } decorator={ ConflictResolution }/>)
                     }
-                    <Associations bazes={ bazes }/>
                 </div>
             </Form>
 
@@ -144,41 +138,3 @@ function BarForm({ ws, row, bazes }: {
     )
 }
 
-
-/**
- * The many-to-many, the part of the form that is the application's own: it reads the row and its merge state
- * from the form it is in. Bar.bazes is set to the Bazes the row is to be associated with, and the merge turns
- * the difference into associations gained and lost -- nothing here writes a Baz, and nothing here knows the
- * link table that holds the associations.
- */
-function Associations({ bazes }: { bazes: Q_BazListResult["rows"] })
-{
-    const { row, merge } = useFormContext()
-    const bar = row as EditRow
-    const linked = new Set(bar.bazes.map(baz => baz.id))
-
-    return (
-        <div className="qlive-field">
-            <label>bazes</label>
-
-            <div className={ "associations " + merge.field("bazes").className }>
-                {
-                    bazes.map(baz => (
-                        <label key={ baz.id }>
-                            <input
-                                type="checkbox"
-                                checked={ linked.has(baz.id) }
-                                onChange={ e => {
-                                    bar.bazes = e.target.checked
-                                        ? [...bar.bazes, baz]
-                                        : bar.bazes.filter(associated => associated.id !== baz.id)
-                                } }
-                            />
-                            { baz.name }
-                        </label>
-                    ))
-                }
-            </div>
-        </div>
-    )
-}

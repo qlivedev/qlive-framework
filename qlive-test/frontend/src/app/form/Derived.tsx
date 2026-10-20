@@ -8,7 +8,8 @@ import { Q_FooList, Q_FooListResult } from "../grid/Q_FooList";
  * The layout is derived from the row, so the fields are the ones the query selected, in its order. Every field
  * gets the widget for its type -- a text input, a number, a checkbox, a date-time picker -- and the ones no form
  * edits render as text: the id, the version, a computed field. A foreign key and its relation object are one
- * field, the relation's.
+ * field, the relation's, edited with a picker: typing searches the users by login, on the server, and choosing one
+ * sets ownerId.
  *
  * Foo.num is the exception: main.tsx overrides its widget for every form that doesn't name one, this one included.
  *

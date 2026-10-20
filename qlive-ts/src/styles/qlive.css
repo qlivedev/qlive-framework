@@ -765,7 +765,7 @@
         cursor: default;
     }
     /*
-     * A row set: the associated rows as removable entries, the picker adding one after them.
+     * A row set: the picker adding a row, then the associated rows as removable entries.
      */
     .qlive-rowset
     {

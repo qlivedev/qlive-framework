@@ -12,9 +12,10 @@ import {PickerInput, rowChoices} from "./PickerInput";
 import type {WidgetProps} from "./widgets";
 
 /**
- * Edits a many-to-many field: the associated rows, each named and with a button removing it, and a picker adding one
- * of the rows not yet associated, searched as RowPicker searches a to-one relation's -- through the related-rows
- * endpoint, or in the browser for a catalog type. The field is set to the new list of rows, and the merge writes the
+ * Edits a many-to-many field: a picker adding one of the rows not yet associated, and after it the associated rows,
+ * each named and with a button removing it. The picker comes first so it stays in place while rows come and go. It
+ * searches as RowPicker searches a to-one relation's rows: through the related-rows endpoint, or in the browser for
+ * a catalog type. The field is set to the new list of rows, and the merge writes the
  * difference as associations gained and lost.
  *
  * A row added comes from the picker, with its key and name fields only: other fields of it read as missing until
@@ -43,6 +44,22 @@ export function RowSet({field}: WidgetProps): JSX.Element
     return (
         <span className="qlive-rowset" id={ editable ? undefined : field.id }>
             {
+                editable && (
+                    <PickerInput
+                        id={ field.id }
+                        mode={ field.mode }
+                        required={ false }
+                        shown=""
+                        placeholder={ i18n("Add...") }
+                        known={ known }
+                        type={ type }
+                        keyField={ key }
+                        narrowed={ narrowed }
+                        onChoose={ chosen => field.setValue([...rows, chosen.row]) }
+                    />
+                )
+            }
+            {
                 rows.length > 0 && (
                     <ul className="qlive-rowset-rows">
                         {
@@ -68,22 +85,6 @@ export function RowSet({field}: WidgetProps): JSX.Element
                             })
                         }
                     </ul>
-                )
-            }
-            {
-                editable && (
-                    <PickerInput
-                        id={ field.id }
-                        mode={ field.mode }
-                        required={ false }
-                        shown=""
-                        placeholder={ i18n("Add...") }
-                        known={ known }
-                        type={ type }
-                        keyField={ key }
-                        narrowed={ narrowed }
-                        onChoose={ chosen => field.setValue([...rows, chosen.row]) }
-                    />
                 )
             }
         </span>

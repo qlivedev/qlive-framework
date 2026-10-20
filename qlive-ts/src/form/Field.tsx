@@ -80,7 +80,7 @@ export function Field(props: { path: string } & FieldOptions): JSX.Element
     let content: JSX.Element
     if (field.mode === "text")
     {
-        content = <FieldText field={ field } labelId={ field.labelId }/>
+        content = <FieldText field={ field }/>
     }
     else
     {
@@ -104,10 +104,11 @@ export function Field(props: { path: string } & FieldOptions): JSX.Element
 }
 
 /**
- * A field in `text` mode: its value as text, labeled by the field's label.
+ * A field in `text` mode: its value as text, read after the field's label. Plain text can't be named by the label,
+ * aria-labelledby is not allowed on it.
  */
-function FieldText({field, labelId}: { field: FieldState, labelId: string }): JSX.Element
+function FieldText({field}: { field: FieldState }): JSX.Element
 {
     const {row} = useFormState()
-    return <span id={ field.id } className="qlive-field-text" aria-labelledby={ labelId }>{ fieldText(field, row) }</span>
+    return <span id={ field.id } className="qlive-field-text">{ fieldText(field, row) }</span>
 }

@@ -49,6 +49,17 @@ export interface FieldEdit
 }
 
 /**
+ * What the form's live region says, and how many times it has said something.
+ *
+ * @internal
+ */
+export interface Announcement
+{
+    text: string
+    count: number
+}
+
+/**
  * The context with what only the fields use.
  *
  * @internal
@@ -62,6 +73,10 @@ export interface FormState extends FormContext
     idPrefix: string
     /** true where the form renders a layout, rather than the application's own children */
     fromLayout: boolean
+    /** what the live region says */
+    announcement: Announcement
+    /** tells the form a FormStatus places its live region; returns what tells it the FormStatus is gone */
+    registerStatus(): () => void
 }
 
 /** @internal */

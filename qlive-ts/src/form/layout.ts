@@ -59,9 +59,17 @@ export interface LayoutComponentNode
 }
 
 /**
+ * Where the form's live region goes, see FormStatus. Without one it is at the top of the form.
+ */
+export interface LayoutStatusNode
+{
+    status: true
+}
+
+/**
  * One node of a layout.
  */
-export type LayoutNode = LayoutFieldNode | LayoutSectionNode | LayoutComponentNode
+export type LayoutNode = LayoutFieldNode | LayoutSectionNode | LayoutComponentNode | LayoutStatusNode
 
 const componentRegistry = new Map<string, ComponentType<any>>()
 

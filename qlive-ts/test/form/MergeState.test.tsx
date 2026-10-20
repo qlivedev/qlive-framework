@@ -8,6 +8,8 @@ import {QueryDocument} from "../../src/QueryDocument";
 import {WorkingSet} from "../../src/merge/WorkingSet";
 import {Form} from "../../src/form/Form";
 import {Field} from "../../src/form/Field";
+import {FormStatus} from "../../src/form/FormStatus";
+import type {Layout} from "../../src/form/layout";
 import {barDocument, mergeConfig} from "../fixtures/mergeConfig";
 import {respondWith} from "../fixtures/graphqlMock";
 import {testAuthentication} from "../fixtures/testConfig";
@@ -97,6 +99,11 @@ async function editableBar()
 }
 
 
+function regions(): HTMLElement[]
+{
+    return Array.from(container.querySelectorAll<HTMLElement>(".qlive-form-status"))
+}
+
 function described(input: HTMLElement): string
 {
     return input.getAttribute("aria-describedby")!.split(" ").map(id => document.getElementById(id)!.textContent).join("|")
@@ -122,5 +129,63 @@ describe("the merge state for screen readers", () => {
         })
         expect(described(fieldInput("name"))).toBe("[Changed by someone else too, your value stands]")
         expect(described(fieldInput("num"))).toBe("[Changed by someone else]")
+    })
+
+    it("announces what somebody else did once per event, and nothing the user did", async () => {
+
+        const {ws, bar} = await editableBar()
+        render(<Form row={ bar }/>)
+        const [region] = regions()
+        expect(region.getAttribute("role")).toBe("status")
+        expect(region.textContent).toBe("")
+
+        act(() => { bar.name = "Mine" })
+        expect(region.textContent).toBe("")
+
+        act(() => {
+            ws.storedState({type: "Bar", id: "bar-1", version: "v9", fields: {name: "Theirs", num: 9}})
+        })
+        expect(region.textContent).toBe("[Changed by someone else too: {0}:Name] [Changed by someone else: {0}:Number]")
+        const first = region.firstChild
+
+        // the same fields again are no news
+        act(() => {
+            ws.storedState({type: "Bar", id: "bar-1", version: "v10", fields: {num: 10}})
+        })
+        expect(region.firstChild).toBe(first)
+    })
+
+    it("has the region at the top of the form, unless a FormStatus places it", async () => {
+
+        const {bar} = await editableBar()
+
+        render(<Form row={ bar }><Field path="name"/></Form>)
+        expect(regions()).toHaveLength(1)
+        expect(container.firstElementChild).toBe(regions()[0])
+
+        render(<Form row={ bar }><Field path="name"/><div className="wrapper"><FormStatus/></div></Form>)
+        expect(regions()).toHaveLength(1)
+        expect(regions()[0].parentElement!.className).toBe("wrapper")
+
+        const layout: Layout = {domainType: "Bar", nodes: [{field: "name"}, {status: true}]}
+        render(<Form row={ bar } layout={ layout }/>)
+        expect(regions()).toHaveLength(1)
+        expect(regions()[0].previousElementSibling!.className).toContain("qlive-field")
+    })
+
+    it("warns of two FormStatus in one form", async () => {
+
+        const {bar} = await editableBar()
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+        try
+        {
+            render(<Form row={ bar }><FormStatus/><FormStatus/></Form>)
+            expect(regions()).toHaveLength(2)
+            expect(warn).toHaveBeenCalledWith("A form has more than one FormStatus, and announces everything as often.")
+        }
+        finally
+        {
+            warn.mockRestore()
+        }
     })
 })

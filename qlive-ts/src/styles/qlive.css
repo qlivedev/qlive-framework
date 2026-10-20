@@ -845,11 +845,12 @@
     }
     /*
      * Text for screen readers only: a field's merge state, what a picker is
-     * for. It must stay clipped like this. An override
+     * for, a form's live region. It must stay clipped like this. An override
      * with display: none or visibility: hidden takes it from screen readers
      * too, and nothing on screen looks wrong.
      */
-    .qlive-visually-hidden
+    .qlive-visually-hidden,
+    .qlive-form-status
     {
         position: absolute;
         width: 1px;

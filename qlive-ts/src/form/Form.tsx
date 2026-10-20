@@ -1,13 +1,16 @@
 /*
  * Form: the provider of a form's context, and the renderer of its layout.
  */
-import {Fragment, JSX, ReactNode, useCallback, useId, useMemo, useState} from "react";
+import {Fragment, JSX, ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState} from "react";
 
 import i18n from "../i18n";
+import type {MergeAccessor} from "../merge/MergeAccessor";
 import {useMerge} from "../merge/useMerge";
+import {isViteDev} from "../util/viteEnv";
 import {Field} from "./Field";
 import type {FieldMode} from "./fieldMode";
-import {FieldEdit, FormState, FormStateContext} from "./FormContext";
+import {Announcement, FieldEdit, FormState, FormStateContext} from "./FormContext";
+import {FormStatus, StatusRegion} from "./FormStatus";
 import {deriveLayout, Layout, LayoutNode, namedComponent} from "./layout";
 
 /**
@@ -35,7 +38,7 @@ function layoutModes(nodes: LayoutNode[], modes: Map<string, FieldMode> = new Ma
                 modes.set(node.field, node.mode)
             }
         }
-        else if (node.nodes)
+        else if ("nodes" in node && node.nodes)
         {
             layoutModes(node.nodes, modes)
         }
@@ -59,6 +62,10 @@ function renderNodes(nodes: LayoutNode[]): ReactNode
                 />
             )
         }
+        if ("status" in node)
+        {
+            return <FormStatus key={ index }/>
+        }
         if ("section" in node)
         {
             return (
@@ -71,6 +78,44 @@ function renderNodes(nodes: LayoutNode[]): ReactNode
         const Component = typeof node.component === "string" ? namedComponent(node.component) : node.component
         return <Component key={ index } { ...node.props }>{ node.nodes && renderNodes(node.nodes) }</Component>
     })
+}
+
+/** the fields of the row somebody else changed, and those both changed, as of one render */
+interface Marked
+{
+    row: object
+    remote: Set<string>
+    conflict: Set<string>
+}
+
+/**
+ * What the form's live region says about the row's fields somebody else changed since the last render, and those a
+ * save left in conflict; null for nothing new. A row's fields marked when the form first shows it are no news.
+ */
+function newlyMarked(before: Marked | null, now: Marked, type: string): string | null
+{
+    if (!before || before.row !== now.row)
+    {
+        return null
+    }
+    const named = (names: string[]) => names.map(name => i18n(type + "." + name)).join(", ")
+    const conflict = [...now.conflict].filter(name => !before.conflict.has(name))
+    const remote = [...now.remote].filter(name => !before.remote.has(name))
+    const parts = []
+    if (conflict.length)
+    {
+        parts.push(i18n("Changed by someone else too: {0}", named(conflict)))
+    }
+    if (remote.length)
+    {
+        parts.push(i18n("Changed by someone else: {0}", named(remote)))
+    }
+    return parts.length ? parts.join(" ") : null
+}
+
+function markedOf(row: object, merge: MergeAccessor): Marked
+{
+    return {row, remote: new Set(merge.remoteChangedFields()), conflict: new Set(merge.conflictedFields())}
 }
 
 /**
@@ -91,6 +136,9 @@ function renderNodes(nodes: LayoutNode[]): ReactNode
  * Without children, the form renders a layout, the one given or the one derived from the row (deriveLayout()), and
  * wraps every widget in the conflict buttons (ConflictResolution). With children, it only provides the context, and
  * the application's fields and components render inside it as they are; useFormContext() reads it.
+ *
+ * Either way the form has a live region telling a screen reader what somebody else changed (FormStatus): at its top,
+ * unless a FormStatus inside it places it. That region is the one markup a form with children adds of its own.
  *
  * @throws Error for a form given both a layout and children, and for a layout of another type than the row's
  */
@@ -115,6 +163,37 @@ export function Form({row, layout, children}: FormProps): JSX.Element
     const [modes, setModes] = useState(() => resolvedLayout ? layoutModes(resolvedLayout.nodes) : new Map())
     const [edits, setEdits] = useState<ReadonlyMap<string, FieldEdit>>(() => new Map())
     const idPrefix = useId() + "-"
+
+    const [announcement, setAnnouncement] = useState<Announcement>({text: "", count: 0})
+    const marked = useRef<Marked | null>(null)
+    useEffect(() => {
+        const now = markedOf(row, merge)
+        const text = newlyMarked(marked.current, now, type)
+        marked.current = now
+        if (text !== null)
+        {
+            setAnnouncement(current => ({text, count: current.count + 1}))
+        }
+    }, [row, merge, type])
+
+    // how many FormStatus place the region; while none does, the form renders it at its top
+    const placed = useRef(0)
+    const [statusPlaced, setStatusPlaced] = useState(false)
+    const registerStatus = useCallback(() => {
+        placed.current++
+        if (placed.current > 1 && isViteDev())
+        {
+            console.warn("A form has more than one FormStatus, and announces everything as often.")
+        }
+        setStatusPlaced(true)
+        return () => {
+            placed.current--
+            if (placed.current === 0)
+            {
+                setStatusPlaced(false)
+            }
+        }
+    }, [])
 
     const setMode = useCallback((path: string, mode: FieldMode) => {
         setModes(current => new Map(current).set(path, mode))
@@ -141,15 +220,19 @@ export function Form({row, layout, children}: FormProps): JSX.Element
             }
         }
         const layoutName = resolvedLayout?.name ?? null
-        return {row, domainType: type, layoutName, merge, invalid, modes, setMode, edits, setEdit, idPrefix, fromLayout}
-    }, [row, type, resolvedLayout, merge, modes, setMode, edits, setEdit, idPrefix, fromLayout])
+        return {
+            row, domainType: type, layoutName, merge, invalid, modes, setMode, edits, setEdit, idPrefix, fromLayout,
+            announcement, registerStatus
+        }
+    }, [row, type, resolvedLayout, merge, modes, setMode, edits, setEdit, idPrefix, fromLayout, announcement, registerStatus])
 
+    const status = !statusPlaced && <StatusRegion announcement={ announcement }/>
     return (
         <FormStateContext.Provider value={ state }>
             {
                 resolvedLayout
-                    ? <div className="qlive-form">{ renderNodes(resolvedLayout.nodes) }</div>
-                    : <Fragment>{ children }</Fragment>
+                    ? <div className="qlive-form">{ status }{ renderNodes(resolvedLayout.nodes) }</div>
+                    : <Fragment>{ status }{ children }</Fragment>
             }
         </FormStateContext.Provider>
     )

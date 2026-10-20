@@ -146,6 +146,7 @@ export { Form } from "./form/Form";
 export { useFormContext } from "./form/FormContext";
 export { useField } from "./form/useField";
 export { Field, ConflictResolution } from "./form/Field";
+export { FormStatus } from "./form/FormStatus";
 export { fieldText } from "./form/fieldText";
 export {
     registerWidget,
@@ -220,7 +221,7 @@ export type { FormProps } from "./form/Form";
 export type { FormContext } from "./form/FormContext";
 export type { FieldOptions, FieldState } from "./form/useField";
 export type { Widget, WidgetProps, FieldDecorator, FieldDecoratorProps, WidgetOverride } from "./form/widgets";
-export type { Layout, LayoutNode, LayoutFieldNode, LayoutSectionNode, LayoutComponentNode } from "./form/layout";
+export type { Layout, LayoutNode, LayoutFieldNode, LayoutSectionNode, LayoutComponentNode, LayoutStatusNode } from "./form/layout";
 export type { RelatedRows } from "./form/relatedRows";
 export type { GraphQLParams, GraphQLError, GraphQLErrorLocation } from "./util/graphql";
 export type {

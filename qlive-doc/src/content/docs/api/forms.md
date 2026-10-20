@@ -35,6 +35,9 @@ Without children, the form renders a layout, the one given or the one derived fr
 wraps every widget in the conflict buttons (ConflictResolution). With children, it only provides the context, and
 the application's fields and components render inside it as they are; useFormContext() reads it.
 
+Either way the form has a live region telling a screen reader what somebody else changed (FormStatus): at its top,
+unless a FormStatus inside it places it. That region is the one markup a form with children adds of its own.
+
 **Throws** Error for a form given both a layout and children, and for a layout of another type than the row's
 
 ## FormProps
@@ -70,6 +73,26 @@ children?: ReactNode;
 ```
 
 the application's own fields, in place of a layout
+
+## FormStatus()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function FormStatus(): JSX.Element;
+```
+
+Where the form's live region goes: what a screen reader is told when somebody else changed a field on screen, or a
+save left a conflict -- once per such event, not once per field. What the user changes is not announced.
+
+Every form has the region, at its top unless a FormStatus inside it places it elsewhere, at any depth. A layout
+places it with a `{status: true}` node. The region is there from the start and empty while there is nothing to say,
+since a screen reader only announces changes to a region it already knows. It is visually hidden by default; its
+class is `qlive-form-status`.
+
+One FormStatus per form: a second one warns in development and announces everything twice.
+
+**Throws** Error outside a Form
 
 ## useFormContext()
 
@@ -933,7 +956,7 @@ nodes: LayoutNode[];
 <span class="api-kind">type</span>
 
 ```ts
-type LayoutNode = LayoutFieldNode | LayoutSectionNode | LayoutComponentNode;
+type LayoutNode = LayoutFieldNode | LayoutSectionNode | LayoutComponentNode | LayoutStatusNode;
 ```
 
 One node of a layout.
@@ -1036,6 +1059,22 @@ props?: Record<string, unknown>;
 
 ```ts
 nodes?: LayoutNode[];
+```
+
+## LayoutStatusNode
+
+<span class="api-kind">interface</span>
+
+```ts
+interface LayoutStatusNode
+```
+
+Where the form's live region goes, see FormStatus. Without one it is at the top of the form.
+
+### LayoutStatusNode.status
+
+```ts
+status: true;
 ```
 
 ## deriveLayout()

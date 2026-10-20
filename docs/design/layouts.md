@@ -411,8 +411,8 @@ having to cooperate.
 ### The merge state for everyone (decided 2026-10-20)
 
 A field's merge mark is a colored bar, and the four states differ by
-color alone; screen readers get nothing but a conflict's buttons. Not
-built yet. Three parts, by who needs what:
+color alone; screen readers get nothing but a conflict's buttons. Built
+2026-10-20 as below. Three parts, by who needs what:
 
 - **A description, read on focus.** Each marked field gets visually
   hidden text naming its state ("changed", "changed by someone else
@@ -455,6 +455,19 @@ class must stay the clip pattern; an override with `display: none` or
 nothing looking wrong, which the class's documentation has to say. The
 grid's marked cells need the same text inside the cell, which has no
 label to be described from.
+
+As built: `FieldState.descriptionId`, `fieldStatusText()` (public, for
+an application's own inputs and tables), `GridRows.fieldStatus`, the
+`{status: true}` layout node, and `qlive-visually-hidden`. Open:
+
+- The region names the fields by `Type.field` translations of the
+  merge's names, so a to-one relation is called by its foreign key's
+  tag, and it covers the whole row, not only the fields the form
+  shows.
+- Grid cells have the text but no icon; 1.4.1 asks the same of them.
+- Push leaves out the user's own writes, so remote-changed can't be
+  shown with one login in two windows; qlive-test needs a second user
+  for that.
 
 ### The layout format
 

@@ -1,0 +1,56 @@
+---
+/*
+ * Starlight's "On this page" outline, kept scrolled to the entry it marks as
+ * current. The outline column scrolls on its own, but Starlight only moves
+ * the highlight, so on a page whose outline is taller than the window -- the
+ * API pages list every member -- the highlight walks off the bottom and the
+ * column looks stuck at the last entry that fits.
+ *
+ * Registered as the TableOfContents override in astro.config.mjs. The mobile
+ * outline is a dropdown with its own component and is not affected.
+ */
+import Default from "@astrojs/starlight/components/TableOfContents.astro";
+---
+
+<Default/>
+
+<script>
+    // How far from the column's edges the current entry is kept, and where it
+    // lands when it has to be brought back: a third down, so the next few
+    // entries are in view as well.
+    const MARGIN = 48;
+    const LAND_AT = 1 / 3;
+
+    const toc = document.querySelector(".right-sidebar starlight-toc");
+    const column = toc?.closest<HTMLElement>(".right-sidebar");
+
+    if (toc && column)
+    {
+        const follow = (link: HTMLElement) => {
+            const columnBox = column.getBoundingClientRect();
+            const linkBox = link.getBoundingClientRect();
+            if (linkBox.top >= columnBox.top + MARGIN && linkBox.bottom <= columnBox.bottom - MARGIN)
+            {
+                return;
+            }
+            // Scrolls the column only. scrollIntoView would move every
+            // scrollable ancestor, and the page is one of them.
+            column.scrollTo({
+                top: column.scrollTop + linkBox.top - columnBox.top - column.clientHeight * LAND_AT,
+                behavior: "smooth",
+            });
+        };
+
+        new MutationObserver(records => {
+            for (const {target} of records)
+            {
+                const link = target as HTMLElement;
+                if (link.getAttribute("aria-current") === "true")
+                {
+                    follow(link);
+                    return;
+                }
+            }
+        }).observe(toc, {subtree: true, attributeFilter: ["aria-current"]});
+    }
+</script>

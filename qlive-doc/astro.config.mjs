@@ -62,6 +62,9 @@ export default defineConfig({
                 replacesTitle: true,
             },
             customCss: ["./src/styles/qlive.css", "./src/styles/site.css"],
+            components: {
+                TableOfContents: "./src/components/TableOfContents.astro",
+            },
             description:
                 "Documentation for building applications on the QLive framework.",
             social: [

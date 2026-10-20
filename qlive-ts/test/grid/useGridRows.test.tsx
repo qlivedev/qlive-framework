@@ -91,7 +91,10 @@ describe("useGridRows() through DataGrid", () => {
         expect(first.className).toBe("qlive-grid-row qlive-grid-changed");
         expect(second.className).toBe("qlive-grid-row");
         const [name, num] = cellsOf(first);
-        expect(name.textContent).toBe("Renamed");
+        expect(name.firstChild!.textContent).toBe("Renamed");
+        // what the mark's color says, for a screen reader
+        expect(name.querySelector(".qlive-visually-hidden")!.textContent).toBe(" [Changed by you]");
+        expect(num.querySelector(".qlive-visually-hidden")).toBeNull();
         expect(name.className).toBe("qlive-changed");
         expect(num.hasAttribute("class")).toBe(false);
     });
@@ -182,7 +185,7 @@ describe("useGridRows() through DataGrid", () => {
         expect(cellsOf(first)[0].className).toBe("qlive-conflict");
         expect(second.className).toBe("qlive-grid-row qlive-grid-remote-changed");
         expect(cellsOf(second)[1].className).toBe("qlive-remote-changed");
-        expect(cellsOf(second)[1].textContent).toBe("3");
+        expect(cellsOf(second)[1].textContent).toBe("3 [Changed by someone else]");
 
         act(() => ws.storedState({type: "Foo", id: "foo-2", deleted: true}));
         expect(bodyRows(grid)[1].className).toBe("qlive-grid-row qlive-grid-gone");

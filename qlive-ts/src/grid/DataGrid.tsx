@@ -2,6 +2,7 @@ import type {CSSProperties, JSX} from "react";
 
 import {matchSort, matchSortPart} from "../FilterDSL";
 import i18n from "../i18n";
+import {fieldStatusText} from "../merge/MergeAccessor";
 import {WorkingSet} from "../merge/WorkingSet";
 import {GridColumn, ResolvedColumn, resolveColumn, rowKey} from "./columns";
 import FilterInput from "./FilterInput";
@@ -125,7 +126,7 @@ export default function DataGrid<R>(props: DataGridProps<R>): JSX.Element
 
     const columns = props.columns.map(column => resolveColumn<R>(doc.type, column));
     const filters = useFilters(doc, id, columns.flatMap(column => column.filter ? [column.filter] : []));
-    const {rows, status, fieldClass, stale} = useGridRows(doc, {workingSet, watch});
+    const {rows, status, fieldStatus, fieldClass, stale} = useGridRows(doc, {workingSet, watch});
 
     const unsorted = doc.config.sortFields.filter(
         sortField => !columns.some(column => column.sort !== null &&
@@ -198,6 +199,14 @@ export default function DataGrid<R>(props: DataGridProps<R>): JSX.Element
                                                     column.className(row)
                                                 ) || undefined }>
                                                 { column.render(row) }
+                                                {
+                                                    // the cell has no label to be described from
+                                                    column.statusField && fieldStatus(row, column.statusField) !== "unchanged" && (
+                                                        <span className="qlive-visually-hidden">
+                                                            { " " + fieldStatusText(fieldStatus(row, column.statusField)) }
+                                                        </span>
+                                                    )
+                                                }
                                             </td>
                                         ))
                                     }

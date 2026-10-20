@@ -710,6 +710,25 @@
     {
         box-shadow: calc(-1 * var(--qlive-space-1)) 0 0 0 var(--qlive-mark-color);
     }
+    /*
+     * The mark's icon, before the control and beside its bar: the state's
+     * shape, so the states differ by more than color. The slot is there for
+     * every field, so a field that gets marked moves nothing.
+     */
+    .qlive-field-mark
+    {
+        flex: none;
+        align-self: center;
+        width: 1em;
+        height: 1em;
+    }
+    .qlive-field-mark:is(.qlive-changed, .qlive-conflict, .qlive-conflict-resolved, .qlive-remote-changed)
+    {
+        border: none;
+        box-shadow: none;
+        background-color: var(--qlive-mark-color);
+        mask: var(--qlive-mark-icon) center / contain no-repeat;
+    }
     .qlive-field-error
     {
         flex-basis: 100%;
@@ -825,8 +844,10 @@
         cursor: pointer;
     }
     /*
-     * Text for screen readers only. It must stay clipped like this: display: none or visibility: hidden would hide it
-     * from them too.
+     * Text for screen readers only: a field's merge state, what a picker is
+     * for. It must stay clipped like this. An override
+     * with display: none or visibility: hidden takes it from screen readers
+     * too, and nothing on screen looks wrong.
      */
     .qlive-visually-hidden
     {

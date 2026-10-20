@@ -7,6 +7,7 @@
  * anything, which is what lets a form library adopt the merge instead of reimplementing it. useMerge() is
  * the three lines over it.
  */
+import i18n from "../i18n";
 
 /**
  * Which values a read returns: the user's own edits, what is in the database, or the two folded together.
@@ -52,6 +53,29 @@ const CLASSES: Record<MergeFieldStatus, string> = {
 export function fieldClassName(status: MergeFieldStatus): string
 {
     return CLASSES[status]
+}
+
+/**
+ * What a status is called, the i18n() tag a screen reader is told it by in place of the mark's color.
+ */
+const TEXTS: Record<MergeFieldStatus, string | null> = {
+    unchanged: null,
+    changed: "Changed by you",
+    conflict: "Changed by someone else too, your value stands",
+    resolved: "Conflict resolved",
+    remoteChanged: "Changed by someone else"
+}
+
+/**
+ * What a field with the given status is said to be, for a screen reader; empty for an unchanged one. Text that
+ * goes beside the field's mark, which only the eye sees: visually hidden, in the `qlive-visually-hidden` class, and
+ * in the input's `aria-describedby` or the table cell. Field and DataGrid render it; an application's own input or
+ * table renders it the same way.
+ */
+export function fieldStatusText(status: MergeFieldStatus): string
+{
+    const tag = TEXTS[status]
+    return tag === null ? "" : i18n(tag)
 }
 
 /**

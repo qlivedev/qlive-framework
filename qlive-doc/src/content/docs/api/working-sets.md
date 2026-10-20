@@ -617,6 +617,19 @@ What has happened to one field.
 - `resolved` -- both changed it and the user looked at it and chose
 - `remoteChanged` -- somebody else changed it and the user did not, so their value was taken
 
+## fieldStatusText()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function fieldStatusText(status: MergeFieldStatus): string;
+```
+
+What a field with the given status is said to be, for a screen reader; empty for an unchanged one. Text that
+goes beside the field's mark, which only the eye sees: visually hidden, in the `qlive-visually-hidden` class, and
+in the input's `aria-describedby` or the table cell. Field and DataGrid render it; an application's own input or
+table renders it the same way.
+
 ## MergeView
 
 <span class="api-kind">type</span>

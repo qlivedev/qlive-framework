@@ -92,6 +92,7 @@ export { watchDocument, watchWorkingSet, ENTITY_VERSION } from "./push/entityVer
 export { WorkingSet } from "./merge/WorkingSet";
 export { useWorkingSet } from "./merge/useWorkingSet";
 export { useMerge } from "./merge/useMerge";
+export { fieldStatusText } from "./merge/MergeAccessor";
 export { mergeWorkingSet } from "./merge/mergeWorkingSet";
 
 export { default as useQueryDocument } from "./useQueryDocument";

@@ -33,7 +33,7 @@ export function RowSet({field}: WidgetProps): JSX.Element
     const rows = (field.value ?? []) as any[]
     const keys = rows.map(row => row[key])
     const editable = field.mode === "normal"
-    const describedBy = field.id + "-add"
+    const addId = field.id + "-add"
 
     const container = useRef<HTMLSpanElement>(null)
     /** the index of the row last removed, until focus has moved on from it */
@@ -73,13 +73,14 @@ export function RowSet({field}: WidgetProps): JSX.Element
             id={ editable ? undefined : field.id }
             role="group"
             aria-labelledby={ field.labelId }
+            aria-describedby={ editable ? undefined : field.descriptionId }
         >
             {
                 editable && (
                     <PickerInput
                         id={ field.id }
                         labelId={ field.labelId }
-                        describedBy={ describedBy }
+                        describedBy={ field.descriptionId + " " + addId }
                         mode={ field.mode }
                         required={ false }
                         shown=""
@@ -92,7 +93,7 @@ export function RowSet({field}: WidgetProps): JSX.Element
                     />
                 )
             }
-            { editable && <span id={ describedBy } className="qlive-visually-hidden">{ i18n("Searches the rows to add") }</span> }
+            { editable && <span id={ addId } className="qlive-visually-hidden">{ i18n("Searches the rows to add") }</span> }
             {
                 rows.length > 0 && (
                     <ul className="qlive-rowset-rows">

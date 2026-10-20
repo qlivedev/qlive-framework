@@ -56,6 +56,7 @@ export function RowPicker({field}: WidgetProps): JSX.Element
         <PickerInput
             id={ field.id }
             labelId={ field.labelId }
+            describedBy={ field.descriptionId }
             mode={ field.mode }
             required={ field.required }
             shown={ fieldText(field, row) }

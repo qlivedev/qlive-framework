@@ -64,6 +64,13 @@ export interface FieldState
     id: string
     /** the label's element id, for a widget's aria-labelledby where the label can't name the input by htmlFor */
     labelId: string
+    /**
+     * The id of the text saying what the merge did to the field, which a screen reader reads in place of the mark's
+     * color. A widget puts it in its input's `aria-describedby`, as it puts `id` on the input: one that doesn't
+     * leaves a screen reader without the field's merge state, and nothing looks wrong. Field renders the text; it is
+     * empty while nothing happened to the field.
+     */
+    descriptionId: string
     mode: FieldMode
     /** non-null in the schema */
     required: boolean
@@ -202,6 +209,7 @@ export function fieldState(form: FormState, path: string, options: FieldOptions 
         label: options.label ?? i18n(type + "." + resolved.name),
         id: form.idPrefix + path,
         labelId: form.idPrefix + path + "-label",
+        descriptionId: form.idPrefix + path + "-state",
         mode: form.modes.get(path) ?? options.mode ?? defaultFieldMode(type, storage),
         required: resolved.required,
         meta: config().meta.types[type]?.fields?.[storage] ?? {},

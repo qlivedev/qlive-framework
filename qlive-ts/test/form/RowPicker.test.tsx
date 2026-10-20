@@ -209,7 +209,7 @@ describe("RowPicker", () => {
 
         respondWith({type: "AppUser", rows: USERS, rowCount: 45, config: {}})
         render(<Form row={ ownedFoo() }><Field path="owner"/></Form>)
-        const status = container.querySelector("[role=status]")!
+        const status = container.querySelector(".qlive-picker [role=status]")!
 
         expect(input().hasAttribute("aria-controls")).toBe(false)
         expect(status.textContent).toBe("")
@@ -223,7 +223,7 @@ describe("RowPicker", () => {
         expect(list.querySelectorAll(":scope > :not([role=option])")).toHaveLength(0)
         expect(container.querySelector(".qlive-picker-note")!.getAttribute("aria-hidden")).toBe("true")
         // the same region as before, so a screen reader hears the change
-        expect(container.querySelector("[role=status]")).toBe(status)
+        expect(container.querySelector(".qlive-picker [role=status]")).toBe(status)
         expect(status.textContent).toBe("[{0} more, type to narrow:43]")
     })
 

@@ -161,8 +161,9 @@ describe("RowSet", () => {
         const group = container.querySelector(".qlive-rowset")!
         expect(group.getAttribute("role")).toBe("group")
         expect(document.getElementById(group.getAttribute("aria-labelledby")!)!.tagName).toBe("LABEL")
-        expect(document.getElementById(input()!.getAttribute("aria-describedby")!)!.textContent)
-            .toBe("[Searches the rows to add]")
+        const [state, add] = input()!.getAttribute("aria-describedby")!.split(" ")
+        expect(document.getElementById(state)!.textContent).toBe("")
+        expect(document.getElementById(add)!.textContent).toBe("[Searches the rows to add]")
     })
 
     it("moves focus on to the next row's button after a remove, else the one before, else the picker", async () => {

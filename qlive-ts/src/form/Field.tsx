@@ -4,6 +4,7 @@
 import type {JSX} from "react";
 
 import i18n from "../i18n";
+import {fieldStatusText} from "../merge/MergeAccessor";
 import {fieldText} from "./fieldText";
 import {FormContext, useFormState} from "./FormContext";
 import {FieldOptions, FieldState, fieldState} from "./useField";
@@ -68,7 +69,9 @@ function widgetOf(form: FormContext, field: FieldState, given: Widget | string |
  * A field in `text` mode renders no widget at all, but the value as text in a `qlive-field-text` span.
  *
  * The control, widget or text, carries the merge mark; a decorator goes around the control, so what it adds sits
- * beside the marked box rather than in it.
+ * beside the marked box rather than in it. Before the control sits the mark's icon, so the states differ by shape
+ * and not by color alone; after it a visually hidden text naming the state, which the widget's input is described
+ * by (`field.descriptionId`, see Widget).
  *
  * @param props     the field path, and the options of useField()
  */
@@ -87,7 +90,8 @@ export function Field(props: { path: string } & FieldOptions): JSX.Element
         const FieldWidget = widgetOf(form, field, props.widget)
         content = <FieldWidget field={ field }/>
     }
-    const control = <div className={ ("qlive-field-control " + field.merge.className).trim() }>{ content }</div>
+    const markClass = field.merge.className
+    const control = <div className={ ("qlive-field-control " + markClass).trim() }>{ content }</div>
     const Decorator = props.decorator !== undefined
         ? props.decorator
         : findOverride("decorator", form, field) ?? (form.fromLayout ? ConflictResolution : null)
@@ -96,7 +100,11 @@ export function Field(props: { path: string } & FieldOptions): JSX.Element
         <div className={ "qlive-field qlive-field-mode-" + field.mode }>
             <label id={ field.labelId } htmlFor={ field.mode === "text" ? undefined : field.id }>{ field.label }</label>
             <div className="qlive-field-body">
+                <span className={ ("qlive-field-mark " + markClass).trim() } aria-hidden="true"/>
                 { Decorator ? <Decorator field={ field }>{ control }</Decorator> : control }
+                <span id={ field.descriptionId } className="qlive-visually-hidden">
+                    { fieldStatusText(field.merge.status) }
+                </span>
                 { field.error !== null && <div className="qlive-field-error" role="alert">{ field.error }</div> }
             </div>
         </div>

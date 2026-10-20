@@ -175,7 +175,9 @@ for, a scalar without input text, shows its value and says so.
 A field in `text` mode renders no widget at all, but the value as text in a `qlive-field-text` span.
 
 The control, widget or text, carries the merge mark; a decorator goes around the control, so what it adds sits
-beside the marked box rather than in it.
+beside the marked box rather than in it. Before the control sits the mark's icon, so the states differ by shape
+and not by color alone; after it a visually hidden text naming the state, which the widget's input is described
+by (`field.descriptionId`, see Widget).
 
 **Parameters**
 
@@ -342,6 +344,17 @@ labelId: string;
 
 the label's element id, for a widget's aria-labelledby where the label can't name the input by htmlFor
 
+### FieldState.descriptionId
+
+```ts
+descriptionId: string;
+```
+
+The id of the text saying what the merge did to the field, which a screen reader reads in place of the mark's
+color. A widget puts it in its input's `aria-describedby`, as it puts `id` on the input: one that doesn't
+leaves a screen reader without the field's merge state, and nothing looks wrong. Field renders the text; it is
+empty while nothing happened to the field.
+
 ### FieldState.mode
 
 ```ts
@@ -495,6 +508,12 @@ type Widget = ComponentType<WidgetProps>;
 The input of one field. It gets the whole field state and renders the input only: label, error and merge marks are
 Field's. It only ever sees the modes `normal`, `disabled` and `readOnly`, since a field in `text` mode renders no
 widget.
+
+Two ids tie the input to what Field renders, and a widget must apply both: `field.id` as the input's id, which the
+label names it by, and `field.descriptionId` in the input's `aria-describedby`, the text saying what the merge did
+to the field. A widget that skips the second shows the mark to the eye and hides it from a screen reader.
+
+    <input id={ field.id } aria-describedby={ field.descriptionId } ... />
 
 ## WidgetProps
 

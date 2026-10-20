@@ -276,6 +276,7 @@
         "MergeAccessor",
         "MergeField",
         "MergeFieldStatus",
+        "fieldStatusText",
         "MergeView",
         "Resolution",
         "HeldRows"

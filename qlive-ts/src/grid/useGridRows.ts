@@ -2,7 +2,7 @@ import {useEffect, useRef, useSyncExternalStore} from "react";
 
 import {conditionPredicate} from "../evaluate";
 import {conditionsEqual, FilterExpression} from "../FilterDSL";
-import {fieldClassName, MergeAccessor} from "../merge/MergeAccessor";
+import {fieldClassName, MergeAccessor, MergeFieldStatus} from "../merge/MergeAccessor";
 import {WorkingSet} from "../merge/WorkingSet";
 import {watchWorkingSet} from "../push/entityVersion";
 import {useWatch} from "../push/useDocumentWatch";
@@ -58,8 +58,13 @@ export interface GridRows<R>
     status(row: R): GridRowStatus;
 
     /**
+     * What has happened to a field of a row. A new row's fields are `unchanged`: the row says it all.
+     */
+    fieldStatus(row: R, field: string): MergeFieldStatus;
+
+    /**
      * What has happened to a field of a row, as the class a cell or input carries (see `MergeField.className`),
-     * empty for an unchanged field. A new row's fields carry none: the row says it all.
+     * empty for an unchanged field: `fieldClassName(fieldStatus(row, field))`.
      */
     fieldClass(row: R, field: string): string;
 
@@ -170,10 +175,13 @@ export function useGridRows<R>(
         }
         const fieldsOf = (row: R) => changed.get((row as any).id);
 
+        const fieldStatus = (row: R, field: string) => fieldsOf(row)?.includes(field) ? "remoteChanged" : "unchanged";
+
         return {
             rows: doc.rows,
             status: row => fieldsOf(row) ? "remoteChanged" : "unchanged",
-            fieldClass: (row, field) => fieldsOf(row)?.includes(field) ? fieldClassName("remoteChanged") : "",
+            fieldStatus,
+            fieldClass: (row, field) => fieldClassName(fieldStatus(row, field)),
             stale: watched?.stale ?? false
         };
     }
@@ -198,6 +206,10 @@ export function useGridRows<R>(
     return {
         rows: [...created, ...doc.rows.map(row => workingSet.edit(row as R & object))],
         status: row => rowStatus(workingSet.accessor(row as object)),
+        fieldStatus: (row, field) => {
+            const merge = workingSet.accessor(row as object);
+            return merge.isNew ? "unchanged" : merge.field(field).status;
+        },
         fieldClass: (row, field) => {
             const merge = workingSet.accessor(row as object);
             return merge.isNew ? "" : merge.field(field).className;

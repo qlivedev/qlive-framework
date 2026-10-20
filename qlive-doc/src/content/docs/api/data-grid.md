@@ -441,6 +441,14 @@ status(row: R): GridRowStatus;
 
 what has happened to a row
 
+### GridRows.fieldStatus
+
+```ts
+fieldStatus(row: R, field: string): MergeFieldStatus;
+```
+
+What has happened to a field of a row. A new row's fields are `unchanged`: the row says it all.
+
 ### GridRows.fieldClass
 
 ```ts
@@ -448,7 +456,7 @@ fieldClass(row: R, field: string): string;
 ```
 
 What has happened to a field of a row, as the class a cell or input carries (see `MergeField.className`),
-empty for an unchanged field. A new row's fields carry none: the row says it all.
+empty for an unchanged field: `fieldClassName(fieldStatus(row, field))`.
 
 ### GridRows.stale
 

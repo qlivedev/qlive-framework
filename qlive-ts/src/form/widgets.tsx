@@ -16,6 +16,12 @@ import type {FieldState} from "./useField";
  * The input of one field. It gets the whole field state and renders the input only: label, error and merge marks are
  * Field's. It only ever sees the modes `normal`, `disabled` and `readOnly`, since a field in `text` mode renders no
  * widget.
+ *
+ * Two ids tie the input to what Field renders, and a widget must apply both: `field.id` as the input's id, which the
+ * label names it by, and `field.descriptionId` in the input's `aria-describedby`, the text saying what the merge did
+ * to the field. A widget that skips the second shows the mark to the eye and hides it from a screen reader.
+ *
+ *     <input id={ field.id } aria-describedby={ field.descriptionId } ... />
  */
 export type Widget = ComponentType<WidgetProps>
 
@@ -190,6 +196,7 @@ export function TextInput({field, type = "text", inputMode}: {
             value={ field.text }
             required={ field.required }
             maxLength={ field.meta.maxLength }
+            aria-describedby={ field.descriptionId }
             aria-invalid={ field.error !== null || undefined }
             onChange={ e => field.setText(e.target.value) }
             { ...modeProps(field) }
@@ -228,6 +235,7 @@ export function Checkbox({field}: WidgetProps): JSX.Element
         <input
             id={ field.id }
             type="checkbox"
+            aria-describedby={ field.descriptionId }
             checked={ field.value === true }
             disabled={ field.mode !== "normal" }
             onChange={ e => field.setValue(e.target.checked) }
@@ -246,6 +254,7 @@ function Choice({field, options}: { field: FieldState, options: { key: string, v
     return (
         <select
             id={ field.id }
+            aria-describedby={ field.descriptionId }
             value={ current }
             required={ field.required }
             disabled={ field.mode !== "normal" }
@@ -281,7 +290,7 @@ export function BooleanSelect({field}: WidgetProps): JSX.Element
 export function MissingWidget({field}: WidgetProps): JSX.Element
 {
     return (
-        <span id={ field.id } className="qlive-field-missing">
+        <span id={ field.id } className="qlive-field-missing" aria-describedby={ field.descriptionId }>
             { formatValue(field.value, field.kind === "scalar" ? field.fieldType : "String") }
             { " " }
             <small>({ i18n("No widget for {0}", field.fieldType) })</small>

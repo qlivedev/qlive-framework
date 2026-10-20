@@ -1,7 +1,7 @@
 /*
  * useField: one field of a form, resolved against the schema and bound to the draft.
  */
-import type {ReactNode} from "react";
+import {ReactNode, useLayoutEffect} from "react";
 
 import config, {DomainFieldMeta} from "../config";
 import type {FilterExpression} from "../FilterDSL";
@@ -266,5 +266,15 @@ export function fieldState(form: FormState, path: string, options: FieldOptions 
  */
 export function useField(path: string, options?: FieldOptions): FieldState
 {
-    return fieldState(useFormState(), path, options)
+    const form = useFormState()
+    const field = fieldState(form, path, options)
+
+    // what the form's live region calls the field, if it ever has to
+    const {registerField} = form
+    const {labelId} = field
+    const name = field.merge.name
+    const label = typeof field.label === "string" ? field.label : i18n(field.domainType + "." + field.name)
+    useLayoutEffect(() => registerField(name, labelId, label), [registerField, name, labelId, label])
+
+    return field
 }

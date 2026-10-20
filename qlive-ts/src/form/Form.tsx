@@ -88,19 +88,32 @@ interface Marked
     conflict: Set<string>
 }
 
+/** the fields on screen, by the merge's name: what each is called where its label isn't found, by label id */
+type ShownFields = Map<string, Map<string, string>>
+
 /**
- * What the form's live region says about the row's fields somebody else changed since the last render, and those a
- * save left in conflict; null for nothing new. A row's fields marked when the form first shows it are no news.
+ * What a field on screen is called: the text of its label, else the label it was given or its translation.
  */
-function newlyMarked(before: Marked | null, now: Marked, type: string): string | null
+function shownLabel(labels: Map<string, string>): string
+{
+    const [labelId, label] = labels.entries().next().value!
+    return document.getElementById(labelId)?.textContent || label
+}
+
+/**
+ * What the form's live region says about the fields on screen somebody else changed since the last render, and those
+ * a save left in conflict, each called by its label; null for nothing new. A row's fields marked when the form first
+ * shows it are no news.
+ */
+function newlyMarked(before: Marked | null, now: Marked, shown: ShownFields): string | null
 {
     if (!before || before.row !== now.row)
     {
         return null
     }
-    const named = (names: string[]) => names.map(name => i18n(type + "." + name)).join(", ")
-    const conflict = [...now.conflict].filter(name => !before.conflict.has(name))
-    const remote = [...now.remote].filter(name => !before.remote.has(name))
+    const named = (names: string[]) => names.map(name => shownLabel(shown.get(name)!)).join(", ")
+    const conflict = [...now.conflict].filter(name => !before.conflict.has(name) && shown.has(name))
+    const remote = [...now.remote].filter(name => !before.remote.has(name) && shown.has(name))
     const parts = []
     if (conflict.length)
     {
@@ -166,15 +179,27 @@ export function Form({row, layout, children}: FormProps): JSX.Element
 
     const [announcement, setAnnouncement] = useState<Announcement>({text: "", count: 0})
     const marked = useRef<Marked | null>(null)
+    const shown = useRef<ShownFields>(new Map())
+    const registerField = useCallback((name: string, labelId: string, label: string) => {
+        const labels = shown.current.get(name) ?? new Map<string, string>()
+        shown.current.set(name, labels.set(labelId, label))
+        return () => {
+            labels.delete(labelId)
+            if (labels.size === 0 && shown.current.get(name) === labels)
+            {
+                shown.current.delete(name)
+            }
+        }
+    }, [])
     useEffect(() => {
         const now = markedOf(row, merge)
-        const text = newlyMarked(marked.current, now, type)
+        const text = newlyMarked(marked.current, now, shown.current)
         marked.current = now
         if (text !== null)
         {
             setAnnouncement(current => ({text, count: current.count + 1}))
         }
-    }, [row, merge, type])
+    }, [row, merge])
 
     // how many FormStatus place the region; while none does, the form renders it at its top
     const placed = useRef(0)
@@ -222,9 +247,12 @@ export function Form({row, layout, children}: FormProps): JSX.Element
         const layoutName = resolvedLayout?.name ?? null
         return {
             row, domainType: type, layoutName, merge, invalid, modes, setMode, edits, setEdit, idPrefix, fromLayout,
-            announcement, registerStatus
+            announcement, registerStatus, registerField
         }
-    }, [row, type, resolvedLayout, merge, modes, setMode, edits, setEdit, idPrefix, fromLayout, announcement, registerStatus])
+    }, [
+        row, type, resolvedLayout, merge, modes, setMode, edits, setEdit, idPrefix, fromLayout, announcement,
+        registerStatus, registerField
+    ])
 
     const status = !statusPlaced && <StatusRegion announcement={ announcement }/>
     return (

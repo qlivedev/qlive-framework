@@ -7,7 +7,7 @@ import i18n from "../i18n";
 import {fieldStatusText} from "../merge/MergeAccessor";
 import {fieldText} from "./fieldText";
 import {FormContext, useFormState} from "./FormContext";
-import {FieldOptions, FieldState, fieldState} from "./useField";
+import {FieldOptions, FieldState, useField} from "./useField";
 import {builtInWidget, FieldDecoratorProps, findOverride, namedWidget, Widget} from "./widgets";
 
 /**
@@ -78,7 +78,7 @@ function widgetOf(form: FormContext, field: FieldState, given: Widget | string |
 export function Field(props: { path: string } & FieldOptions): JSX.Element
 {
     const form = useFormState()
-    const field = fieldState(form, props.path, props)
+    const field = useField(props.path, props)
 
     let content: JSX.Element
     if (field.mode === "text")

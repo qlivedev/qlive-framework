@@ -155,6 +155,23 @@ describe("the merge state for screen readers", () => {
         expect(region.firstChild).toBe(first)
     })
 
+    it("names only the fields on screen, each by what its label says", async () => {
+
+        const {ws, bar} = await editableBar()
+        render(<Form row={ bar }><Field path="name" label={ <b>Title</b> }/></Form>)
+        const [region] = regions()
+
+        act(() => {
+            ws.storedState({type: "Bar", id: "bar-1", version: "v9", fields: {num: 9}})
+        })
+        expect(region.textContent).toBe("")
+
+        act(() => {
+            ws.storedState({type: "Bar", id: "bar-1", version: "v10", fields: {name: "Theirs", num: 10}})
+        })
+        expect(region.textContent).toBe("[Changed by someone else: {0}:Title]")
+    })
+
     it("has the region at the top of the form, unless a FormStatus places it", async () => {
 
         const {bar} = await editableBar()

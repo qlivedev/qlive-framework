@@ -77,6 +77,11 @@ export interface FormState extends FormContext
     announcement: Announcement
     /** tells the form a FormStatus places its live region; returns what tells it the FormStatus is gone */
     registerStatus(): () => void
+    /**
+     * Tells the form a field is on screen, by the merge's name for it, the id of its label and what it is called
+     * where no element has that id; returns what tells it the field is gone. What the live region names.
+     */
+    registerField(name: string, labelId: string, label: string): () => void
 }
 
 /** @internal */

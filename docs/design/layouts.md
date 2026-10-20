@@ -495,8 +495,23 @@ What follows from the rooting:
   again.
 - **Whether the current value still qualifies** is the same evaluation
   with the current related row in place: free for a catalog type, one
-  request otherwise. Whether a value that no longer qualifies shows as
-  invalid or is cleared is open.
+  request otherwise -- the rewritten condition and `key eq current`,
+  sent when the rewritten condition changes, which is when the picker
+  asks again anyway.
+- **A value that doesn't qualify is invalid, never cleared**
+  (decided 2026-10-20). The input keeps showing the row's name, marked
+  `aria-invalid`, with a message that the value isn't offered here, and
+  the field is listed in the form's `invalid`, as text that doesn't
+  parse is; whether Save then refuses is the application's call, as it
+  is for a parse error. Clearing is out for three reasons: a non-null
+  key has nothing to clear to; data older than the condition (a flagged
+  foo already holding TYPE_D) would make a form dirty just by opening
+  it, and saving would write a change nobody made; and undoing the
+  change that disqualified the value -- unticking the flag -- should
+  bring the value back by itself, not only through Undo. This is no
+  enforcement: a layout's condition is about what the browser offers,
+  and the server doesn't see it as a rule; refusing such a value on the
+  server belongs to rules.
 - **References through another relation read its relation object**,
   which may be stale after its key changed, as for `fieldText()`. Not
   the fields the foreign key references: `fooType.name` is `row.type`
@@ -571,7 +586,7 @@ any other type gets the condition rewritten for the endpoint, and the
 picker asks again when the rewritten condition changes, which is when a
 value it reads from the row did. qlive-test's layout example offers
 TYPE_D only to foos without the flag. Whether the current value still
-qualifies is not checked yet (see Open items).
+qualifies is not checked yet; it is to show as invalid (see above).
 
 - **A changed relation reads only its key.** Another relation the
   condition reads through is its relation object while its key is
@@ -788,8 +803,6 @@ the ambiguity.
 
 - **Rules that act**: see the raw notes above.
 - **Asynchronous checks** and their pending state.
-- **A picked value the field's condition no longer allows**, after a
-  field it depends on changed: shown as invalid, or cleared.
 - **Which fields a field condition may read on the endpoint.** Only the
   served ones today, so "enabled users only" can't be said. Widening it
   per request would let a client probe any column, `AppUser.password`

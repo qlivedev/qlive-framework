@@ -8,6 +8,7 @@ import {formatValue, hasInput} from "../converter";
 import i18n from "../i18n";
 import {findType} from "../type-utils";
 import type {FormContext} from "./FormContext";
+import {RowPicker} from "./RowPicker";
 import type {FieldState} from "./useField";
 
 /**
@@ -286,8 +287,8 @@ export function BooleanSelect({field}: WidgetProps): JSX.Element
 }
 
 /**
- * What a field gets where QLive has no widget for it, which a form shows rather than failing: a relation until the
- * pickers exist, and a scalar without an input text.
+ * What a field gets where QLive has no widget for it, which a form shows rather than failing: a many-to-many field
+ * until its row set exists, and a scalar without an input text.
  */
 export function MissingWidget({field}: WidgetProps): JSX.Element
 {
@@ -309,6 +310,10 @@ const NUMBER_TYPES = new Set(["Byte", "Short", "Int", "Number", "Long", "BigInte
  */
 export function builtInWidget(field: FieldState): Widget
 {
+    if (field.kind === "toOne")
+    {
+        return RowPicker
+    }
     if (field.kind !== "scalar")
     {
         return MissingWidget

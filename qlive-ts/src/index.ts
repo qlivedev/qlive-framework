@@ -144,7 +144,8 @@ export { defaultFieldMode } from "./form/fieldMode";
 export { Form } from "./form/Form";
 export { useFormContext } from "./form/FormContext";
 export { useField } from "./form/useField";
-export { Field, ConflictResolution, fieldText } from "./form/Field";
+export { Field, ConflictResolution } from "./form/Field";
+export { fieldText } from "./form/fieldText";
 export {
     registerWidget,
     TextInput,
@@ -157,6 +158,8 @@ export {
     MissingWidget
 } from "./form/widgets";
 export { deriveLayout, registerComponent } from "./form/layout";
+export { RowPicker } from "./form/RowPicker";
+export { relatedRows } from "./form/relatedRows";
 
 // ---------------------------------------------------------------------------
 // TYPESCRIPT TYPES
@@ -216,6 +219,7 @@ export type { FormContext } from "./form/FormContext";
 export type { FieldOptions, FieldState } from "./form/useField";
 export type { Widget, WidgetProps, FieldDecorator, FieldDecoratorProps, WidgetOverride } from "./form/widgets";
 export type { Layout, LayoutNode, LayoutFieldNode, LayoutSectionNode, LayoutComponentNode } from "./form/layout";
+export type { RelatedRows } from "./form/relatedRows";
 export type { GraphQLParams, GraphQLError, GraphQLErrorLocation } from "./util/graphql";
 export type {
     QueryConfig,

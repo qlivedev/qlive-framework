@@ -168,9 +168,9 @@ declare function Field(props: {
 One field of the form it is in: a label, the widget, the error, with the merge mark on the control.
 
 The widget is the one given, else the most specific override in `config().widgets` (WidgetOverride), else QLive's
-own for the type: a text input, a number input, a date or date-time picker, a checkbox, a select for an enum. A
-field QLive has none for -- a relation, until pickers exist, or a scalar without input text -- shows its value
-and says so.
+own for the type: a text input, a number input, a date or date-time picker, a checkbox, a select for an enum, a
+RowPicker for a to-one relation. A field QLive has none for -- a many-to-many field, until its row set exists, or
+a scalar without input text -- shows its value and says so.
 
 A field in `text` mode renders no widget at all, but the value as text in a `qlive-field-text` span.
 
@@ -703,8 +703,83 @@ Edits a nullable Boolean: yes, no, or nothing.
 declare function MissingWidget({ field }: WidgetProps): JSX.Element;
 ```
 
-What a field gets where QLive has no widget for it, which a form shows rather than failing: a relation until the
-pickers exist, and a scalar without an input text.
+What a field gets where QLive has no widget for it, which a form shows rather than failing: a many-to-many field
+until its row set exists, and a scalar without an input text.
+
+## RowPicker()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function RowPicker({ field }: WidgetProps): JSX.Element;
+```
+
+Picks the row a to-one relation points at: a text input searching the related rows by their name fields, and the
+list of the rows found, the first page of them. Choosing one sets the foreign key; a nullable key is cleared by
+emptying the input.
+
+The rows come from relatedRows(), the server's related-rows endpoint, sorted by the name fields. The input shows
+the chosen row's name while it isn't being typed into, and what the user typed while it is; typed text that
+chooses no row is dropped when the input loses focus.
+
+QLive's widget for every to-one relation, so a form edits a foreign key without being told how.
+
+## relatedRows()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function relatedRows<R = any>(type: string, delta?: QueryConfigDelta): Promise<RelatedRows<R>>;
+```
+
+The rows of a type a foreign key references, as the given config narrows and pages them: what a picker offers.
+
+The server answers for the targets of foreign keys only, with the fields they reference and the type's name
+fields, and the config filters and sorts by those only. The type's own query config applies under the one given,
+and the page is held to the type's maximum page size.
+
+Running on a fixture, there is no server to ask, and this rejects without trying.
+
+**Parameters**
+
+| | |
+|---|---|
+| `type` | the related type, e.g. "AppUser" |
+| `delta` | the config, over the type's own and the defaults |
+
+## RelatedRows
+
+<span class="api-kind">interface</span>
+
+```ts
+interface RelatedRows<R = any>
+```
+
+What relatedRows() resolves with.
+
+### RelatedRows.type
+
+```ts
+type: string;
+```
+
+the type the rows are of
+
+### RelatedRows.rows
+
+```ts
+rows: R[];
+```
+
+the rows of the page, with the key fields foreign keys reference and the type's name fields
+
+### RelatedRows.rowCount
+
+```ts
+rowCount: number;
+```
+
+how many rows the condition finds, the page aside
 
 ## Layout
 

@@ -3,71 +3,11 @@
  */
 import type {JSX} from "react";
 
-import config from "../config";
-import {formatValue} from "../converter";
 import i18n from "../i18n";
-import {objectFields, primaryKeyFields, unwrapAll} from "../type-utils";
+import {fieldText} from "./fieldText";
 import {FormContext, useFormState} from "./FormContext";
 import {FieldOptions, FieldState, fieldState} from "./useField";
 import {builtInWidget, FieldDecoratorProps, findOverride, namedWidget, Widget} from "./widgets";
-
-/**
- * A related row named by its type's name fields, the key where it has none or the row isn't selected.
- */
-function rowName(type: string, row: any, key: unknown): string
-{
-    const nameFields = config().meta.types[type]?.meta?.nameFields ?? []
-    if (!row || !nameFields.length || !nameFields.every(name => name in row))
-    {
-        return formatValue(key, "String")
-    }
-    const fields = objectFields(type)
-    return nameFields
-        .map(name => formatValue(row[name], unwrapAll(fields.find(f => f.name === name)!.type).name!))
-        .filter(text => text !== "")
-        .join(" ")
-}
-
-/**
- * The field of the related type a to-one relation's foreign key holds.
- */
-function targetKey(field: FieldState): string
-{
-    const relation = config().meta.relations.find(r => r.sourceType === field.domainType && r.leftSideObjectName === field.name)
-    return relation?.targetFields[0] ?? primaryKeyFields(field.fieldType)[0]
-}
-
-/**
- * The value of a field as text, what `text` mode shows: the formatted value, the related row's name for a relation.
- *
- * @param field     the field
- * @param row       the row it is a field of
- * @param value     the value to show, the field's own by default
- */
-export function fieldText(field: FieldState, row: object, value: unknown = field.value): string
-{
-    switch (field.kind)
-    {
-        case "scalar":
-            return formatValue(value, field.fieldType)
-        case "toOne":
-        {
-            if (value === null || value === undefined)
-            {
-                return ""
-            }
-            // the relation object is what the row was read with, so it names the key only while that is unchanged
-            const related = (row as any)[field.name]
-            const key = targetKey(field)
-            return rowName(field.fieldType, related && related[key] === value ? related : null, value)
-        }
-        case "manyToMany":
-        {
-            const key = primaryKeyFields(field.fieldType)[0]
-            return ((value ?? []) as any[]).map(related => rowName(field.fieldType, related, related[key])).join(", ")
-        }
-    }
-}
 
 /**
  * The buttons that resolve a field both writes changed, around its widget: one keeping the user's value, one taking
@@ -121,9 +61,9 @@ function widgetOf(form: FormContext, field: FieldState, given: Widget | string |
  * One field of the form it is in: a label, the widget, the error, with the merge mark on the control.
  *
  * The widget is the one given, else the most specific override in `config().widgets` (WidgetOverride), else QLive's
- * own for the type: a text input, a number input, a date or date-time picker, a checkbox, a select for an enum. A
- * field QLive has none for -- a relation, until pickers exist, or a scalar without input text -- shows its value
- * and says so.
+ * own for the type: a text input, a number input, a date or date-time picker, a checkbox, a select for an enum, a
+ * RowPicker for a to-one relation. A field QLive has none for -- a many-to-many field, until its row set exists, or
+ * a scalar without input text -- shows its value and says so.
  *
  * A field in `text` mode renders no widget at all, but the value as text in a `qlive-field-text` span.
  *

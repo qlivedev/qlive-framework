@@ -700,7 +700,13 @@
   {
     "description":"Contains the system configuration of a QLive system.",
     "fieldDocs":[
-      
+      {
+        "description":"Every row of every catalog type, by type name, see `CatalogMeta`.",
+        "name":"catalogs",
+        "paramDocs":[
+          
+        ]
+      }
     ],
     "name":"QLiveConfig"
   },

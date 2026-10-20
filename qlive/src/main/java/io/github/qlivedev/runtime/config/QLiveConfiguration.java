@@ -19,7 +19,9 @@ import io.github.qlivedev.runtime.push.ConnectionListener;
 import io.github.qlivedev.runtime.push.PushHandshakeInterceptor;
 import io.github.qlivedev.runtime.push.PushMessageHandler;
 import io.github.qlivedev.runtime.push.PushWebSocketHandler;
+import io.github.qlivedev.runtime.query.QueryDocumentService;
 import io.github.qlivedev.runtime.service.BootstrapService;
+import io.github.qlivedev.runtime.service.Catalogs;
 import io.github.qlivedev.runtime.service.DefaultBootstrapService;
 import io.github.qlivedev.runtime.service.InjectionArgumentProcessor;
 import io.github.qlivedev.runtime.service.QueryConfigArgumentProcessor;
@@ -80,6 +82,9 @@ public class QLiveConfiguration
      *     never configured one". An application that forgets the bean gets a missing-bean failure at startup
      *     instead of pages that answer 503 forever.
      * </p>
+     * <p>
+     *     The rows of the catalog types are read here, once, with the application's query document service.
+     * </p>
      */
     @Bean
     public BootstrapService bootstrapService(
@@ -87,12 +92,19 @@ public class QLiveConfiguration
         GraphQL graphQL,
         StaticAnalysisProvider staticAnalysis,
         List<InjectionArgumentProcessor> argumentProcessors,
+        QueryDocumentService queryDocumentService,
         Environment environment
     )
         throws IOException
     {
         return new DefaultBootstrapService(
-            servletContext, domain, graphQL, staticAnalysis, argumentProcessors, environment.matchesProfiles("prod")
+            servletContext,
+            domain,
+            graphQL,
+            staticAnalysis,
+            argumentProcessors,
+            Catalogs.load(domain, queryDocumentService, graphQL),
+            environment.matchesProfiles("prod")
         );
     }
 

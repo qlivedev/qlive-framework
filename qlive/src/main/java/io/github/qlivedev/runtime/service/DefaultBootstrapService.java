@@ -67,6 +67,7 @@ public class DefaultBootstrapService
             graphQL,
             staticAnalysisProvider,
             List.of(new QueryConfigArgumentProcessor(domain)),
+            Map.of(),
             prod
         );
     }
@@ -74,6 +75,8 @@ public class DefaultBootstrapService
 
     /// @param argumentProcessors  what turns the static parameters of an application's `useInjection()` calls
     ///                            into GraphQL variables, see {@link InjectionArgumentProcessor}
+    /// @param catalogs            every row of every catalog type, by type name, see {@link Catalogs}. They go
+    ///                            into the config of every page that gets the schema.
     /// @param prod                true when running in production, where the schema the client gets carries no
     ///                            descriptions. They document the domain for the developer -- DomainTables shows
     ///                            them -- and are a quarter of the schema every page would ship otherwise.
@@ -83,6 +86,7 @@ public class DefaultBootstrapService
         GraphQL graphQL,
         StaticAnalysisProvider staticAnalysisProvider,
         List<InjectionArgumentProcessor> argumentProcessors,
+        Map<String, List<Map<String, Object>>> catalogs,
         boolean prod
     )
     {
@@ -99,10 +103,10 @@ public class DefaultBootstrapService
         // Both variants are built here rather than on first use: the reduced one costs nothing to produce, and
         // building both up front keeps this constructor the only place that touches the schema.
         qlConfigJSON = new JSONHolder(
-            createSystemConfig(servletContext, domain, false)
+            createSystemConfig(servletContext, domain, catalogs, false)
         );
         reducedConfigJSON = new JSONHolder(
-            createSystemConfig(servletContext, domain, true)
+            createSystemConfig(servletContext, domain, catalogs, true)
         );
 
         log.info(
@@ -116,8 +120,13 @@ public class DefaultBootstrapService
     ///
     /// @param reduced  if true, produce the reduced variant: the same config with an empty domain in place of
     ///                 the introspected schema and the domain meta data. See {@link #emptyMeta()} for what
-    ///                 "empty" has to mean here.
-    private QLiveConfig createSystemConfig(ServletContext servletContext, QLiveDomain domain, boolean reduced)
+    ///                 "empty" has to mean here. It has no catalogs either.
+    private QLiveConfig createSystemConfig(
+        ServletContext servletContext,
+        QLiveDomain domain,
+        Map<String, List<Map<String, Object>>> catalogs,
+        boolean reduced
+    )
     {
         QLiveConfig qlConfig = new QLiveConfig();
         qlConfig.setContextPath(servletContext.getContextPath());
@@ -126,6 +135,7 @@ public class DefaultBootstrapService
         {
             qlConfig.setSchema(Map.of("types", List.of()));
             qlConfig.setMeta(emptyMeta());
+            qlConfig.setCatalogs(Map.of());
 
             return qlConfig;
         }
@@ -145,6 +155,7 @@ public class DefaultBootstrapService
 
         qlConfig.setMeta(domain.getMetaData());
         qlConfig.setSchema(cleaned);
+        qlConfig.setCatalogs(catalogs);
 
         return qlConfig;
     }

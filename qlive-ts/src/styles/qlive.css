@@ -692,6 +692,14 @@
         gap: var(--qlive-space-1) var(--qlive-space-2);
         align-items: baseline;
     }
+    /*
+     * A scroll container such as a text area otherwise has its baseline at
+     * its bottom, and the label would line up with the last line of it.
+     */
+    .qlive-field-body *
+    {
+        baseline-source: first;
+    }
     .qlive-field-error
     {
         flex-basis: 100%;

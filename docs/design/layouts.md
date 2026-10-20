@@ -170,9 +170,13 @@ The sketch below is what was built, apart from these, as of 2026-10-20:
   `Type.VALUE`, until it becomes the filtering picker (see below). A
   checkbox and a select have no read-only state, so `readOnly` disables
   them. A to-one relation gets `RowPicker` (see
-  Related rows). A many-to-many field gets `MissingWidget`, which shows
-  the value and says there is no widget, until its row set exists; so
-  does a scalar without input text, such as `BigDecimal`.
+  Related rows). A many-to-many field gets `RowSet`: the associated
+  rows as entries with a remove button, and the picker's search adding
+  a row not yet associated -- through the endpoint, excluding the
+  associated keys, or in the browser for a catalog type. A row added
+  carries what the picker fetched, its key and name fields. A scalar
+  without input text, such as `BigDecimal`, gets `MissingWidget`, which
+  shows the value and says there is no widget.
 - **One widget for every closed set** (decided 2026-10-20): an enum, a
   catalog type and any other related type all get the picker with a
   text filter, `RowPicker`. A select loses to it as soon as there are

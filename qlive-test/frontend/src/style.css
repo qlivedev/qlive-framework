@@ -111,7 +111,6 @@ body
     border: 1px solid var(--qlive-color-border);
     border-radius: 0.25rem;
     background: var(--qlive-color-bg);
-    overflow: hidden;
 }
 
 .bar-edit .qlive-field-control:focus-within

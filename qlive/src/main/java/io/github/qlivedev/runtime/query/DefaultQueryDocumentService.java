@@ -9,6 +9,8 @@ import graphql.GraphQL;
 import graphql.schema.DataFetchingEnvironment;
 import org.jooq.DSLContext;
 
+import java.util.List;
+
 /// Default {@link QueryDocumentService} implementation, querying the application's JOOQ schema.
 public class DefaultQueryDocumentService
     implements QueryDocumentService
@@ -40,14 +42,21 @@ public class DefaultQueryDocumentService
     }
 
 
+    @Override
+    public <T> DocumentQueryBuilder<T> buildQuery(Class<T> type, List<String> fields, QueryConfig config)
+    {
+        PojoTypes.ensurePojoType(type);
+
+        return new DocumentQueryBuilder<>(this::execute, type, fields, config);
+    }
+
+
     private <T> QueryDocument<T> execute(DocumentQueryBuilder<T> query)
     {
-        final QueryPlan plan = planBuilder.build(
-            query.getType(),
-            query.getEnv(),
-            limitPage(query.getType(), query.getConfig()),
-            query.isSelectByFilter()
-        );
+        final QueryConfig config = limitPage(query.getType(), query.getConfig());
+        final QueryPlan plan = query.getEnv() != null
+            ? planBuilder.build(query.getType(), query.getEnv(), config, query.isSelectByFilter())
+            : planBuilder.build(query.getType(), query.getFields(), config, query.isSelectByFilter());
 
         // one execution per query: it collects what it materialises as it goes, so that the relations it
         // cannot join can find their parents

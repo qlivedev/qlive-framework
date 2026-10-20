@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -76,6 +77,62 @@ public class QueryPlanBuilder
         boolean selectByFilter
     )
     {
+        return build(type, config, selectByFilter, (root, aliases) -> {
+            for (SelectedField field : env.getSelectionSet().getImmediateFields())
+            {
+                if (ROWS.equals(field.getName()) && field.getSelectionSet() != null)
+                {
+                    walk(root, field.getSelectionSet(), aliases);
+                }
+            }
+        });
+    }
+
+
+    /// Plans a query of the given fields of the row type, and no relation, where there is no GraphQL query
+    /// to take the selection from. The fields are the boundary then, as the selection is otherwise.
+    ///
+    /// @param type             the row type
+    /// @param fields           names of the fields to select, each a column of the type
+    /// @param config           query config as the client sent it
+    /// @param selectByFilter   whether a filter or sort path may name a field not among the selected
+    public QueryPlan build(
+        Class<?> type,
+        Collection<String> fields,
+        QueryConfig config,
+        boolean selectByFilter
+    )
+    {
+        return build(type, config, selectByFilter, (root, aliases) -> {
+            for (String field : fields)
+            {
+                if (types.lookupField(root.getDomainType(), field) == null)
+                {
+                    throw new QLiveException(
+                        "No column '" + field + "' on " + root.getDomainType() + " to select."
+                    );
+                }
+                column(root, field);
+            }
+        });
+    }
+
+
+    /// What adds the selected columns and relations below the root node.
+    @FunctionalInterface
+    private interface Selection
+    {
+        void select(PlanNode root, Set<String> aliases);
+    }
+
+
+    private QueryPlan build(
+        Class<?> type,
+        QueryConfig config,
+        boolean selectByFilter,
+        Selection selection
+    )
+    {
         final String domainType = type.getSimpleName();
         final TableLookup lookup = types.lookupType(domainType);
 
@@ -101,13 +158,7 @@ public class QueryPlanBuilder
             false
         );
 
-        for (SelectedField field : env.getSelectionSet().getImmediateFields())
-        {
-            if (ROWS.equals(field.getName()) && field.getSelectionSet() != null)
-            {
-                walk(root, field.getSelectionSet(), aliases);
-            }
-        }
+        selection.select(root, aliases);
 
         final PathResolver resolver = new PathResolver(root, selectByFilter, aliases);
 

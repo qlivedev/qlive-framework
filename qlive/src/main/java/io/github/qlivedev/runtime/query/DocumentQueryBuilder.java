@@ -4,6 +4,8 @@ import io.github.qlivedev.model.QueryConfig;
 import io.github.qlivedev.model.QueryDocument;
 import graphql.schema.DataFetchingEnvironment;
 
+import java.util.List;
+
 /// One query document query in the making: what the client asked for, plus the options the logic bean adds
 /// before executing it.
 public class DocumentQueryBuilder<T>
@@ -23,6 +25,8 @@ public class DocumentQueryBuilder<T>
 
     private final DataFetchingEnvironment env;
 
+    private final List<String> fields;
+
     private final QueryConfig config;
 
     private boolean selectByFilter;
@@ -35,9 +39,33 @@ public class DocumentQueryBuilder<T>
         QueryConfig config
     )
     {
+        this(execution, type, env, null, config);
+    }
+
+
+    public DocumentQueryBuilder(
+        Execution<T> execution,
+        Class<T> type,
+        List<String> fields,
+        QueryConfig config
+    )
+    {
+        this(execution, type, null, List.copyOf(fields), config);
+    }
+
+
+    private DocumentQueryBuilder(
+        Execution<T> execution,
+        Class<T> type,
+        DataFetchingEnvironment env,
+        List<String> fields,
+        QueryConfig config
+    )
+    {
         this.execution = execution;
         this.type = type;
         this.env = env;
+        this.fields = fields;
         this.config = config == null ? new QueryConfig() : config;
     }
 
@@ -48,9 +76,17 @@ public class DocumentQueryBuilder<T>
     }
 
 
+    /// The environment of the GraphQL query selecting the document, `null` for a query of {@link #getFields()}.
     public DataFetchingEnvironment getEnv()
     {
         return env;
+    }
+
+
+    /// The fields of the row type a query outside GraphQL selects, `null` for a GraphQL query.
+    public List<String> getFields()
+    {
+        return fields;
     }
 
 

@@ -334,6 +334,14 @@ id: string;
 
 the input's element id, for the label's htmlFor
 
+### FieldState.labelId
+
+```ts
+labelId: string;
+```
+
+the label's element id, for a widget's aria-labelledby where the label can't name the input by htmlFor
+
 ### FieldState.mode
 
 ```ts

@@ -76,12 +76,11 @@ export function Field(props: { path: string } & FieldOptions): JSX.Element
 {
     const form = useFormState()
     const field = fieldState(form, props.path, props)
-    const labelId = field.id + "-label"
 
     let content: JSX.Element
     if (field.mode === "text")
     {
-        content = <FieldText field={ field } labelId={ labelId }/>
+        content = <FieldText field={ field } labelId={ field.labelId }/>
     }
     else
     {
@@ -95,7 +94,7 @@ export function Field(props: { path: string } & FieldOptions): JSX.Element
 
     return (
         <div className={ "qlive-field qlive-field-mode-" + field.mode }>
-            <label id={ labelId } htmlFor={ field.mode === "text" ? undefined : field.id }>{ field.label }</label>
+            <label id={ field.labelId } htmlFor={ field.mode === "text" ? undefined : field.id }>{ field.label }</label>
             <div className="qlive-field-body">
                 { Decorator ? <Decorator field={ field }>{ control }</Decorator> : control }
                 { field.error !== null && <div className="qlive-field-error" role="alert">{ field.error }</div> }

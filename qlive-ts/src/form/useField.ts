@@ -62,6 +62,8 @@ export interface FieldState
     label: ReactNode
     /** the input's element id, for the label's htmlFor */
     id: string
+    /** the label's element id, for a widget's aria-labelledby where the label can't name the input by htmlFor */
+    labelId: string
     mode: FieldMode
     /** non-null in the schema */
     required: boolean
@@ -199,6 +201,7 @@ export function fieldState(form: FormState, path: string, options: FieldOptions 
         kind: resolved.kind,
         label: options.label ?? i18n(type + "." + resolved.name),
         id: form.idPrefix + path,
+        labelId: form.idPrefix + path + "-label",
         mode: form.modes.get(path) ?? options.mode ?? defaultFieldMode(type, storage),
         required: resolved.required,
         meta: config().meta.types[type]?.fields?.[storage] ?? {},

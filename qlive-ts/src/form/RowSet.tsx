@@ -1,7 +1,7 @@
 /*
  * RowSet: the widget of a many-to-many field, the rows a row is associated with.
  */
-import {JSX} from "react";
+import {JSX, useEffect, useRef} from "react";
 
 import {catalogRows, isCatalog} from "../catalog";
 import {field as fieldRef, FilterExpression, not, values} from "../FilterDSL";
@@ -22,6 +22,9 @@ import type {WidgetProps} from "./widgets";
  * the row's query is read again.
  *
  * In `disabled` and `readOnly` the rows are listed without the buttons and without the picker.
+ *
+ * The whole is a group named by the field's label, which names the picker too; a hidden text describes what the picker
+ * is for. After a row is removed, focus moves to the button of the row after it, else the one before, else the picker.
  */
 export function RowSet({field}: WidgetProps): JSX.Element
 {
@@ -30,6 +33,28 @@ export function RowSet({field}: WidgetProps): JSX.Element
     const rows = (field.value ?? []) as any[]
     const keys = rows.map(row => row[key])
     const editable = field.mode === "normal"
+    const describedBy = field.id + "-add"
+
+    const container = useRef<HTMLSpanElement>(null)
+    /** the index of the row last removed, until focus has moved on from it */
+    const removed = useRef<number | null>(null)
+
+    useEffect(() => {
+        if (removed.current === null || !container.current)
+        {
+            return
+        }
+        const buttons = container.current.querySelectorAll<HTMLButtonElement>(".qlive-rowset-remove")
+        const next = buttons[Math.min(removed.current, buttons.length - 1)] ?? container.current.querySelector("input")
+        next?.focus()
+        removed.current = null
+    })
+
+    function remove(index: number)
+    {
+        removed.current = index
+        field.setValue(rows.filter((_, other) => other !== index))
+    }
 
     const known = isCatalog(type)
         ? rowChoices(type, key, catalogRows(type).filter(row => !keys.includes(row[key])))
@@ -42,12 +67,19 @@ export function RowSet({field}: WidgetProps): JSX.Element
         : null
 
     return (
-        <span className="qlive-rowset" id={ editable ? undefined : field.id }>
+        <span
+            ref={ container }
+            className="qlive-rowset"
+            id={ editable ? undefined : field.id }
+            role="group"
+            aria-labelledby={ field.labelId }
+        >
             {
                 editable && (
                     <PickerInput
                         id={ field.id }
                         labelId={ field.labelId }
+                        describedBy={ describedBy }
                         mode={ field.mode }
                         required={ false }
                         shown=""
@@ -60,11 +92,12 @@ export function RowSet({field}: WidgetProps): JSX.Element
                     />
                 )
             }
+            { editable && <span id={ describedBy } className="qlive-visually-hidden">{ i18n("Searches the rows to add") }</span> }
             {
                 rows.length > 0 && (
                     <ul className="qlive-rowset-rows">
                         {
-                            rows.map(row => {
+                            rows.map((row, index) => {
                                 const name = rowName(type, row, row[key])
                                 return (
                                     <li key={ String(row[key]) }>
@@ -75,7 +108,7 @@ export function RowSet({field}: WidgetProps): JSX.Element
                                                     type="button"
                                                     className="qlive-rowset-remove"
                                                     aria-label={ i18n("Remove {0}", name) }
-                                                    onClick={ () => field.setValue(rows.filter(other => other[key] !== row[key])) }
+                                                    onClick={ () => remove(index) }
                                                 >
                                                     ×
                                                 </button>

@@ -774,6 +774,9 @@ the row's query is read again.
 
 In `disabled` and `readOnly` the rows are listed without the buttons and without the picker.
 
+The whole is a group named by the field's label, which names the picker too; a hidden text describes what the picker
+is for. After a row is removed, focus moves to the button of the row after it, else the one before, else the picker.
+
 ## relatedRows()
 
 <span class="api-kind">function</span>

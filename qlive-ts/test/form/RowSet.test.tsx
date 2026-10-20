@@ -153,6 +153,52 @@ describe("RowSet", () => {
         expect(input()!.value).toBe("")
     })
 
+    it("is a group named by the label, describing what the picker is for", async () => {
+
+        const bar = await editableBar()
+        render(<Form row={ bar }><Field path="bazes"/></Form>)
+
+        const group = container.querySelector(".qlive-rowset")!
+        expect(group.getAttribute("role")).toBe("group")
+        expect(document.getElementById(group.getAttribute("aria-labelledby")!)!.tagName).toBe("LABEL")
+        expect(document.getElementById(input()!.getAttribute("aria-describedby")!)!.textContent)
+            .toBe("[Searches the rows to add]")
+    })
+
+    it("moves focus on to the next row's button after a remove, else the one before, else the picker", async () => {
+
+        const bar = await editableBar()
+        act(() => {
+            bar.bazes = [
+                {id: "baz-1", name: "Baz #1", version: 1},
+                {id: "baz-2", name: "Baz #2", version: 1},
+                {id: "baz-3", name: "Baz #3", version: 1}
+            ]
+        })
+        render(<Form row={ bar }><Field path="bazes"/></Form>)
+
+        function removeFocused()
+        {
+            act(() => {
+                (document.activeElement as HTMLButtonElement).click()
+            })
+        }
+
+        act(() => {
+            container.querySelectorAll<HTMLButtonElement>(".qlive-rowset-remove")[1].focus()
+        })
+        removeFocused()
+        expect(listed()).toEqual(["Baz #1", "Baz #3"])
+        expect(document.activeElement!.getAttribute("aria-label")).toBe("[Remove {0}:Baz #3]")
+
+        removeFocused()
+        expect(document.activeElement!.getAttribute("aria-label")).toBe("[Remove {0}:Baz #1]")
+
+        removeFocused()
+        expect(listed()).toEqual([])
+        expect(document.activeElement).toBe(input())
+    })
+
     it("lists the rows without buttons or picker where the field can't be edited", async () => {
 
         const bar = await editableBar()
@@ -162,6 +208,7 @@ describe("RowSet", () => {
         expect(container.querySelector(".qlive-rowset-remove")).toBeNull()
         expect(input()).toBeNull()
         expect(container.querySelector(".qlive-rowset")!.id).not.toBe("")
+        expect(container.querySelector(".qlive-rowset")!.getAttribute("aria-labelledby")).not.toBeNull()
     })
 
     it("offers a catalog type's rows from the bootstrap", async () => {

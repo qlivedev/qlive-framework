@@ -693,17 +693,12 @@ against the condition (see above).
 
 ## The format on the server
 
-**The data format exists on the server too**, as Java classes rooted
-in `Layout` in `io.github.qlivedev.model.layout`, with a
-`LayoutProvider` interface that could deliver layouts from there --
-from an editor, from files, from a module. No implementation is planned:
-the developers building an application write TSX where the derived
-layout isn't enough, and an editor serves a user group QLive doesn't
-have. The interface keeps the possibility open.
+**The data format is meant to exist on the server too**, as Java
+classes rooted in `Layout`, with a service delivering layouts from there
+-- from an editor, from files, from a generator. Neither the classes nor
+the service exist yet; the named layouts below are what they are for.
 
-An implementation would work like the action providers: every provider
-bean is injected as a list, merged, and a duplicate name fails at
-startup. Validation would run in two passes, since a layout may refer to
+Validation would run in two passes, since a layout may refer to
 an action from a different provider: first all actions, then the
 layouts against the domain and the actions. Layouts would ship in the
 cached part of the bootstrap -- a large form is 3 to 5 KB of JSON, so
@@ -713,7 +708,7 @@ them.
 
 ### Named layouts and where they come from (raw notes, 2026-10-20)
 
-Thinking aloud, not settled. This shifts the paragraph above: the server
+Thinking aloud, but for the two points marked decided. This shifts the paragraph above: the server
 is now meant to create named layouts, from a builder or an editor,
 neither of which exists yet.
 
@@ -736,15 +731,19 @@ neither of which exists yet.
   seen in a layout `Screw` for the type `Screw`; `ScrewLayout` might
   read better, but isn't a must. The name is the generator's choice,
   not a rule QLive applies.
-- **One namespace for all sources**, server providers, generators and
-  the application's `init` alike, and they have to arrange themselves
-  in it. Open: whether a name may be overridden -- the application
-  patching a server layout, as `registerConverter` overrides QLive's
-  own -- or the sources only merge by distinct names, a duplicate
-  being an error as for providers above.
-- Open: generated layouts in the cached bootstrap add up for many types
-  -- the catalog warning again -- unless layouts are fetched by name on
-  first use.
+- **One namespace for all sources** (decided 2026-10-21), server
+  providers, generators and the application's `init` alike. A later
+  source overwrites or modifies a layout of the same name -- the
+  application patching a server layout, as `registerConverter`
+  overrides QLive's own -- rather than a duplicate name being an error.
+- **Layouts ship in the bootstrap** (decided 2026-10-21), not fetched by
+  name on first use. Which layouts a page refers to can't be tracked as
+  injections are, and an application mutating a form live needs any of
+  them at hand. A layout service returns a `JSONHolder`, cached as the
+  implementation sees fit, and the bootstrap carries it as it carries
+  the translations (`TranslationService`). That generated layouts add up
+  for many types is the implementation's to manage, by what it caches
+  and what it leaves out.
 
 ## Carried over, not discussed again
 
@@ -926,7 +925,12 @@ the ambiguity.
 
 - **Rules that act**: see the raw notes above.
 - **Asynchronous checks** and their pending state.
-- **Which fields a field condition may read on the endpoint.** Only the
+- **Enum example**, held until actions (2026-10-21). jOOQ generates no
+  enums, so one only occurs in a hand-written POJO, which isn't written
+  to the database. An action's ephemeral input is such a POJO, with
+  something on the server to do with it.
+- **Which fields a field condition may read on the endpoint**, held
+  (2026-10-21). Only the
   served ones today, so "enabled users only" can't be said. Widening it
   per request would let a client probe any column, `AppUser.password`
   included; a per-type list of fields pickers may filter by would not.

@@ -3,9 +3,11 @@ package io.github.qlivedev.runtime.view;
 import io.github.qlivedev.model.bootstrap.QLiveBoostrap;
 import io.github.qlivedev.runtime.service.BootstrapService;
 import io.github.qlivedev.util.JSONUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -58,21 +60,26 @@ public class VitePageRenderer
 
 
     /**
-     * Renders the given entry point for the given path.
+     * <p>
+     *     Renders the given entry point for the given request.
+     * </p>
+     * <p>
+     *     The bootstrap is that of the request URI, exactly what the browser has in {@code location.pathname}
+     *     -- including the context path, and percent-encoded the way the browser encodes it -- rather than
+     *     the path a mapping matched. The frontend sends the same string to {@code /api/bootstrap} when it
+     *     fetches that data itself in {@code vite dev}, so the two routes have to agree on it down to the
+     *     character. Its translations are in the locale the request's {@code Accept-Language} asks for.
+     * </p>
      *
      * @param entryPoint    HTML file of the entry point as Vite emits it, e.g. {@code "index.html"} or
      *                      {@code "login.html"} -- an application's own entry points have to be declared in
      *                      its Vite config's {@code build.rollupOptions.input} to end up in the build
-     * @param path          the request URI, i.e. exactly what the browser has in {@code location.pathname}
-     *                      -- including the context path, and percent-encoded the way the browser encodes it.
-     *                      It decides what the bootstrap carries, and the frontend sends the same string to
-     *                      {@code /api/bootstrap} when it fetches that data itself in {@code vite dev}, so
-     *                      the two routes have to agree on it down to the character
+     * @param request       the request the page is rendered for
      * @param csrfToken     CSRF token of the current session, handed to the frontend with the bootstrap
      *
      * @return the page, or 503 while there is nothing to serve it from yet
      */
-    public ResponseEntity<String> render(String entryPoint, String path, CsrfToken csrfToken)
+    public ResponseEntity<String> render(String entryPoint, HttpServletRequest request, CsrfToken csrfToken)
     {
         final String template = loadTemplate(entryPoint);
         if (template == null)
@@ -80,7 +87,11 @@ public class VitePageRenderer
             return new ResponseEntity<>(HttpStatus.SERVICE_UNAVAILABLE);
         }
 
-        final QLiveBoostrap bs = bootstrapService.provideConfig(csrfToken, path);
+        final QLiveBoostrap bs = bootstrapService.provideConfig(
+            csrfToken,
+            request.getRequestURI(),
+            request.getHeader(HttpHeaders.ACCEPT_LANGUAGE)
+        );
 
         // we replace a null config with "" to trigger the frontend's live fetch
         final String data = bs != null ? JSONUtil.DEFAULT_GENERATOR.forValue(bs) : "";

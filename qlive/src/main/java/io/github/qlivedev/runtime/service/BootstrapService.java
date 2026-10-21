@@ -21,13 +21,15 @@ public interface BootstrapService
     /// serving that path declares noSchema() is something only the frontend's static analysis knows, and this
     /// is where that data is read. The same lookup is what resolves the path's injections.
     ///
-    /// @param csrfToken    CSRF token of the current session
-    /// @param path         path within the application
+    /// @param csrfToken        CSRF token of the current session
+    /// @param path             path within the application
+    /// @param acceptLanguage   the request's `Accept-Language` header, or `null`, which picks the locale the
+    ///                         page's translations are in
     ///
     /// @return the bootstrap data, or `null` while the server cannot yet say what this path needs -- in dev,
     ///         before the Vite dev server has pushed its first static analysis snapshot. Callers turn that
     ///         into a 503, which the frontend's bootstrap fetch retries.
-    QLiveBoostrap provideConfig(CsrfToken csrfToken, String path);
+    QLiveBoostrap provideConfig(CsrfToken csrfToken, String path, String acceptLanguage);
 
     /// Provides just the injection data subset for dynamic path updates.
     ///
@@ -38,7 +40,7 @@ public interface BootstrapService
     /// @param path         path within the application
     ///
     /// @return injections by injection id, or `null` while the server cannot yet say what this path needs --
-    ///         the same "not ready" {@link #provideConfig(CsrfToken, String)} answers with, for the same
+    ///         the same "not ready" {@link #provideConfig(CsrfToken, String, String)} answers with, for the same
     ///         reason
     Map<String, Injection> provideInjectionData(String path);
 }

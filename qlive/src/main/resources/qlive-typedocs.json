@@ -95,6 +95,40 @@
     "name":"AppLogin"
   },
   {
+    "description":"What a tag of the frontend's i18n() reads as in one locale. The tags are the static text of the i18n() calls, QLive's own among them, and the names of the domain types, their fields and enum values: \"Filter {0}\", \"Foo.name\". Which of them a page gets is decided by the code, so a translation of a tag nothing uses any more is simply not sent.",
+    "fieldDocs":[
+      {
+        "description":"translation id",
+        "name":"id",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"Language tag of the locale translated into, one of those qlive.i18n.locales offers: \"en\", \"de-CH\"",
+        "name":"locale",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"The tag translated, with the {0}, {1}... placeholders of the arguments its call fills in",
+        "name":"tag",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"The translation, with the same placeholders as the tag",
+        "name":"value",
+        "paramDocs":[
+          
+        ]
+      }
+    ],
+    "name":"AppTranslation"
+  },
+  {
     "description":"Application users. Used to authenticate users by spring security. Can have additional fields/relations (See UserInfoService)",
     "fieldDocs":[
       {
@@ -664,7 +698,7 @@
     "name":"PushMessageParser"
   },
   {
-    "description":"Encapsulates the data for a /api/bootstrap call or to be embedded in the HTML document.\n\n * QLive config - QLiveConfig wrapped in a JSONHolder\n * injected data - Prepared data for the starting view based on static analysis of TypeScript sources.\n * who is asking - AppAuthentication, which is per user and so cannot live in the config, that\n   being rendered once per module and handed to everyone.",
+    "description":"Encapsulates the data for a /api/bootstrap call or to be embedded in the HTML document.\n\n * QLive config - QLiveConfig wrapped in a JSONHolder\n * injected data - Prepared data for the starting view based on static analysis of TypeScript sources.\n * who is asking - AppAuthentication, which is per user and so cannot live in the config, that\n   being rendered once per module and handed to everyone.\n * translations - what the frontend's i18n() translates into, per locale and so not part of the config\n   either. Wrapped in a JSONHolder of its own.",
     "fieldDocs":[
       {
         "description":"Who the page is being served to: login, roles and id, the last of which is what lets a client tell\nsomebody else's write from its own without asking.\n\nAnonymous is an answer and not an absence, so this is never null.",
@@ -690,6 +724,20 @@
       {
         "description":"Injection data map",
         "name":"data",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"The language tag of the locale the page is served in, the one of the offered locales the browser's\n`Accept-Language` matches best.",
+        "name":"locale",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"Tag to translation for the page's locale, see io.github.qlivedev.runtime.i18n.TranslationService.\n\nA JSONHolder like the config, which in production is the same one for every page in that locale.",
+        "name":"translations",
         "paramDocs":[
           
         ]

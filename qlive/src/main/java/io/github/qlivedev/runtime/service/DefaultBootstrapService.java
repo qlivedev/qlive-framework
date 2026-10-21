@@ -4,6 +4,7 @@ import io.github.qlivedev.model.bootstrap.ClientCsrfToken;
 import io.github.qlivedev.model.bootstrap.Injection;
 import io.github.qlivedev.model.bootstrap.QLiveBoostrap;
 import io.github.qlivedev.runtime.auth.AppAuthentication;
+import io.github.qlivedev.runtime.i18n.TranslationService;
 import io.github.qlivedev.model.bootstrap.QLiveConfig;
 import io.github.qlivedev.model.ts.ModuleFunctionReferences;
 import io.github.qlivedev.model.ts.TrackUsageData;
@@ -49,6 +50,8 @@ public class DefaultBootstrapService
 
     private final InjectionService injectionService;
 
+    private final TranslationService translationService;
+
     private final boolean prod;
 
     private final JSONPathUtil pathUtil = new JSONPathUtil(JSONUtil.OBJECT_SUPPORT);
@@ -58,6 +61,7 @@ public class DefaultBootstrapService
         QLiveDomain domain,
         GraphQL graphQL,
         StaticAnalysisProvider staticAnalysisProvider,
+        TranslationService translationService,
         boolean prod
     )
     {
@@ -68,6 +72,7 @@ public class DefaultBootstrapService
             staticAnalysisProvider,
             List.of(new QueryConfigArgumentProcessor(domain)),
             Map.of(),
+            translationService,
             prod
         );
     }
@@ -77,6 +82,7 @@ public class DefaultBootstrapService
     ///                            into GraphQL variables, see {@link InjectionArgumentProcessor}
     /// @param catalogs            every row of every catalog type, by type name, see {@link Catalogs}. They go
     ///                            into the config of every page that gets the schema.
+    /// @param translationService  what every page gets its translations from, in the locale it is served in
     /// @param prod                true when running in production, where the schema the client gets carries no
     ///                            descriptions. They document the domain for the developer -- DomainTables shows
     ///                            them -- and are a quarter of the schema every page would ship otherwise.
@@ -87,10 +93,12 @@ public class DefaultBootstrapService
         StaticAnalysisProvider staticAnalysisProvider,
         List<InjectionArgumentProcessor> argumentProcessors,
         Map<String, List<Map<String, Object>>> catalogs,
+        TranslationService translationService,
         boolean prod
     )
     {
         this.servletContext = servletContext;
+        this.translationService = translationService;
         this.domain = domain;
         this.staticAnalysisProvider = staticAnalysisProvider;
         this.prod = prod;
@@ -207,7 +215,7 @@ public class DefaultBootstrapService
 
 
     @Override
-    public QLiveBoostrap provideConfig(CsrfToken csrfToken, String path)
+    public QLiveBoostrap provideConfig(CsrfToken csrfToken, String path, String acceptLanguage)
     {
         final TrackUsageData staticAnalysis = staticAnalysisProvider.getTrackUsageData();
         if (staticAnalysis == null)
@@ -231,6 +239,10 @@ public class DefaultBootstrapService
         qLiveBoostrap.setData(injectionService.provideInjections(staticAnalysis, module));
         qLiveBoostrap.setCsrfToken(new ClientCsrfToken(csrfToken));
         qLiveBoostrap.setAuthentication(AppAuthentication.current());
+
+        final Locale locale = translationService.resolveLocale(acceptLanguage);
+        qLiveBoostrap.setLocale(locale.toLanguageTag());
+        qLiveBoostrap.setTranslations(translationService.getTranslations(locale));
 
         return qLiveBoostrap;
     }

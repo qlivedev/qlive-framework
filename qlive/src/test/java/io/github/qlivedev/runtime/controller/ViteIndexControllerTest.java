@@ -20,7 +20,7 @@ class ViteIndexControllerTest
         new BootstrapService()
         {
             @Override
-            public QLiveBoostrap provideConfig(CsrfToken csrfToken, String path)
+            public QLiveBoostrap provideConfig(CsrfToken csrfToken, String path, String acceptLanguage)
             {
                 return null;
             }
@@ -39,7 +39,7 @@ class ViteIndexControllerTest
     @Test
     void marksTheBootstrapThatLacksTheStaticAnalysis()
     {
-        assertNoStaticAnalysis(controller.bootstrap("/app/home", null));
+        assertNoStaticAnalysis(controller.bootstrap("/app/home", null, null));
     }
 
 

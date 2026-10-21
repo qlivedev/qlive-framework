@@ -42,14 +42,9 @@ public class LoginController
     }
 
 
-    /**
-     * The request URI rather than {@link SecurityConfiguration#LOGIN_URI} itself: the two are the same string
-     * today, but only the former stays equal to the {@code location.pathname} the frontend sends when it
-     * fetches its own bootstrap in {@code vite dev}, whatever context path the application is deployed under.
-     */
     @GetMapping(SecurityConfiguration.LOGIN_URI)
     public ResponseEntity<String> login(HttpServletRequest request, CsrfToken csrfToken)
     {
-        return vitePageRenderer.render(LOGIN_ENTRY_POINT, request.getRequestURI(), csrfToken);
+        return vitePageRenderer.render(LOGIN_ENTRY_POINT, request, csrfToken);
     }
 }

@@ -7,12 +7,14 @@ import io.github.qlivedev.runtime.service.BootstrapService;
 import io.github.qlivedev.runtime.view.VitePageRenderer;
 import io.github.qlivedev.util.JSONUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -70,10 +72,11 @@ public class ViteIndexController
     @GetMapping("/api/bootstrap")
     public ResponseEntity<String> bootstrap(
         @RequestParam(value = "path") String path,
+        @RequestHeader(value = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
         CsrfToken csrfToken
     )
     {
-        final QLiveBoostrap bs = bootstrapService.provideConfig(csrfToken, path);
+        final QLiveBoostrap bs = bootstrapService.provideConfig(csrfToken, path, acceptLanguage);
         if (bs == null)
         {
             return noStaticAnalysis();
@@ -148,16 +151,7 @@ public class ViteIndexController
 
 
     /**
-     * <p>
-     *     Serves the application's index page for any route below the Vite base.
-     * </p>
-     * <p>
-     *     The path handed on is the request URI rather than the {@code {*path}} variable, which would be
-     *     {@code /home} where the browser's own {@code location.pathname} is {@code /app/home}. Those have to
-     *     be the same string: it is what the bootstrap service resolves to a module, and the dev server's
-     *     live {@code /api/bootstrap} call can only send the browser's version. Deriving one from the other
-     *     would mean two path vocabularies and a conversion between them in whichever direction was asked.
-     * </p>
+     * Serves the application's index page for any route below the Vite base.
      */
     @RequestMapping(QLivePaths.APP_BASE + "{*path}")
     public ResponseEntity<String> app(
@@ -165,6 +159,6 @@ public class ViteIndexController
         CsrfToken csrfToken
     )
     {
-        return vitePageRenderer.render(INDEX_ENTRY_POINT, request.getRequestURI(), csrfToken);
+        return vitePageRenderer.render(INDEX_ENTRY_POINT, request, csrfToken);
     }
 }

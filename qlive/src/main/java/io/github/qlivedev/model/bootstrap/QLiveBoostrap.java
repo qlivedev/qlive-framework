@@ -12,6 +12,8 @@ import java.util.Map;
 ///  * injected data - Prepared data for the starting view based on static analysis of TypeScript sources.
 ///  * who is asking - {@link AppAuthentication}, which is per user and so cannot live in the config, that
 ///    being rendered once per module and handed to everyone.
+///  * translations - what the frontend's i18n() translates into, per locale and so not part of the config
+///    either. Wrapped in a JSONHolder of its own.
 ///
 public class QLiveBoostrap
 {
@@ -22,6 +24,10 @@ public class QLiveBoostrap
     private Map<String, Injection> data;
 
     private AppAuthentication authentication;
+
+    private String locale;
+
+    private JSONHolder translations;
 
 
     /// QLive system config.
@@ -78,6 +84,35 @@ public class QLiveBoostrap
     public void setAuthentication(AppAuthentication authentication)
     {
         this.authentication = authentication;
+    }
+
+
+    /// The language tag of the locale the page is served in, the one of the offered locales the browser's
+    /// `Accept-Language` matches best.
+    public String getLocale()
+    {
+        return locale;
+    }
+
+
+    public void setLocale(String locale)
+    {
+        this.locale = locale;
+    }
+
+
+    /// Tag to translation for the page's locale, see {@link io.github.qlivedev.runtime.i18n.TranslationService}.
+    ///
+    /// A JSONHolder like the config, which in production is the same one for every page in that locale.
+    public JSONHolder getTranslations()
+    {
+        return translations;
+    }
+
+
+    public void setTranslations(JSONHolder translations)
+    {
+        this.translations = translations;
     }
 
 }

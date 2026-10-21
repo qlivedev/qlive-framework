@@ -11,6 +11,8 @@ import io.github.qlivedev.runtime.merge.VersionCleanup;
 import io.github.qlivedev.runtime.merge.VersionHolder;
 import io.github.qlivedev.runtime.merge.VersionService;
 import io.github.qlivedev.runtime.QLivePaths;
+import io.github.qlivedev.runtime.i18n.DefaultTranslationService;
+import io.github.qlivedev.runtime.i18n.TranslationService;
 import io.github.qlivedev.runtime.pubsub.DefaultPubSubService;
 import io.github.qlivedev.runtime.pubsub.EntityVersionPublisher;
 import io.github.qlivedev.runtime.pubsub.PubSubMessageHandler;
@@ -93,6 +95,7 @@ public class QLiveConfiguration
         StaticAnalysisProvider staticAnalysis,
         List<InjectionArgumentProcessor> argumentProcessors,
         QueryDocumentService queryDocumentService,
+        TranslationService translationService,
         Environment environment
     )
         throws IOException
@@ -104,6 +107,31 @@ public class QLiveConfiguration
             staticAnalysis,
             argumentProcessors,
             Catalogs.load(domain, queryDocumentService, graphQL),
+            translationService,
+            environment.matchesProfiles("prod")
+        );
+    }
+
+
+    /// The translations every page gets, read from `app_translation`, in the locales `qlive.i18n.locales`
+    /// offers: language tags, comma-separated, the first being the one for a browser that asks for none of
+    /// them.
+    ///
+    ///     qlive.i18n.locales=en,de
+    @Bean
+    public TranslationService translationService(
+        DSLContext dslContext,
+        QLiveDomain domain,
+        StaticAnalysisProvider staticAnalysis,
+        @Value("${qlive.i18n.locales:en}") List<String> locales,
+        Environment environment
+    )
+    {
+        return new DefaultTranslationService(
+            dslContext,
+            domain,
+            staticAnalysis,
+            DefaultTranslationService.parseLocales(locales),
             environment.matchesProfiles("prod")
         );
     }

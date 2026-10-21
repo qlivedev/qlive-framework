@@ -9,6 +9,9 @@ import java.util.Locale;
 /// The JSON is a map of layout name to layout, in the frontend's format (`Layout` in qlive-ts): a domain type and
 /// nodes, a node being a field, a section of nodes or a component, a widget or component given by the name it is
 /// registered under. The name is the map's key; a layout's own `name` is ignored.
+/// {@link io.github.qlivedev.model.layout.Layouts} reads that JSON into the classes of the format and writes them.
+/// The bootstrap service checks the layouts of every offered locale against the domain at startup ({@link
+/// LayoutCheck}), so a field that doesn't exist fails there rather than on a page.
 ///
 /// Every layout goes to every page rather than those a view asks for: which layouts a page refers to can't be
 /// told from its code as its injections can, and an application changing a form while it is open needs any of

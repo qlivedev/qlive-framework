@@ -5,6 +5,7 @@ import io.github.qlivedev.model.bootstrap.Injection;
 import io.github.qlivedev.model.bootstrap.QLiveBoostrap;
 import io.github.qlivedev.runtime.auth.AppAuthentication;
 import io.github.qlivedev.runtime.i18n.TranslationService;
+import io.github.qlivedev.runtime.layout.LayoutCheck;
 import io.github.qlivedev.runtime.layout.LayoutService;
 import io.github.qlivedev.model.bootstrap.QLiveConfig;
 import io.github.qlivedev.model.ts.ModuleFunctionReferences;
@@ -87,7 +88,9 @@ public class DefaultBootstrapService
     /// @param catalogs            every row of every catalog type, by type name, see {@link Catalogs}. They go
     ///                            into the config of every page that gets the schema.
     /// @param translationService  what every page gets its translations from, in the locale it is served in
-    /// @param layoutService       what every page that gets the schema gets its named layouts from
+    /// @param layoutService       what every page that gets the schema gets its named layouts from. Its layouts
+    ///                            in every offered locale are checked against the domain here, see
+    ///                            {@link LayoutCheck}, so that a wrong reference fails startup rather than a page.
     /// @param prod                true when running in production, where the schema the client gets carries no
     ///                            descriptions. They document the domain for the developer -- DomainTables shows
     ///                            them -- and are a quarter of the schema every page would ship otherwise.
@@ -110,6 +113,12 @@ public class DefaultBootstrapService
         this.staticAnalysisProvider = staticAnalysisProvider;
         this.prod = prod;
         this.injectionService = new InjectionService(graphQL, domain, argumentProcessors);
+
+        final LayoutCheck layoutCheck = new LayoutCheck(domain);
+        for (Locale locale : translationService.getLocales())
+        {
+            layoutCheck.check(layoutService.getLayouts(locale));
+        }
 
         // the whole model just exists to be sent to the client. We only need it in JSON string form,
         // over and over for every full page load forever. The JSONHolder allows us to only generate it once and then

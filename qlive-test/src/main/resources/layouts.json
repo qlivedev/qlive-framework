@@ -1,0 +1,10 @@
+{
+    "fooSummary": {
+        "domainType": "Foo",
+        "nodes": [
+            { "field": "name" },
+            { "field": "num" },
+            { "field": "owner", "mode": "text" }
+        ]
+    }
+}

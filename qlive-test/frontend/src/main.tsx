@@ -34,6 +34,18 @@ document.addEventListener("DOMContentLoaded", async () => {
             config.widgets = [
                 { domainType: "Foo", path: "num", widget: Stepper }
             ]
+
+            // The server's fooSummary (layouts.json), changed here before any view renders it:
+            // app/form/Named.tsx shows it with the description added. A page without the schema, the login,
+            // gets no layouts.
+            const summary = config.layouts?.fooSummary
+            if (summary)
+            {
+                config.layouts = {
+                    ...config.layouts,
+                    fooSummary: { ...summary, nodes: [...summary.nodes, { field: "description", widget: "textarea" }] }
+                }
+            }
         }
     });
 });

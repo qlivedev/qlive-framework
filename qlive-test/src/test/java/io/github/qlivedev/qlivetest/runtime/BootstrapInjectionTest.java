@@ -1,6 +1,7 @@
 package io.github.qlivedev.qlivetest.runtime;
 
 import io.github.qlivedev.model.bootstrap.Injection;
+import io.github.qlivedev.model.bootstrap.QLiveBoostrap;
 import io.github.qlivedev.runtime.service.BootstrapService;
 import io.github.qlivedev.runtime.service.DevStaticAnalysisProvider;
 import io.github.qlivedev.runtime.service.ProdStaticAnalysisProvider;
@@ -8,16 +9,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.web.csrf.DefaultCsrfToken;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 /**
  * <p>
@@ -84,5 +88,19 @@ class BootstrapInjectionTest
     {
         // The login page is an entry point of its own and queries nothing.
         assertThat(bootstrapService.provideInjectionData("/login"), is(Map.of()));
+    }
+
+
+    @Test
+    void sendsTheNamedLayoutsToPagesWithTheSchema()
+    {
+        final DefaultCsrfToken csrfToken = new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "token");
+
+        // ExampleLayoutService's layouts.json, as it is: the JSON is the service's, passed through.
+        final QLiveBoostrap withSchema = bootstrapService.provideConfig(csrfToken, "/app/grid/everything", null);
+        assertThat(withSchema.getLayouts().toJSON(), containsString("\"fooSummary\""));
+
+        // The login page renders no form.
+        assertThat(bootstrapService.provideConfig(csrfToken, "/login", null).getLayouts(), is(nullValue()));
     }
 }

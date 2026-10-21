@@ -23,6 +23,7 @@ const EXAMPLES = [
 const FORMS = [
     {href: "/app/form/derived", title: "A derived form", text: "a row and nothing else; the layout comes from the row"},
     {href: "/app/form/layout", title: "A layout", text: "sections, widgets by name and by override, modes, a component of its own"},
+    {href: "/app/form/named", title: "A named layout", text: "a layout the server delivers, changed by the application"},
     {href: "/app/form/manytomany", title: "A many-to-many field", text: "associated rows listed, removed and searched to add"},
     {href: "/app/bar/edit", title: "A hand-written form", text: "the application's own choice of fields, with the conflict buttons"}
 ];

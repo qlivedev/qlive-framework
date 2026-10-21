@@ -186,7 +186,7 @@ does. Otherwise the fixture has to fit the page:
    reduced one, the full one is kept.
  - An injection id already loaded has to come with the same data. Two fixtures for one route can't share a page.
 
-The authentication and CSRF token stay those of the fixture that initialized the config.
+The authentication, CSRF token, locale and translations stay those of the fixture that initialized the config.
 
 **Parameters**
 
@@ -297,6 +297,11 @@ type QLiveConfig = {
    */
   authentication?: Authentication;
   /**
+   * Language tag of the locale the page is served in, `"en"` or `"de-CH"`: the one of the locales the server
+   * offers that the browser's language settings match best. Put here on arrival, like the authentication.
+   */
+  locale?: string;
+  /**
    * Cached set of the names of QueryDocument<T> equivalent types in the application
    */
   queryDocumentTypes?: Set<string>;
@@ -322,10 +327,11 @@ type QLiveConfig = {
   errorView?: ComponentType<ErrorViewProps>;
   /**
    * What i18n() looks its tags up in: a tag, `"Filter {0}"` or `"Foo.name"`, to its translation, which holds the
-   * same placeholders. A tag without one renders as itself in brackets, so a missing translation shows. Written by
-   * the application like errorView, in startup()'s init hook.
+   * same placeholders. A tag without one renders as itself. The server sends the translations into the page's
+   * locale with the bootstrap, and they are put here on arrival. An application changing or adding to them does so
+   * in startup()'s init hook, like it does errorView.
    *
-   *     config.translations = {"Foo.name": "Name", "Filter {0}": "{0} filtern"}
+   *     config.translations = {...config.translations, "Filter {0}": "{0} filtern"}
    */
   translations?: Record<string, string>;
   /**
@@ -360,6 +366,15 @@ type QLiveBoostrap = {
    * The current user
    */
   authentication: Authentication;
+  /**
+   * Language tag of the locale the page is served in, the one of the locales the application offers that the
+   * browser asked for. Absent from a fixture recorded before there were translations, like `translations`.
+   */
+  locale?: string;
+  /**
+   * Tag to translation in that locale, which init() puts into the config.
+   */
+  translations?: Record<string, string>;
   /**
    * Injection data
    */
@@ -917,9 +932,13 @@ declare function i18n(tag: string, ...args: string[]): string;
 Translates the given tag, filling in the given arguments.
 
 The tag is the static text, the arguments what varies: `i18n("Filter {0}", label)`. The translation comes from
-`config().translations` and has the same placeholders, `{0}` for the first argument, `{1}` for the second and so
-on, as in Java's MessageFormat. A tag without a translation renders as itself in brackets, its arguments appended:
-`[Filter {0}:Name]`, so a missing one shows.
+`config().translations`, which the server fills for the locale the page is served in, and has the same
+placeholders, `{0}` for the first argument, `{1}` for the second and so on, as in Java's MessageFormat. A tag
+without a translation renders as itself, its arguments appended: `Filter {0}: Name`, as a tag with placeholders
+doesn't read well with the arguments filled in.
+
+The analysis records the tag of every call, which is what the server offers translations of. It records only a
+tag that is static: a string literal, not a variable holding one.
 
 **Parameters**
 

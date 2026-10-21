@@ -200,10 +200,12 @@ the page was sent.
 
 ## 8. `i18n()` is a stub with an API entry
 
-Overtaken. `i18n()` now translates from `config().translations` with
-`{0}`-style placeholders, falls back to the bracketed tag so a missing
-translation shows, and has a doc comment saying so. qlive-doc's demos
-supply translations. What follows is the entry as written.
+Overtaken. `i18n()` now translates from `config().translations`, which
+the server fills from `app_translation` for the page's locale, with
+`{0}`-style placeholders, falls back to the bracketed tag followed by its
+arguments, and has a doc comment saying so. `how-to/translate-an-application.md`
+covers the rest. qlive-doc's demos supply translations. What follows is
+the entry as written.
 
 `i18n(tag, ...args)` returns `"[" + tag + "]"`. It is exported, it
 appears on the startup API page, and its entry says "Undocumented",

@@ -10,7 +10,9 @@ import {currentConfig} from "./config";
  * translation shows, and a tag with placeholders doesn't read well with the arguments filled in.
  *
  * The analysis records the tag of every call, which is what the server offers translations of. It records only a
- * tag that is static: a string literal, not a variable holding one.
+ * tag that is static: a string literal, not a variable holding one, so write the tag out at the call. The one
+ * exception is a tag named after the domain -- a type, `Type.field`, `Enum.VALUE` -- which the server offers for
+ * every type with a table whether a call names it or not, and which QLive builds from the names it renders.
  *
  * @param tag       translation tag
  * @param args      non-static arguments

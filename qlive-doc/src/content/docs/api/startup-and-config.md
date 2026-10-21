@@ -327,9 +327,9 @@ type QLiveConfig = {
   errorView?: ComponentType<ErrorViewProps>;
   /**
    * What i18n() looks its tags up in: a tag, `"Filter {0}"` or `"Foo.name"`, to its translation, which holds the
-   * same placeholders. A tag without one renders as itself. The server sends the translations into the page's
-   * locale with the bootstrap, and they are put here on arrival. An application changing or adding to them does so
-   * in startup()'s init hook, like it does errorView.
+   * same placeholders. A tag without one renders as itself in brackets. The server sends the translations into the
+   * page's locale with the bootstrap, and they are put here on arrival. An application changing or adding to them
+   * does so in startup()'s init hook, like it does errorView.
    *
    *     config.translations = {...config.translations, "Filter {0}": "{0} filtern"}
    */
@@ -934,11 +934,13 @@ Translates the given tag, filling in the given arguments.
 The tag is the static text, the arguments what varies: `i18n("Filter {0}", label)`. The translation comes from
 `config().translations`, which the server fills for the locale the page is served in, and has the same
 placeholders, `{0}` for the first argument, `{1}` for the second and so on, as in Java's MessageFormat. A tag
-without a translation renders as itself, its arguments appended: `Filter {0}: Name`, as a tag with placeholders
-doesn't read well with the arguments filled in.
+without a translation renders as itself in brackets, its arguments appended: `[Filter {0}: Name]`, so a missing
+translation shows, and a tag with placeholders doesn't read well with the arguments filled in.
 
 The analysis records the tag of every call, which is what the server offers translations of. It records only a
-tag that is static: a string literal, not a variable holding one.
+tag that is static: a string literal, not a variable holding one, so write the tag out at the call. The one
+exception is a tag named after the domain -- a type, `Type.field`, `Enum.VALUE` -- which the server offers for
+every type with a table whether a call names it or not, and which QLive builds from the names it renders.
 
 **Parameters**
 

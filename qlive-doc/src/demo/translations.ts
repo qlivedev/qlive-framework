@@ -1,15 +1,13 @@
 import type {QLiveConfig} from "@qlivedev/qlive-ts";
 
 /*
- * The English the demos show. qlive-ts and qlive-test write their tags in English, so the translation of a tag is the
- * tag itself; only a field's tag, "Foo.name", becomes the field's name. A tag missing here shows in brackets in the
- * demo: add it.
+ * The English the demos show. Most tags read as their own English and are listed as they are; a tag that is short for
+ * a longer message is in MESSAGES, and a field's tag, "Foo.name", becomes the field's name. A tag missing here shows
+ * in brackets in the demo: add it.
  */
 const TAGS = [
     // qlive-ts
-    "Additional filter active",
     "All",
-    "Also sorted by other fields",
     "Any",
     "Filter {0}",
     "Filter {0} from",
@@ -24,7 +22,6 @@ const TAGS = [
     "Previous page",
     "Reload",
     "Reset filters",
-    "Rows changed elsewhere",
     "Rows not updated",
     "Rows not updated: {0}",
     "Rows per page",
@@ -39,6 +36,13 @@ const TAGS = [
     "ascending",
     "descending"
 ];
+
+const MESSAGES: Record<string, string> = {
+    // qlive-ts
+    "Extra filter": "Additional filter active",
+    "Sorted further": "Also sorted by other fields",
+    "Stale rows": "Rows changed elsewhere"
+};
 
 /**
  * The translations for the given config: every tag above as itself, every field of every object type as its name.
@@ -62,5 +66,6 @@ export function translationsFor(config: QLiveConfig): Record<string, string>
     {
         translations[tag] = tag;
     }
+    Object.assign(translations, MESSAGES);
     return translations;
 }

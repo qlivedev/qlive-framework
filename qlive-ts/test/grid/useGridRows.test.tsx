@@ -186,7 +186,7 @@ describe("useGridRows() through DataGrid", () => {
         expect(cellsOf(first)[0].className).toBe("qlive-grid-field qlive-conflict");
         expect(second.className).toBe("qlive-grid-row qlive-grid-remote-changed");
         expect(cellsOf(second)[1].className).toBe("qlive-grid-field qlive-remote-changed");
-        expect(cellsOf(second)[1].textContent).toBe("3 [Changed by someone else]");
+        expect(cellsOf(second)[1].textContent).toBe("3 [Changed by other]");
 
         act(() => ws.storedState({type: "Foo", id: "foo-2", deleted: true}));
         expect(bodyRows(grid)[1].className).toBe("qlive-grid-row qlive-grid-gone");

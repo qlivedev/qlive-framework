@@ -163,7 +163,7 @@ describe("RowSet", () => {
         expect(document.getElementById(group.getAttribute("aria-labelledby")!)!.tagName).toBe("LABEL")
         const [state, add] = input()!.getAttribute("aria-describedby")!.split(" ")
         expect(document.getElementById(state)!.textContent).toBe("")
-        expect(document.getElementById(add)!.textContent).toBe("[Searches the rows to add]")
+        expect(document.getElementById(add)!.textContent).toBe("[Search to add]")
     })
 
     it("moves focus on to the next row's button after a remove, else the one before, else the picker", async () => {

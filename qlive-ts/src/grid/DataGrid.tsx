@@ -229,18 +229,18 @@ export default function DataGrid<R>(props: DataGridProps<R>): JSX.Element
             <div className="qlive-grid-footer">
                 {
                     unsorted.length > 0 && (
-                        <span className="qlive-grid-note">{ i18n("Also sorted by other fields") }</span>
+                        <span className="qlive-grid-note">{ i18n("Sorted further") }</span>
                     )
                 }
                 {
                     filters.unclaimed.length > 0 && (
-                        <span className="qlive-grid-note">{ i18n("Additional filter active") }</span>
+                        <span className="qlive-grid-note">{ i18n("Extra filter") }</span>
                     )
                 }
                 {
                     stale && (
                         <>
-                            <span className="qlive-grid-note">{ i18n("Rows changed elsewhere") }</span>
+                            <span className="qlive-grid-note">{ i18n("Stale rows") }</span>
                             <button type="button" className="qlive-grid-reload" onClick={ () => unawaited(doc.update({})) }>
                                 { i18n("Reload") }
                             </button>

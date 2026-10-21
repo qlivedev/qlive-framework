@@ -93,7 +93,7 @@ export function RowSet({field}: WidgetProps): JSX.Element
                     />
                 )
             }
-            { editable && <span id={ addId } className="qlive-visually-hidden">{ i18n("Searches the rows to add") }</span> }
+            { editable && <span id={ addId } className="qlive-visually-hidden">{ i18n("Search to add") }</span> }
             {
                 rows.length > 0 && (
                     <ul className="qlive-rowset-rows">

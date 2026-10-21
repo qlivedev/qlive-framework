@@ -195,7 +195,7 @@ const BUILT_IN_INPUT: { [type: string]: InputConversion } = {
         fromInput: text => {
             if (text !== "true" && text !== "false")
             {
-                throw new Error(i18n("Not true or false"))
+                throw new Error(i18n("Not a boolean"))
             }
             return text === "true"
         }
@@ -233,7 +233,7 @@ const BUILT_IN_INPUT: { [type: string]: InputConversion } = {
             const [, sign, whole, fraction = ""] = match
             if (fraction.length > CURRENCY_DIGITS)
             {
-                throw new Error(i18n("At most {0} decimal places", String(CURRENCY_DIGITS)))
+                throw new Error(i18n("Max {0} decimals", String(CURRENCY_DIGITS)))
             }
             const magnitude = BigInt(whole || "0") * 10n ** BigInt(CURRENCY_DIGITS) +
                 BigInt(fraction.padEnd(CURRENCY_DIGITS, "0"))
@@ -649,7 +649,7 @@ registerConverter<string, Temporal.Instant>(
             }
             catch (e)
             {
-                throw new Error(i18n("Not a date and time"))
+                throw new Error(i18n("Not a timestamp"))
             }
         }
     }

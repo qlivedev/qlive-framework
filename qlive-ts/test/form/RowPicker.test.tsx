@@ -195,7 +195,7 @@ describe("RowPicker", () => {
         render(<Form row={ ownedFoo() }><Field path="owner"/></Form>)
 
         await typeAndWait("a")
-        expect(note()).toBe("[{0} more, type to narrow: 43]")
+        expect(note()).toBe("[{0} more: 43]")
 
         vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
             status: 400,
@@ -224,7 +224,7 @@ describe("RowPicker", () => {
         expect(container.querySelector(".qlive-picker-note")!.getAttribute("aria-hidden")).toBe("true")
         // the same region as before, so a screen reader hears the change
         expect(container.querySelector(".qlive-picker [role=status]")).toBe(status)
-        expect(status.textContent).toBe("[{0} more, type to narrow: 43]")
+        expect(status.textContent).toBe("[{0} more: 43]")
     })
 
     it("opens no list in a mode other than normal", () => {

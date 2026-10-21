@@ -93,7 +93,7 @@ describe("parseInput()", () => {
         expect(parseInput("1.15", "Currency")).toBe(11500)
         expect(parseInput("-.5", "Currency")).toBe(-5000)
         expect(parseInput("3", "Currency")).toBe(30000)
-        expect(() => parseInput("1.23456", "Currency")).toThrow("At most {0} decimal places")
+        expect(() => parseInput("1.23456", "Currency")).toThrow("Max {0} decimals")
     })
 
     it("reads a Float and refuses what is no number", () => {
@@ -105,7 +105,7 @@ describe("parseInput()", () => {
     it("reads a Boolean from its text", () => {
 
         expect(parseInput("true", "Boolean")).toBe(true)
-        expect(() => parseInput("yes", "Boolean")).toThrow("Not true or false")
+        expect(() => parseInput("yes", "Boolean")).toThrow("Not a boolean")
     })
 
     it("reads a Date and refuses one that doesn't exist", () => {

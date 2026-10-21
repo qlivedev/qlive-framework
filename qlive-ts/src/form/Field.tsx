@@ -38,7 +38,7 @@ export function ConflictResolution({field, children}: FieldDecoratorProps): JSX.
                                 </button>
                             </span>
                         )
-                        : <span className="qlive-field-resolve">{ i18n("Somebody else changed this too") }</span>
+                        : <span className="qlive-field-resolve">{ i18n("Conflict, saved unknown") }</span>
                 )
             }
         </>

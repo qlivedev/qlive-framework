@@ -62,9 +62,9 @@ export function fieldClassName(status: MergeFieldStatus): string
 const TEXTS: Record<MergeFieldStatus, () => string> = {
     unchanged: () => "",
     changed: () => i18n("Changed by you"),
-    conflict: () => i18n("Changed by someone else too, your value stands"),
+    conflict: () => i18n("Conflict"),
     resolved: () => i18n("Conflict resolved"),
-    remoteChanged: () => i18n("Changed by someone else")
+    remoteChanged: () => i18n("Changed by other")
 }
 
 /**

@@ -113,7 +113,7 @@ describe("DataGrid watching its document", () => {
         expect(rows.map(r => r.className)).toEqual(["qlive-grid-row", "qlive-grid-row qlive-grid-remote-changed"]);
         expect(Array.from(rows[1].querySelectorAll("td"), td => td.className)).toEqual(["qlive-grid-field", "qlive-grid-field qlive-remote-changed"]);
 
-        expect(container.querySelector(".qlive-grid-note")!.textContent).toBe("[Rows changed elsewhere]");
+        expect(container.querySelector(".qlive-grid-note")!.textContent).toBe("[Stale rows]");
         act(() => (container.querySelector(".qlive-grid-reload") as HTMLElement).click());
         expect(update).toHaveBeenCalledWith({});
     });

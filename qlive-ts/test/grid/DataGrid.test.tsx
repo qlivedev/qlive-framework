@@ -160,7 +160,7 @@ describe("DataGrid", () => {
         const grid = render(<DataGrid doc={ d } columns={ ["name", "num"] }/>);
 
         expect(texts(grid.querySelectorAll(".qlive-grid-note")))
-            .toEqual(["[Also sorted by other fields]", "[Additional filter active]"]);
+            .toEqual(["[Sorted further]", "[Extra filter]"]);
 
         const reset = grid.querySelector(".qlive-grid-reset") as HTMLButtonElement;
         await act(async () => reset.click());

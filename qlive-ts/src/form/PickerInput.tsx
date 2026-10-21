@@ -265,7 +265,7 @@ export function PickerInput(props: PickerInputProps): JSX.Element
     const note = failure ?? (
         found === null ? i18n("Searching...")
             : choices.length === 0 ? i18n("Nothing found")
-                : found.count > choices.length ? i18n("{0} more, type to narrow", String(found.count - choices.length))
+                : found.count > choices.length ? i18n("{0} more", String(found.count - choices.length))
                     : null
     )
 

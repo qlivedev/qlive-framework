@@ -126,11 +126,11 @@ function newlyMarked(before: Marked | null, now: Marked, shown: ShownFields, typ
     const parts = []
     if (conflict.length)
     {
-        parts.push(i18n("Changed by someone else too in {0}: {1}", name, named(conflict)))
+        parts.push(i18n("Conflict in {0}: {1}", name, named(conflict)))
     }
     if (remote.length)
     {
-        parts.push(i18n("Changed by someone else in {0}: {1}", name, named(remote)))
+        parts.push(i18n("Changed by other in {0}: {1}", name, named(remote)))
     }
     return parts.join(" ")
 }

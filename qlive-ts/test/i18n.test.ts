@@ -22,10 +22,11 @@ describe("i18n", () => {
         expect(i18n("Page {0} of {1}", "3")).toBe("Page 3 of {1}")
     })
 
-    it("shows a tag without translation in brackets, with its arguments", () => {
+    it("shows a tag without translation in brackets, followed by its arguments", () => {
         config().translations = {}
 
-        expect(i18n("Filter {0}", "Name")).toBe("[Filter {0}:Name]")
+        expect(i18n("Filter {0}", "Name")).toBe("[Filter {0}: Name]")
+        expect(i18n("{1} of {0}", "Foo", "name")).toBe("[{1} of {0}: Foo, name]")
         expect(i18n("No rows")).toBe("[No rows]")
     })
 })

@@ -115,7 +115,7 @@ describe("RowSet", () => {
         expect(input()!.placeholder).toBe("[Add...]")
 
         const remove = container.querySelector<HTMLButtonElement>(".qlive-rowset-remove")!
-        expect(remove.getAttribute("aria-label")).toBe("[Remove {0}:Baz #1]")
+        expect(remove.getAttribute("aria-label")).toBe("[Remove {0}: Baz #1]")
         act(() => {
             remove.click()
         })
@@ -190,10 +190,10 @@ describe("RowSet", () => {
         })
         removeFocused()
         expect(listed()).toEqual(["Baz #1", "Baz #3"])
-        expect(document.activeElement!.getAttribute("aria-label")).toBe("[Remove {0}:Baz #3]")
+        expect(document.activeElement!.getAttribute("aria-label")).toBe("[Remove {0}: Baz #3]")
 
         removeFocused()
-        expect(document.activeElement!.getAttribute("aria-label")).toBe("[Remove {0}:Baz #1]")
+        expect(document.activeElement!.getAttribute("aria-label")).toBe("[Remove {0}: Baz #1]")
 
         removeFocused()
         expect(listed()).toEqual([])

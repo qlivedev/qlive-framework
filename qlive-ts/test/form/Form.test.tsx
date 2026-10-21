@@ -275,7 +275,7 @@ describe("Form", () => {
         })
 
         const buttons = container.querySelectorAll(".qlive-field-resolve button")
-        expect(Array.from(buttons).map(b => b.textContent)).toEqual(["[Yours: {0}:Mine]", "[Saved: {0}:Theirs]"])
+        expect(Array.from(buttons).map(b => b.textContent)).toEqual(["[Yours: {0}: Mine]", "[Saved: {0}: Theirs]"])
 
         act(() => (buttons[1] as HTMLButtonElement).click())
 

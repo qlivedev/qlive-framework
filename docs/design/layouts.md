@@ -428,7 +428,10 @@ color alone; screen readers get nothing but a conflict's buttons. Built
 - **One live region per form** (`role="status"`, polite) announces
   what the user didn't do: a field marked remote-changed by push, a
   conflict after a save -- once per event, not once per marked field.
-  The user's own "changed" isn't announced. It sits at the top of the
+  The user's own "changed" isn't announced. Each announcement names
+  the row by its name fields, as the form shows them: a page of
+  several forms has as many regions, and the same words from each
+  wouldn't say which row changed. It sits at the top of the
   form by default; a layout or a hand-written form places it elsewhere
   with `<FormStatus/>`, which a layout's node for it renders as well. It
   is rendered from the start, empty while there is nothing to say: a

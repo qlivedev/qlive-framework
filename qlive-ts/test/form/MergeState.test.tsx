@@ -68,6 +68,7 @@ beforeAll(async () => {
         data: {}
     })
     config().translations = {"Bar.name": "Name", "Bar.num": "Number"}
+    config().meta.types.Bar = {meta: {...config().meta.types.Bar?.meta, nameFields: ["name"]}}
 })
 
 beforeEach(() => {
@@ -145,7 +146,10 @@ describe("the merge state for screen readers", () => {
         act(() => {
             ws.storedState({type: "Bar", id: "bar-1", version: "v9", fields: {name: "Theirs", num: 9}})
         })
-        expect(region.textContent).toBe("[Changed by someone else too: {0}:Name] [Changed by someone else: {0}:Number]")
+        // the row by its name as the form shows it, the user's own
+        expect(region.textContent).toBe(
+            "[Changed by someone else too in {0}: {1}:Mine, Name] [Changed by someone else in {0}: {1}:Mine, Number]"
+        )
         const first = region.firstChild
 
         // the same fields again are no news
@@ -169,7 +173,7 @@ describe("the merge state for screen readers", () => {
         act(() => {
             ws.storedState({type: "Bar", id: "bar-1", version: "v10", fields: {name: "Theirs", num: 10}})
         })
-        expect(region.textContent).toBe("[Changed by someone else: {0}:Title]")
+        expect(region.textContent).toBe("[Changed by someone else in {0}: {1}:Theirs, Title]")
     })
 
     it("has the region at the top of the form, unless a FormStatus places it", async () => {

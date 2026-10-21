@@ -83,9 +83,9 @@ declare function FormStatus(): JSX.Element;
 ```
 
 Where the form's live region goes: what a screen reader is told when somebody else changed a field on screen, or a
-save left a conflict -- once per such event, not once per field. Each field is called by what its label says; a
-field the form doesn't show is not mentioned, and what the user changes is not announced. A field is on screen
-while a Field or useField() renders it.
+save left a conflict -- once per such event, not once per field. Each field is called by what its label says, and
+the row by its name fields, so that a page of several forms says which one; a field the form doesn't show is not
+mentioned, and what the user changes is not announced. A field is on screen while a Field or useField() renders it.
 
 Every form has the region, at its top unless a FormStatus inside it places it elsewhere, at any depth. A layout
 places it with a `{status: true}` node. The region is there from the start and empty while there is nothing to say,

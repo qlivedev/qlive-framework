@@ -6,9 +6,11 @@ import {Fragment, JSX, ReactNode, useCallback, useEffect, useId, useMemo, useRef
 import i18n from "../i18n";
 import type {MergeAccessor} from "../merge/MergeAccessor";
 import {useMerge} from "../merge/useMerge";
+import {primaryKeyFields} from "../type-utils";
 import {isViteDev} from "../util/viteEnv";
 import {Field} from "./Field";
 import type {FieldMode} from "./fieldMode";
+import {rowName} from "./fieldText";
 import {Announcement, FieldEdit, FormState, FormStateContext} from "./FormContext";
 import {FormStatus, StatusRegion} from "./FormStatus";
 import {deriveLayout, Layout, LayoutNode, namedComponent} from "./layout";
@@ -102,10 +104,11 @@ function shownLabel(labels: Map<string, string>): string
 
 /**
  * What the form's live region says about the fields on screen somebody else changed since the last render, and those
- * a save left in conflict, each called by its label; null for nothing new. A row's fields marked when the form first
- * shows it are no news.
+ * a save left in conflict, each called by its label, and in which row, by its name fields as the form shows them: a
+ * page of several forms has as many regions, and only the name tells them apart. null for nothing new. A row's fields
+ * marked when the form first shows it are no news.
  */
-function newlyMarked(before: Marked | null, now: Marked, shown: ShownFields): string | null
+function newlyMarked(before: Marked | null, now: Marked, shown: ShownFields, type: string): string | null
 {
     if (!before || before.row !== now.row)
     {
@@ -114,16 +117,22 @@ function newlyMarked(before: Marked | null, now: Marked, shown: ShownFields): st
     const named = (names: string[]) => names.map(name => shownLabel(shown.get(name)!)).join(", ")
     const conflict = [...now.conflict].filter(name => !before.conflict.has(name) && shown.has(name))
     const remote = [...now.remote].filter(name => !before.remote.has(name) && shown.has(name))
+    if (!conflict.length && !remote.length)
+    {
+        return null
+    }
+    const row = now.row as any
+    const name = rowName(type, row, primaryKeyFields(type).map(key => row[key]).join(" "))
     const parts = []
     if (conflict.length)
     {
-        parts.push(i18n("Changed by someone else too: {0}", named(conflict)))
+        parts.push(i18n("Changed by someone else too in {0}: {1}", name, named(conflict)))
     }
     if (remote.length)
     {
-        parts.push(i18n("Changed by someone else: {0}", named(remote)))
+        parts.push(i18n("Changed by someone else in {0}: {1}", name, named(remote)))
     }
-    return parts.length ? parts.join(" ") : null
+    return parts.join(" ")
 }
 
 function markedOf(row: object, merge: MergeAccessor): Marked
@@ -193,13 +202,13 @@ export function Form({row, layout, children}: FormProps): JSX.Element
     }, [])
     useEffect(() => {
         const now = markedOf(row, merge)
-        const text = newlyMarked(marked.current, now, shown.current)
+        const text = newlyMarked(marked.current, now, shown.current, type)
         marked.current = now
         if (text !== null)
         {
             setAnnouncement(current => ({text, count: current.count + 1}))
         }
-    }, [row, merge])
+    }, [row, merge, type])
 
     // how many FormStatus place the region; while none does, the form renders it at its top
     const placed = useRef(0)

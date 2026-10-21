@@ -1019,7 +1019,8 @@ which related rows a to-one relation offers, see FieldOptions.condition
 interface LayoutSectionNode
 ```
 
-A labeled group of nodes, a `<fieldset>` whose legend is the i18n() of the section.
+A labeled group of nodes, a `<fieldset>` whose legend is the section, as given. A section that should be translated
+is written as an i18n() call, `section: i18n("Foo.details")`, which keeps its tag where the analysis finds it.
 
 ### LayoutSectionNode.section
 

@@ -497,7 +497,8 @@ function registerComponent(name: string, component: ComponentType<any>): void
 ```
 
 `field` nodes are `Field`s with their options; `section` is a labeled
-group (`<fieldset>`, legend `i18n(section)`); `component` is an
+group (`<fieldset>`, legend the section as given -- an application
+translating it writes `i18n("Foo.details")`); `component` is an
 application's own, registered by name like a widget, with its nodes as
 children.
 

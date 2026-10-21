@@ -72,7 +72,7 @@ function renderNodes(nodes: LayoutNode[]): ReactNode
         {
             return (
                 <fieldset key={ index } className="qlive-form-section">
-                    <legend>{ i18n(node.section) }</legend>
+                    <legend>{ node.section }</legend>
                     { renderNodes(node.nodes) }
                 </fieldset>
             )

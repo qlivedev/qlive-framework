@@ -248,7 +248,7 @@ describe("Form", () => {
             } }/>
         )
 
-        expect(query("fieldset legend").textContent).toBe("[Bar.main]")
+        expect(query("fieldset legend").textContent).toBe("Bar.main")
         expect(query("fieldset [id$='-name']")).toBeTruthy()
         expect(query(".box [id$='-num']")).toBeTruthy()
     })

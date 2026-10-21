@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { FilterDSL, Form, Layout, useFormContext, useInjection, useWorkingSet, WorkingSet } from "@qlivedev/qlive-ts";
+import {
+    FilterDSL,
+    Form,
+    i18n,
+    Layout,
+    useFormContext,
+    useInjection,
+    useWorkingSet,
+    WorkingSet
+} from "@qlivedev/qlive-ts";
 
 const { field, or, value } = FilterDSL
 import { Q_FooList, Q_FooListResult } from "../grid/Q_FooList";
@@ -7,7 +16,8 @@ import { Q_FooList, Q_FooListResult } from "../grid/Q_FooList";
 /**
  * A form from a layout: which fields, grouped how, with which widget and in which mode, written as data.
  *
- * - **Sections** group fields under a legend, the i18n() of the section name.
+ * - **Sections** group fields under a legend, the section's text. Translated here, through i18n() calls written
+ *   out, so the analysis finds their tags.
  * - **A widget by name**: description is edited with the text area main.tsx registers as "textarea". A layout in
  *   TSX could hold the component itself; the name is what a layout from the server would use.
  * - **A widget override**: num names no widget, and gets the stepper main.tsx configures for Foo.num.
@@ -22,7 +32,7 @@ const FOO_LAYOUT: Layout = {
     domainType: "Foo",
     nodes: [
         {
-            section: "Foo.identity",
+            section: i18n("Foo.identity"),
             nodes: [
                 { field: "name" },
                 { component: NameLock },
@@ -30,7 +40,7 @@ const FOO_LAYOUT: Layout = {
             ]
         },
         {
-            section: "Foo.details",
+            section: i18n("Foo.details"),
             nodes: [
                 { field: "num" },
                 { field: "flag" },

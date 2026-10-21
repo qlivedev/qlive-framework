@@ -115,6 +115,7 @@ describe("DataGrid", () => {
         const [name, num] = Array.from(rows[0].querySelectorAll("td")) as HTMLElement[];
         expect(name.className).toBe("qlive-grid-nowrap name");
         expect(name.style.maxWidth).toBe("10em");
+        // without a working set or a watch nothing is marked, so no cell keeps room for a mark
         expect(num.hasAttribute("class")).toBe(false);
     });
 

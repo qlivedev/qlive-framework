@@ -132,8 +132,9 @@ The grid's parts, as far as they exist (see `docs/design/done/datagrid.md`):
   `.qlive-grid-new`, `.qlive-grid-changed`, `.qlive-grid-conflict`,
   `.qlive-grid-remote-changed`, `.qlive-grid-deleted` or
   `.qlive-grid-gone`, shown as a bar at its start in
-  `--qlive-grid-row-mark`. A cell carries the field marks an input
-  would, `.qlive-changed` and the rest.
+  `--qlive-grid-row-mark`. A cell of a field is `.qlive-grid-field`,
+  which keeps room at its end for the mark's icon, and carries the
+  field marks an input would, `.qlive-changed` and the rest.
 - `.qlive-grid-striped`, `.qlive-grid-hover`, `.qlive-grid-bordered`
   and `.qlive-grid-compact` are opt-in, set through the grid's
   `className`. The cell padding is `--qlive-grid-cell-padding`, which

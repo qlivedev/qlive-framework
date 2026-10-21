@@ -595,6 +595,34 @@
         width: var(--qlive-space-1);
         background: var(--qlive-grid-row-mark);
     }
+    /*
+     * A cell's mark icon, the state's shape as in a form: at the cell's end,
+     * in room every cell of a field keeps in a grid that marks, so a cell
+     * that gets marked moves nothing.
+     */
+    .qlive-grid-table td.qlive-grid-field
+    {
+        position: relative;
+        padding-inline-end: calc(var(--qlive-space-2) + 1em + var(--qlive-space-1));
+    }
+    .qlive-grid-compact .qlive-grid-table td.qlive-grid-field
+    {
+        padding-inline-end: calc(var(--qlive-space-1) + 1em + var(--qlive-space-1));
+    }
+    .qlive-grid-field:is(.qlive-changed, .qlive-conflict, .qlive-conflict-resolved, .qlive-remote-changed)::after
+    {
+        content: "";
+        position: absolute;
+        inset-block: 0;
+        inset-inline-end: var(--qlive-space-2);
+        width: 1em;
+        background-color: var(--qlive-mark-color);
+        mask: var(--qlive-mark-icon) center / contain no-repeat;
+    }
+    .qlive-grid-compact .qlive-grid-field::after
+    {
+        inset-inline-end: var(--qlive-space-1);
+    }
     .qlive-grid-new,
     .qlive-grid-changed
     {

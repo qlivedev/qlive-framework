@@ -95,8 +95,9 @@ describe("useGridRows() through DataGrid", () => {
         // what the mark's color says, for a screen reader
         expect(name.querySelector(".qlive-visually-hidden")!.textContent).toBe(" [Changed by you]");
         expect(num.querySelector(".qlive-visually-hidden")).toBeNull();
-        expect(name.className).toBe("qlive-changed");
-        expect(num.hasAttribute("class")).toBe(false);
+        // the icon's room is kept in every cell of a field, marked or not
+        expect(name.className).toBe("qlive-grid-field qlive-changed");
+        expect(num.className).toBe("qlive-grid-field");
     });
 
     it("marks a relation column by its foreign key, and a field of a related row not at all", () => {
@@ -107,7 +108,7 @@ describe("useGridRows() through DataGrid", () => {
         act(() => { ws.edit(d.rows[0]).ownerId = "user-2"; });
 
         const [, , owner, login] = cellsOf(bodyRows(grid)[0]);
-        expect(owner.className).toBe("qlive-changed");
+        expect(owner.className).toBe("qlive-grid-field qlive-changed");
         expect(login.hasAttribute("class")).toBe(false);
     });
 
@@ -120,7 +121,7 @@ describe("useGridRows() through DataGrid", () => {
         expect(bodyRows(first).map(r => r.getAttribute("data-id"))).toEqual(["foo-new", "foo-1", "foo-2"]);
         expect(created.className).toBe("qlive-grid-row qlive-grid-new");
         expect(cellsOf(created).map(td => td.textContent)).toEqual(["New Foo", "", "", ""]);
-        expect(cellsOf(created).some(td => td.hasAttribute("class"))).toBe(false);
+        expect(cellsOf(created).map(td => td.className)).toEqual(["qlive-grid-field", "qlive-grid-field", "qlive-grid-field", ""]);
 
         const second = render(<DataGrid doc={ doc({offset: 10}) } workingSet={ ws } columns={ COLUMNS }/>);
         expect(bodyRows(second).map(r => r.getAttribute("data-id"))).toEqual(["foo-1", "foo-2"]);
@@ -182,9 +183,9 @@ describe("useGridRows() through DataGrid", () => {
 
         const [first, second] = bodyRows(grid);
         expect(first.className).toBe("qlive-grid-row qlive-grid-conflict");
-        expect(cellsOf(first)[0].className).toBe("qlive-conflict");
+        expect(cellsOf(first)[0].className).toBe("qlive-grid-field qlive-conflict");
         expect(second.className).toBe("qlive-grid-row qlive-grid-remote-changed");
-        expect(cellsOf(second)[1].className).toBe("qlive-remote-changed");
+        expect(cellsOf(second)[1].className).toBe("qlive-grid-field qlive-remote-changed");
         expect(cellsOf(second)[1].textContent).toBe("3 [Changed by someone else]");
 
         act(() => ws.storedState({type: "Foo", id: "foo-2", deleted: true}));

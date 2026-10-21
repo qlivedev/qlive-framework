@@ -135,6 +135,8 @@ export default function DataGrid<R>(props: DataGridProps<R>): JSX.Element
     );
 
     const title = (column: ResolvedColumn) => column.title ?? headerTitle?.(column);
+    // where a cell can be marked, it keeps room for the mark's icon whether marked or not
+    const marking = !!workingSet || !!watch;
 
     let filterIndex = 0;
     return (
@@ -195,6 +197,7 @@ export default function DataGrid<R>(props: DataGridProps<R>): JSX.Element
                                             <td key={ index } style={ cellStyle(column) }
                                                 className={ classes(
                                                     column.nowrap && "qlive-grid-nowrap",
+                                                    marking && column.statusField && "qlive-grid-field",
                                                     column.statusField && fieldClass(row, column.statusField),
                                                     column.className(row)
                                                 ) || undefined }>

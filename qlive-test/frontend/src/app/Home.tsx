@@ -27,6 +27,13 @@ const FORMS = [
     {href: "/app/bar/edit", title: "A hand-written form", text: "the application's own choice of fields, with the conflict buttons"}
 ];
 
+/**
+ * Everything else.
+ */
+const OTHERS = [
+    {href: "/app/i18n", title: "Translation", text: "texts in the locale the browser asks for, and one nobody translated"}
+];
+
 export default function Home()
 {
     return (
@@ -46,6 +53,16 @@ export default function Home()
             <ul className="nav-list">
                 {
                     FORMS.map(example => (
+                        <li key={ example.href }>
+                            <a href={ example.href }>{ example.title }</a> -- { example.text }
+                        </li>
+                    ))
+                }
+            </ul>
+            <h2>Other</h2>
+            <ul className="nav-list">
+                {
+                    OTHERS.map(example => (
                         <li key={ example.href }>
                             <a href={ example.href }>{ example.title }</a> -- { example.text }
                         </li>

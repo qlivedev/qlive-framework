@@ -1,6 +1,7 @@
 import {useEffect, useReducer, useRef} from "react";
 import {and, conditionsEqual, FieldExpression, FilterExpression, ownedPart, updateComponent} from "../FilterDSL";
 import {QueryConfig, QueryConfigDelta} from "../QueryDocument";
+import {fieldHeading} from "./columns";
 import {claimTerms, ColumnFilter, FilterColumn, filterLabel, filterTarget, ready} from "./filters";
 import {unawaited} from "./unawaited";
 
@@ -10,6 +11,8 @@ import {unawaited} from "./unawaited";
  */
 export interface FilterableDocument
 {
+    /** the row type, which the columns' field paths start from */
+    type: string;
     config: QueryConfig;
     update(delta: QueryConfigDelta): Promise<unknown>;
 }
@@ -33,7 +36,7 @@ export interface ColumnFilterState
     /** what the column filters: a field path or an expression */
     field: FieldExpression;
 
-    /** what the inputs' accessible names call it, see `filterLabel()` */
+    /** what the inputs' accessible names call it: the column's label, or its field's heading, `"Foo.name"` */
     label: string;
 
     /** the column's filter */
@@ -98,6 +101,18 @@ interface Store
 }
 
 const DEFAULT_DELAY = 300;
+
+/**
+ * What a column's inputs are called: the label it states, else its field's heading as a grid column shows it, else
+ * the text form of its expression.
+ */
+function columnLabel(type: string, column: FilterColumn): string
+{
+    const heading = column.label === undefined && typeof column.field === "string"
+        ? fieldHeading(type, column.field)
+        : null;
+    return heading ?? filterLabel(column);
+}
 
 /**
  * The filter inputs of one owner of a condition part: a grid's filter row, a search form, a picker. One hook for all
@@ -241,7 +256,7 @@ export function useFilters(
         const state = store.columns[index];
         return {
             field: column.field,
-            label: filterLabel(column),
+            label: columnLabel(doc.type, column),
             filter: column.filter,
             values: state.values,
             setValues: (values: unknown[]) => {

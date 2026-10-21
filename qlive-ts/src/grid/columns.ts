@@ -203,6 +203,28 @@ function resolvePath(type: string, path: string): Target
 }
 
 /**
+ * The heading of the field at a path from the given type, as a column of it is headed: the i18n() of the field's
+ * owning type and its name, `"Foo.owner"` for `owner`, `"AppUser.login"` for `owner.login`. `null` for a path the
+ * schema doesn't have, or one no column can show.
+ *
+ * @param type      row type the path starts from
+ * @param path      field path
+ */
+export function fieldHeading(type: string, path: string): string | null
+{
+    let target: Target;
+    try
+    {
+        target = resolvePath(type, path);
+    }
+    catch
+    {
+        return null;
+    }
+    return i18n(target.owner + "." + target.name);
+}
+
+/**
  * The value at a field path of a row, `null` where a relation on the way is. A key the row doesn't have is an
  * error: the query doesn't select it.
  *

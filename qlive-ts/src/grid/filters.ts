@@ -108,7 +108,10 @@ export interface FilterColumn
     /** the filter */
     filter: ColumnFilter<any>;
 
-    /** what the inputs' accessible names call it, in place of the field path or the text form of the expression */
+    /**
+     * what the inputs' accessible names call it, in place of the field's heading, the i18n() of `Type.field` as a
+     * grid column has it, or the text form of the expression
+     */
     label?: string;
 }
 

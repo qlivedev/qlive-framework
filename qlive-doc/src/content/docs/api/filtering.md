@@ -57,6 +57,14 @@ interface FilterableDocument
 What useFilters() needs of a query document: its config and update(). A snapshot from useInjection() or
 useQueryDocument() is one as long as its query selects `config`.
 
+### FilterableDocument.type
+
+```ts
+type: string;
+```
+
+the row type, which the columns' field paths start from
+
 ### FilterableDocument.config
 
 ```ts
@@ -154,7 +162,7 @@ what the column filters: a field path or an expression
 label: string;
 ```
 
-what the inputs' accessible names call it, see `filterLabel()`
+what the inputs' accessible names call it: the column's label, or its field's heading, `"Foo.name"`
 
 ### ColumnFilterState.filter
 
@@ -394,7 +402,8 @@ the filter
 label?: string;
 ```
 
-what the inputs' accessible names call it, in place of the field path or the text form of the expression
+what the inputs' accessible names call it, in place of the field's heading, the i18n() of `Type.field` as a
+grid column has it, or the text form of the expression
 
 ## filterTarget()
 

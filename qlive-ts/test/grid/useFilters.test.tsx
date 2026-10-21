@@ -1,11 +1,14 @@
 // @vitest-environment jsdom
-import {afterEach, beforeEach, describe, expect, it, onTestFinished, vi} from "vitest";
+import {afterEach, beforeAll, beforeEach, describe, expect, it, onTestFinished, vi} from "vitest";
 import {act, Component, ReactNode, useState} from "react";
 import {createRoot, Root} from "react-dom/client";
 import {and, component, conditionsEqual, field, FilterExpression, or, value} from "../../src/FilterDSL";
 import {QueryConfig, QueryConfigDelta} from "../../src/QueryDocument";
 import {ColumnFilter, FilterColumn, operatorFilter} from "../../src/grid/filters";
 import {Filters, useFilters} from "../../src/grid/useFilters";
+import {initGridConfig} from "../fixtures/gridConfig";
+
+beforeAll(initGridConfig);
 
 const contains = operatorFilter("containsIgnoreCase");
 const num = operatorFilter("eq", "Int");
@@ -40,6 +43,7 @@ function Harness({initial, columns}: { initial: FilterExpression | null, columns
     setCondition = condition => setState(c => ({...c, condition}));
 
     const doc = {
+        type: "Foo",
         config: state,
         update: (delta: QueryConfigDelta) => {
             updates.push(delta);
@@ -145,6 +149,20 @@ describe("useFilters", () => {
         type(0, "1", "5");
         wait();
         expect(conditionsEqual(config.condition, component("grid", field("num").between(value(1), value(5))))).toBe(true);
+    });
+
+    it("calls a field's inputs what a grid column heads it, and a stated label what it says", () => {
+        const pattern = operatorFilter("containsIgnoreCase");
+        render(null, [
+            {field: "name", filter: pattern},
+            {field: "owner", filter: pattern},
+            {field: "owner.login", filter: pattern},
+            {field: "name", filter: pattern, label: "Search"},
+            {field: "nowhere", filter: pattern}
+        ]);
+
+        expect(filters.columns.map(c => c.label))
+            .toEqual(["[Foo.name]", "[Foo.owner]", "[AppUser.login]", "Search", "nowhere"]);
     });
 
     it("filters an expression and reads its term back", () => {

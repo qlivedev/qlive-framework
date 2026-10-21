@@ -693,14 +693,25 @@ against the condition (see above).
 
 ## The format on the server
 
-**The data format is meant to exist on the server too**, as Java
-classes rooted in `Layout`. The service delivering layouts exists
-(`LayoutService`, see the named layouts below) and passes JSON through;
-the classes, and validating a layout against the domain, don't yet.
+**The data format exists on the server too** (built 2026-10-21), as
+Java classes in `io.github.qlivedev.model.layout`: `Layout` and a sealed
+`LayoutNode` for the field, section, component and status nodes, the
+condition a `Condition`. `Layouts` reads and writes the frontend's JSON,
+the nodes told apart by their keys, so a `LayoutService` can pass a file
+through, change it first, or generate the classes.
 
-Validation would run in two passes, since a layout may refer to
-an action from a different provider: first all actions, then the
-layouts against the domain and the actions. Layouts would ship in the
+**`LayoutCheck` checks every layout against the domain at startup**,
+those of every offered locale, whatever the service: the rules of the
+frontend's `useField()` -- a field of the domain type, a list only as a
+many-to-many field, an object only as a to-one relation over one key --
+the mode, and the field paths a condition reads through to-one
+relations. All problems of all layouts fail startup together. Widget,
+component and section names are the frontend's and aren't checked, nor
+is what the application's init hook changes.
+
+Once actions exist, the check runs in two passes, since a layout may
+refer to an action from a different provider: first all actions, then
+the layouts against the domain and the actions. Layouts would ship in the
 cached part of the bootstrap -- a large form is 3 to 5 KB of JSON, so
 even a hundred layouts don't justify a per-route mechanism -- and views
 refer to them by name, so delivery could change later without touching

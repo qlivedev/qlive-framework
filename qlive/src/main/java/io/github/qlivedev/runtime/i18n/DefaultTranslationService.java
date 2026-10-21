@@ -35,6 +35,9 @@ import java.util.regex.Pattern;
 /// among them, the name of every type the domain has a table for and of each of its fields, and every value of an
 /// enum one of those fields holds, `"Size.MEDIUM"`.
 ///
+/// QLive's module in the analysis brings the English of QLive's own tags. It is the translation of those tags into
+/// every English locale, and a row in the table for the same tag and locale takes its place.
+///
 /// In production the translations into a locale are read once and kept: neither the analysis nor the domain
 /// changes while the application runs, and a page load costs no query. In dev they are read for every page, so
 /// that a translation written into the database and a call added to a view show with the next reload.
@@ -165,16 +168,15 @@ public class DefaultTranslationService
     {
         final String languageTag = locale.toLanguageTag();
 
-        final Map<String, String> stored = new HashMap<>();
+        final TrackUsageData analysis = staticAnalysisProvider.getTrackUsageData();
+
+        final Map<String, String> stored = shipped(analysis, locale);
         dslContext.select(TAG, VALUE)
             .from(TABLE)
             .where(LOCALE.eq(languageTag))
             .forEach(r -> stored.put(r.get(TAG), r.get(VALUE)));
 
-        final Map<String, String> translations = translations(
-            tags(staticAnalysisProvider.getTrackUsageData(), domain),
-            stored
-        );
+        final Map<String, String> translations = translations(tags(analysis, domain), stored);
 
         translations.forEach((tag, translation) -> {
             final Set<String> expected = placeholders(tag);
@@ -235,6 +237,31 @@ public class DefaultTranslationService
         }
 
         return tags;
+    }
+
+
+    /// The translations the analysis' modules bring into the given locale: those filed under its language, `en`
+    /// for `en-GB`, and over them those filed under the locale itself.
+    ///
+    /// @param analysis     the frontend's static analysis, or `null` where there is none yet
+    static Map<String, String> shipped(TrackUsageData analysis, Locale locale)
+    {
+        final Map<String, String> shipped = new HashMap<>();
+        if (analysis != null)
+        {
+            for (ModuleFunctionReferences refs : analysis.getModuleFunctionReferences().values())
+            {
+                shipped.putAll(refs.getTranslations(locale.getLanguage()));
+            }
+            if (!locale.toLanguageTag().equals(locale.getLanguage()))
+            {
+                for (ModuleFunctionReferences refs : analysis.getModuleFunctionReferences().values())
+                {
+                    shipped.putAll(refs.getTranslations(locale.toLanguageTag()));
+                }
+            }
+        }
+        return shipped;
     }
 
 

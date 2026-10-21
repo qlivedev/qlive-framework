@@ -184,13 +184,17 @@ describe("trackUsage", () => {
     }
 
 
-    it("hands QLive's own i18n() tags to the backend along with the application's calls", async () => {
+    it("hands QLive's own i18n() tags and their English to the backend", async () => {
         startPlugin();
 
         // Under a module id no route resolves to, in the shape of any other module's analysis.
-        const framework = pushes[0].usages[FRAMEWORK_MODULE] as {calls: {i18n: string[][]}};
+        const framework = pushes[0].usages[FRAMEWORK_MODULE] as {
+            calls: {i18n: string[][]},
+            translations: {en: Record<string, string>}
+        };
         expect(framework.calls.i18n).toContainEqual(["Not a number"]);
         expect(framework.calls.i18n).toContainEqual(["Page {0}"]);
+        expect(framework.translations.en["Stale rows"]).toBe("Rows changed elsewhere");
     });
 
 

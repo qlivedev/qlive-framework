@@ -29,7 +29,11 @@ class DefaultTranslationServiceTest
             "usages": {
                 "./app/Home": { "requires": [], "calls": { "i18n": [ ["Welcome {0}"], ["Home"] ] } },
                 "./component/Other": { "requires": [], "calls": { "useInjection": [ ["Q_Foo"] ] } },
-                "@qlivedev/qlive-ts": { "requires": [], "calls": { "i18n": [ ["Not a number"], ["Home"] ] } }
+                "@qlivedev/qlive-ts": {
+                    "requires": [],
+                    "calls": { "i18n": [ ["Not a number"], ["Home"], ["Stale rows"] ] },
+                    "translations": { "en": { "Not a number": "Not a number", "Stale rows": "Rows changed elsewhere" } }
+                }
             }
         }
         """
@@ -74,6 +78,19 @@ class DefaultTranslationServiceTest
         );
 
         assertThat(translations, is(Map.of("Foo.name", "Name", "Welcome {0}", "Willkommen {0}")));
+    }
+
+
+    @Test
+    void shipsQLivesEnglishToEveryEnglishLocale()
+    {
+        assertThat(
+            DefaultTranslationService.shipped(ANALYSIS, Locale.ENGLISH),
+            is(Map.of("Not a number", "Not a number", "Stale rows", "Rows changed elsewhere"))
+        );
+        assertThat(DefaultTranslationService.shipped(ANALYSIS, Locale.UK).get("Stale rows"), is("Rows changed elsewhere"));
+        assertThat(DefaultTranslationService.shipped(ANALYSIS, Locale.GERMAN), is(Map.of()));
+        assertThat(DefaultTranslationService.shipped(null, Locale.ENGLISH), is(Map.of()));
     }
 
 

@@ -61,7 +61,7 @@ A tag is one of these:
 
 - **The static text of an `i18n()` call**, its first argument:
   `i18n("Filter {0}", label)` has the tag `Filter {0}`. QLive's own texts
-  are among them -- "Next page", "Not a number" -- and come in with the
+  are among them -- "Next page", "Stale rows" -- and come in with the
   Vite plugin.
 - **A domain type with a table**, and each of its fields: `Foo`,
   `Foo.name`. Grid headings and form labels are these.
@@ -77,8 +77,21 @@ argument after it and so on, in whatever order the language needs:
 `"{1} of {0}"` may become `"{0}: {1}"`. The server logs a warning for a
 translation whose placeholders differ from its tag's.
 
+A tag is short for its text rather than the text itself: QLive's
+`Stale rows` reads "Rows changed elsewhere" in English. Tags in your own
+calls can be either; a short one keeps its translations when the wording
+changes.
+
 A row for a tag no code uses is not sent, so translations of removed texts
 do no harm and can be cleaned up whenever.
+
+## QLive's own texts
+
+QLive brings the English of its own tags, so a page served in `en`, or
+`en-GB`, shows them without a row in the table. A row for the same tag
+and locale takes the place of QLive's English, and every other language
+needs rows of its own. The tags and their English are in qlive-ts's
+`dist/i18n-en.json`, a starting point for translating them.
 
 ## A text without translation
 

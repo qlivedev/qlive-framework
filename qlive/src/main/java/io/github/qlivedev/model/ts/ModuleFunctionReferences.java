@@ -29,6 +29,7 @@ public class ModuleFunctionReferences
     private final Map<String, List<List<?>>> calls;
     private final Map<String, List<List<?>>> indexes;
     private final Map<String, List<List<?>>> contexts;
+    private final Map<String, Map<String, String>> translations;
 
 
     public ModuleFunctionReferences(
@@ -41,8 +42,9 @@ public class ModuleFunctionReferences
         @JSONParameter("indexes")
         Map<String, List<List<?>>> indexes,
         @JSONParameter("contexts")
-        Map<String, List<List<?>>> contexts
-
+        Map<String, List<List<?>>> contexts,
+        @JSONParameter("translations")
+        Map<String, Map<String, String>> translations
     )
     {
         this.module = module;
@@ -51,6 +53,7 @@ public class ModuleFunctionReferences
         this.calls = calls;
         this.indexes = indexes;
         this.contexts = contexts;
+        this.translations = translations;
     }
 
 
@@ -127,6 +130,23 @@ public class ModuleFunctionReferences
     {
         List<List<?>> contexts = this.contexts.get(name);
         return Objects.requireNonNullElse(contexts, Collections.emptyList());
+    }
+
+
+    /**
+     * Returns the translations the module brings for its i18n() tags into the given language, by tag. Only QLive's
+     * own module brings any, its English; the analysis of an application's module has none.
+     *
+     * @param language  language tag the translations are filed under, "en"
+     * @return translations by tag, empty where there are none
+     */
+    public Map<String, String> getTranslations(String language)
+    {
+        if (translations == null)
+        {
+            return Collections.emptyMap();
+        }
+        return Objects.requireNonNullElse(translations.get(language), Collections.emptyMap());
     }
 
 

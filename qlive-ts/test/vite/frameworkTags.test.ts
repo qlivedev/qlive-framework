@@ -1,14 +1,18 @@
+import * as fs from "node:fs";
 import {fileURLToPath} from "node:url";
 import {describe, expect, it} from "vitest";
 import {analyzeSourceTree} from "../../src/vite/trackUsage";
 
 /**
  * Keeps the tags qlive-ts ships with in step with its source. A new or reworded i18n() call in QLive fails this test
- * until `vitest -u` writes it into the file, so the change is part of the diff.
+ * until its tag is in the file, with its English: that is written by hand, which is the point of the file.
  */
-describe("i18n-tags.json", () => {
+describe("i18n-en.json", () => {
 
-    it("holds the tag of every static i18n() call in qlive-ts", async () => {
+    const english: Record<string, string> =
+        JSON.parse(fs.readFileSync(new URL("../../src/vite/i18n-en.json", import.meta.url), "utf-8"));
+
+    it("holds the tag of every static i18n() call in qlive-ts, and nothing else", () => {
 
         // QLive imports i18n() from its module, not from the package an application imports it from, so the
         // analysis tracks it under a name of its own. A dynamic tag is a field or section name, which comes into
@@ -28,7 +32,17 @@ describe("i18n-tags.json", () => {
             }
         }
 
-        await expect(JSON.stringify([...tags].sort(), null, 2) + "\n")
-            .toMatchFileSnapshot("../../src/vite/i18n-tags.json");
+        // sorted, so that the file stays sorted too
+        expect(Object.keys(english)).toEqual([...tags].sort());
+    });
+
+    it("holds an English translation with the tag's placeholders", () => {
+        const placeholders = (text: string) => [...text.matchAll(/\{\d+\}/g)].map(m => m[0]).sort();
+
+        for (const [tag, text] of Object.entries(english))
+        {
+            expect(text.trim(), tag).not.toBe("");
+            expect(placeholders(text), tag).toEqual(placeholders(tag));
+        }
     });
 });

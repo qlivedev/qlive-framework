@@ -40,6 +40,6 @@ export default defineConfig([
         outExtensions: () => ({js: ".js", dts: ".d.ts"}),
 
         // The tags of QLive's own i18n() calls, which the plugin reads next to itself.
-        copy: [{from: "src/vite/i18n-tags.json", to: "dist", flatten: true}],
+        copy: [{from: "src/vite/i18n-en.json", to: "dist", flatten: true}],
     },
 ]);

@@ -124,7 +124,7 @@ class StaticAnalysisProviderTest
     private static TrackUsageData analysisOf(String module)
     {
         return new TrackUsageData(
-            Map.of(module, new ModuleFunctionReferences(module, List.of(), Map.of(), Map.of(), Map.of()))
+            Map.of(module, new ModuleFunctionReferences(module, List.of(), Map.of(), Map.of(), Map.of(), null))
         );
     }
 }

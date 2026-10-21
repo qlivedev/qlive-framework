@@ -1,32 +1,12 @@
 import type {QLiveConfig} from "@qlivedev/qlive-ts";
+import QLIVE_ENGLISH from "../../../qlive-ts/src/vite/i18n-en.json";
 
 /*
- * The English the demos show. Most tags read as their own English and are listed as they are; a tag that is short for
- * a longer message is in MESSAGES, and a field's tag, "Foo.name", becomes the field's name. A tag missing here shows
+ * The English the demos show. QLive's own comes with qlive-ts, as it does for the server; the tags of qlive-test's
+ * views read as their own English, and a field's tag, "Foo.name", becomes the field's name. A tag missing here shows
  * in brackets in the demo: add it.
  */
 const TAGS = [
-    // qlive-ts
-    "All",
-    "Any",
-    "Filter {0}",
-    "Filter {0} from",
-    "Filter {0} until",
-    "First page",
-    "Last page",
-    "Next page",
-    "No",
-    "No rows",
-    "Page {0}",
-    "Pagination",
-    "Previous page",
-    "Reload",
-    "Reset filters",
-    "Rows not updated",
-    "Rows not updated: {0}",
-    "Rows per page",
-    "Yes",
-    // qlive-test's views
     "Current sorting order",
     "Flagged first, then largest num",
     "Last digit of num",
@@ -37,15 +17,9 @@ const TAGS = [
     "descending"
 ];
 
-const MESSAGES: Record<string, string> = {
-    // qlive-ts
-    "Extra filter": "Additional filter active",
-    "Sorted further": "Also sorted by other fields",
-    "Stale rows": "Rows changed elsewhere"
-};
-
 /**
- * The translations for the given config: every tag above as itself, every field of every object type as its name.
+ * The translations for the given config: every tag above as itself, QLive's as their English, every field of every
+ * object type as its name.
  *
  * @param config    config the demos run on
  */
@@ -66,6 +40,6 @@ export function translationsFor(config: QLiveConfig): Record<string, string>
     {
         translations[tag] = tag;
     }
-    Object.assign(translations, MESSAGES);
+    Object.assign(translations, QLIVE_ENGLISH);
     return translations;
 }

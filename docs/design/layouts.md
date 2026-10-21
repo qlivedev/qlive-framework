@@ -696,16 +696,18 @@ against the condition (see above).
 **The data format exists on the server too** (built 2026-10-21), as
 Java classes in `io.github.qlivedev.model.layout`: `Layout` and a sealed
 `LayoutNode` for the field, section, component and status nodes, the
-condition a `Condition`. `Layouts` reads and writes the frontend's JSON,
-the nodes told apart by their keys, so a `LayoutService` can pass a file
-through, change it first, or generate the classes.
+condition a `Condition`. `Layouts` holds them by name, a layout put
+under a name again replacing the one there was, and reads the
+frontend's JSON, the nodes told apart by their keys: a `LayoutProvider`
+reads a file, changes what it read, or builds the classes.
 
-**`LayoutCheck` checks every layout against the domain at startup**,
-those of every offered locale, whatever the service: the rules of the
+**`LayoutCheck` checks the `Layouts` against the domain** whenever the
+bootstrap service builds their JSON, which is at startup for every
+offered locale and again after `flushCache()`: the rules of the
 frontend's `useField()` -- a field of the domain type, a list only as a
 many-to-many field, an object only as a to-one relation over one key --
 the mode, and the field paths a condition reads through to-one
-relations. All problems of all layouts fail startup together. Widget,
+relations. All problems of all layouts fail together. Widget,
 component and section names are the frontend's and aren't checked, nor
 is what the application's init hook changes.
 
@@ -719,15 +721,22 @@ them.
 
 ### Named layouts and where they come from (raw notes, 2026-10-20)
 
-As built (2026-10-21): `LayoutService.getLayouts(locale)` returns a
-`JSONHolder` of name to layout, which the bootstrap carries to every
-page with the schema; an application without the bean sends none.
+As built (2026-10-21): every `LayoutProvider` bean, in their order,
+returns `Layouts` for a locale, a later provider's layout replacing an
+earlier one's of the same name. The bootstrap service merges and checks
+them and keeps the JSON per locale, for every page with the schema,
+until `flushCache()`, which a provider whose layouts changed calls; the
+next page in each locale gets them built anew. An application without a
+provider sends none. A provider hands over classes rather than JSON
+(decided 2026-10-21, replacing a service returning a `JSONHolder`), so
+that the check and the merge work on the layouts, and the caching is
+QLive's rather than every implementation's.
 `init()` puts it into `config().layouts`, an empty map where there is
 none, and the init hook adds, changes or replaces entries there.
 `<Form layout="name"/>` renders one (`namedLayout()`), carrying the name
 it was found by, which is what overrides match. Section names are text
 as shown, so a server layout's sections are translated by the service,
-in the locale it is given. qlive-test's `ExampleLayoutService` reads
+in the locale it is given. qlive-test's `ExampleLayoutProvider` reads
 `layouts.json`; main.tsx extends its `fooSummary`, and
 `app/form/Named.tsx` renders it.
 
@@ -762,11 +771,10 @@ neither of which exists yet.
 - **Layouts ship in the bootstrap** (decided 2026-10-21), not fetched by
   name on first use. Which layouts a page refers to can't be tracked as
   injections are, and an application mutating a form live needs any of
-  them at hand. A layout service returns a `JSONHolder`, cached as the
-  implementation sees fit, and the bootstrap carries it as it carries
-  the translations (`TranslationService`). That generated layouts add up
-  for many types is the implementation's to manage, by what it caches
-  and what it leaves out.
+  them at hand. The providers return the layout classes; the bootstrap
+  service keeps their JSON per locale until `flushCache()` and carries
+  it as it carries the translations. That generated layouts add up for
+  many types is the providers' to manage, by what they leave out.
 
 ## Carried over, not discussed again
 

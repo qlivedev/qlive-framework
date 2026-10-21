@@ -56,14 +56,15 @@ export function fieldClassName(status: MergeFieldStatus): string
 }
 
 /**
- * What a status is called, the i18n() tag a screen reader is told it by in place of the mark's color.
+ * What a status is called, what a screen reader is told in place of the mark's color. A call each, rather than a
+ * tag each, so that the analysis finds the tags.
  */
-const TEXTS: Record<MergeFieldStatus, string | null> = {
-    unchanged: null,
-    changed: "Changed by you",
-    conflict: "Changed by someone else too, your value stands",
-    resolved: "Conflict resolved",
-    remoteChanged: "Changed by someone else"
+const TEXTS: Record<MergeFieldStatus, () => string> = {
+    unchanged: () => "",
+    changed: () => i18n("Changed by you"),
+    conflict: () => i18n("Changed by someone else too, your value stands"),
+    resolved: () => i18n("Conflict resolved"),
+    remoteChanged: () => i18n("Changed by someone else")
 }
 
 /**
@@ -74,8 +75,7 @@ const TEXTS: Record<MergeFieldStatus, string | null> = {
  */
 export function fieldStatusText(status: MergeFieldStatus): string
 {
-    const tag = TEXTS[status]
-    return tag === null ? "" : i18n(tag)
+    return TEXTS[status]()
 }
 
 /**

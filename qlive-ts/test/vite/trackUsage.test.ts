@@ -7,6 +7,7 @@ import type {Plugin, ResolvedConfig, ViteDevServer} from "vite";
 import {afterEach, beforeEach, describe, expect, it, type MockInstance, onTestFinished, vi} from "vitest";
 import {and, field, value} from "../../src/FilterDSL";
 import {analyzeSourceTree, type TrackUsagePluginOptions, trackUsage} from "../../src/vite/trackUsage";
+import {FRAMEWORK_MODULE} from "../../src/vite/frameworkTags";
 
 /**
  * Covers what the plugin does with a backend: which modules a push carries, and when the browser is told to
@@ -173,7 +174,7 @@ describe("trackUsage", () => {
 
         expect(pushes).toHaveLength(1);
         expect(pushes[0].url).toContain("full=true");
-        expect(Object.keys(pushes[0].usages).sort()).toEqual(["./app/Home", "./app/Q_Foo"]);
+        expect(Object.keys(pushes[0].usages).sort()).toEqual(["./app/Home", "./app/Q_Foo", FRAMEWORK_MODULE]);
 
         pushes[0].answer(204);
         await settle();
@@ -181,6 +182,16 @@ describe("trackUsage", () => {
 
         return plugin;
     }
+
+
+    it("hands QLive's own i18n() tags to the backend along with the application's calls", async () => {
+        startPlugin();
+
+        // Under a module id no route resolves to, in the shape of any other module's analysis.
+        const framework = pushes[0].usages[FRAMEWORK_MODULE] as {calls: {i18n: string[][]}};
+        expect(framework.calls.i18n).toContainEqual(["Not a number"]);
+        expect(framework.calls.i18n).toContainEqual(["Page {0}"]);
+    });
 
 
     beforeEach(() => {
@@ -381,7 +392,7 @@ describe("trackUsage", () => {
         // that push, not to the one that was turned away.
         expect(pushes).toHaveLength(2);
         expect(pushes[1].url).toContain("full=true");
-        expect(Object.keys(pushes[1].usages).sort()).toEqual(["./app/Home", "./app/Q_Foo"]);
+        expect(Object.keys(pushes[1].usages).sort()).toEqual(["./app/Home", "./app/Q_Foo", FRAMEWORK_MODULE]);
         expect(reloads).toBe(0);
 
         pushes[1].answer(204);
@@ -439,7 +450,7 @@ describe("trackUsage", () => {
 
         expect(pushes).toHaveLength(1);
         expect(pushes[0].url).toContain("full=true");
-        expect(Object.keys(pushes[0].usages).sort()).toEqual(["./app/Home", "./app/Q_Foo"]);
+        expect(Object.keys(pushes[0].usages).sort()).toEqual(["./app/Home", "./app/Q_Foo", FRAMEWORK_MODULE]);
 
         // The browser retries its bootstrap by itself, so there is nothing to reload.
         pushes[0].answer(204);

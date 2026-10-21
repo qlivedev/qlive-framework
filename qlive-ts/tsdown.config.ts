@@ -38,5 +38,8 @@ export default defineConfig([
         // A node-platform build defaults to .mjs/.d.mts. The package is type: "module", so .js already
         // means ESM here, and the exports map reads better with both entries named the same way.
         outExtensions: () => ({js: ".js", dts: ".d.ts"}),
+
+        // The tags of QLive's own i18n() calls, which the plugin reads next to itself.
+        copy: [{from: "src/vite/i18n-tags.json", to: "dist", flatten: true}],
     },
 ]);

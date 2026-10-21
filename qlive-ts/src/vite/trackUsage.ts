@@ -6,6 +6,7 @@ import * as babel from "@babel/core";
 import trackUsageBabelPlugin, {type SkippedCall} from "./babel/trackUsagePlugin.js";
 import trackUsageData from "./babel/trackUsageData.js";
 import deepEqual from "deep-equal";
+import {frameworkUsages} from "./frameworkTags";
 import {and, component, computedValue, condition, field, not, now, operation, or, today, value, values} from "../FilterDSL";
 import type {Plugin, ResolvedConfig} from "vite";
 import type {IncomingMessage, OutgoingHttpHeaders, ServerResponse} from "node:http";
@@ -493,6 +494,11 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
     let command: "build" | "serve" = "build";
     let isDevMode = false;
     let devData: UsageSnapshot = {usages: {}};
+    /**
+     * QLive's own i18n() calls, which the backend gets with every complete analysis. Read once at startup, before
+     * any transform: they don't change while the application is built.
+     */
+    let framework: Record<string, unknown> = {};
 
     /** Modules whose analysis has changed since the last successful push. */
     const changedModules = new Set<string>();
@@ -658,7 +664,7 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
         changedModules.clear();
         needsFullPush = false;
 
-        const usages: Record<string, unknown> = {};
+        const usages: Record<string, unknown> = full ? {...framework} : {};
         for (const module of modules)
         {
             usages[module] = devData.usages[module];
@@ -785,6 +791,7 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
             // production` keeps command "serve" too. Require mode === "development"
             // so pushes only happen for an actual `vite dev`/`vite`.
             isDevMode = command === "serve" && config.mode === "development";
+            framework = frameworkUsages();
         },
 
         transform(code, id)
@@ -806,7 +813,7 @@ export function trackUsage(options: TrackUsagePluginOptions = {}): Plugin {
             this.emitFile({
                 type: "asset",
                 fileName: outputFileName,
-                source: JSON.stringify(trackUsageData.get()),
+                source: JSON.stringify({usages: {...framework, ...(trackUsageData.get() as UsageSnapshot).usages}}),
             });
         },
 

@@ -6,6 +6,7 @@ package io.github.qlivedev.qlivetest.domain;
 
 import io.github.qlivedev.qlivetest.domain.tables.AppFieldSet;
 import io.github.qlivedev.qlivetest.domain.tables.AppLogin;
+import io.github.qlivedev.qlivetest.domain.tables.AppTranslation;
 import io.github.qlivedev.qlivetest.domain.tables.AppUser;
 import io.github.qlivedev.qlivetest.domain.tables.AppVersion;
 import io.github.qlivedev.qlivetest.domain.tables.Bar;
@@ -17,6 +18,7 @@ import io.github.qlivedev.qlivetest.domain.tables.Quux;
 import io.github.qlivedev.qlivetest.domain.tables.Qux;
 import io.github.qlivedev.qlivetest.domain.tables.records.AppFieldSetRecord;
 import io.github.qlivedev.qlivetest.domain.tables.records.AppLoginRecord;
+import io.github.qlivedev.qlivetest.domain.tables.records.AppTranslationRecord;
 import io.github.qlivedev.qlivetest.domain.tables.records.AppUserRecord;
 import io.github.qlivedev.qlivetest.domain.tables.records.AppVersionRecord;
 import io.github.qlivedev.qlivetest.domain.tables.records.BarLinkRecord;
@@ -56,6 +58,8 @@ public class Keys {
 
     public static final UniqueKey<AppFieldSetRecord> PK_APP_FIELD_SET = Internal.createUniqueKey(AppFieldSet.APP_FIELD_SET, DSL.name("pk_app_field_set"), new TableField[] { AppFieldSet.APP_FIELD_SET.ID }, true);
     public static final UniqueKey<AppLoginRecord> PK_APP_LOGIN = Internal.createUniqueKey(AppLogin.APP_LOGIN, DSL.name("pk_app_login"), new TableField[] { AppLogin.APP_LOGIN.SERIES }, true);
+    public static final UniqueKey<AppTranslationRecord> PK_APP_TRANSLATION = Internal.createUniqueKey(AppTranslation.APP_TRANSLATION, DSL.name("pk_app_translation"), new TableField[] { AppTranslation.APP_TRANSLATION.ID }, true);
+    public static final UniqueKey<AppTranslationRecord> UC_APP_TRANSLATION_TAG_LOCALE = Internal.createUniqueKey(AppTranslation.APP_TRANSLATION, DSL.name("uc_app_translation_tag_locale"), new TableField[] { AppTranslation.APP_TRANSLATION.TAG, AppTranslation.APP_TRANSLATION.LOCALE }, true);
     public static final UniqueKey<AppUserRecord> PK_APP_USER = Internal.createUniqueKey(AppUser.APP_USER, DSL.name("pk_app_user"), new TableField[] { AppUser.APP_USER.ID }, true);
     public static final UniqueKey<AppUserRecord> UC_APP_USER_LOGIN = Internal.createUniqueKey(AppUser.APP_USER, DSL.name("uc_app_user_login"), new TableField[] { AppUser.APP_USER.LOGIN }, true);
     public static final UniqueKey<AppVersionRecord> PK_APP_VERSION = Internal.createUniqueKey(AppVersion.APP_VERSION, DSL.name("pk_app_version"), new TableField[] { AppVersion.APP_VERSION.ID }, true);

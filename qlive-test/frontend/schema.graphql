@@ -43,6 +43,18 @@ type AppLogin {
     username: String!
 }
 
+"What a tag of the frontend's i18n() reads as in one locale. The tags are the static text of the i18n() calls, QLive's own among them, and the names of the domain types, their fields and enum values: \"Filter {0}\", \"Foo.name\". Which of them a page gets is decided by the code, so a translation of a tag nothing uses any more is simply not sent."
+type AppTranslation {
+    "translation id"
+    id: String!
+    "Language tag of the locale translated into, one of those qlive.i18n.locales offers: \"en\", \"de-CH\""
+    locale: String!
+    "The tag translated, with the {0}, {1}... placeholders of the arguments its call fills in"
+    tag: String!
+    "The translation, with the same placeholders as the tag"
+    value: String!
+}
+
 "Application users. Used to authenticate users by spring security. Can have additional fields/relations (See UserInfoService)"
 type AppUser {
     "Creation date of the user entry"

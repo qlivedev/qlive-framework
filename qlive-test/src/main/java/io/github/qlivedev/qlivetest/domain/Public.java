@@ -6,6 +6,7 @@ package io.github.qlivedev.qlivetest.domain;
 
 import io.github.qlivedev.qlivetest.domain.tables.AppFieldSet;
 import io.github.qlivedev.qlivetest.domain.tables.AppLogin;
+import io.github.qlivedev.qlivetest.domain.tables.AppTranslation;
 import io.github.qlivedev.qlivetest.domain.tables.AppUser;
 import io.github.qlivedev.qlivetest.domain.tables.AppVersion;
 import io.github.qlivedev.qlivetest.domain.tables.Bar;
@@ -55,6 +56,11 @@ public class Public extends SchemaImpl {
      * The table <code>public.app_login</code>.
      */
     public final AppLogin APP_LOGIN = AppLogin.APP_LOGIN;
+
+    /**
+     * The table <code>public.app_translation</code>.
+     */
+    public final AppTranslation APP_TRANSLATION = AppTranslation.APP_TRANSLATION;
 
     /**
      * The table <code>public.app_user</code>.
@@ -120,6 +126,7 @@ public class Public extends SchemaImpl {
         return Arrays.asList(
             AppFieldSet.APP_FIELD_SET,
             AppLogin.APP_LOGIN,
+            AppTranslation.APP_TRANSLATION,
             AppUser.APP_USER,
             AppVersion.APP_VERSION,
             Bar.BAR,

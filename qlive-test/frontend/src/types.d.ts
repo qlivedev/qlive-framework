@@ -43,6 +43,18 @@ export type AppLogin = {
     username: string
 }
 
+/** What a tag of the frontend's i18n() reads as in one locale. The tags are the static text of the i18n() calls, QLive's own among them, and the names of the domain types, their fields and enum values: "Filter {0}", "Foo.name". Which of them a page gets is decided by the code, so a translation of a tag nothing uses any more is simply not sent. */
+export type AppTranslation = {
+    /** translation id */
+    id: string
+    /** Language tag of the locale translated into, one of those qlive.i18n.locales offers: "en", "de-CH" */
+    locale: string
+    /** The tag translated, with the {0}, {1}... placeholders of the arguments its call fills in */
+    tag: string
+    /** The translation, with the same placeholders as the tag */
+    value: string
+}
+
 /** Application users. Used to authenticate users by spring security. Can have additional fields/relations (See UserInfoService) */
 export type AppUser = {
     /** Creation date of the user entry */
@@ -373,6 +385,6 @@ export type QuxDocument = {
     type: string
 }
 
-export type DomainObject = AppFieldSet | AppLogin | AppUser | AppUserDocument | AppVersion | Bar | BarDocument | BarLink |
-    Baz | BazDocument | Foo | FooDocument | FooType | FooTypeDocument | MergeConflict | MergeConflictField |
-    MergeResult | MutationType | QueryType | Quux | QuuxDocument | Qux | QuxDocument
+export type DomainObject = AppFieldSet | AppLogin | AppTranslation | AppUser | AppUserDocument | AppVersion | Bar | BarDocument |
+    BarLink | Baz | BazDocument | Foo | FooDocument | FooType | FooTypeDocument | MergeConflict |
+    MergeConflictField | MergeResult | MutationType | QueryType | Quux | QuuxDocument | Qux | QuxDocument

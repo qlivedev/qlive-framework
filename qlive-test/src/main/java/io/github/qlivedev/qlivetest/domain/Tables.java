@@ -6,6 +6,7 @@ package io.github.qlivedev.qlivetest.domain;
 
 import io.github.qlivedev.qlivetest.domain.tables.AppFieldSet;
 import io.github.qlivedev.qlivetest.domain.tables.AppLogin;
+import io.github.qlivedev.qlivetest.domain.tables.AppTranslation;
 import io.github.qlivedev.qlivetest.domain.tables.AppUser;
 import io.github.qlivedev.qlivetest.domain.tables.AppVersion;
 import io.github.qlivedev.qlivetest.domain.tables.Bar;
@@ -41,6 +42,11 @@ public class Tables {
      * The table <code>public.app_login</code>.
      */
     public static final AppLogin APP_LOGIN = AppLogin.APP_LOGIN;
+
+    /**
+     * The table <code>public.app_translation</code>.
+     */
+    public static final AppTranslation APP_TRANSLATION = AppTranslation.APP_TRANSLATION;
 
     /**
      * The table <code>public.app_user</code>.

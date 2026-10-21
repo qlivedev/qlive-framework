@@ -29,3 +29,20 @@ describe("i18n", () => {
         expect(i18n("No rows")).toBe("[No rows]")
     })
 })
+
+describe("i18n() on a bootstrap", () => {
+
+    it("translates with the translations and in the locale the server sent", async () => {
+        await init({
+            config: {...testConfig},
+            csrfToken: testCsrfToken(),
+            authentication: testAuthentication(),
+            locale: "de",
+            translations: {"Filter {0}": "{0} filtern"},
+            data: {}
+        })
+
+        expect(config().locale).toBe("de")
+        expect(i18n("Filter {0}", "Name")).toBe("Name filtern")
+    })
+})

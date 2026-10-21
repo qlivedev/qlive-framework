@@ -251,6 +251,15 @@ export type QLiveBoostrap = {
       */
     authentication: Authentication
     /**
+     * Language tag of the locale the page is served in, the one of the locales the application offers that the
+     * browser asked for. Absent from a fixture recorded before there were translations, like `translations`.
+     */
+    locale?: string
+    /**
+     * Tag to translation in that locale, which init() puts into the config.
+     */
+    translations?: Record<string, string>
+    /**
      * Injection data
      */
     data: {
@@ -311,6 +320,12 @@ export type QLiveConfig = {
     authentication?: Authentication
 
     /**
+     * Language tag of the locale the page is served in, `"en"` or `"de-CH"`: the one of the locales the server
+     * offers that the browser's language settings match best. Put here on arrival, like the authentication.
+     */
+    locale?: string
+
+    /**
      * Cached set of the names of QueryDocument<T> equivalent types in the application
      */
     queryDocumentTypes?: Set<string>
@@ -338,10 +353,11 @@ export type QLiveConfig = {
 
     /**
      * What i18n() looks its tags up in: a tag, `"Filter {0}"` or `"Foo.name"`, to its translation, which holds the
-     * same placeholders. A tag without one renders as itself in brackets, so a missing translation shows. Written by
-     * the application like errorView, in startup()'s init hook.
+     * same placeholders. A tag without one renders as itself in brackets. The server sends the translations into the
+     * page's locale with the bootstrap, and they are put here on arrival. An application changing or adding to them
+     * does so in startup()'s init hook, like it does errorView.
      *
-     *     config.translations = {"Foo.name": "Name", "Filter {0}": "{0} filtern"}
+     *     config.translations = {...config.translations, "Filter {0}": "{0} filtern"}
      */
     translations?: Record<string, string>
 
@@ -605,7 +621,7 @@ function useConfig(config: QLiveConfig)
 
 export function init(bs : QLiveBoostrap): Promise<QLiveConfig>
 {
-    const { config, data, csrfToken, authentication } = bs
+    const { config, data, csrfToken, authentication, locale, translations } = bs
 
     onFixture = false
     initialized = true
@@ -614,6 +630,9 @@ export function init(bs : QLiveBoostrap): Promise<QLiveConfig>
     {
         theConfig.csrfToken = csrfToken
         theConfig.authentication = authentication
+        // A fixture recorded before the bootstrap had them may carry translations in its config instead.
+        theConfig.locale = locale ?? theConfig.locale
+        theConfig.translations = translations ?? theConfig.translations
         // Before the init hook the application may replace it in, so that assigning is all it takes and
         // every reader can count on finding one.
         theConfig.errorView = DefaultErrorView
@@ -670,7 +689,7 @@ export function initFixture(fixture: QLiveFixture): Promise<QLiveConfig>
  *    reduced one, the full one is kept.
  *  - An injection id already loaded has to come with the same data. Two fixtures for one route can't share a page.
  *
- * The authentication and CSRF token stay those of the fixture that initialized the config.
+ * The authentication, CSRF token, locale and translations stay those of the fixture that initialized the config.
  *
  * @param fixture   the fixture
  *
@@ -698,6 +717,8 @@ export function addFixture(fixture: QLiveFixture): Promise<QLiveConfig>
         {
             added.csrfToken = theConfig?.csrfToken ?? fixture.csrfToken
             added.authentication = theConfig?.authentication ?? fixture.authentication
+            added.locale = theConfig?.locale ?? fixture.locale
+            added.translations = theConfig?.translations ?? fixture.translations
             added.errorView = theConfig?.errorView ?? DefaultErrorView
             theConfig = added
             useConfig(theConfig)

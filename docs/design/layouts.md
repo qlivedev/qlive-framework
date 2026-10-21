@@ -458,15 +458,18 @@ label to be described from.
 
 As built: `FieldState.descriptionId`, `fieldStatusText()` (public, for
 an application's own inputs and tables), `GridRows.fieldStatus`, the
-`{status: true}` layout node, and `qlive-visually-hidden`. Open:
+`{status: true}` layout node, and `qlive-visually-hidden`.
+
+Push leaves out the user's own writes, so remote-changed takes two
+logins in two browsers: userA and userB in qlive-test's Bar Edit. A
+save by one marks the field, describes it and announces it once in the
+other; a second change to a field already marked is not announced
+again. Open:
 
 - Fields register with the form through useField(), and the region
   names only those, by their label's text. A field an application
   renders without useField() is never announced.
 - Grid cells have the text but no icon; 1.4.1 asks the same of them.
-- Push leaves out the user's own writes, so remote-changed can't be
-  shown with one login in two windows; qlive-test needs a second user
-  for that.
 
 ### The layout format
 

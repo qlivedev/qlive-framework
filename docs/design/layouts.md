@@ -694,9 +694,9 @@ against the condition (see above).
 ## The format on the server
 
 **The data format is meant to exist on the server too**, as Java
-classes rooted in `Layout`, with a service delivering layouts from there
--- from an editor, from files, from a generator. Neither the classes nor
-the service exist yet; the named layouts below are what they are for.
+classes rooted in `Layout`. The service delivering layouts exists
+(`LayoutService`, see the named layouts below) and passes JSON through;
+the classes, and validating a layout against the domain, don't yet.
 
 Validation would run in two passes, since a layout may refer to
 an action from a different provider: first all actions, then the
@@ -707,6 +707,18 @@ refer to them by name, so delivery could change later without touching
 them.
 
 ### Named layouts and where they come from (raw notes, 2026-10-20)
+
+As built (2026-10-21): `LayoutService.getLayouts(locale)` returns a
+`JSONHolder` of name to layout, which the bootstrap carries to every
+page with the schema; an application without the bean sends none.
+`init()` puts it into `config().layouts`, an empty map where there is
+none, and the init hook adds, changes or replaces entries there.
+`<Form layout="name"/>` renders one (`namedLayout()`), carrying the name
+it was found by, which is what overrides match. Section names are text
+as shown, so a server layout's sections are translated by the service,
+in the locale it is given. qlive-test's `ExampleLayoutService` reads
+`layouts.json`; main.tsx extends its `fooSummary`, and
+`app/form/Named.tsx` renders it.
 
 Thinking aloud, but for the two points marked decided. This shifts the paragraph above: the server
 is now meant to create named layouts, from a builder or an editor,

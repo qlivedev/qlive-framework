@@ -1,7 +1,7 @@
 package io.github.qlivedev.qlivetest.runtime.service;
 
-import io.github.qlivedev.graphql.util.JSONHolder;
-import io.github.qlivedev.runtime.layout.LayoutService;
+import io.github.qlivedev.model.layout.Layouts;
+import io.github.qlivedev.runtime.layout.LayoutProvider;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -13,15 +13,16 @@ import java.util.Locale;
 /// The application's named layouts, from `layouts.json` on the classpath, the same in every locale.
 ///
 /// A file is the simplest source there is, read once and kept. A layout with sections would need them translated
-/// per locale, which these don't have; a table, an editor or a generator over the domain would serve as well.
+/// per locale, which these don't have; a table, an editor or a generator over the domain would serve as well, the
+/// last building the layout classes rather than reading them.
 @Service
-public class ExampleLayoutService implements LayoutService {
+public class ExampleLayoutProvider implements LayoutProvider {
 
-    private final JSONHolder layouts;
+    private final Layouts layouts;
 
-    public ExampleLayoutService() {
+    public ExampleLayoutProvider() {
         try {
-            layouts = new JSONHolder(
+            layouts = Layouts.parse(
                     new ClassPathResource("layouts.json").getContentAsString(StandardCharsets.UTF_8)
             );
         } catch (IOException e) {
@@ -30,7 +31,7 @@ public class ExampleLayoutService implements LayoutService {
     }
 
     @Override
-    public JSONHolder getLayouts(Locale locale) {
+    public Layouts getLayouts(Locale locale) {
         return layouts;
     }
 }

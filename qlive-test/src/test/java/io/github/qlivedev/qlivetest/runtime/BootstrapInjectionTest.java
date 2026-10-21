@@ -1,6 +1,7 @@
 package io.github.qlivedev.qlivetest.runtime;
 
 import io.github.qlivedev.model.bootstrap.Injection;
+import io.github.qlivedev.graphql.util.JSONHolder;
 import io.github.qlivedev.model.bootstrap.QLiveBoostrap;
 import io.github.qlivedev.runtime.service.BootstrapService;
 import io.github.qlivedev.runtime.service.DevStaticAnalysisProvider;
@@ -22,6 +23,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.sameInstance;
 
 /**
  * <p>
@@ -96,11 +98,30 @@ class BootstrapInjectionTest
     {
         final DefaultCsrfToken csrfToken = new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "token");
 
-        // ExampleLayoutService's layouts.json, as it is: the JSON is the service's, passed through.
+        // ExampleLayoutProvider's layouts.json
         final QLiveBoostrap withSchema = bootstrapService.provideConfig(csrfToken, "/app/grid/everything", null);
         assertThat(withSchema.getLayouts().toJSON(), containsString("\"fooSummary\""));
 
         // The login page renders no form.
         assertThat(bootstrapService.provideConfig(csrfToken, "/login", null).getLayouts(), is(nullValue()));
+    }
+
+
+    @Test
+    void keepsTheLayoutsUntilTheCacheIsFlushed()
+    {
+        final DefaultCsrfToken csrfToken = new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "token");
+        final JSONHolder kept = bootstrapService.provideConfig(csrfToken, "/app/grid/everything", null).getLayouts();
+
+        assertThat(
+            bootstrapService.provideConfig(csrfToken, "/app/grid/everything", null).getLayouts(),
+            is(sameInstance(kept))
+        );
+
+        bootstrapService.flushCache();
+
+        final JSONHolder rebuilt = bootstrapService.provideConfig(csrfToken, "/app/grid/everything", null).getLayouts();
+        assertThat(rebuilt, is(not(sameInstance(kept))));
+        assertThat(rebuilt.toJSON(), is(kept.toJSON()));
     }
 }

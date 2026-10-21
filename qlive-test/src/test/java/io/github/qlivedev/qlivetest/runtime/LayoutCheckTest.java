@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -113,14 +112,14 @@ class LayoutCheckTest
 
 
     @Test
-    void failsOnTheLayoutsOfAService()
+    void failsOnNamedLayoutsWithEveryProblem()
     {
         final QLiveException e = assertThrows(
             QLiveException.class,
-            () -> new LayoutCheck(domain).check(Layouts.toJSON(Map.of(
-                "a", new Layout("Foo", List.of(new LayoutFieldNode("nope"))),
-                "b", new Layout("Bar", List.of(new LayoutFieldNode("name")))
-            )))
+            () -> new LayoutCheck(domain).check(new Layouts()
+                .put("a", new Layout("Foo", List.of(new LayoutFieldNode("nope"))))
+                .put("b", new Layout("Bar", List.of(new LayoutFieldNode("name"))))
+            )
         );
         assertThat(e.getMessage(), containsString("Layout a, field nope of Foo: no such field."));
     }}

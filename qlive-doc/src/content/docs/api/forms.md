@@ -1115,9 +1115,9 @@ Every node is a plain field node, so the modes are the defaults (defaultFieldMod
 declare function namedLayout(name: string): Layout;
 ```
 
-The layout of the given name, from `config().layouts`: one the server sent with the bootstrap (LayoutService), or one
-the application put there in startup()'s init hook. The layout carries the name it was found by, which is what
-overrides match (WidgetOverride), whatever its own `name` says.
+The layout of the given name, from `config().layouts`: one the server sent with the bootstrap (a LayoutProvider's),
+or one the application put there in startup()'s init hook. The layout carries the name it was found by, which is
+what overrides match (WidgetOverride), whatever its own `name` says.
 
 **Throws** Error for a name no layout has
 

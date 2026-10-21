@@ -8,7 +8,6 @@ import io.github.qlivedev.graphql.QLiveDomain;
 import io.github.qlivedev.graphql.config.ManyToManyEnd;
 import io.github.qlivedev.graphql.config.ManyToManyModel;
 import io.github.qlivedev.graphql.config.RelationModel;
-import io.github.qlivedev.graphql.util.JSONHolder;
 import io.github.qlivedev.model.condition.ConditionVisitor;
 import io.github.qlivedev.model.condition.FieldReference;
 import io.github.qlivedev.model.layout.Layout;
@@ -43,13 +42,13 @@ public final class LayoutCheck
     }
 
 
-    /// Checks the named layouts a LayoutService returned.
+    /// Checks named layouts.
     ///
-    /// @throws QLiveException listing every problem of every layout, or for JSON that is no map of layouts
-    public void check(JSONHolder layouts)
+    /// @throws QLiveException listing every problem of every layout
+    public void check(Layouts layouts)
     {
         final List<String> problems = new ArrayList<>();
-        Layouts.parse(layouts.toJSON()).forEach((name, layout) -> problems.addAll(problems(name, layout)));
+        layouts.asMap().forEach((name, layout) -> problems.addAll(problems(name, layout)));
         if (!problems.isEmpty())
         {
             throw new QLiveException("Invalid layouts:\n  " + String.join("\n  ", problems));

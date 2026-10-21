@@ -106,9 +106,9 @@ export function namedComponent(name: string): ComponentType<any>
 }
 
 /**
- * The layout of the given name, from `config().layouts`: one the server sent with the bootstrap (LayoutService), or one
- * the application put there in startup()'s init hook. The layout carries the name it was found by, which is what
- * overrides match (WidgetOverride), whatever its own `name` says.
+ * The layout of the given name, from `config().layouts`: one the server sent with the bootstrap (a LayoutProvider's),
+ * or one the application put there in startup()'s init hook. The layout carries the name it was found by, which is
+ * what overrides match (WidgetOverride), whatever its own `name` says.
  *
  * @throws Error for a name no layout has
  */

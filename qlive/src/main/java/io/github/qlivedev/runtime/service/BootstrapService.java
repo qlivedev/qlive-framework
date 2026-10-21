@@ -43,4 +43,8 @@ public interface BootstrapService
     ///         the same "not ready" {@link #provideConfig(CsrfToken, String, String)} answers with, for the same
     ///         reason
     Map<String, Injection> provideInjectionData(String path);
+
+    /// Forgets what the service built once and keeps: the named layouts, which the next page asks the
+    /// `LayoutProvider`s for again. Called by a provider whose layouts changed.
+    void flushCache();
 }

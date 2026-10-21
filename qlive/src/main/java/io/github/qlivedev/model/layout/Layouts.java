@@ -1,34 +1,66 @@
 package io.github.qlivedev.model.layout;
 
-import io.github.qlivedev.graphql.util.JSONHolder;
 import io.github.qlivedev.model.condition.ConditionParser;
 import io.github.qlivedev.runtime.QLiveException;
 import io.github.qlivedev.util.JSONUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/// Named layouts to and from the JSON the frontend reads: a map of layout name to layout.
+/// Named layouts, in one namespace: what a `LayoutProvider` returns, and what the bootstrap sends as the JSON map
+/// of name to layout the frontend reads.
 ///
-/// What a `LayoutService` returns. One reading files writes them in that JSON and can pass it through, or read it
-/// with {@link #parse(String)} to change it first; one generating them builds the classes and writes them with
-/// {@link #toJSON(Map)}. The bootstrap service checks either against the domain at startup, see
-/// `LayoutCheck`.
+/// A layout put under a name a layout already has replaces it. That is how several providers share the namespace,
+/// a later one changing what an earlier one gave, and how the frontend's init hook treats the layouts the bootstrap
+/// brought.
 public final class Layouts
 {
-    private Layouts()
+    private final Map<String, Layout> layouts = new LinkedHashMap<>();
+
+
+    /// Puts the layout under the name, replacing the one there was.
+    ///
+    /// @return this, to put another
+    public Layouts put(String name, Layout layout)
     {
+        layouts.put(name, layout);
+        return this;
     }
 
 
-    /// Reads named layouts, keeping their order.
+    /// Puts every layout of the given ones, replacing those of the same names.
     ///
-    /// @param json     a JSON map of layout name to layout
+    /// @return this
+    public Layouts putAll(Layouts other)
+    {
+        layouts.putAll(other.layouts);
+        return this;
+    }
+
+
+    /// The layout of the name, null for a name none has.
+    public Layout get(String name)
+    {
+        return layouts.get(name);
+    }
+
+
+    /// The layouts by name, in the order they were put.
+    public Map<String, Layout> asMap()
+    {
+        return Collections.unmodifiableMap(layouts);
+    }
+
+
+    /// Reads named layouts from the JSON the frontend reads, keeping their order: a map of name to layout, the
+    /// nodes told apart by the key each one has -- `field`, `section`, `component`, `status`. A layout's own name
+    /// is ignored; the key names it.
     ///
     /// @throws QLiveException for JSON that is no such map, naming the layout and node that isn't
-    public static Map<String, Layout> parse(String json)
+    public static Layouts parse(String json)
     {
         final Object parsed = JSONUtil.DEFAULT_PARSER.parse(json);
         if (!(parsed instanceof Map<?, ?> map))
@@ -37,16 +69,9 @@ public final class Layouts
         }
 
         final ConditionParser conditionParser = new ConditionParser();
-        final Map<String, Layout> layouts = new LinkedHashMap<>();
+        final Layouts layouts = new Layouts();
         map.forEach((name, value) -> layouts.put((String) name, layout((String) name, value, conditionParser)));
         return layouts;
-    }
-
-
-    /// Writes named layouts as the JSON the frontend reads, the bootstrap's part of a `LayoutService`.
-    public static JSONHolder toJSON(Map<String, Layout> layouts)
-    {
-        return new JSONHolder(layouts);
     }
 
 

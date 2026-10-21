@@ -31,6 +31,12 @@ class ViteIndexControllerTest
             {
                 return null;
             }
+
+
+            @Override
+            public void flushCache()
+            {
+            }
         },
         null
     );

@@ -344,7 +344,7 @@ type QLiveConfig = {
   widgets?: WidgetOverride[];
   /**
    * The named layouts, which `<Form layout="name"/>` renders (namedLayout()). The server sends its own with the
-   * bootstrap (its LayoutService), and they are put here on arrival, an empty map where there are none. The
+   * bootstrap (its LayoutProviders), and they are put here on arrival, an empty map where there are none. The
    * application's join them in one namespace: added, changed or replaced in startup()'s init hook, like the
    * translations.
    *

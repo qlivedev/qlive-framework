@@ -5,8 +5,9 @@ import io.github.qlivedev.model.bootstrap.Injection;
 import io.github.qlivedev.model.bootstrap.QLiveBoostrap;
 import io.github.qlivedev.runtime.auth.AppAuthentication;
 import io.github.qlivedev.runtime.i18n.TranslationService;
+import io.github.qlivedev.model.layout.Layouts;
 import io.github.qlivedev.runtime.layout.LayoutCheck;
-import io.github.qlivedev.runtime.layout.LayoutService;
+import io.github.qlivedev.runtime.layout.LayoutProvider;
 import io.github.qlivedev.model.bootstrap.QLiveConfig;
 import io.github.qlivedev.model.ts.ModuleFunctionReferences;
 import io.github.qlivedev.model.ts.TrackUsageData;
@@ -30,6 +31,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DefaultBootstrapService
     implements BootstrapService
@@ -54,7 +56,12 @@ public class DefaultBootstrapService
 
     private final TranslationService translationService;
 
-    private final LayoutService layoutService;
+    private final List<LayoutProvider> layoutProviders;
+
+    private final LayoutCheck layoutCheck;
+
+    /// The named layouts as the JSON every page with the schema gets, per locale, until flushCache().
+    private final Map<Locale, JSONHolder> layoutJSON = new ConcurrentHashMap<>();
 
     private final boolean prod;
 
@@ -77,7 +84,7 @@ public class DefaultBootstrapService
             List.of(new QueryConfigArgumentProcessor(domain)),
             Map.of(),
             translationService,
-            LayoutService.NONE,
+            List.of(),
             prod
         );
     }
@@ -88,8 +95,9 @@ public class DefaultBootstrapService
     /// @param catalogs            every row of every catalog type, by type name, see {@link Catalogs}. They go
     ///                            into the config of every page that gets the schema.
     /// @param translationService  what every page gets its translations from, in the locale it is served in
-    /// @param layoutService       what every page that gets the schema gets its named layouts from. Its layouts
-    ///                            in every offered locale are checked against the domain here, see
+    /// @param layoutProviders     what every page that gets the schema gets its named layouts from, a later
+    ///                            provider's layout replacing an earlier one's of the same name. Their layouts in
+    ///                            every offered locale are read and checked against the domain here, see
     ///                            {@link LayoutCheck}, so that a wrong reference fails startup rather than a page.
     /// @param prod                true when running in production, where the schema the client gets carries no
     ///                            descriptions. They document the domain for the developer -- DomainTables shows
@@ -102,23 +110,20 @@ public class DefaultBootstrapService
         List<InjectionArgumentProcessor> argumentProcessors,
         Map<String, List<Map<String, Object>>> catalogs,
         TranslationService translationService,
-        LayoutService layoutService,
+        List<LayoutProvider> layoutProviders,
         boolean prod
     )
     {
         this.servletContext = servletContext;
         this.translationService = translationService;
-        this.layoutService = layoutService;
+        this.layoutProviders = List.copyOf(layoutProviders);
+        this.layoutCheck = new LayoutCheck(domain);
         this.domain = domain;
         this.staticAnalysisProvider = staticAnalysisProvider;
         this.prod = prod;
         this.injectionService = new InjectionService(graphQL, domain, argumentProcessors);
 
-        final LayoutCheck layoutCheck = new LayoutCheck(domain);
-        for (Locale locale : translationService.getLocales())
-        {
-            layoutCheck.check(layoutService.getLayouts(locale));
-        }
+        translationService.getLocales().forEach(this::layouts);
 
         // the whole model just exists to be sent to the client. We only need it in JSON string form,
         // over and over for every full page load forever. The JSONHolder allows us to only generate it once and then
@@ -262,10 +267,36 @@ public class DefaultBootstrapService
         qLiveBoostrap.setTranslations(translationService.getTranslations(locale));
         if (withSchema)
         {
-            qLiveBoostrap.setLayouts(layoutService.getLayouts(locale));
+            qLiveBoostrap.setLayouts(layouts(locale));
         }
 
         return qLiveBoostrap;
+    }
+
+
+    /// Forgets the named layouts. The next page in each locale asks the layout providers again, and gets their
+    /// layouts checked: what a provider whose layouts changed calls.
+    @Override
+    public void flushCache()
+    {
+        layoutJSON.clear();
+    }
+
+
+    /// The named layouts of all providers for pages in the locale, as JSON, built and checked on first use.
+    ///
+    /// @throws io.github.qlivedev.runtime.QLiveException for layouts that refer to what the domain doesn't have
+    private JSONHolder layouts(Locale locale)
+    {
+        return layoutJSON.computeIfAbsent(locale, l -> {
+            final Layouts layouts = new Layouts();
+            for (LayoutProvider provider : layoutProviders)
+            {
+                layouts.putAll(provider.getLayouts(l));
+            }
+            layoutCheck.check(layouts);
+            return new JSONHolder(layouts.asMap());
+        });
     }
 
 

@@ -13,7 +13,7 @@ import io.github.qlivedev.runtime.merge.VersionService;
 import io.github.qlivedev.runtime.QLivePaths;
 import io.github.qlivedev.runtime.i18n.DefaultTranslationService;
 import io.github.qlivedev.runtime.i18n.TranslationService;
-import io.github.qlivedev.runtime.layout.LayoutService;
+import io.github.qlivedev.runtime.layout.LayoutProvider;
 import io.github.qlivedev.runtime.pubsub.DefaultPubSubService;
 import io.github.qlivedev.runtime.pubsub.EntityVersionPublisher;
 import io.github.qlivedev.runtime.pubsub.PubSubMessageHandler;
@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Configuration;
@@ -52,7 +53,6 @@ import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
-import java.util.Optional;
 
 /// Every bean the framework contributes, declared.
 ///
@@ -90,8 +90,8 @@ public class QLiveConfiguration
      *     The rows of the catalog types are read here, once, with the application's query document service.
      * </p>
      * <p>
-     *     The layout service is optional, the application's own bean where it has one: QLive has no layouts to
-     *     offer, and without the bean the pages get none.
+     *     The layout providers are the application's and its modules' beans, in their order; QLive has no
+     *     layouts of its own, and without a provider the pages get none.
      * </p>
      */
     @Bean
@@ -102,7 +102,7 @@ public class QLiveConfiguration
         List<InjectionArgumentProcessor> argumentProcessors,
         QueryDocumentService queryDocumentService,
         TranslationService translationService,
-        Optional<LayoutService> layoutService,
+        ObjectProvider<LayoutProvider> layoutProviders,
         Environment environment
     )
         throws IOException
@@ -115,7 +115,7 @@ public class QLiveConfiguration
             argumentProcessors,
             Catalogs.load(domain, queryDocumentService, graphQL),
             translationService,
-            layoutService.orElse(LayoutService.NONE),
+            layoutProviders.orderedStream().toList(),
             environment.matchesProfiles("prod")
         );
     }

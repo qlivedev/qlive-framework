@@ -5,7 +5,7 @@ import { Q_FooList, Q_FooListResult } from "../grid/Q_FooList";
 /**
  * A layout by its name: `<Form row={ draft } layout="fooSummary"/>`.
  *
- * The server delivers fooSummary with the bootstrap: the backend's LayoutService reads it from layouts.json, with
+ * The server delivers fooSummary with the bootstrap: the backend's LayoutProvider reads it from layouts.json, with
  * name, num and the owner as text. main.tsx's init hook adds the description, edited with the text area, to the
  * end -- the server's layouts and the application's share one namespace, and the application may change any of
  * them before a view renders.

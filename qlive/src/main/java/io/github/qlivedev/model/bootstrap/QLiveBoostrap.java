@@ -14,7 +14,8 @@ import java.util.Map;
 ///    being rendered once per module and handed to everyone.
 ///  * translations - what the frontend's i18n() translates into, per locale and so not part of the config
 ///    either. Wrapped in a JSONHolder of its own.
-///  * layouts - the named forms, see {@link io.github.qlivedev.runtime.layout.LayoutService}. A JSONHolder too.
+///  * layouts - the named forms, see {@link io.github.qlivedev.runtime.layout.LayoutProvider}. A JSONHolder
+///    too, kept per locale by the bootstrap service.
 ///
 public class QLiveBoostrap
 {
@@ -119,7 +120,7 @@ public class QLiveBoostrap
     }
 
 
-    /// Layout name to layout, see {@link io.github.qlivedev.runtime.layout.LayoutService}; null for a page that gets
+    /// Layout name to layout, see {@link io.github.qlivedev.runtime.layout.LayoutProvider}; null for a page that gets
     /// no schema.
     public JSONHolder getLayouts()
     {

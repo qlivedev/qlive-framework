@@ -2,16 +2,19 @@ package io.github.qlivedev.model.layout;
 
 import io.github.qlivedev.model.condition.FieldReference;
 import io.github.qlivedev.runtime.QLiveException;
+import io.github.qlivedev.util.JSONUtil;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class LayoutsTest
@@ -58,9 +61,9 @@ class LayoutsTest
     @Test
     void writesWhatItReads()
     {
-        final String written = Layouts.toJSON(Layouts.parse(JSON)).toJSON();
+        final String written = json(Layouts.parse(JSON));
 
-        assertThat(Layouts.toJSON(Layouts.parse(written)).toJSON(), is(written));
+        assertThat(json(Layouts.parse(written)), is(written));
         // what is absent stays absent, rather than arriving as null
         assertThat(written, containsString("{\"field\":\"num\"}"));
         assertThat(written, containsString("{\"status\":true}"));
@@ -70,12 +73,35 @@ class LayoutsTest
     @Test
     void writesLayoutsBuiltInJava()
     {
-        final Layout layout = new Layout("Foo", List.of(new LayoutFieldNode("name"), new LayoutStatusNode()));
+        final Layouts layouts = new Layouts()
+            .put("fooName", new Layout("Foo", List.of(new LayoutFieldNode("name"), new LayoutStatusNode())));
 
         assertThat(
-            Layouts.toJSON(Map.of("fooName", layout)).toJSON(),
+            json(layouts),
             is("{\"fooName\":{\"domainType\":\"Foo\",\"nodes\":[{\"field\":\"name\"},{\"status\":true}]}}")
         );
+    }
+
+
+    @Test
+    void replacesALayoutPutUnderANameAgain()
+    {
+        final Layout first = new Layout("Foo", List.of(new LayoutFieldNode("name")));
+        final Layout second = new Layout("Foo", List.of(new LayoutFieldNode("num")));
+        final Layout other = new Layout("Bar", List.of(new LayoutFieldNode("name")));
+
+        final Layouts layouts = new Layouts().put("foo", first).put("bar", other)
+            .putAll(new Layouts().put("foo", second));
+
+        assertThat(layouts.get("foo"), is(sameInstance(second)));
+        assertThat(layouts.asMap().keySet(), contains("foo", "bar"));
+    }
+
+
+    /// what the bootstrap sends
+    private static String json(Layouts layouts)
+    {
+        return JSONUtil.DEFAULT_GENERATOR.forValue(layouts.asMap());
     }
 
 

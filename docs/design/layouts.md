@@ -458,7 +458,10 @@ label to be described from.
 
 As built: `FieldState.descriptionId`, `fieldStatusText()` (public, for
 an application's own inputs and tables), `GridRows.fieldStatus`, the
-`{status: true}` layout node, and `qlive-visually-hidden`.
+`{status: true}` layout node, and `qlive-visually-hidden`. A grid cell
+shows the mark's icon at its end, in room every cell of a field keeps
+in a grid with a working set or a watch (`qlive-grid-field`); a plain
+grid keeps none.
 
 Push leaves out the user's own writes, so remote-changed takes two
 logins in two browsers: userA and userB in qlive-test's Bar Edit. A
@@ -469,7 +472,6 @@ again. Open:
 - Fields register with the form through useField(), and the region
   names only those, by their label's text. A field an application
   renders without useField() is never announced.
-- Grid cells have the text but no icon; 1.4.1 asks the same of them.
 
 ### The layout format
 

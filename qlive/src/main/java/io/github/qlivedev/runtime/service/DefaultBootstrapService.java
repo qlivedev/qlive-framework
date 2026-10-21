@@ -5,6 +5,7 @@ import io.github.qlivedev.model.bootstrap.Injection;
 import io.github.qlivedev.model.bootstrap.QLiveBoostrap;
 import io.github.qlivedev.runtime.auth.AppAuthentication;
 import io.github.qlivedev.runtime.i18n.TranslationService;
+import io.github.qlivedev.runtime.layout.LayoutService;
 import io.github.qlivedev.model.bootstrap.QLiveConfig;
 import io.github.qlivedev.model.ts.ModuleFunctionReferences;
 import io.github.qlivedev.model.ts.TrackUsageData;
@@ -52,6 +53,8 @@ public class DefaultBootstrapService
 
     private final TranslationService translationService;
 
+    private final LayoutService layoutService;
+
     private final boolean prod;
 
     private final JSONPathUtil pathUtil = new JSONPathUtil(JSONUtil.OBJECT_SUPPORT);
@@ -73,6 +76,7 @@ public class DefaultBootstrapService
             List.of(new QueryConfigArgumentProcessor(domain)),
             Map.of(),
             translationService,
+            LayoutService.NONE,
             prod
         );
     }
@@ -83,6 +87,7 @@ public class DefaultBootstrapService
     /// @param catalogs            every row of every catalog type, by type name, see {@link Catalogs}. They go
     ///                            into the config of every page that gets the schema.
     /// @param translationService  what every page gets its translations from, in the locale it is served in
+    /// @param layoutService       what every page that gets the schema gets its named layouts from
     /// @param prod                true when running in production, where the schema the client gets carries no
     ///                            descriptions. They document the domain for the developer -- DomainTables shows
     ///                            them -- and are a quarter of the schema every page would ship otherwise.
@@ -94,11 +99,13 @@ public class DefaultBootstrapService
         List<InjectionArgumentProcessor> argumentProcessors,
         Map<String, List<Map<String, Object>>> catalogs,
         TranslationService translationService,
+        LayoutService layoutService,
         boolean prod
     )
     {
         this.servletContext = servletContext;
         this.translationService = translationService;
+        this.layoutService = layoutService;
         this.domain = domain;
         this.staticAnalysisProvider = staticAnalysisProvider;
         this.prod = prod;
@@ -235,7 +242,8 @@ public class DefaultBootstrapService
 
         final QLiveBoostrap qLiveBoostrap = new QLiveBoostrap();
 
-        qLiveBoostrap.setConfig(needsSchema(staticAnalysis, module) ? qlConfigJSON : reducedConfigJSON);
+        final boolean withSchema = needsSchema(staticAnalysis, module);
+        qLiveBoostrap.setConfig(withSchema ? qlConfigJSON : reducedConfigJSON);
         qLiveBoostrap.setData(injectionService.provideInjections(staticAnalysis, module));
         qLiveBoostrap.setCsrfToken(new ClientCsrfToken(csrfToken));
         qLiveBoostrap.setAuthentication(AppAuthentication.current());
@@ -243,6 +251,10 @@ public class DefaultBootstrapService
         final Locale locale = translationService.resolveLocale(acceptLanguage);
         qLiveBoostrap.setLocale(locale.toLanguageTag());
         qLiveBoostrap.setTranslations(translationService.getTranslations(locale));
+        if (withSchema)
+        {
+            qLiveBoostrap.setLayouts(layoutService.getLayouts(locale));
+        }
 
         return qLiveBoostrap;
     }

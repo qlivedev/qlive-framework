@@ -698,7 +698,7 @@
     "name":"PushMessageParser"
   },
   {
-    "description":"Encapsulates the data for a /api/bootstrap call or to be embedded in the HTML document.\n\n * QLive config - QLiveConfig wrapped in a JSONHolder\n * injected data - Prepared data for the starting view based on static analysis of TypeScript sources.\n * who is asking - AppAuthentication, which is per user and so cannot live in the config, that\n   being rendered once per module and handed to everyone.\n * translations - what the frontend's i18n() translates into, per locale and so not part of the config\n   either. Wrapped in a JSONHolder of its own.",
+    "description":"Encapsulates the data for a /api/bootstrap call or to be embedded in the HTML document.\n\n * QLive config - QLiveConfig wrapped in a JSONHolder\n * injected data - Prepared data for the starting view based on static analysis of TypeScript sources.\n * who is asking - AppAuthentication, which is per user and so cannot live in the config, that\n   being rendered once per module and handed to everyone.\n * translations - what the frontend's i18n() translates into, per locale and so not part of the config\n   either. Wrapped in a JSONHolder of its own.\n * layouts - the named forms, see io.github.qlivedev.runtime.layout.LayoutService. A JSONHolder too.",
     "fieldDocs":[
       {
         "description":"Who the page is being served to: login, roles and id, the last of which is what lets a client tell\nsomebody else's write from its own without asking.\n\nAnonymous is an answer and not an absence, so this is never null.",
@@ -724,6 +724,13 @@
       {
         "description":"Injection data map",
         "name":"data",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"Layout name to layout, see io.github.qlivedev.runtime.layout.LayoutService; null for a page that gets\nno schema.",
+        "name":"layouts",
         "paramDocs":[
           
         ]

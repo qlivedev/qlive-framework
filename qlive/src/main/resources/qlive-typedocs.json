@@ -469,6 +469,100 @@
     "name":"Injection"
   },
   {
+    "description":"What a form renders for one entity: its fields, grouped and arranged by the nodes. The frontend's `Layout`, in\nthe same JSON, which Layouts reads and writes.",
+    "fieldDocs":[
+      {
+        "description":"The type of the row the form edits.",
+        "name":"domainType",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"The name overrides match it by. Where a layout is one of a map of named layouts, the map's key names it,\nand this is left out.",
+        "name":"name",
+        "paramDocs":[
+          
+        ]
+      }
+    ],
+    "name":"Layout"
+  },
+  {
+    "description":"A component of the application's, with the nodes as its children.",
+    "fieldDocs":[
+      {
+        "description":"The name the component is registered under in the frontend (`registerComponent()`).",
+        "name":"component",
+        "paramDocs":[
+          
+        ]
+      }
+    ],
+    "name":"LayoutComponentNode"
+  },
+  {
+    "description":"One field, which the frontend renders with `Field` and these options.",
+    "fieldDocs":[
+      {
+        "description":"Which related rows a to-one relation offers, written against the form's row with the candidate in the\nrelation's place.",
+        "name":"condition",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"The field of the form's row, by its name: a scalar, a to-one relation by its object, a many-to-many field.",
+        "name":"field",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"The label as shown, in place of the field's translation.",
+        "name":"label",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"The mode the field starts in, `normal`, `disabled`, `readOnly` or `text`; the type's default without one.",
+        "name":"mode",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"The name the widget is registered under in the frontend (`registerWidget()`); the type's own without one.",
+        "name":"widget",
+        "paramDocs":[
+          
+        ]
+      }
+    ],
+    "name":"LayoutFieldNode"
+  },
+  {
+    "description":"A labeled group of nodes, a `<fieldset>` whose legend is the section as given: text as the page shows it, so\ntranslated into the page's locale by whoever delivers the layout.",
+    "fieldDocs":[
+      
+    ],
+    "name":"LayoutSectionNode"
+  },
+  {
+    "description":"Where the form's live region goes, see the frontend's `FormStatus`. Without one it is at the top of the form.",
+    "fieldDocs":[
+      {
+        "description":"Always true; the key is what makes it this node.",
+        "name":"status",
+        "paramDocs":[
+          
+        ]
+      }
+    ],
+    "name":"LayoutStatusNode"
+  },
+  {
     "description":"The associations one row gained and lost through one many-to-many field.\n\nNamed by the row and the field, e.g. Bar \"bar-1\" and \"bazes\", and by the ids of the rows on the other end.\nThe merge turns each into an insert or a delete of a link row keyed by the pair, so neither carries the link\nrow's id or version: an association is the pair, and nothing about it can conflict. Adding one that exists\nand removing one that is gone both leave the database as asked and are no error.",
     "fieldDocs":[
       {

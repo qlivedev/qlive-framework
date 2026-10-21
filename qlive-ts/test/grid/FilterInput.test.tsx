@@ -53,6 +53,15 @@ describe("FilterInput", () => {
         expect(div.className).toBe("qlive-grid-filter");
     });
 
+    it("labels each input, numbering them where there are several", () => {
+        const labels = (div: HTMLElement) => Array.from(div.querySelectorAll("input")).map(i => i.ariaLabel);
+
+        expect(labels(render(<FilterInput column={ column(operatorFilter("eq"), ["x"]) }/>)))
+            .toEqual(["[Filter {0}: name]"]);
+        expect(labels(render(<FilterInput column={ column(operatorFilter("between", "Int"), ["1", null]) }/>)))
+            .toEqual(["[Filter {0} {1}: name, 1]", "[Filter {0} {1}: name, 2]"]);
+    });
+
     it("marks an active filter", () => {
         const div = render(<FilterInput column={ column(operatorFilter("eq"), ["x"], true) } className="mine"/>);
         expect(div.className).toBe("qlive-grid-filter qlive-grid-filter-active mine");

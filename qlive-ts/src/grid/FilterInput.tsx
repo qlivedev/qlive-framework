@@ -35,7 +35,11 @@ export default function FilterInput({column, className}: FilterInputProps): JSX.
                     ? <Input label={ label } arity={ arity } values={ values } setValues={ setValues } filter={ filter }/>
                     : values.map((value, index) => (
                         <input key={ index } type="text" className="qlive-grid-filter-input"
-                               aria-label={ i18n("Filter {0}", label) + (arity > 1 ? " " + (index + 1) : "") }
+                               aria-label={
+                                   arity > 1
+                                       ? i18n("Filter {0} {1}", label, String(index + 1))
+                                       : i18n("Filter {0}", label)
+                               }
                                value={ value == null ? "" : String(value) }
                                onChange={ ev => {
                                    const next = values.slice()

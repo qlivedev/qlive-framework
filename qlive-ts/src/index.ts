@@ -158,7 +158,7 @@ export {
     BooleanSelect,
     MissingWidget
 } from "./form/widgets";
-export { deriveLayout, registerComponent } from "./form/layout";
+export { deriveLayout, namedLayout, registerComponent } from "./form/layout";
 export { RowPicker } from "./form/RowPicker";
 export { RowSet } from "./form/RowSet";
 export { relatedRows } from "./form/relatedRows"

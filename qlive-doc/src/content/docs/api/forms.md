@@ -22,6 +22,7 @@ A form editing one row: the context of its fields, and what renders them.
 ```tsx
 <Form row={ ws.edit(bar) }/>                          // the layout derived from the row
 <Form row={ ws.edit(bar) } layout={ barLayout }/>     // a layout
+<Form row={ ws.edit(bar) } layout="barEdit"/>         // a layout by name, from config().layouts
 <Form row={ ws.edit(bar) }>                           // the application's own fields
     <Field path="name"/>
     <Field path="owner"/>
@@ -38,7 +39,7 @@ the application's fields and components render inside it as they are; useFormCon
 Either way the form has a live region telling a screen reader what somebody else changed (FormStatus): at its top,
 unless a FormStatus inside it places it. That region is the one markup a form with children adds of its own.
 
-**Throws** Error for a form given both a layout and children, and for a layout of another type than the row's
+**Throws** Error for a form given both a layout and children, for a layout name config().layouts doesn't have, and for a layout of another type than the row's
 
 ## FormProps
 
@@ -61,10 +62,11 @@ the draft the form edits, what `ws.edit(row)` or `ws.create(type)` returned
 ### FormProps.layout
 
 ```ts
-layout?: Layout;
+layout?: Layout | string;
 ```
 
-what the form renders, derived from the row without it
+what the form renders, or the name of one in `config().layouts` (namedLayout()); derived from the row without
+either
 
 ### FormProps.children
 
@@ -1104,6 +1106,20 @@ Every node is a plain field node, so the modes are the defaults (defaultFieldMod
 |---|---|
 | `type` | the row's type |
 | `row` | a row, or a draft of one |
+
+## namedLayout()
+
+<span class="api-kind">function</span>
+
+```ts
+declare function namedLayout(name: string): Layout;
+```
+
+The layout of the given name, from `config().layouts`: one the server sent with the bootstrap (LayoutService), or one
+the application put there in startup()'s init hook. The layout carries the name it was found by, which is what
+overrides match (WidgetOverride), whatever its own `name` says.
+
+**Throws** Error for a name no layout has
 
 ## registerComponent()
 

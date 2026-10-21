@@ -348,6 +348,7 @@
         "LayoutComponentNode",
         "LayoutStatusNode",
         "deriveLayout",
+        "namedLayout",
         "registerComponent"
       ]
     },

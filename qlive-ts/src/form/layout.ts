@@ -106,6 +106,26 @@ export function namedComponent(name: string): ComponentType<any>
 }
 
 /**
+ * The layout of the given name, from `config().layouts`: one the server sent with the bootstrap (LayoutService), or one
+ * the application put there in startup()'s init hook. The layout carries the name it was found by, which is what
+ * overrides match (WidgetOverride), whatever its own `name` says.
+ *
+ * @throws Error for a name no layout has
+ */
+export function namedLayout(name: string): Layout
+{
+    const layout = config().layouts?.[name]
+    if (!layout)
+    {
+        throw new Error(
+            "No layout is named " + JSON.stringify(name) + ". The server sends its layouts with the bootstrap; an " +
+            "application adds its own to config().layouts in startup()'s init hook."
+        )
+    }
+    return layout.name === name ? layout : {...layout, name}
+}
+
+/**
  * The to-one relation of a type whose single foreign key is the given field, `null` for a field that is no such key.
  */
 function relationByKey(type: string, field: string)

@@ -264,6 +264,20 @@ describe("Form", () => {
             .toThrowError(/layout of Baz/)
     })
 
+    it("renders a layout the application added by its name, and refuses a name nobody gave", async () => {
+
+        const {bar} = await editableBar()
+        vi.spyOn(console, "error").mockImplementation(() => {})
+        config().layouts = {...config().layouts, barName: {domainType: "Bar", nodes: [{field: "name"}]}}
+
+        render(<Form row={ bar } layout="barName"/>)
+
+        expect(fieldInput("name").value).toBe("Bar #1")
+        expect(container.querySelector("[id$='-num']")).toBeNull()
+
+        expect(() => render(<Form key="nope" row={ bar } layout="nope"/>)).toThrowError(/No layout is named "nope"/)
+    })
+
     it("offers the conflict buttons around a layout's widgets", async () => {
 
         const {ws, row, bar} = await editableBar()
@@ -419,6 +433,25 @@ describe("widgets", () => {
         render(<Form key="derived" row={ bar }/>)
 
         expect(query(".stars").textContent).toBe("1")
+    })
+
+    it("renders a layout the bootstrap brought by its name, which overrides match", async () => {
+
+        await init({
+            config: mergeConfig,
+            csrfToken: mergeConfig.csrfToken!,
+            authentication: testAuthentication(),
+            data: {},
+            // the key names it, not the layout's own name
+            layouts: {barNumbers: {name: "elsewhere", domainType: "Bar", nodes: [{field: "num"}]}}
+        })
+        const {bar} = await editableBar()
+        config().widgets = [{layout: "barNumbers", path: "num", widget: Slider}]
+
+        render(<Form row={ bar } layout="barNumbers"/>)
+
+        expect(query(".slider").textContent).toBe("1")
+        expect(container.querySelector("[id$='-name']")).toBeNull()
     })
 
     it("refuses an override giving two keys of one kind", async () => {

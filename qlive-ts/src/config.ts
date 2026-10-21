@@ -2,6 +2,7 @@ import type {ComponentType} from "react";
 
 import type {QueryConfigDelta} from "./QueryDocument";
 import type {MergeTypeMeta} from "./merge/meta";
+import type {Layout} from "./form/layout";
 import type {WidgetOverride} from "./form/widgets";
 
 import {GraphQLSchema, GraphQLType} from "./GraphQLSchema";
@@ -260,6 +261,11 @@ export type QLiveBoostrap = {
      */
     translations?: Record<string, string>
     /**
+     * Layout name to layout, which init() puts into the config. Absent from a page without the schema, and from a
+     * fixture recorded before there were layouts.
+     */
+    layouts?: Record<string, Layout>
+    /**
      * Injection data
      */
     data: {
@@ -368,6 +374,16 @@ export type QLiveConfig = {
      *     config.widgets = [{fieldType: "Money", widget: MoneyInput}]
      */
     widgets?: WidgetOverride[]
+
+    /**
+     * The named layouts, which `<Form layout="name"/>` renders (namedLayout()). The server sends its own with the
+     * bootstrap (its LayoutService), and they are put here on arrival, an empty map where there are none. The
+     * application's join them in one namespace: added, changed or replaced in startup()'s init hook, like the
+     * translations.
+     *
+     *     config.layouts = {...config.layouts, fooCompact: {domainType: "Foo", nodes: [{field: "name"}]}}
+     */
+    layouts?: Record<string, Layout>
 }
 
 /**
@@ -621,7 +637,7 @@ function useConfig(config: QLiveConfig)
 
 export function init(bs : QLiveBoostrap): Promise<QLiveConfig>
 {
-    const { config, data, csrfToken, authentication, locale, translations } = bs
+    const { config, data, csrfToken, authentication, locale, translations, layouts } = bs
 
     onFixture = false
     initialized = true
@@ -633,6 +649,7 @@ export function init(bs : QLiveBoostrap): Promise<QLiveConfig>
         // A fixture recorded before the bootstrap had them may carry translations in its config instead.
         theConfig.locale = locale ?? theConfig.locale
         theConfig.translations = translations ?? theConfig.translations
+        theConfig.layouts = layouts ?? theConfig.layouts ?? {}
         // Before the init hook the application may replace it in, so that assigning is all it takes and
         // every reader can count on finding one.
         theConfig.errorView = DefaultErrorView
@@ -689,7 +706,8 @@ export function initFixture(fixture: QLiveFixture): Promise<QLiveConfig>
  *    reduced one, the full one is kept.
  *  - An injection id already loaded has to come with the same data. Two fixtures for one route can't share a page.
  *
- * The authentication, CSRF token, locale and translations stay those of the fixture that initialized the config.
+ * The authentication, CSRF token, locale, translations and layouts stay those of the fixture that initialized the
+ * config.
  *
  * @param fixture   the fixture
  *
@@ -719,6 +737,7 @@ export function addFixture(fixture: QLiveFixture): Promise<QLiveConfig>
             added.authentication = theConfig?.authentication ?? fixture.authentication
             added.locale = theConfig?.locale ?? fixture.locale
             added.translations = theConfig?.translations ?? fixture.translations
+            added.layouts = theConfig?.layouts ?? fixture.layouts ?? {}
             added.errorView = theConfig?.errorView ?? DefaultErrorView
             theConfig = added
             useConfig(theConfig)

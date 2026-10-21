@@ -13,7 +13,7 @@ import type {FieldMode} from "./fieldMode";
 import {rowName} from "./fieldText";
 import {Announcement, FieldEdit, FormState, FormStateContext} from "./FormContext";
 import {FormStatus, StatusRegion} from "./FormStatus";
-import {deriveLayout, Layout, LayoutNode, namedComponent} from "./layout";
+import {deriveLayout, Layout, LayoutNode, namedComponent, namedLayout} from "./layout";
 
 /**
  * Props of Form.
@@ -22,8 +22,11 @@ export interface FormProps
 {
     /** the draft the form edits, what `ws.edit(row)` or `ws.create(type)` returned */
     row: object
-    /** what the form renders, derived from the row without it */
-    layout?: Layout
+    /**
+     * what the form renders, or the name of one in `config().layouts` (namedLayout()); derived from the row without
+     * either
+     */
+    layout?: Layout | string
     /** the application's own fields, in place of a layout */
     children?: ReactNode
 }
@@ -146,6 +149,7 @@ function markedOf(row: object, merge: MergeAccessor): Marked
  * ```tsx
  * <Form row={ ws.edit(bar) }/>                          // the layout derived from the row
  * <Form row={ ws.edit(bar) } layout={ barLayout }/>     // a layout
+ * <Form row={ ws.edit(bar) } layout="barEdit"/>         // a layout by name, from config().layouts
  * <Form row={ ws.edit(bar) }>                           // the application's own fields
  *     <Field path="name"/>
  *     <Field path="owner"/>
@@ -162,7 +166,8 @@ function markedOf(row: object, merge: MergeAccessor): Marked
  * Either way the form has a live region telling a screen reader what somebody else changed (FormStatus): at its top,
  * unless a FormStatus inside it places it. That region is the one markup a form with children adds of its own.
  *
- * @throws Error for a form given both a layout and children, and for a layout of another type than the row's
+ * @throws Error for a form given both a layout and children, for a layout name config().layouts doesn't have, and for
+ *         a layout of another type than the row's
  */
 export function Form({row, layout, children}: FormProps): JSX.Element
 {
@@ -172,16 +177,18 @@ export function Form({row, layout, children}: FormProps): JSX.Element
     {
         throw new Error("A form renders a layout or its children, not both.")
     }
-    if (layout && layout.domainType !== type)
-    {
-        throw new Error("A layout of " + layout.domainType + " can't render a " + type + ".")
-    }
 
     const fromLayout = children === undefined
     const resolvedLayout = useMemo(
-        () => fromLayout ? layout ?? deriveLayout(type, row) : null,
+        () => fromLayout
+            ? (typeof layout === "string" ? namedLayout(layout) : layout) ?? deriveLayout(type, row)
+            : null,
         [fromLayout, layout, type, row]
     )
+    if (resolvedLayout && resolvedLayout.domainType !== type)
+    {
+        throw new Error("A layout of " + resolvedLayout.domainType + " can't render a " + type + ".")
+    }
     const [modes, setModes] = useState(() => resolvedLayout ? layoutModes(resolvedLayout.nodes) : new Map())
     const [edits, setEdits] = useState<ReadonlyMap<string, FieldEdit>>(() => new Map())
     const idPrefix = useId() + "-"

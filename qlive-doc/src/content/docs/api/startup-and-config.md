@@ -186,7 +186,8 @@ does. Otherwise the fixture has to fit the page:
    reduced one, the full one is kept.
  - An injection id already loaded has to come with the same data. Two fixtures for one route can't share a page.
 
-The authentication, CSRF token, locale and translations stay those of the fixture that initialized the config.
+The authentication, CSRF token, locale, translations and layouts stay those of the fixture that initialized the
+config.
 
 **Parameters**
 
@@ -341,6 +342,15 @@ type QLiveConfig = {
    *     config.widgets = [{fieldType: "Money", widget: MoneyInput}]
    */
   widgets?: WidgetOverride[];
+  /**
+   * The named layouts, which `<Form layout="name"/>` renders (namedLayout()). The server sends its own with the
+   * bootstrap (its LayoutService), and they are put here on arrival, an empty map where there are none. The
+   * application's join them in one namespace: added, changed or replaced in startup()'s init hook, like the
+   * translations.
+   *
+   *     config.layouts = {...config.layouts, fooCompact: {domainType: "Foo", nodes: [{field: "name"}]}}
+   */
+  layouts?: Record<string, Layout>;
 };
 ```
 
@@ -375,6 +385,11 @@ type QLiveBoostrap = {
    * Tag to translation in that locale, which init() puts into the config.
    */
   translations?: Record<string, string>;
+  /**
+   * Layout name to layout, which init() puts into the config. Absent from a page without the schema, and from a
+   * fixture recorded before there were layouts.
+   */
+  layouts?: Record<string, Layout>;
   /**
    * Injection data
    */

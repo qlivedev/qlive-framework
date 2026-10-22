@@ -70,7 +70,7 @@ class ActionTest
 
 
     /// The schema says what a request carries: a subject is a reference, required input is non-null, and a
-    /// primitive is too.
+    /// primitive is too. The description is the method's doc comment.
     @Test
     void declaresTheActionAsAMutation()
     {
@@ -81,6 +81,7 @@ class ActionTest
         assertThat(approveBar.getArgument("comment").getType().toString(), is("String!"));
         assertThat(approveBar.getArgument("notify").getType().toString(), is("Boolean!"));
         assertThat(approveBar.getType().toString(), is("ApproveResult!"));
+        assertThat(approveBar.getDescription().startsWith("Approves a bar."), is(true));
 
         assertThat(
             graphQL.getGraphQLSchema().getMutationType().getFieldDefinition("approveBars")

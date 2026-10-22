@@ -13,6 +13,44 @@
     "name":"QueryType"
   },
   {
+    "description":null,
+    "fieldDocs":[
+      {
+        "description":"Approves a bar. `bar` is a subject: the request names the row by id and version, and the method gets the row\nas it is stored. The rules hold before the method runs.",
+        "name":"approveBar",
+        "paramDocs":[
+          {
+            "description":"the bar to approve",
+            "name":"bar"
+          },
+          {
+            "description":"approval comment",
+            "name":"comment"
+          },
+          {
+            "description":"whether to notify the bar's owner",
+            "name":"notify"
+          }
+        ]
+      },
+      {
+        "description":"Approves several bars at once. All of them are approved, or none is.",
+        "name":"approveBars",
+        "paramDocs":[
+          {
+            "description":"the bars to approve",
+            "name":"bars"
+          },
+          {
+            "description":"approval comment",
+            "name":"comment"
+          }
+        ]
+      }
+    ],
+    "name":"MutationType"
+  },
+  {
     "description":"What approving a bar answers with.",
     "fieldDocs":[
       {

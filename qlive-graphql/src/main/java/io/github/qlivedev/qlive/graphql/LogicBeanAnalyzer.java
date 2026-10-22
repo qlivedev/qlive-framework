@@ -2,14 +2,20 @@ package io.github.qlivedev.qlive.graphql;
 
 import io.github.qlivedev.qlive.api.QLiveDomainException;
 import com.esotericsoftware.reflectasm.MethodAccess;
+import io.github.qlivedev.qlive.api.annotation.QLiveAction;
 import io.github.qlivedev.qlive.api.annotation.QLiveField;
 import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
 import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
 import io.github.qlivedev.qlive.api.annotation.QLiveTypeParam;
 import io.github.qlivedev.qlive.api.annotation.ResolvedGenericType;
+import io.github.qlivedev.qlive.api.annotation.Rules;
+import io.github.qlivedev.qlive.graphql.logic.Action;
+import io.github.qlivedev.qlive.graphql.logic.ActionSubject;
 import io.github.qlivedev.qlive.graphql.logic.GraphQLValueProvider;
 import io.github.qlivedev.qlive.graphql.logic.Mutation;
 import io.github.qlivedev.qlive.graphql.logic.Query;
+import io.github.qlivedev.qlive.graphql.logic.SubjectRef;
+import io.github.qlivedev.qlive.graphql.logic.SubjectValueProvider;
 import io.github.qlivedev.qlive.graphql.param.ParameterProvider;
 import io.github.qlivedev.qlive.graphql.param.ParameterProviderFactory;
 import io.github.qlivedev.qlive.graphql.util.MethodOrder;
@@ -33,6 +39,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,7 +51,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 /**
- * Analyzes annotated LogicBeans and finds queries and mutations.
+ * Analyzes annotated LogicBeans and finds queries, mutations and actions.
  */
 class LogicBeanAnalyzer
 {
@@ -55,6 +62,14 @@ class LogicBeanAnalyzer
     private final Set<Query> queries = new LinkedHashSet<>();
 
     private final Set<Mutation> mutations = new LinkedHashSet<>();
+
+    private final List<Action> actions = new ArrayList<>();
+
+    /// Where each mutation name was declared, so that a second declaration can name the first.
+    private final Map<String, String> mutationLocations = new HashMap<>();
+
+    /// The POJO types of the domain's tables, which is what makes an action parameter a subject.
+    private final Set<Class<?>> subjectTypes;
 
     private final Supplier<QLiveDomain> domain;
 
@@ -68,10 +83,12 @@ class LogicBeanAnalyzer
         Supplier<QLiveDomain> domain,
         Collection<ParameterProviderFactory> parameterProviderFactories,
         Collection<Object> logicBeans,
-        MutableTypeRegistry typeRegistry
+        MutableTypeRegistry typeRegistry,
+        Set<Class<?>> subjectTypes
     )
     {
         this.domain = domain;
+        this.subjectTypes = subjectTypes;
         this.parameterProviderFactories = parameterProviderFactories;
         this.typeRegistry = typeRegistry;
         this.outputTypeOverrides = new HashMap<>();
@@ -89,6 +106,13 @@ class LogicBeanAnalyzer
     Set<Mutation> getMutations()
     {
         return mutations;
+    }
+
+
+    /// The actions, which are among the mutations as well.
+    List<Action> getActions()
+    {
+        return actions;
     }
 
 
@@ -126,23 +150,188 @@ class LogicBeanAnalyzer
             }
 
             final QLiveMutation mutationAnno = method.getDeclaredAnnotation(QLiveMutation.class);
+            final QLiveAction actionAnno = method.getDeclaredAnnotation(QLiveAction.class);
             final boolean isNotNullMutation = method.getAnnotation(NotNull.class) != null;
             if (mutationAnno != null)
             {
-                mutations.addAll(
-                    buildMutations(
-                        logicBean,
-                        methodAccess,
-                        method,
-                        methodName,
-                        parameterTypes,
-                        locationInfo,
-                        mutationAnno,
-                        isNotNullMutation
-                    )
+                if (actionAnno != null)
+                {
+                    throw new QLiveDomainException(locationInfo + ": @QLiveAction is used in place of " +
+                        "@QLiveMutation, not with it. An action is a mutation already.");
+                }
+
+                for (Mutation mutation : buildMutations(
+                    logicBean,
+                    methodAccess,
+                    method,
+                    methodName,
+                    parameterTypes,
+                    locationInfo,
+                    mutationAnno,
+                    isNotNullMutation
+                ))
+                {
+                    addMutation(mutation, locationInfo);
+                }
+            }
+
+            if (actionAnno != null)
+            {
+                if (queryAnno != null)
+                {
+                    throw new QLiveDomainException(locationInfo + ": An action is a mutation and can't be a query too.");
+                }
+
+                final Action action = buildAction(
+                    logicBean,
+                    methodAccess,
+                    method,
+                    parameterTypes,
+                    locationInfo,
+                    actionAnno,
+                    isNotNullMutation
                 );
+                addMutation(action, locationInfo);
+                actions.add(action);
+            }
+            else if (method.getDeclaredAnnotation(Rules.class) != null)
+            {
+                throw new QLiveDomainException(locationInfo + ": @Rules belongs on an @QLiveAction method.");
             }
         }
+    }
+
+
+    /// Adds a mutation, refusing a name that is taken. An action is a mutation, so an action and a plain mutation
+    /// can't share one either.
+    private void addMutation(Mutation mutation, String locationInfo)
+    {
+        final String existing = mutationLocations.putIfAbsent(mutation.getName(), locationInfo);
+        if (existing != null)
+        {
+            throw new QLiveDomainException(
+                "Mutation '" + mutation.getName() + "' is defined twice: by " + existing + " and by " + locationInfo
+            );
+        }
+        mutations.add(mutation);
+    }
+
+
+    private Action buildAction(
+        Object logicBean,
+        MethodAccess methodAccess,
+        Method method,
+        Class<?>[] parameterTypes,
+        String locationInfo,
+        QLiveAction actionAnno,
+        boolean isNotNull
+    )
+    {
+        final String name = method.getName();
+        log.debug("ACTION {}", name);
+
+        if (findTypeParamAnnoParameter(method) != null)
+        {
+            throw new QLiveDomainException(locationInfo + ": An action can't have a @QLiveTypeParam parameter.");
+        }
+
+        final Parameter[] parameters = method.getParameters();
+        final Type[] genericParameterTypes = method.getGenericParameterTypes();
+
+        final List<ParameterProvider> parameterProviders = new ArrayList<>(parameters.length);
+        final List<ActionSubject> subjects = new ArrayList<>();
+        for (int i = 0; i < parameters.length; i++)
+        {
+            final Parameter parameter = parameters[i];
+            final ActionSubject subject = subjectOf(locationInfo, parameter, i);
+            if (subject != null)
+            {
+                subjects.add(subject);
+                parameterProviders.add(createSubjectProvider(subject, parameter));
+            }
+            else
+            {
+                parameterProviders.add(createValueProvider(locationInfo, genericParameterTypes[i], parameter));
+            }
+        }
+
+        final Rules rulesAnno = method.getDeclaredAnnotation(Rules.class);
+        final List<Class<?>> ruleClasses = rulesAnno != null ? Arrays.asList(rulesAnno.value()) : List.of();
+
+        GraphQLOutputType resultType = getGraphQLOutputType(locationInfo, method);
+        if (isNotNull)
+        {
+            resultType = new GraphQLNonNull(resultType);
+        }
+
+        return new Action(
+            domain,
+            name,
+            actionAnno.description(),
+            logicBean,
+            methodAccess,
+            methodAccess.getIndex(name, parameterTypes),
+            parameterProviders,
+            resultType,
+            method,
+            subjects,
+            ruleClasses,
+            locationInfo
+        );
+    }
+
+
+    /// The subject a parameter is, or `null` where it is input: a subject is a parameter of a table-backed type,
+    /// or a `List` of one.
+    private ActionSubject subjectOf(String locationInfo, Parameter parameter, int index)
+    {
+        final Class<?> type = parameter.getType();
+        if (subjectTypes.contains(type))
+        {
+            return new ActionSubject(argumentName(locationInfo, parameter), index, type, false);
+        }
+
+        if (List.class.isAssignableFrom(type) &&
+            parameter.getParameterizedType() instanceof ParameterizedType parameterized &&
+            parameterized.getActualTypeArguments()[0] instanceof Class<?> elementType &&
+            subjectTypes.contains(elementType))
+        {
+            return new ActionSubject(argumentName(locationInfo, parameter), index, elementType, true);
+        }
+        return null;
+    }
+
+
+    private ParameterProvider createSubjectProvider(ActionSubject subject, Parameter parameter)
+    {
+        final QLiveField argAnno = parameter.getDeclaredAnnotation(QLiveField.class);
+
+        final InputType refType = typeRegistry.registerInput(new TypeContext(null, SubjectRef.class));
+        final GraphQLTypeReference ref = GraphQLTypeReference.typeRef(refType.getName());
+
+        return new SubjectValueProvider(
+            subject,
+            argAnno != null ? argAnno.description() : null,
+            subject.list() ? new GraphQLList(new GraphQLNonNull(ref)) : ref,
+            typeRegistry
+        );
+    }
+
+
+    private static String argumentName(String locationInfo, Parameter parameter)
+    {
+        final QLiveField argAnno = parameter.getDeclaredAnnotation(QLiveField.class);
+        if (argAnno != null && argAnno.value().length() > 0)
+        {
+            return argAnno.value();
+        }
+        if (!parameter.isNamePresent())
+        {
+            throw new IllegalStateException(locationInfo + ": Cannot determine the name of a subject parameter. " +
+                "Enable parameter metadata in your Java compiler (-parameters, for Maven " +
+                "maven.compiler.parameters=true) or name it with @QLiveField.");
+        }
+        return parameter.getName();
     }
 
     private final static String NAME_PATTERN_WILDCARD = "*";

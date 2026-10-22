@@ -112,7 +112,13 @@ public abstract class QLiveDomainMethod
     @Override
     public Object get(DataFetchingEnvironment env)
     {
+        return invoke(provideParameters(env));
+    }
 
+
+    /// The values the method is called with, one per parameter.
+    protected Object[] provideParameters(DataFetchingEnvironment env)
+    {
         QLiveDataFetchingEnvironment environment = new QLiveDataFetchingEnvironment(domain.get(), env, typeParam);
 
         final Object[] paramValues = new Object[parameterProviders.size()];
@@ -124,6 +130,17 @@ public abstract class QLiveDomainMethod
             final Object value = parameterProvider.provide(environment);
             paramValues[i] = value;
         }
+        return paramValues;
+    }
+
+
+    /// Calls the logic method.
+    ///
+    /// @param paramValues  one value per parameter
+    ///
+    /// @return what the method returned
+    public Object invoke(Object[] paramValues)
+    {
         return methodAccess.invoke(logicBean, methodIndex, paramValues);
     }
 

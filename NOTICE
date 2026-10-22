@@ -9,8 +9,9 @@ DomainQL
 
 The packages io.github.qlivedev.qlive.graphql.* in qlive-graphql and
 io.github.qlivedev.qlive.api.* in qlive-api, apart from
-io.github.qlivedev.qlive.api.json, are derived from DomainQL, Copyright
-2018 Quinscape GmbH, licensed under the Apache License, Version 2.0.
+io.github.qlivedev.qlive.api.json and io.github.qlivedev.qlive.api.action,
+are derived from DomainQL, Copyright 2018 Quinscape GmbH, licensed under
+the Apache License, Version 2.0.
 
     https://github.com/quinscape/domainql
 

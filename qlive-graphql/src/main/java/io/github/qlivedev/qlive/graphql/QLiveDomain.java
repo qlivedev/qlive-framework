@@ -1,7 +1,10 @@
 package io.github.qlivedev.qlive.graphql;
 
+import io.github.qlivedev.qlive.graphql.logic.Action;
 import io.github.qlivedev.qlive.graphql.meta.DomainMeta;
 import graphql.schema.GraphQLSchema;
+
+import java.util.List;
 
 /**
  * The domain of a QLive application: the GraphQL schema it exposes, what is known about the types in it, and the
@@ -37,4 +40,13 @@ public interface QLiveDomain
      * @return metadata
      */
     DomainMeta getMetaData();
+
+
+    /**
+     * Returns the actions the logic beans declare. Each is a mutation of the schema as well; the runtime binds the
+     * executor that runs them.
+     *
+     * @return actions
+     */
+    List<Action> getActions();
 }

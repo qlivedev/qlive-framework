@@ -23,6 +23,7 @@ import io.github.qlivedev.qlive.graphql.fetcher.MethodFetcher;
 import io.github.qlivedev.qlive.graphql.fetcher.ReferenceFetcher;
 import io.github.qlivedev.qlive.graphql.logic.QLiveDomainMethod;
 import io.github.qlivedev.qlive.graphql.logic.GraphQLValueProvider;
+import io.github.qlivedev.qlive.graphql.logic.Action;
 import io.github.qlivedev.qlive.graphql.logic.Mutation;
 import io.github.qlivedev.qlive.graphql.logic.Query;
 import io.github.qlivedev.qlive.graphql.meta.DomainMeta;
@@ -132,6 +133,9 @@ class SchemaAssembler
 
     private final Map<String, TableLookup> jooqTables;
 
+    /// The actions the logic beans declare, known once the schema is built.
+    private List<Action> actions;
+
     private final List<RelationModel> relationModels;
 
     private final List<ManyToManyModel> manyToManyModels;
@@ -196,7 +200,7 @@ class SchemaAssembler
 
         final DomainMeta metaData = buildMetaData(graphQLSchema);
 
-        final QLiveDomainImpl domain = new QLiveDomainImpl(graphQLSchema, typeRegistry, metaData);
+        final QLiveDomainImpl domain = new QLiveDomainImpl(graphQLSchema, typeRegistry, metaData, actions);
 
         // from here on the domain is whole, and everything that was waiting for it can have it
         deferredDomain.provide(domain);
@@ -295,8 +299,10 @@ class SchemaAssembler
             deferredDomain,
             parameterProviderFactories,
             logicBeans,
-            typeRegistry
+            typeRegistry,
+            jooqTables.values().stream().map(TableLookup::getPojoType).collect(Collectors.toSet())
         );
+        actions = analyzer.getActions();
 
         registerTypes(builder, codeRegistryBuilder, typesForJooqDomain, jooqTables, relationModels);
 

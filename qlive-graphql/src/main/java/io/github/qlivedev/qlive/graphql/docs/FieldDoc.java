@@ -63,6 +63,7 @@ public class FieldDoc
     }
 
 
+    @JSONTypeHint(ParamDoc.class)
     public void setParamDocs(List<ParamDoc> paramDocs)
     {
         this.paramDocs = paramDocs;

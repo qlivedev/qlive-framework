@@ -175,7 +175,7 @@ public class DocsExtractorTest
         assertThat(queryFields.get(1).getParamDocs().size(), is(0));
 
         final List<FieldDoc> mutationFields = mDoc.getFieldDocs();
-        assertThat(mutationFields.size(), is(1));
+        assertThat(mutationFields.size(), is(2));
         assertThat(mutationFields.get(0).getName(), is("markdownMutation"));
 
         // markdown paragraphs and bullet lists survive verbatim
@@ -186,6 +186,11 @@ public class DocsExtractorTest
         assertThat(mutationFields.get(0).getParamDocs().size(), is(1));
         assertThat(mutationFields.get(0).getParamDocs().get(0).getName(), is("foo"));
         assertThat(mutationFields.get(0).getParamDocs().get(0).getDescription(), is("foo param desc"));
+
+        // an action is documented as the mutation it is
+        assertThat(mutationFields.get(1).getName(), is("markdownAction"));
+        assertThat(mutationFields.get(1).getDescription(), is("A markdown action"));
+        assertThat(mutationFields.get(1).getParamDocs().get(0).getName(), is("foo"));
     }
 
 

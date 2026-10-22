@@ -1,5 +1,6 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
+import io.github.qlivedev.qlive.api.annotation.QLiveAction;
 import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
 import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
 import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
@@ -40,6 +41,17 @@ public class MarkdownDocumentedLogic
     /// @return always false
     @QLiveMutation
     public boolean markdownMutation(int foo)
+    {
+        return false;
+    }
+
+
+    /// A markdown action
+    ///
+    /// @param foo   foo param desc
+    /// @return always false
+    @QLiveAction
+    public boolean markdownAction(int foo)
     {
         return false;
     }

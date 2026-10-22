@@ -18,6 +18,7 @@ import com.github.javaparser.javadoc.JavadocBlockTag;
 import com.github.javaparser.utils.SourceRoot;
 import io.github.qlivedev.qlive.api.annotation.QLiveField;
 import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveAction;
 import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
 import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
 import io.github.qlivedev.qlive.api.json.JSONUtil;
@@ -271,7 +272,9 @@ public class DocsExtractor
 
                     queryType.getFieldDocs().add(doc);
                 }
-                final Optional<AnnotationExpr> mutationAnno = getAnnotation(method, QLiveMutation.class);
+                // an action is a mutation
+                final Optional<AnnotationExpr> mutationAnno = getAnnotation(method, QLiveMutation.class)
+                    .or(() -> getAnnotation(method, QLiveAction.class));
                 if (mutationAnno.isPresent())
                 {
                     final FieldDoc doc = getDocForGraphQLMethod(

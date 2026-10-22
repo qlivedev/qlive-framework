@@ -13,6 +13,7 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MemberValuePair;
+import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import com.github.javaparser.javadoc.Javadoc;
 import com.github.javaparser.javadoc.JavadocBlockTag;
 import com.github.javaparser.utils.SourceRoot;
@@ -343,6 +344,17 @@ public class DocsExtractor
 
     private String getAttribute(AnnotationExpr annotationExpr, String name, String defaultValue)
     {
+        // @QLiveField("name") is the value attribute without its name
+        if (annotationExpr instanceof SingleMemberAnnotationExpr single)
+        {
+            if (name.equals("value"))
+            {
+                final String quoted = single.getMemberValue().toString();
+                return quoted.substring(1, quoted.length() - 1);
+            }
+            return defaultValue;
+        }
+
         for (Node node : annotationExpr.getChildNodes())
         {
             if (node instanceof MemberValuePair)

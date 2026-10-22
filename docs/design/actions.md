@@ -1,7 +1,7 @@
 # Actions (design)
 
 Status: concept settled, details open. Written 2026-10-18, revised
-2026-10-19. Not built. The companion concept is `layouts.md`.
+2026-10-22. Not built. The companion concept is `layouts.md`.
 
 What a user does to stored data beyond editing it: approve, close,
 send. Editing is the merge. An action is something the application
@@ -179,8 +179,10 @@ input is not part of the GraphQL domain and not backed by the database,
 but its fields are still scalar-typed: a form editing it picks widgets
 and converts values by scalar, and a `long` sent as a JSON number is
 rounded by the browser before any converter sees it. **Each field has
-the scalar the schema says it has**, the same as a domain field, and
-both directions go through that scalar's coercing. The endpoint parses
+a scalar**, found from its Java type the way a domain field's is, though
+the input itself is not in the schema, and both directions go through
+that scalar's coercing. Enum fields have no scalar to find (see "Open
+items"). The endpoint parses
 the body into a `Map`/`List` graph and recasts it into `E`, the way
 `PayloadRecast` does for pub/sub, converting each field with its
 scalar's coercing on the way; the result is serialized the same way. An
@@ -300,6 +302,12 @@ avoided.
   could want to tighten one of its actions; that would take a provider
   naming the action it replaces or modifies, never the load order. No
   module ships actions yet.
+- **Enums in input.** Finding a field's scalar from its Java type
+  leaves out enums, which in the domain are GraphQL enum types, not
+  scalars. jOOQ generates none, so an input POJO is the first place
+  QLive meets a hand-written enum; `layouts.md` holds its enum example
+  until this is settled. To decide before the input recast is built:
+  how an enum field is converted, and which widget picks its value.
 - **Generic `E`**: a mechanism like `@GraphQLTypeParam`, so that an
   implementation handling several actions gets a typed `E` per action
   instead of `Map`. Not for the first implementation.

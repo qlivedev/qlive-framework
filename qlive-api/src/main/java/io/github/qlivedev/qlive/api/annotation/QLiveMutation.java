@@ -8,6 +8,8 @@ import java.lang.annotation.Target;
 
 /**
  * Marks a graphql mutation method.
+ * <p>
+ * The mutation's description is the method's doc comment, which the build extracts into the type docs.
  */
 
 @Target(ElementType.METHOD)
@@ -20,13 +22,6 @@ public @interface QLiveMutation
      * @return name or empty
      */
     String value() default "";
-
-    /**
-     * Description for this mutation.
-     *
-     * @return description
-     */
-    String description() default "";
 
 
 }

@@ -57,8 +57,7 @@ public class Action
         String location
     )
     {
-        // the description comes from the method's doc comment, by way of the type docs
-        super(domain, name, null, logicBean, methodAccess, methodIndex, parameterProviders, resultType, null, null);
+        super(domain, name, logicBean, methodAccess, methodIndex, parameterProviders, resultType, null, null);
         this.method = method;
         this.subjects = List.copyOf(subjects);
         this.ruleClasses = List.copyOf(ruleClasses);

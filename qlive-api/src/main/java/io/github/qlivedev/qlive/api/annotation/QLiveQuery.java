@@ -8,6 +8,8 @@ import java.lang.annotation.Target;
 
 /**
  * Marks a graphql query method.
+ * <p>
+ * The query's description is the method's doc comment, which the build extracts into the type docs.
  */
 
 @Target(ElementType.METHOD)
@@ -22,11 +24,4 @@ public @interface QLiveQuery
      */
     String value() default "";
 
-    /**
-     * Description for this query.
-     *
-     * @return description
-     */
-    String description() default "";
-    
 }

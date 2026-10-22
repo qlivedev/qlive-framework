@@ -20,8 +20,6 @@ public abstract class QLiveDomainMethod
 {
     protected final String name;
 
-    protected final String description;
-
     protected final Object logicBean;
 
     protected final MethodAccess methodAccess;
@@ -44,7 +42,6 @@ public abstract class QLiveDomainMethod
     public QLiveDomainMethod(
         Supplier<QLiveDomain> domain,
         String name,
-        String description,
         Object logicBean,
         MethodAccess methodAccess,
         int methodIndex,
@@ -70,18 +67,11 @@ public abstract class QLiveDomainMethod
 
 
         this.name = name;
-        this.description = description;
         this.logicBean = logicBean;
         this.methodAccess = methodAccess;
         this.methodIndex = methodIndex;
         this.parameterProviders = parameterProviders;
         this.resultType = resultType;
-    }
-
-
-    public String getDescription()
-    {
-        return description;
     }
 
 

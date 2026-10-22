@@ -309,9 +309,7 @@ public class DocsExtractor
     )
     {
         final String name = getAttribute(anno, "value", method.getName().getIdentifier());
-        final String description = getAttribute(anno, "description", methodDescription);
-
-        final FieldDoc doc = new FieldDoc(name, description);
+        final FieldDoc doc = new FieldDoc(name, methodDescription);
 
         final NodeList<Parameter> params = method.getParameters();
         final int paramCount = params.size();

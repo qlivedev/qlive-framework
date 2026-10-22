@@ -410,7 +410,6 @@ class LogicBeanAnalyzer
                     new Query(
                         domain,
                         namePattern.replace(NAME_PATTERN_WILDCARD, typeParam.getSimpleName()),
-                        queryAnno.description(),
                         logicBean,
                         methodAccess,
                         methodIndex,
@@ -435,7 +434,6 @@ class LogicBeanAnalyzer
                 new Query(
                     domain,
                     name,
-                    queryAnno.description(),
                     logicBean,
                     methodAccess,
                     methodIndex,
@@ -540,7 +538,6 @@ class LogicBeanAnalyzer
                     new Mutation(
                         domain,
                         queryNamePattern.replace(NAME_PATTERN_WILDCARD, typeParam.getSimpleName()),
-                        mutationAnno.description(),
                         logicBean,
                         methodAccess,
                         methodIndex,
@@ -567,7 +564,6 @@ class LogicBeanAnalyzer
                 new Mutation(
                     domain,
                     name,
-                    mutationAnno.description(),
                     logicBean,
                     methodAccess,
                     methodIndex,

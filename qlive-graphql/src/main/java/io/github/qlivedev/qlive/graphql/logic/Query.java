@@ -19,7 +19,6 @@ public class Query
     public Query(
         Supplier<QLiveDomain> domain,
         String name,
-        String description,
         Object logicBean,
         MethodAccess methodAccess,
         int methodIndex,
@@ -29,7 +28,7 @@ public class Query
         String genericMethodName
     )
     {
-        super(domain, name, description, logicBean, methodAccess, methodIndex, parameterProviders, resultType, typeParam,genericMethodName);
+        super(domain, name, logicBean, methodAccess, methodIndex, parameterProviders, resultType, typeParam,genericMethodName);
     }
 
 
@@ -38,7 +37,6 @@ public class Query
     {
         return super.toString() + ": "
             + "name = '" + name + '\''
-            + ", description = '" + description + '\''
             + ", parameterProviders = " + parameterProviders
             ;
     }

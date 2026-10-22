@@ -19,7 +19,6 @@ public class Mutation
     public Mutation(
         Supplier<QLiveDomain> domain,
         String name,
-        String description,
         Object logicBean,
         MethodAccess methodAccess,
         int methodIndex,
@@ -29,7 +28,7 @@ public class Mutation
         String genericMethodName
     )
     {
-        super(domain, name, description, logicBean, methodAccess, methodIndex, parameterProviders, resultType, typeParam, genericMethodName);
+        super(domain, name, logicBean, methodAccess, methodIndex, parameterProviders, resultType, typeParam, genericMethodName);
 
     }
 
@@ -39,7 +38,6 @@ public class Mutation
     {
         return super.toString() + ": "
             + "name = '" + name + '\''
-            + ", description = '" + description + '\''
             + ", parameterProviders = " + parameterProviders
             ;
     }

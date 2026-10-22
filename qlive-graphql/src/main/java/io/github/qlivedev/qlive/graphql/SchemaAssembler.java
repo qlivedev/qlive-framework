@@ -607,7 +607,7 @@ class SchemaAssembler
 
             queryTypeBuilder.field(GraphQLFieldDefinition.newFieldDefinition()
                 .name(query.getName())
-                .description(fieldDoc != null ? fieldDoc.getDescription() : query.getDescription())
+                .description(fieldDoc != null ? fieldDoc.getDescription() : null)
                 .type(resolveOutputType(query.getResultType(), graphQLOutputTypes))
                 .arguments(arguments)
                 .build());
@@ -647,7 +647,7 @@ class SchemaAssembler
 
             mutationTypeBuilder.field(GraphQLFieldDefinition.newFieldDefinition()
                 .name(mutation.getName())
-                .description(fieldDoc != null ? fieldDoc.getDescription() : mutation.getDescription())
+                .description(fieldDoc != null ? fieldDoc.getDescription() : null)
                 .type(mutation.getResultType())
                 .arguments(arguments)
                 .build());

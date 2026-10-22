@@ -134,7 +134,8 @@ public class QLiveConfiguration
         QLiveDomain domain,
         StaticAnalysisProvider staticAnalysis,
         @Value("${qlive.i18n.locales:en}") List<String> locales,
-        Environment environment
+        Environment environment,
+        DefaultActionExecutor actionExecutor
     )
     {
         return new DefaultTranslationService(
@@ -142,7 +143,8 @@ public class QLiveConfiguration
             domain,
             staticAnalysis,
             DefaultTranslationService.parseLocales(locales),
-            environment.matchesProfiles("prod")
+            environment.matchesProfiles("prod"),
+            actionExecutor.getRuleTags()
         );
     }
 

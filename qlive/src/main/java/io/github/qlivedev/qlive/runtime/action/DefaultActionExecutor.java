@@ -105,6 +105,22 @@ public class DefaultActionExecutor
     }
 
 
+    /// The message keys of every action's rules. They reach the frontend with a refusal, never through an `i18n()`
+    /// call its analysis could find, so the translations offer them on their own.
+    public Set<String> getRuleTags()
+    {
+        final Set<String> tags = new LinkedHashSet<>();
+        for (List<CompiledRule> compiled : rules.values())
+        {
+            for (CompiledRule rule : compiled)
+            {
+                tags.add(rule.rule().getMessageKey());
+            }
+        }
+        return tags;
+    }
+
+
     @Override
     public Object execute(Action action, Object[] arguments)
     {

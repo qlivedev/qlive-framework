@@ -32,8 +32,9 @@ import java.util.regex.Pattern;
 /// Default {@link TranslationService}, keeping the translations in `app_translation`.
 ///
 /// The tags are the static first arguments of every `i18n()` call the frontend's analysis found, QLive's own
-/// among them, the name of every type the domain has a table for and of each of its fields, and every value of an
-/// enum one of those fields holds, `"Size.MEDIUM"`.
+/// among them, the name of every type the domain has a table for and of each of its fields, every value of an
+/// enum one of those fields holds, `"Size.MEDIUM"`, and the message key of every action rule, which reaches the
+/// frontend with a refusal rather than through a call.
 ///
 /// QLive's module in the analysis brings the English of QLive's own tags. It is the translation of those tags into
 /// every English locale, and a row in the table for the same tag and locale takes its place.
@@ -73,6 +74,8 @@ public class DefaultTranslationService
 
     private final boolean prod;
 
+    private final Set<String> ruleTags;
+
     private final Map<Locale, JSONHolder> kept = new ConcurrentHashMap<>();
 
     /// The translations already warned about, so that dev, which reads them for every page, says so once.
@@ -82,12 +85,14 @@ public class DefaultTranslationService
     /// @param locales  the locales the application offers, the first being the one a request gets that asks for
     ///                 none of them
     /// @param prod     true when running in production, where the translations are read once
+    /// @param ruleTags the message keys of the actions' rules
     public DefaultTranslationService(
         DSLContext dslContext,
         QLiveDomain domain,
         StaticAnalysisProvider staticAnalysisProvider,
         List<Locale> locales,
-        boolean prod
+        boolean prod,
+        Set<String> ruleTags
     )
     {
         if (locales.isEmpty())
@@ -100,6 +105,7 @@ public class DefaultTranslationService
         this.staticAnalysisProvider = staticAnalysisProvider;
         this.locales = List.copyOf(locales);
         this.prod = prod;
+        this.ruleTags = Set.copyOf(ruleTags);
     }
 
 
@@ -176,7 +182,7 @@ public class DefaultTranslationService
             .where(LOCALE.eq(languageTag))
             .forEach(r -> stored.put(r.get(TAG), r.get(VALUE)));
 
-        final Map<String, String> translations = translations(tags(analysis, domain), stored);
+        final Map<String, String> translations = translations(tags(analysis, domain, ruleTags), stored);
 
         translations.forEach((tag, translation) -> {
             final Set<String> expected = placeholders(tag);
@@ -195,12 +201,14 @@ public class DefaultTranslationService
 
 
     /// Every tag there is: the static first argument of every recorded i18n() call, every type the domain has a
-    /// table for, by itself and with each of its fields, and each value of an enum such a field holds.
+    /// table for, by itself and with each of its fields, each value of an enum such a field holds, and the given
+    /// rule tags.
     ///
     /// @param analysis     the frontend's static analysis, or `null` where there is none yet
-    static Set<String> tags(TrackUsageData analysis, QLiveDomain domain)
+    /// @param ruleTags     the message keys of the actions' rules
+    static Set<String> tags(TrackUsageData analysis, QLiveDomain domain, Set<String> ruleTags)
     {
-        final Set<String> tags = new TreeSet<>();
+        final Set<String> tags = new TreeSet<>(ruleTags);
 
         if (analysis != null)
         {

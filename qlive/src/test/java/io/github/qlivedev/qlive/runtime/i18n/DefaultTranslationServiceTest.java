@@ -44,14 +44,15 @@ class DefaultTranslationServiceTest
         null,
         () -> null,
         DefaultTranslationService.parseLocales(List.of("en", "de", "de-CH")),
-        false
+        false,
+        Set.of()
     );
 
 
     @Test
     void collectsTheTagsOfTheCallsAndOfTheDomainTypes()
     {
-        final Set<String> tags = DefaultTranslationService.tags(ANALYSIS, TestDomainConfig.domainNoMeta());
+        final Set<String> tags = DefaultTranslationService.tags(ANALYSIS, TestDomainConfig.domainNoMeta(), Set.of("Rule.key"));
 
         // the application's calls and QLive's own, the latter filed under a module of their own
         assertThat(tags, hasItems("Welcome {0}", "Home", "Not a number"));
@@ -59,13 +60,15 @@ class DefaultTranslationServiceTest
         assertThat(tags, hasItems("TestFoo", "TestFoo.name", "TestFoo.num", "TestFooType", "TestFooType.ordinal"));
         // the query type is no domain type of a table
         assertThat(tags, not(hasItem("QueryType")));
+        // the actions' rule keys, which reach the frontend with a refusal rather than through a call
+        assertThat(tags, hasItem("Rule.key"));
     }
 
 
     @Test
     void collectsTheDomainTagsWithoutAnalysis()
     {
-        assertThat(DefaultTranslationService.tags(null, TestDomainConfig.domainNoMeta()), hasItem("TestFoo.name"));
+        assertThat(DefaultTranslationService.tags(null, TestDomainConfig.domainNoMeta(), Set.of()), hasItem("TestFoo.name"));
     }
 
 
@@ -126,6 +129,6 @@ class DefaultTranslationServiceTest
     void refusesAnOfferedLocaleThatNamesNoLanguage()
     {
         assertThrows(QLiveException.class, () -> DefaultTranslationService.parseLocales(List.of("en", "de_DE")));
-        assertThrows(QLiveException.class, () -> new DefaultTranslationService(null, null, () -> null, List.of(), false));
+        assertThrows(QLiveException.class, () -> new DefaultTranslationService(null, null, () -> null, List.of(), false, Set.of()));
     }
 }

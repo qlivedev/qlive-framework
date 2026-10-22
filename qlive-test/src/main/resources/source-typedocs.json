@@ -11,5 +11,39 @@
       }
     ],
     "name":"QueryType"
+  },
+  {
+    "description":"What approving a bar answers with.",
+    "fieldDocs":[
+      {
+        "description":"Id of the approved bar",
+        "name":"barId",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"The approval comment",
+        "name":"comment",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"Name of the approved bar, as it was stored when the action ran",
+        "name":"name",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"Whether the owner was notified",
+        "name":"notified",
+        "paramDocs":[
+          
+        ]
+      }
+    ],
+    "name":"ApproveResult"
   }
 ]

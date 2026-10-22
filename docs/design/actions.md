@@ -212,7 +212,8 @@ The method's result is what the client's async function resolves to.
 
 **The action is the unit.** All rows of all subjects succeed or fail
 together. **The method writes through the merge**, which joins the
-action's transaction rather than opening one of its own, so a conflict during the work rolls the whole
+action's transaction rather than opening one of its own (see "A Java
+API for the merge"), so a conflict during the work rolls the whole
 action back.
 
 **Merge and action are separate requests.** A screen that edits and then
@@ -289,6 +290,42 @@ part of what a form over it loads, is open.
 "Layouts react to errors"): the rule's message, the blamed field's path
 or none, and the rule's class if it has one. A layout can't tell a
 warning from a refusal, and doesn't need to.
+
+## A Java API for the merge
+
+**The merge speaks the client's language.** A change is a type name,
+an id, a version and field values as `GenericScalar`s, each naming its
+scalar, because that is what a browser can send. Java code calling it
+spells all of that by hand -- the tests' helpers read
+`change("Bar", id, version, field("num", "Int", 99))` -- though it
+already holds the Java values. An action method writing its subjects is
+the first caller that isn't a test, and a scheduled job or an import
+would be the next.
+
+**A jOOQ `UpdatableRecord` already knows what the merge needs**: its
+table, which the domain maps to a type; the fields that changed, which
+is the field set the chain walk diffs; and the values it was read with,
+the version among them. A record-level call, `store(barRecord)`, could
+derive the whole change from it. A POJO can't serve: it doesn't know
+which of its fields changed.
+
+**The transaction is the caller's.** The client's merge is a unit of
+its own and opens its own transaction. A Java caller -- an action, a
+job, a service doing several things -- wants the merge to join its
+transaction instead. That suggests two entry points over one engine, so
+that version records, field sets and push events come out the same
+whoever writes.
+
+Scenarios: an action sets `status` on its subjects; an action creates a
+row of another versioned type, such as an approval record; an action
+deletes, or changes many-to-many links; a scheduled job writes rows with
+no user and no request; tests.
+
+Open: what a conflict means to Java code. Inside an action the
+subjects' versions are checked and the transaction is repeatable read,
+so a concurrent write surfaces as a serialization failure; a job might
+want to retry, fail or overwrite. Also whether links are part of the
+record or a call of their own.
 
 ## Client types
 

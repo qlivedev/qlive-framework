@@ -308,7 +308,10 @@ export type MergeResult = {
 
 /** Auto-generated from BarLogic, QueryLogic, MergeLogic */
 export type MutationType = {
+    /** Approves a bar. `bar` is a subject: the request names the row by id and version, and the method gets the row
+as it is stored. The rules hold before the method runs. */
     approveBar: ApproveResult
+    /** Approves several bars at once. All of them are approved, or none is. */
     approveBars: ApproveResult[]
     mergeWorkingSet: MergeResult
 }
@@ -406,7 +409,10 @@ export type DomainObject = AppFieldSet | AppLogin | AppTranslation | AppUser | A
 
 declare module "@qlivedev/qlive-ts" {
     interface Actions {
+        /** Approves a bar. `bar` is a subject: the request names the row by id and version, and the method gets the row
+as it is stored. The rules hold before the method runs. */
         approveBar: { args: { bar: Subject, comment: string, notify: boolean }, result: ApproveResult }
+        /** Approves several bars at once. All of them are approved, or none is. */
         approveBars: { args: { bars: Subject[], comment: string }, result: (ApproveResult | null)[] }
     }
 }

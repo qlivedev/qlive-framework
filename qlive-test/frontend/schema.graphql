@@ -335,8 +335,26 @@ type MergeResult {
 
 "Auto-generated from BarLogic, QueryLogic, MergeLogic"
 type MutationType {
-    approveBar(bar: SubjectRefInput!, comment: String!, notify: Boolean!): ApproveResult!
-    approveBars(bars: [SubjectRefInput!]!, comment: String!): [ApproveResult]!
+    """
+
+    Approves a bar. `bar` is a subject: the request names the row by id and version, and the method gets the row
+    as it is stored. The rules hold before the method runs.
+    """
+    approveBar(
+        "the bar to approve"
+        bar: SubjectRefInput!,
+        "approval comment"
+        comment: String!,
+        "whether to notify the bar's owner"
+        notify: Boolean!
+    ): ApproveResult!
+    "Approves several bars at once. All of them are approved, or none is."
+    approveBars(
+        "the bars to approve"
+        bars: [SubjectRefInput!]!,
+        "approval comment"
+        comment: String!
+    ): [ApproveResult]!
     mergeWorkingSet(changes: [EntityChangeInput]!, deletions: [EntityDeletionInput]!, links: [LinkChangeInput]!, mergeConfig: MergeConfigInput!): MergeResult!
 }
 

@@ -832,7 +832,7 @@ path.
 **Rules act on the client only**, on client events or on the result of
 a validation expression, setting a field's mode or value. **Reaction**
 is the working term for that: an event, or a validation result, wired
-to an action, as Unreal Blueprints wire execution. The rules are
+to an effect, as Unreal Blueprints wire execution. The rules are
 constant. **A computed value is continuous and one-way**: gross follows
 net, nothing flows back. Whether the user may override it is the
 target's mode, not a kind of rule: gross in `text` is derived, city in

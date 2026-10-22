@@ -1,7 +1,7 @@
 package io.github.qlivedev.qlive.graphql;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLComputed;
-import io.github.qlivedev.qlive.api.annotation.GraphQLField;
+import io.github.qlivedev.qlive.api.annotation.QLiveComputed;
+import io.github.qlivedev.qlive.api.annotation.QLiveField;
 import io.github.qlivedev.qlive.graphql.config.ManyToManyEnd;
 import io.github.qlivedev.qlive.graphql.config.ManyToManyField;
 import io.github.qlivedev.qlive.graphql.config.ManyToManyModel;
@@ -74,7 +74,7 @@ public class MutableTypeRegistry
     }
 
     /**
-     * Scalars no Java type maps to, selected by name with {@code @GraphQLField(type = ...)}: a long that is a currency
+     * Scalars no Java type maps to, selected by name with {@code @QLiveField(type = ...)}: a long that is a currency
      * amount or a number in the browser rather than a Long.
      */
     private final static List<GraphQLScalarType> NAMED_ONLY = List.of(
@@ -490,8 +490,8 @@ public class MutableTypeRegistry
         {
             final Class<Object> type = info.getType();
 
-            final GraphQLField graphQLFieldAnno = JSONUtil.findAnnotation(info, GraphQLField.class);
-            final GraphQLComputed computedAnno = JSONUtil.findAnnotation(info, GraphQLComputed.class);
+            final QLiveField graphQLFieldAnno = JSONUtil.findAnnotation(info, QLiveField.class);
+            final QLiveComputed computedAnno = JSONUtil.findAnnotation(info, QLiveComputed.class);
 
             if (!PojoTypes.isNormalProperty(info) || type.isArray() || computedAnno != null)
             {
@@ -534,7 +534,7 @@ public class MutableTypeRegistry
         for (Method method : MethodOrder.publicMethods(javaType))
         {
             final Class<?>[] parameterTypes = method.getParameterTypes();
-            final GraphQLField annotation = method.getAnnotation(GraphQLField.class);
+            final QLiveField annotation = method.getAnnotation(QLiveField.class);
             if (parameterTypes.length > 0 && annotation != null)
             {
                 final Class<?> returnType = method.getReturnType();
@@ -570,7 +570,7 @@ public class MutableTypeRegistry
     }
 
     @Override
-    public GraphQLScalarType getGraphQLScalarFor(Class<?> cls, GraphQLField inputAnno)
+    public GraphQLScalarType getGraphQLScalarFor(Class<?> cls, QLiveField inputAnno)
     {
         if (inputAnno != null && inputAnno.type().length() > 0)
         {

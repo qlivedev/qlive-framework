@@ -3,7 +3,7 @@ package io.github.qlivedev.qlive.graphql.param;
 import graphql.schema.DataFetchingEnvironment;
 
 /**
- * Implemented by classes providing values for a @{@link io.github.qlivedev.qlive.api.annotation.GraphQLLogic} method parameters.
+ * Implemented by classes providing values for a @{@link io.github.qlivedev.qlive.api.annotation.QLiveLogic} method parameters.
  *
  * @param <T> parameter type provided by this parameter provider
  */

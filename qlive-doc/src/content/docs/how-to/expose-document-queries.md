@@ -13,9 +13,9 @@ We use this general qlive-graphql pattern to serve out [query documents](/qlive-
 Here we see the setup for logic bean containing such a generic QueryDocumentService endpoint.
 
 ```java {31-37,44-46} title='QueryLogic.java'
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
-import io.github.qlivedev.qlive.api.annotation.GraphQLTypeParam;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveTypeParam;
 import io.github.qlivedev.qlive.model.QueryConfig;
 import io.github.qlivedev.qlive.model.QueryDocument;
 import io.github.qlivedev.qlive.runtime.query.QueryDocumentService;
@@ -26,7 +26,7 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.context.annotation.Lazy;
 
 /// Example logic
-@GraphQLLogic
+@QLiveLogic
 public class QueryLogic
 {
 
@@ -41,9 +41,9 @@ public class QueryLogic
 
 
     /// Queries [T] objects based on the given query config
-    @GraphQLQuery
+    @QLiveQuery
     public <T> @NotNull QueryDocument<T> queryDocument(
-        @GraphQLTypeParam(
+        @QLiveTypeParam(
             namePattern = "query*Document",
             typeNamePattern = "*Document",
             types = {
@@ -63,7 +63,7 @@ public class QueryLogic
 }
 ```
 
-`@GraphQLTypeParam` controls how the generic method is turned into many concrete methods:
+`@QLiveTypeParam` controls how the generic method is turned into many concrete methods:
 
  * `types` lists all rowTypes we want. 
  * `namePattern` declares the name pattern for the GraphQL method. 

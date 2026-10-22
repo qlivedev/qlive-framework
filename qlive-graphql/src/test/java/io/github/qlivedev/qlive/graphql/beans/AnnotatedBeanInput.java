@@ -1,13 +1,13 @@
 package io.github.qlivedev.qlive.graphql.beans;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLField;
+import io.github.qlivedev.qlive.api.annotation.QLiveField;
 
 public class AnnotatedBeanInput
 {
     private long value;
 
 
-    @GraphQLField( type = "Currency")
+    @QLiveField( type = "Currency")
     public long getValue()
     {
         return value;

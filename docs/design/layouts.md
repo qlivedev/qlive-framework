@@ -112,7 +112,7 @@ and spelled as a string union like `MergeFieldStatus`
   `form-control-plaintext` does.
 
 **A derived layout edits every field except** primary key fields,
-computed fields (the `computed` field meta `@GraphQLComputed` sets),
+computed fields (the `computed` field meta `@QLiveComputed` sets),
 the `version` field and fields whose `editable` field meta is false;
 those render as `text` (`defaultFieldMode()`). The `version` field is
 recognized by its name, as the merge recognizes it. An application sets

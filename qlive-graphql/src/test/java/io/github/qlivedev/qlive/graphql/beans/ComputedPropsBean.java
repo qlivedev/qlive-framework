@@ -1,6 +1,6 @@
 package io.github.qlivedev.qlive.graphql.beans;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLComputed;
+import io.github.qlivedev.qlive.api.annotation.QLiveComputed;
 import org.svenson.JSONProperty;
 
 public class ComputedPropsBean
@@ -21,7 +21,7 @@ public class ComputedPropsBean
 
 
     /// Computed, with a getter and nothing else.
-    @GraphQLComputed
+    @QLiveComputed
     public String getValuePlus()
     {
         return "+" + value;
@@ -29,7 +29,7 @@ public class ComputedPropsBean
 
 
     /// Computed and marked read-only to svenson, which is also what excludes a property from the schema.
-    @GraphQLComputed
+    @QLiveComputed
     @JSONProperty(readOnly = true)
     public String getValueMinus()
     {

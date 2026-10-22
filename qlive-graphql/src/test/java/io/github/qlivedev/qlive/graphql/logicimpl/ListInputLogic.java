@@ -1,7 +1,7 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLMutation;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
 import io.github.qlivedev.qlive.graphql.beans.ComplexInput;
 import io.github.qlivedev.qlive.graphql.beans.MyEnum;
 import io.github.qlivedev.qlive.api.generic.DomainObject;
@@ -9,10 +9,10 @@ import io.github.qlivedev.qlive.api.generic.DomainObject;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
-@GraphQLLogic
+@QLiveLogic
 public class ListInputLogic
 {
-    @GraphQLMutation
+    @QLiveMutation
     public String testListOfDomainObjectScalars(
         @NotNull List<DomainObject> domainObjects
         )
@@ -20,7 +20,7 @@ public class ListInputLogic
         return domainObjects.toString();
     }
 
-    @GraphQLMutation
+    @QLiveMutation
     public String testListOfDomainObjects(
         @NotNull List<ComplexInput> complexInputs
         )
@@ -34,7 +34,7 @@ public class ListInputLogic
         return sb.toString();
     }
 
-    @GraphQLMutation
+    @QLiveMutation
     public String testListOfEnums(
         @NotNull List<MyEnum> enums
         )
@@ -48,7 +48,7 @@ public class ListInputLogic
         return sb.toString();
     }
 
-    @GraphQLMutation
+    @QLiveMutation
     public String testNullableListOfScalars(
         List<String> strings
     )

@@ -1,15 +1,15 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
 import io.github.qlivedev.qlive.graphql.beans.SumPerMonth;
 
 import jakarta.validation.constraints.NotNull;
 
-@GraphQLLogic
+@QLiveLogic
 public class SumPerMonthLogic
 {
-    @GraphQLQuery
+    @QLiveQuery
     public SumPerMonth getSumPerMonthLogic(@NotNull int sum)
     {
         final SumPerMonth sumPerMonth = new SumPerMonth();

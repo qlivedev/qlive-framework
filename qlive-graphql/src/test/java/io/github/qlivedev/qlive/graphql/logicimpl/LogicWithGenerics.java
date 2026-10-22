@@ -1,34 +1,34 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLMutation;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
 import io.github.qlivedev.qlive.graphql.beans.DependencyBean;
 
 import java.util.Collections;
 import java.util.List;
 
-@GraphQLLogic
+@QLiveLogic
 public class LogicWithGenerics
 {
-    @GraphQLMutation
+    @QLiveMutation
     public List<Integer> mutationReturningListOfInts()
     {
         return Collections.emptyList();
     }
 
-    @GraphQLMutation
+    @QLiveMutation
     public boolean mutationWithIntListParam(List<Integer> args)
     {
         return true;
     }
 
-    @GraphQLMutation
+    @QLiveMutation
     public List<DependencyBean> mutationReturningListOfObject()
     {
         return Collections.emptyList();
     }
 
-    @GraphQLMutation
+    @QLiveMutation
     public boolean mutationWithObjectListParam(List<DependencyBean> args)
     {
         return true;

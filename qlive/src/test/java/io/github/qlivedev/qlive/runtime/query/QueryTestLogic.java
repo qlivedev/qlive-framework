@@ -3,9 +3,9 @@ package io.github.qlivedev.qlive.runtime.query;
 import io.github.qlivedev.qlive.model.QueryConfig;
 import io.github.qlivedev.qlive.model.QueryDocument;
 import io.github.qlivedev.qlive.testdomain.tables.pojos.TestUser;
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
-import io.github.qlivedev.qlive.api.annotation.GraphQLTypeParam;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveTypeParam;
 import graphql.schema.DataFetchingEnvironment;
 import jakarta.validation.constraints.NotNull;
 
@@ -14,7 +14,7 @@ import java.util.List;
 
 /// Logic bean that records what a query document query was asked for, so that a test can plan the query
 /// the GraphQL execution actually described instead of a selection set assembled by hand.
-@GraphQLLogic
+@QLiveLogic
 public class QueryTestLogic
 {
     public record Capture(
@@ -35,9 +35,9 @@ public class QueryTestLogic
     }
 
 
-    @GraphQLQuery
+    @QLiveQuery
     public <T> @NotNull QueryDocument<T> queryDocument(
-        @GraphQLTypeParam(
+        @QLiveTypeParam(
             namePattern = "query*Document",
             typeNamePattern = "*Document",
             types = {

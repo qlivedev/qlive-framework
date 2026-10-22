@@ -205,13 +205,13 @@ the configuration class it announces, in preference to putting
 `@ComponentScan` on its own package: its contribution to the context is
 then one readable file rather than the result of a scan.
 
-That bites `@GraphQLLogic` in particular, which is meta-annotated
+That bites `@QLiveLogic` in particular, which is meta-annotated
 `@Component` and therefore only becomes a bean by being scanned. A
 module's logic class has to be declared, not annotated and forgotten.
 
 Once the beans are defined, the lookups an application's
 `DomainQLConfiguration` already performs pick them up without knowing a
-module exists: `getBeansWithAnnotation(GraphQLLogic.class)` finds a
+module exists: `getBeansWithAnnotation(QLiveLogic.class)` finds a
 module's logic, `getBeansOfType(MetadataProvider.class)` finds its
 metadata provider, and `InjectionArgumentProcessor` arrives as an ordered
 `List<>`. Those channels are open. Registration was the only thing

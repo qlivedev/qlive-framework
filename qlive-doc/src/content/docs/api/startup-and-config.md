@@ -701,7 +701,7 @@ Extend by declaration merging, see DomainMeta.
 computed?: boolean;
 ```
 
-true if the field is a GraphQLComputed-annotated property. Written by QLive's ComputedMetadataProvider.
+true if the field is a QLiveComputed-annotated property. Written by QLive's ComputedMetadataProvider.
 
 ### DomainFieldMeta.editable
 

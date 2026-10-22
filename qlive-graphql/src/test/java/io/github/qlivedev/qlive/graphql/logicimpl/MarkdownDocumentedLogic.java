@@ -1,20 +1,20 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLMutation;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
 import io.github.qlivedev.qlive.graphql.beans.MarkdownDocumentedBean;
 
 /// Target to be analyzed by DocsExtractorTest
 ///
 /// @see io.github.qlivedev.qlive.graphql.docs.DocsExtractorTest
-@GraphQLLogic
+@QLiveLogic
 public class MarkdownDocumentedLogic
 {
     /// A minimal markdown GraphQL query
     ///
     /// @return always true
-    @GraphQLQuery
+    @QLiveQuery
     public boolean markdownQuery()
     {
         return true;
@@ -22,7 +22,7 @@ public class MarkdownDocumentedLogic
 
 
     /// Another markdown query
-    @GraphQLQuery(value = "anotherMarkdownQuery")
+    @QLiveQuery(value = "anotherMarkdownQuery")
     public MarkdownDocumentedBean markdownQuery2(MarkdownDocumentedBean bean)
     {
         return bean;
@@ -38,7 +38,7 @@ public class MarkdownDocumentedLogic
     ///
     /// @param foo   foo param desc
     /// @return always false
-    @GraphQLMutation
+    @QLiveMutation
     public boolean markdownMutation(int foo)
     {
         return false;

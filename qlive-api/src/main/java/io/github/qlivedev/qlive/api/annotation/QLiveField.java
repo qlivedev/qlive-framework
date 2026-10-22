@@ -11,14 +11,14 @@ import java.lang.annotation.Target;
  *
  * Applicable to Input type property methods and GraphQL logic query or mutator parameters.
  *
- * Non-property methods with parameters can be marked with GraphQLField to be included into
+ * Non-property methods with parameters can be marked with QLiveField to be included into
  * as GraphQL output fields with arguments.
  */
 
 @Target({ElementType.METHOD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface GraphQLField
+public @interface QLiveField
 {
     /**
      * Name of the input field. If left empty (the default), the property name of the method is used.

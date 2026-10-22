@@ -2,7 +2,7 @@ package io.github.qlivedev.qlivetest.runtime.config;
 
 import graphql.GraphQL;
 import io.github.qlivedev.qlive.graphql.QLiveDomain;
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
 import io.github.qlivedev.qlive.graphql.config.SourceField;
 import io.github.qlivedev.qlive.graphql.config.TargetField;
 import io.github.qlivedev.qlive.graphql.meta.MetadataProvider;
@@ -67,7 +67,7 @@ public class QLiveDomainConfiguration {
     public QLiveDomain qLiveDomain() throws IOException {
         return newDomain(
                 dslContext,
-                applicationContext.getBeansWithAnnotation(GraphQLLogic.class).values(),
+                applicationContext.getBeansWithAnnotation(QLiveLogic.class).values(),
                 applicationContext.getBeansOfType(MetadataProvider.class).values()
         );
     }

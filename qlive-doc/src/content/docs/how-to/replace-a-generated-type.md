@@ -21,15 +21,15 @@ see [qlive-test layout](/qlive-framework/reference/qlive-test-layout/).
 ## Register it
 
 A class enters the schema by appearing in a logic bean's signature: as a
-return type, as a parameter, or in the `types` of a `@GraphQLTypeParam`.
+return type, as a parameter, or in the `types` of a `@QLiveTypeParam`.
 The last is the usual one, because a type worth replacing is usually a type
 you already have a
 [document query](/qlive-framework/how-to/expose-document-queries/) for.
 
 ```java {9-10} title='QueryLogic.java'
-@GraphQLQuery
+@QLiveQuery
 public <T> @NotNull QueryDocument<T> queryDocument(
-    @GraphQLTypeParam(
+    @QLiveTypeParam(
         namePattern = "query*Document",
         typeNamePattern = "*Document",
         types = {
@@ -67,7 +67,7 @@ foreign keys -- which is exactly what this type is supposed to keep.
 A field no column backs is fetched from the object rather than selected:
 
 ```java
-@GraphQLComputed
+@QLiveComputed
 public String getSummary()
 {
     return getName() + " / " + getStringValue();
@@ -89,13 +89,13 @@ Two consequences to plan around:
 
 A column's Java type does not always decide which scalar it should be. A
 currency amount is a `long` of 1/10000th units, and nothing about the
-column says so. `@GraphQLField(type = ...)` names the scalar, on an
+column says so. `@QLiveField(type = ...)` names the scalar, on an
 override of the generated getter that keeps its `@Column`:
 
 ```java
 @Override
 @Column(name = "currency_value")
-@GraphQLField(type = "Currency")
+@QLiveField(type = "Currency")
 public Long getCurrencyValue()
 {
     return super.getCurrencyValue();

@@ -1,9 +1,9 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLField;
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLMutation;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveField;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
 import io.github.qlivedev.qlive.graphql.beans.ComplexInput;
 import io.github.qlivedev.qlive.graphql.testdomain.Tables;
 import io.github.qlivedev.qlive.graphql.testdomain.tables.pojos.SourceEight;
@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.Timestamp;
 import java.util.List;
 
-@GraphQLLogic
+@QLiveLogic
 public class TestLogic
 {
     private final static Logger log = LoggerFactory.getLogger(TestLogic.class);
@@ -40,56 +40,56 @@ public class TestLogic
     }
 
 
-    @GraphQLQuery
+    @QLiveQuery
     public boolean queryTruth()
     {
         return true;
     }
 
 
-    @GraphQLQuery
+    @QLiveQuery
     public String queryString(String value)
     {
         return "VALUE:" + value;
     }
 
 
-    @GraphQLQuery
-    public String queryString2(@GraphQLField(notNull = true) String value, @GraphQLField(notNull = true) String second)
+    @QLiveQuery
+    public String queryString2(@QLiveField(notNull = true) String value, @QLiveField(notNull = true) String second)
     {
         return value + ":" + second;
     }
 
 
-    @GraphQLQuery
+    @QLiveQuery
     public int queryInt(int value)
     {
         return value * 2;
     }
 
 
-    @GraphQLQuery
+    @QLiveQuery
     public Timestamp queryTimestamp()
     {
         return new Timestamp(System.currentTimeMillis());
     }
 
 
-    @GraphQLQuery
+    @QLiveQuery
     public boolean queryWithComplexInput(ComplexInput complexInput)
     {
         return false;
     }
 
 
-    @GraphQLMutation
+    @QLiveMutation
     public String mutateString(String value)
     {
         return "<<" + value + ">>";
     }
 
 
-    @GraphQLQuery
+    @QLiveQuery
     public List<SourceThree> walkForwardRef()
     {
         return dslContext.select()
@@ -98,7 +98,7 @@ public class TestLogic
     }
 
 
-    @GraphQLQuery
+    @QLiveQuery
     public List<TargetSix> walkBackMany()
     {
         final List<TargetSix> targets = dslContext.select()
@@ -111,7 +111,7 @@ public class TestLogic
     }
 
 
-    @GraphQLQuery
+    @QLiveQuery
     public TargetFive walkBackOne()
     {
         final TargetFive target = dslContext.select()
@@ -124,7 +124,7 @@ public class TestLogic
     }
 
 
-    @GraphQLQuery
+    @QLiveQuery
     public List<SourceEight> walkMultiKey()
     {
         final List<SourceEight> sourceEights = dslContext.select()
@@ -137,7 +137,7 @@ public class TestLogic
     }
 
 
-    @GraphQLQuery
+    @QLiveQuery
     public List<TargetEight> walkMultiKeyBackWards()
     {
         final List<TargetEight> targetEights = dslContext.select()
@@ -150,7 +150,7 @@ public class TestLogic
     }
 
 
-    @GraphQLQuery
+    @QLiveQuery
     public List<TargetNineCounts> walkViewPojoRelation()
     {
         final List<TargetNineCounts> targetNineCounts = dslContext.select()
@@ -163,7 +163,7 @@ public class TestLogic
     }
 
 
-    @GraphQLQuery
+    @QLiveQuery
     public List<TargetNine> walkViewPojoRelationBackwards()
     {
         final List<TargetNine> targetNines = dslContext.select()

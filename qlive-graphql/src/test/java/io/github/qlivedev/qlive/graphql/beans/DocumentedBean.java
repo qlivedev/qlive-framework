@@ -1,6 +1,6 @@
 package io.github.qlivedev.qlive.graphql.beans;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLField;
+import io.github.qlivedev.qlive.api.annotation.QLiveField;
 import io.github.qlivedev.qlive.graphql.docs.DocsExtractorTest;
 
 /**
@@ -53,7 +53,7 @@ public class DocumentedBean
      * @param num   num desc
      * @return
      */
-    @GraphQLField
+    @QLiveField
     public int getFieldWithArgs(
         String name,
         int num

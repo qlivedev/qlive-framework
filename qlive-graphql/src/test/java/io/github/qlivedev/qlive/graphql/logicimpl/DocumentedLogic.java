@@ -1,9 +1,9 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLMutation;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
-import io.github.qlivedev.qlive.api.annotation.GraphQLTypeParam;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveTypeParam;
 import io.github.qlivedev.qlive.graphql.beans.DocumentedBean;
 import io.github.qlivedev.qlive.graphql.beans.DocumentedEnum;
 import io.github.qlivedev.qlive.graphql.testdomain.tables.pojos.Foo;
@@ -17,7 +17,7 @@ import java.util.Collections;
  *
  * @see io.github.qlivedev.qlive.graphql.docs.DocsExtractorTest
  */
-@GraphQLLogic
+@QLiveLogic
 public class DocumentedLogic
 {
     /**
@@ -25,7 +25,7 @@ public class DocumentedLogic
      *
      * @return always true
      */
-    @GraphQLQuery
+    @QLiveQuery
     public boolean query()
     {
         return true;
@@ -34,7 +34,7 @@ public class DocumentedLogic
     /**
      * Another query
      */
-    @GraphQLQuery(value = "anotherQuery")
+    @QLiveQuery(value = "anotherQuery")
     public DocumentedBean query2(DocumentedBean documentedBean)
     {
         return documentedBean;
@@ -47,19 +47,19 @@ public class DocumentedLogic
      *
      * @return always true
      */
-    @GraphQLMutation
+    @QLiveMutation
     public boolean mutation(int foo)
     {
         return false;
     }
 
-    @GraphQLQuery
+    @QLiveQuery
     public DocumentedEnum enumLogic()
     {
         return null;
     }
 
-    @GraphQLQuery
+    @QLiveQuery
     public Paged<Foo> fooPaged()
     {
         return null;
@@ -74,9 +74,9 @@ public class DocumentedLogic
      * @param <T>
      * @return
      */
-    @GraphQLQuery
+    @QLiveQuery
     public <T> Paged<T> genericPaged(
-        @GraphQLTypeParam(
+        @QLiveTypeParam(
             types = {
                 Foo.class
             }

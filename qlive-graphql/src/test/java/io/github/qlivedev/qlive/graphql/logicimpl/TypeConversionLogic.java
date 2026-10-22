@@ -1,13 +1,13 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLMutation;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
 import io.github.qlivedev.qlive.graphql.beans.ConversionTarget;
 
-@GraphQLLogic
+@QLiveLogic
 public class TypeConversionLogic
 {
-    @GraphQLMutation
+    @QLiveMutation
     public String mutateConverted(ConversionTarget target)
     {
         return target.getName() + ":" + target.getCreated();

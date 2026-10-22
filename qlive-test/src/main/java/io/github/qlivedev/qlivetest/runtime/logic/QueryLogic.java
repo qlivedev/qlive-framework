@@ -1,8 +1,8 @@
 package io.github.qlivedev.qlivetest.runtime.logic;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
-import io.github.qlivedev.qlive.api.annotation.GraphQLTypeParam;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveTypeParam;
 import io.github.qlivedev.qlive.model.QueryConfig;
 import io.github.qlivedev.qlive.model.QueryDocument;
 import io.github.qlivedev.qlive.runtime.query.QueryDocumentService;
@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 
 /// Example logic
-@GraphQLLogic
+@QLiveLogic
 public class QueryLogic
 {
     private final static Logger log = LoggerFactory.getLogger(QueryLogic.class);
@@ -37,9 +37,9 @@ public class QueryLogic
 
 
     /// Queries [T] objects based on the given query config
-    @GraphQLQuery
+    @QLiveQuery
     public <T> @NotNull QueryDocument<T> queryDocument(
-        @GraphQLTypeParam(
+        @QLiveTypeParam(
             namePattern = "query*Document",
             typeNamePattern = "*Document",
             types = {
@@ -67,7 +67,7 @@ public class QueryLogic
     }
 
 
-//    @GraphQLQuery
+//    @QLiveQuery
 //    public AllScalars queryAllScalars()
 //    {
 //        final FooType domainObject = new FooType();

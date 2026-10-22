@@ -3,9 +3,9 @@ package io.github.qlivedev.qlive.graphql;
 import io.github.qlivedev.qlive.api.QLiveDomainException;
 import com.esotericsoftware.reflectasm.MethodAccess;
 import com.google.common.collect.Maps;
-import io.github.qlivedev.qlive.api.annotation.GraphQLComputed;
-import io.github.qlivedev.qlive.api.annotation.GraphQLFetcher;
-import io.github.qlivedev.qlive.api.annotation.GraphQLField;
+import io.github.qlivedev.qlive.api.annotation.QLiveComputed;
+import io.github.qlivedev.qlive.api.annotation.QLiveFetcher;
+import io.github.qlivedev.qlive.api.annotation.QLiveField;
 import io.github.qlivedev.qlive.graphql.config.Options;
 import io.github.qlivedev.qlive.graphql.config.ManyToManyEnd;
 import io.github.qlivedev.qlive.graphql.config.ManyToManyField;
@@ -934,7 +934,7 @@ class SchemaAssembler
 
         for (JSONPropertyInfo info : classInfo.getPropertyInfos())
         {
-            final GraphQLComputed computedAnno = JSONUtil.findAnnotation(info, GraphQLComputed.class);
+            final QLiveComputed computedAnno = JSONUtil.findAnnotation(info, QLiveComputed.class);
 
             if (!PojoTypes.isNormalProperty(info) || computedAnno != null)
             {
@@ -942,7 +942,7 @@ class SchemaAssembler
             }
 
             final Method getterMethod = ((JavaObjectPropertyInfo) info).getGetterMethod();
-            final GraphQLField inputFieldAnno = JSONUtil.findAnnotation(info, GraphQLField.class);
+            final QLiveField inputFieldAnno = JSONUtil.findAnnotation(info, QLiveField.class);
             final Class<?> propertyType = info.getType();
             GraphQLInputType graphQLFieldType = typeRegistry.getGraphQLScalarFor(propertyType, inputFieldAnno);
             final GraphQLInputObjectField inputField = buildInputField(
@@ -970,7 +970,7 @@ class SchemaAssembler
         TypeContext typeContext,
         JSONPropertyInfo info,
         Method getterMethod,
-        GraphQLField inputFieldAnno,
+        QLiveField inputFieldAnno,
         Class<?> propertyType,
         GraphQLInputType graphQLFieldType,
         TypeDoc typeDoc
@@ -1018,7 +1018,7 @@ class SchemaAssembler
         if (jpaNotNull && inputFieldAnno != null && !inputFieldAnno.notNull())
         {
             throw new QLiveDomainException(javaType.getSimpleName() + "." + info.getJavaPropertyName() +
-                ": Required field disagreement between @NotNull and @GraphQLField required value");
+                ": Required field disagreement between @NotNull and @QLiveField required value");
         }
 
         final boolean isNotNull = (inputFieldAnno != null && inputFieldAnno.notNull()) || jpaNotNull;
@@ -1054,7 +1054,7 @@ class SchemaAssembler
             throw new IllegalStateException();
         }
 
-        final GraphQLScalarType type = typeRegistry.getGraphQLScalarFor(propertyType, (GraphQLField) null);
+        final GraphQLScalarType type = typeRegistry.getGraphQLScalarFor(propertyType, (QLiveField) null);
         if (type != null)
         {
             return type;
@@ -1551,7 +1551,7 @@ class SchemaAssembler
         for (Method m : MethodOrder.publicMethods(javaType))
         {
             Class<?>[] parameterTypes = m.getParameterTypes();
-            final GraphQLField fieldAnno = m.getAnnotation(GraphQLField.class);
+            final QLiveField fieldAnno = m.getAnnotation(QLiveField.class);
             if (fieldAnno != null && parameterTypes.length > 0)
             {
                 if (methodAccess == null)
@@ -1587,7 +1587,7 @@ class SchemaAssembler
         MethodAccess methodAccess,
         Method m,
         Class<?>[] parameterTypes,
-        GraphQLField fieldAnno,
+        QLiveField fieldAnno,
         TypeDoc typeDoc
     )
     {
@@ -1623,7 +1623,7 @@ class SchemaAssembler
         for (Parameter parameter : m.getParameters())
         {
             final Class<?> parameterType = parameter.getType();
-            final GraphQLField paramFieldAnno = parameter.getAnnotation(GraphQLField.class);
+            final QLiveField paramFieldAnno = parameter.getAnnotation(QLiveField.class);
 
             final GraphQLArgument arg = buildArgument(propertyName, parameter, parameterType, paramFieldAnno, fieldDoc);
             fieldBuilder.argument(arg);
@@ -1654,7 +1654,7 @@ class SchemaAssembler
     private GraphQLType getFieldType(
         OutputType outputType,
         Method m,
-        GraphQLField fieldAnno,
+        QLiveField fieldAnno,
         String propertyName,
         Class<?> returnType
     )
@@ -1684,7 +1684,7 @@ class SchemaAssembler
         String propertyName,
         Parameter parameter,
         Class<?> parameterType,
-        GraphQLField paramFieldAnno,
+        QLiveField paramFieldAnno,
         FieldDoc fieldDoc
     )
     {
@@ -1761,8 +1761,8 @@ class SchemaAssembler
     {
         final Class<Object> type = info.getType();
         final Column jpaColumnAnno = JSONUtil.findAnnotation(info, Column.class);
-        final GraphQLField fieldAnno = JSONUtil.findAnnotation(info, GraphQLField.class);
-        final GraphQLFetcher fetcherAnno = JSONUtil.findAnnotation(info, GraphQLFetcher.class);
+        final QLiveField fieldAnno = JSONUtil.findAnnotation(info, QLiveField.class);
+        final QLiveFetcher fetcherAnno = JSONUtil.findAnnotation(info, QLiveFetcher.class);
 
         final Method getterMethod = ((JavaObjectPropertyInfo) info).getGetterMethod();
 

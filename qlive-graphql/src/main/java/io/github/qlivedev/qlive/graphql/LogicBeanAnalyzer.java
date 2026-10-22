@@ -2,10 +2,10 @@ package io.github.qlivedev.qlive.graphql;
 
 import io.github.qlivedev.qlive.api.QLiveDomainException;
 import com.esotericsoftware.reflectasm.MethodAccess;
-import io.github.qlivedev.qlive.api.annotation.GraphQLField;
-import io.github.qlivedev.qlive.api.annotation.GraphQLMutation;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
-import io.github.qlivedev.qlive.api.annotation.GraphQLTypeParam;
+import io.github.qlivedev.qlive.api.annotation.QLiveField;
+import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveTypeParam;
 import io.github.qlivedev.qlive.api.annotation.ResolvedGenericType;
 import io.github.qlivedev.qlive.graphql.logic.GraphQLValueProvider;
 import io.github.qlivedev.qlive.graphql.logic.Mutation;
@@ -105,7 +105,7 @@ class LogicBeanAnalyzer
             final String methodName = method.getName();
             final Class<?>[] parameterTypes = method.getParameterTypes();
 
-            final GraphQLQuery queryAnno = method.getDeclaredAnnotation(GraphQLQuery.class);
+            final QLiveQuery queryAnno = method.getDeclaredAnnotation(QLiveQuery.class);
             final boolean isNotNullQuery = method.getDeclaredAnnotation(NotNull.class) != null;
 
             final String locationInfo = logicBean.getClass().getName() + ":" + methodName;
@@ -125,7 +125,7 @@ class LogicBeanAnalyzer
                 );
             }
 
-            final GraphQLMutation mutationAnno = method.getDeclaredAnnotation(GraphQLMutation.class);
+            final QLiveMutation mutationAnno = method.getDeclaredAnnotation(QLiveMutation.class);
             final boolean isNotNullMutation = method.getAnnotation(NotNull.class) != null;
             if (mutationAnno != null)
             {
@@ -153,7 +153,7 @@ class LogicBeanAnalyzer
         Method method,
         String methodName,
         Class<?>[] parameterTypes,
-        GraphQLQuery queryAnno,
+        QLiveQuery queryAnno,
         String locationInfo,
         boolean isNotNull
     )
@@ -176,7 +176,7 @@ class LogicBeanAnalyzer
                 throw new IllegalStateException(locationInfo + ": @GrapQLTypeParam parameter must be of type Class<T>");
             }
 
-            final GraphQLTypeParam typeParamAnno = typeParamAnnoParameter.getAnnotation(GraphQLTypeParam.class);
+            final QLiveTypeParam typeParamAnno = typeParamAnnoParameter.getAnnotation(QLiveTypeParam.class);
 
             final Type actualTypeArgument =
                 ((ParameterizedType) typeParamAnnoParameter.getParameterizedType()).getActualTypeArguments()[0];
@@ -191,12 +191,12 @@ class LogicBeanAnalyzer
             final String namePattern = typeParamAnno.namePattern().length() == 0 ? methodName + NAME_PATTERN_WILDCARD : typeParamAnno.namePattern();
             if (!namePattern.contains(NAME_PATTERN_WILDCARD))
             {
-                throw new IllegalStateException(locationInfo + ": @GraphQLTypeParam: namePattern must contain a '*' wildcard");
+                throw new IllegalStateException(locationInfo + ": @QLiveTypeParam: namePattern must contain a '*' wildcard");
             }
             final String typeNamePattern = typeParamAnno.typeNamePattern();
             if (!typeNamePattern.isEmpty() && !namePattern.contains(NAME_PATTERN_WILDCARD))
             {
-                throw new IllegalStateException(locationInfo + ": @GraphQLTypeParam: namePattern must contain a '*' wildcard");
+                throw new IllegalStateException(locationInfo + ": @QLiveTypeParam: namePattern must contain a '*' wildcard");
             }
 
             for (Class typeParam : typeParamAnno.types())
@@ -267,7 +267,7 @@ class LogicBeanAnalyzer
     {
         for (Parameter parameter : method.getParameters())
         {
-            final GraphQLTypeParam anno = parameter.getAnnotation(GraphQLTypeParam.class);
+            final QLiveTypeParam anno = parameter.getAnnotation(QLiveTypeParam.class);
             if (anno != null)
             {
                 return parameter;
@@ -285,7 +285,7 @@ class LogicBeanAnalyzer
         String methodName,
         Class<?>[] parameterTypes,
         String locationInfo,
-        GraphQLMutation mutationAnno,
+        QLiveMutation mutationAnno,
         boolean isNotNull
     )
     {
@@ -307,7 +307,7 @@ class LogicBeanAnalyzer
                 throw new IllegalStateException(locationInfo + ": @GrapQLTypeParam parameter must be of type Class<T>");
             }
 
-            final GraphQLTypeParam typeParamAnno = typeParamAnnoParameter.getAnnotation(GraphQLTypeParam.class);
+            final QLiveTypeParam typeParamAnno = typeParamAnnoParameter.getAnnotation(QLiveTypeParam.class);
 
             final Type actualTypeArgument =
                 ((ParameterizedType) typeParamAnnoParameter.getParameterizedType()).getActualTypeArguments()[0];
@@ -322,12 +322,12 @@ class LogicBeanAnalyzer
             final String queryNamePattern = typeParamAnno.namePattern().length() == 0 ? methodName + NAME_PATTERN_WILDCARD : typeParamAnno.namePattern();
             if (!queryNamePattern.contains(NAME_PATTERN_WILDCARD))
             {
-                throw new IllegalStateException(locationInfo + ": @GraphQLTypeParam: namePattern() must contain a '*' wildcard");
+                throw new IllegalStateException(locationInfo + ": @QLiveTypeParam: namePattern() must contain a '*' wildcard");
             }
             final String typeNamePattern = typeParamAnno.typeNamePattern();
             if (!typeNamePattern.isEmpty() && !typeNamePattern.contains(NAME_PATTERN_WILDCARD))
             {
-                throw new IllegalStateException(locationInfo + ": @GraphQLTypeParam: typeNamePattern() must contain a '*' wildcard");
+                throw new IllegalStateException(locationInfo + ": @QLiveTypeParam: typeNamePattern() must contain a '*' wildcard");
             }
 
             for (Class typeParam : typeParamAnno.types())
@@ -399,7 +399,7 @@ class LogicBeanAnalyzer
     {
         final Class<?> returnType = method.getReturnType();
 
-        final GraphQLField fieldAnno = method.getAnnotation(GraphQLField.class);
+        final QLiveField fieldAnno = method.getAnnotation(QLiveField.class);
 
         final TypeContext ctx = new TypeContext(null, method);
 
@@ -410,7 +410,7 @@ class LogicBeanAnalyzer
     private GraphQLOutputType getGraphQLOutputType(
         String locationInfo,
         Class<?> returnType,
-        GraphQLField fieldAnno,
+        QLiveField fieldAnno,
         TypeContext ctx
     )
     {
@@ -542,15 +542,15 @@ class LogicBeanAnalyzer
     )
     {
 
-        final GraphQLField argAnno = parameter.getDeclaredAnnotation(GraphQLField.class);
+        final QLiveField argAnno = parameter.getDeclaredAnnotation(QLiveField.class);
         final ResolvedGenericType genericTypeAnno = parameter.getDeclaredAnnotation(ResolvedGenericType.class);
 
         if ((argAnno == null || argAnno.value().length() == 0) && !parameter.isNamePresent())
         {
             throw new IllegalStateException(name +
                 ": Cannot determine Method parameter name due to metadata not provided by Java compiler and " +
-                "no @GraphQLField annotation being defined. " +
-                "Either you need to define @GraphQLField annotations for all logic parameters or you need " +
+                "no @QLiveField annotation being defined. " +
+                "Either you need to define @QLiveField annotations for all logic parameters or you need " +
                 "to enable parameter metadata in your java compiler. " +
                 "For maven this is the property maven.compiler.parameters=true, for the javac command line " +
                 "compiler it is the -parameters option.");
@@ -615,7 +615,7 @@ class LogicBeanAnalyzer
         if (jpaNotNull && fieldAnnoPresent && !argAnno.notNull())
         {
             throw new QLiveDomainException(name +
-                ": Required field disagreement between @NotNull and @GraphQLField required value");
+                ": Required field disagreement between @NotNull and @QLiveField required value");
         }
 
         final boolean isNotNull = jpaNotNull || (fieldAnnoPresent && argAnno.notNull());

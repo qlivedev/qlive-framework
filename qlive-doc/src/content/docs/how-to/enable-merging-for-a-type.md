@@ -158,7 +158,7 @@ whatever Java type the field actually has -- so there is no `BarInput`, no
 
 It is a bean in `QLiveConfiguration` rather than a component scan find: an
 application's scan covers its own packages and never the framework's. What
-picks it up is the `getBeansWithAnnotation(GraphQLLogic.class)` call the
+picks it up is the `getBeansWithAnnotation(QLiveLogic.class)` call the
 application's domain configuration already makes -- so an application that
 hand-lists its logic beans instead has to name this one.
 

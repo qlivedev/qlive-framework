@@ -5,8 +5,8 @@ import io.github.qlivedev.qlive.model.merge.EntityDeletion;
 import io.github.qlivedev.qlive.model.merge.LinkChange;
 import io.github.qlivedev.qlive.model.merge.MergeConfig;
 import io.github.qlivedev.qlive.model.merge.MergeResult;
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLMutation;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
@@ -17,11 +17,11 @@ import java.util.List;
 /// names and `GenericScalar` values, which QLiveDomain coerces to whatever Java type the field actually has, so
 /// there is no `BarInput`, no `BazInput`, and no mutation per operation to keep in step with them.
 ///
-/// Declared as a bean in QLiveConfiguration rather than found: `@GraphQLLogic` is meta-annotated
+/// Declared as a bean in QLiveConfiguration rather than found: `@QLiveLogic` is meta-annotated
 /// `@Component`, but an application's component scan covers the application's own packages and never the
 /// framework's. What picks this up is the same `getBeansWithAnnotation()` call the application's QLiveDomain
 /// configuration already makes.
-@GraphQLLogic
+@QLiveLogic
 public class MergeLogic
 {
     private final MergeService mergeService;
@@ -41,7 +41,7 @@ public class MergeLogic
     /// @param mergeConfig  what the caller can do about a conflict
     ///
     /// @return whether it landed, and what stood in the way if it did not
-    @GraphQLMutation
+    @QLiveMutation
     public @NotNull MergeResult mergeWorkingSet(
         @NotNull List<EntityChange> changes,
         @NotNull List<LinkChange> links,

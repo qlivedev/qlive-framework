@@ -13,7 +13,7 @@ import graphql.schema.GraphQLOutputType;
 import java.util.List;
 
 /**
- * Abstract base class for @{@link io.github.qlivedev.qlive.api.annotation.GraphQLLogic} methods.
+ * Abstract base class for @{@link io.github.qlivedev.qlive.api.annotation.QLiveLogic} methods.
  */
 public abstract class QLiveDomainMethod
     implements DataFetcher<Object>

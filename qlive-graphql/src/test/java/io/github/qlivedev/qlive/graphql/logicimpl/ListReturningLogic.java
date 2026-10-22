@@ -1,16 +1,16 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
 import io.github.qlivedev.qlive.graphql.testdomain.tables.pojos.SourceThree;
 
 import java.util.Collections;
 import java.util.List;
 
-@GraphQLLogic
+@QLiveLogic
 public class ListReturningLogic
 {
-    @GraphQLQuery
+    @QLiveQuery
     public List<SourceThree> listOfThrees()
     {
         return Collections.emptyList();

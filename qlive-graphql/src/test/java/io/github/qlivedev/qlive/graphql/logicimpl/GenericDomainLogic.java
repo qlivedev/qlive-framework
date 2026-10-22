@@ -1,17 +1,17 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLMutation;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
 import io.github.qlivedev.qlive.api.generic.DomainObject;
 import io.github.qlivedev.qlive.api.json.JSONUtil;
 
 import java.util.Map;
 import java.util.TreeMap;
 
-@GraphQLLogic
+@QLiveLogic
 public class GenericDomainLogic
 {
-    @GraphQLMutation
+    @QLiveMutation
     public String store(DomainObject domainObject)
     {
 
@@ -27,7 +27,7 @@ public class GenericDomainLogic
         return JSONUtil.DEFAULT_GENERATOR.forValue(map);
     }
 
-    @GraphQLMutation
+    @QLiveMutation
     public DomainObject genericDomainObjectAsNull(DomainObject domainObject)
     {
 

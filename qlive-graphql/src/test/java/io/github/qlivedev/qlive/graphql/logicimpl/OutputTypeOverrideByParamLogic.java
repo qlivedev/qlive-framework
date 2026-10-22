@@ -1,8 +1,8 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
-import io.github.qlivedev.qlive.api.annotation.GraphQLTypeParam;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveTypeParam;
 import io.github.qlivedev.qlive.graphql.beans.Container;
 import io.github.qlivedev.qlive.graphql.beans.TargetSeven;
 import graphql.schema.DataFetchingEnvironment;
@@ -10,13 +10,13 @@ import graphql.schema.DataFetchingEnvironment;
 import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
-@GraphQLLogic 
+@QLiveLogic 
 public class OutputTypeOverrideByParamLogic
 {
 
-    @GraphQLQuery
+    @QLiveQuery
     public <T> Container<T> parametrized(
-        @GraphQLTypeParam(
+        @QLiveTypeParam(
             types = {
                 // XXX: overriding type here
                 TargetSeven.class

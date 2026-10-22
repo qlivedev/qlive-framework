@@ -1,7 +1,7 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
 import io.github.qlivedev.qlive.api.annotation.ResolvedGenericType;
 import io.github.qlivedev.qlive.graphql.beans.AnnotatedPayload;
 import io.github.qlivedev.qlive.graphql.util.Paged;
@@ -9,11 +9,11 @@ import io.github.qlivedev.qlive.graphql.util.Paged;
 import java.util.ArrayList;
 import java.util.List;
 
-@GraphQLLogic
+@QLiveLogic
 public class DegenerifyAndRenameLogic
 {
 
-    @GraphQLQuery
+    @QLiveQuery
     @ResolvedGenericType("PagedAndRenamed")
     public Paged<AnnotatedPayload> getPayload()
     {

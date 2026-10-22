@@ -12,7 +12,7 @@ import java.math.BigInteger;
 /**
  * A long integer that travels as a JSON number and is a JavaScript number in the browser, for a field whose values are
  * known to stay between Number.MIN_SAFE_INTEGER and Number.MAX_SAFE_INTEGER -- a count, a size, a position. Selected by
- * annotating the field with {@code @GraphQLField(type = "Number")}; a long without one is a {@link LongScalar}.
+ * annotating the field with {@code @QLiveField(type = "Number")}; a long without one is a {@link LongScalar}.
  *
  * A value outside that range is an error in both directions rather than a number the browser rounds.
  */

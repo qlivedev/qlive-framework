@@ -1,10 +1,10 @@
 package io.github.qlivedev.qlive.api.generic;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLScalar;
+import io.github.qlivedev.qlive.api.annotation.QLiveScalar;
 
 import java.util.Objects;
 
-@GraphQLScalar
+@QLiveScalar
 public class GenericScalar
 {
     private String type;

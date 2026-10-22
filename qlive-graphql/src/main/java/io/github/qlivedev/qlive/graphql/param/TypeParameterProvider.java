@@ -4,7 +4,7 @@ import io.github.qlivedev.qlive.graphql.logic.QLiveDataFetchingEnvironment;
 import graphql.schema.DataFetchingEnvironment;
 
 /**
- * Provides the current type parameter value for {@link io.github.qlivedev.qlive.api.annotation.GraphQLTypeParam} annotated
+ * Provides the current type parameter value for {@link io.github.qlivedev.qlive.api.annotation.QLiveTypeParam} annotated
  * parameters.
  */
 public class TypeParameterProvider

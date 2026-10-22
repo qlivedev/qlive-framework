@@ -21,22 +21,22 @@ A logic bean is where your GraphQL methods live. Three annotations carry
 almost all of it:
 
 ```java {6, 10, 16} title='QueryAndMutationExample.java'
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
-import io.github.qlivedev.qlive.api.annotation.GraphQLMutation;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
 import jakarta.validation.constraints.NotNull;
 
-@GraphQLLogic
+@QLiveLogic
 public class QueryAndMutationExample
 {
 
-    @GraphQLQuery
+    @QLiveQuery
     public MyResult myQuery( … )
     {
         // …
     }
 
-    @GraphQLMutation
+    @QLiveMutation
     public MutationResult myAction( … )
     {
         // …
@@ -45,12 +45,12 @@ public class QueryAndMutationExample
 }
 ```
 
-`@GraphQLLogic` is a Spring meta annotation: it declares that this is a
+`@QLiveLogic` is a Spring meta annotation: it declares that this is a
 Spring bean and that it contains GraphQL methods.
 
-`@GraphQLQuery` declares that the given method is part of the GraphQL
+`@QLiveQuery` declares that the given method is part of the GraphQL
 schema. The input types, output types and scalars it uses are added to the
-schema automatically. `@GraphQLMutation` is the same for write side. 
+schema automatically. `@QLiveMutation` is the same for write side. 
 You should declare all changing actions as mutations.
 
 Logic definitions take precedence over the definitions coming from the

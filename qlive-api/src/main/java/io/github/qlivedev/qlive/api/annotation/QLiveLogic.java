@@ -17,6 +17,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Component
-public @interface GraphQLLogic
+public @interface QLiveLogic
 {
 }

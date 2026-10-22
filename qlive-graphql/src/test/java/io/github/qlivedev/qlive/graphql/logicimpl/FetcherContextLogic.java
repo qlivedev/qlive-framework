@@ -1,7 +1,7 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
 import io.github.qlivedev.qlive.api.fetcher.FetcherContext;
 import io.github.qlivedev.qlive.graphql.testdomain.tables.pojos.SourceFive;
 import io.github.qlivedev.qlive.graphql.testdomain.tables.pojos.SourceSix;
@@ -13,10 +13,10 @@ import org.atteo.evo.inflector.English;
 
 import java.util.Collections;
 
-@GraphQLLogic
+@QLiveLogic
 public class FetcherContextLogic
 {
-    @GraphQLQuery
+    @QLiveQuery
     public SourceThree sourceThreeWithFetcherContext()
     {
         final SourceThree sourceThree = new SourceThree();
@@ -33,7 +33,7 @@ public class FetcherContextLogic
         return sourceThree;
     }
 
-    @GraphQLQuery
+    @QLiveQuery
     public TargetFive targetFiveWithFetcherContext()
     {
         final TargetFive targetFive = new TargetFive();
@@ -50,7 +50,7 @@ public class FetcherContextLogic
         return targetFive;
     }
 
-    @GraphQLQuery
+    @QLiveQuery
     public TargetSix targetSixWithFetcherContext()
     {
         final TargetSix targetSix = new TargetSix();

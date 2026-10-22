@@ -1,15 +1,15 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
 import io.github.qlivedev.qlive.graphql.testdomain.tables.records.SourceOneRecord;
 
 /* BOOM! */
 
-@GraphQLLogic
+@QLiveLogic
 public class LogicWithWrongInjection2
 {
-    @GraphQLQuery
+    @QLiveQuery
     public boolean wrong(SourceOneRecord sourceOne)
     {
         return true;

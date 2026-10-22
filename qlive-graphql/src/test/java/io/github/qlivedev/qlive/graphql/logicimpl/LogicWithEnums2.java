@@ -1,22 +1,22 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLMutation;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
 import io.github.qlivedev.qlive.graphql.beans.AnotherEnum;
 import io.github.qlivedev.qlive.graphql.beans.BeanWithEnum;
 import io.github.qlivedev.qlive.graphql.beans.MyEnum;
 
-@GraphQLLogic
+@QLiveLogic
 public class LogicWithEnums2
 {
 
-    @GraphQLMutation
+    @QLiveMutation
     public MyEnum enumMutation()
     {
         return MyEnum.B;
     }
 
-    @GraphQLMutation
+    @QLiveMutation
     public BeanWithEnum objectWithEnumMutation()
     {
         final BeanWithEnum beanWithEnum = new BeanWithEnum();

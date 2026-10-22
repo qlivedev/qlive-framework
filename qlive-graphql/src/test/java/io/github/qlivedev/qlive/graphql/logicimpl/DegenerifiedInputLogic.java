@@ -1,20 +1,20 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLField;
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLMutation;
+import io.github.qlivedev.qlive.api.annotation.QLiveField;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
 import io.github.qlivedev.qlive.graphql.beans.Payload;
 import io.github.qlivedev.qlive.graphql.util.Paged;
 
-@GraphQLLogic
+@QLiveLogic
 public class DegenerifiedInputLogic
 {
 
     // Using "Paged" as input for convenience, not because it makes a lot of sense to submit paged data
-    @GraphQLMutation
+    @QLiveMutation
     public String mutationWithDegenerifiedInput(
 
-        @GraphQLField(notNull = true)
+        @QLiveField(notNull = true)
         Paged<Payload> pagedPayload
 
     )

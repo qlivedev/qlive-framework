@@ -1,15 +1,15 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
 import io.github.qlivedev.qlive.api.generic.DomainObject;
 import io.github.qlivedev.qlive.graphql.testdomain.tables.pojos.Bar;
 
-@GraphQLLogic
+@QLiveLogic
 public class NullPropInDomainObjectLogic
 {
 
-    @GraphQLQuery
+    @QLiveQuery
     public DomainObject fetch(DomainObject in, String name)
     {
         final Bar foo = new Bar();

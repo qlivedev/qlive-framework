@@ -16,10 +16,10 @@ import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.javadoc.Javadoc;
 import com.github.javaparser.javadoc.JavadocBlockTag;
 import com.github.javaparser.utils.SourceRoot;
-import io.github.qlivedev.qlive.api.annotation.GraphQLField;
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLMutation;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveField;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
 import io.github.qlivedev.qlive.api.json.JSONUtil;
 import org.apache.commons.io.FileUtils;
 import org.svenson.JSONParser;
@@ -112,7 +112,7 @@ public class DocsExtractor
         if (unit.getTypes().size() > 0)
         {
             TypeDeclaration<?> typeDecl = unit.getType(0);
-            final Optional<AnnotationExpr> logicAnno = getAnnotation(typeDecl, GraphQLLogic.class);
+            final Optional<AnnotationExpr> logicAnno = getAnnotation(typeDecl, QLiveLogic.class);
             if (logicAnno.isPresent())
             {
                 return extractLogicClassDocumentation(typeDecl);
@@ -194,7 +194,7 @@ public class DocsExtractor
                     }
                     else
                     {
-                        final Optional<AnnotationExpr> anno = getAnnotation(method, GraphQLField.class);
+                        final Optional<AnnotationExpr> anno = getAnnotation(method, QLiveField.class);
                         if (anno.isPresent())
                         {
 
@@ -258,7 +258,7 @@ public class DocsExtractor
             {
                 final Javadoc methodJavaDoc = method.getJavadoc().get();
                 final String methodDescription = cleanDescription(methodJavaDoc.getDescription().toText());
-                final Optional<AnnotationExpr> queryAnno = getAnnotation(method, GraphQLQuery.class);
+                final Optional<AnnotationExpr> queryAnno = getAnnotation(method, QLiveQuery.class);
                 if (queryAnno.isPresent())
                 {
 
@@ -271,7 +271,7 @@ public class DocsExtractor
 
                     queryType.getFieldDocs().add(doc);
                 }
-                final Optional<AnnotationExpr> mutationAnno = getAnnotation(method, GraphQLMutation.class);
+                final Optional<AnnotationExpr> mutationAnno = getAnnotation(method, QLiveMutation.class);
                 if (mutationAnno.isPresent())
                 {
                     final FieldDoc doc = getDocForGraphQLMethod(

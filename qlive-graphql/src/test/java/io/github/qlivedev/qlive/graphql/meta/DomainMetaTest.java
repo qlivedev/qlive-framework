@@ -45,7 +45,7 @@ public class DomainMetaTest
     @Test
     public void testMetadataGeneration()
     {
-        // checks that output type overriding works via @GraphQLTypeParam, too
+        // checks that output type overriding works via @QLiveTypeParam, too
         final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
 

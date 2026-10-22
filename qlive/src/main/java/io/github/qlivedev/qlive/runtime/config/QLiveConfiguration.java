@@ -236,7 +236,7 @@ public class QLiveConfiguration
     /// The framework's own GraphQL logic bean, and the reason every one of them is declared here rather than
     /// annotated and left to be found.
     ///
-    /// `@GraphQLLogic` is meta-annotated `@Component`, which only means anything to a component scan -- and
+    /// `@QLiveLogic` is meta-annotated `@Component`, which only means anything to a component scan -- and
     /// an application's scan covers the application's packages. Declared, this bean is picked up by the
     /// `getBeansWithAnnotation()` call the application's QLiveDomain configuration already makes, which is all
     /// it takes and the only thing that works.

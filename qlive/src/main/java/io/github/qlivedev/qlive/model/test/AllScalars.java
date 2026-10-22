@@ -1,6 +1,6 @@
 package io.github.qlivedev.qlive.model.test;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLField;
+import io.github.qlivedev.qlive.api.annotation.QLiveField;
 import io.github.qlivedev.qlive.api.generic.DomainObject;
 import io.github.qlivedev.qlive.api.generic.GenericScalar;
 import io.github.qlivedev.qlive.graphql.jsonb.JSONB;
@@ -147,7 +147,7 @@ public class AllScalars
         this.dateValue = dateValue;
     }
 
-    @GraphQLField(type = "Long")
+    @QLiveField(type = "Long")
     public long getLongValue()
     {
         return longValue;
@@ -160,7 +160,7 @@ public class AllScalars
     }
 
 
-    @GraphQLField(type = "Currency")
+    @QLiveField(type = "Currency")
     public long getCurrencyValue()
     {
         return currencyValue;

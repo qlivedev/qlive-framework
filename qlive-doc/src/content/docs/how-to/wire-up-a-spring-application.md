@@ -123,7 +123,7 @@ by the plugin, in the frontend, where the sources are.
 ## Query logic
 
 See [Expose document queries](/qlive-framework/how-to/expose-document-queries/)
-for the document query bean -- one generic method with `@GraphQLTypeParam`
+for the document query bean -- one generic method with `@QLiveTypeParam`
 covers every type.
 
 ## Security

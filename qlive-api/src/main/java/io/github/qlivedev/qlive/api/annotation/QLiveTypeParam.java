@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Target(ElementType.PARAMETER)
-public @interface GraphQLTypeParam
+public @interface QLiveTypeParam
 {
     /**
      * Returns the concrete classes to use for this type parameter.

@@ -24,7 +24,7 @@ public class QLiveDomainConfiguration {
     public QLiveDomain qLiveDomain() throws IOException {
         return newDomain(
                 dslContext,
-                applicationContext.getBeansWithAnnotation(GraphQLLogic.class).values(),
+                applicationContext.getBeansWithAnnotation(QLiveLogic.class).values(),
                 applicationContext.getBeansOfType(MetadataProvider.class).values()
         );
     }
@@ -46,7 +46,7 @@ public class QLiveDomainConfiguration {
 
 ```
 
-`qLiveDomain` is the bean creation method that looks up all beans annotated with @GraphQLLogic and all beans implementing
+`qLiveDomain` is the bean creation method that looks up all beans annotated with @QLiveLogic and all beans implementing
 `MetadataProvider`.
 
 `newDomain` is the static creation method that gets called from `qLiveDomain` and it has package access to be accessed

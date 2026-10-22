@@ -169,7 +169,7 @@ public class DocsExtractorTest
         assertThat(queryFields.get(0).getDescription(), is("A minimal markdown GraphQL query"));
         assertThat(queryFields.get(0).getParamDocs().size(), is(0));
 
-        // the @GraphQLQuery name override still wins over the method name
+        // the @QLiveQuery name override still wins over the method name
         assertThat(queryFields.get(1).getName(), is("anotherMarkdownQuery"));
         assertThat(queryFields.get(1).getDescription(), is("Another markdown query"));
         assertThat(queryFields.get(1).getParamDocs().size(), is(0));

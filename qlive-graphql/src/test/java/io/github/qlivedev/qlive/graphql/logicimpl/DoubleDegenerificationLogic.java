@@ -1,7 +1,7 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLMutation;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
 import io.github.qlivedev.qlive.graphql.beans.Container;
 import io.github.qlivedev.qlive.graphql.beans.ContainerProp;
 import io.github.qlivedev.qlive.graphql.beans.Payload;
@@ -10,10 +10,10 @@ import io.github.qlivedev.qlive.graphql.beans.Payload;
  * Tests a generic container embedding another generic container directly as prop.
  * (<code>Container&lt;T&gt;</code>, not <code>T</code> or <code>List&lt;T&gt</code>
  */
-@GraphQLLogic
+@QLiveLogic
 public class DoubleDegenerificationLogic
 {
-    @GraphQLMutation
+    @QLiveMutation
     public String mutationWithDD(ContainerProp<Payload> c)
     {
         final Container<Payload> container = c.getValue();

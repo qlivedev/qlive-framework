@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface GraphQLQuery
+public @interface QLiveQuery
 {
     /**
      * Name of the graphql query. If left empty (the default), the method name is used.

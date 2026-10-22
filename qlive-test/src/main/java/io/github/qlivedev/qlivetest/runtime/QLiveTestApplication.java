@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Import;
 /**
  * <p>
  *     Component scan covers the two packages whose contents are found by type rather than named: {@code logic}
- *     holds the {@code @GraphQLLogic} beans {@link QLiveDomainConfiguration} collects with
+ *     holds the {@code @QLiveLogic} beans {@link QLiveDomainConfiguration} collects with
  *     {@code getBeansWithAnnotation()}, and {@code service} holds the application's own services.
  * </p>
  * <p>

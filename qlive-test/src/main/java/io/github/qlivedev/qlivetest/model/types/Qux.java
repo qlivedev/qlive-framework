@@ -1,7 +1,7 @@
 package io.github.qlivedev.qlivetest.model.types;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLComputed;
-import io.github.qlivedev.qlive.api.annotation.GraphQLField;
+import io.github.qlivedev.qlive.api.annotation.QLiveComputed;
+import io.github.qlivedev.qlive.api.annotation.QLiveField;
 import jakarta.persistence.Column;
 
 ///
@@ -10,7 +10,7 @@ import jakarta.persistence.Column;
 ///
 ///
 ///     QLive resolves a domain type by its simple name, so naming this one in the document query's
-///     `@GraphQLTypeParam` puts it in the generated type's place -- for the query document service as
+///     `@QLiveTypeParam` puts it in the generated type's place -- for the query document service as
 ///     well, which materializes whatever the table lookup names. The generated jOOQ table stays behind
 ///     it with its columns and foreign keys, which is why `objectType()` is not the way in: that builds
 ///     a table reference out of a `@Table` annotation and would replace the real one. Extending the
@@ -44,7 +44,7 @@ public class Qux
     ///
     ///
     /// @return summary of this row
-    @GraphQLComputed
+    @QLiveComputed
     public String getSummary()
     {
         return getName() + " / " + getStringValue();
@@ -69,7 +69,7 @@ public class Qux
     /// @return currency value
     @Override
     @Column(name = "currency_value")
-    @GraphQLField(type = "Currency")
+    @QLiveField(type = "Currency")
     public Long getCurrencyValue()
     {
         return super.getCurrencyValue();

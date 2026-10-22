@@ -1,6 +1,6 @@
 package io.github.qlivedev.qlive.graphql.beans;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLField;
+import io.github.qlivedev.qlive.api.annotation.QLiveField;
 
 public class GetterArgBean
 {
@@ -18,15 +18,15 @@ public class GetterArgBean
     }
 
 
-    @GraphQLField
-    public String getModifiedValue(String arg, @GraphQLField(defaultValue = "12") int num)
+    @QLiveField
+    public String getModifiedValue(String arg, @QLiveField(defaultValue = "12") int num)
     {
 
         return value + ":" + arg + ":" + num;
     }
 
 
-    @GraphQLField
+    @QLiveField
     public GetterArgIntroducedBean getIntroduced(String arg)
     {
 

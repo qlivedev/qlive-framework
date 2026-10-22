@@ -1137,7 +1137,7 @@ public class AnotherQLiveDomainTest
 
 
     /**
-     * What a {@link io.github.qlivedev.qlive.api.annotation.GraphQLComputed} getter needs to become a field. A
+     * What a {@link io.github.qlivedev.qlive.api.annotation.QLiveComputed} getter needs to become a field. A
      * getter alone is enough: svenson calls a property read-only only when {@code @JSONProperty(readOnly = true)}
      * says so, not for want of a setter. Saying so is what keeps a property out of the schema altogether,
      * computed or not.
@@ -1359,7 +1359,7 @@ public class AnotherQLiveDomainTest
     @Test
     public void testOutputTypeOverrideByParam()
     {
-        // checks that output type overriding works via @GraphQLTypeParam, too
+        // checks that output type overriding works via @QLiveTypeParam, too
         final QLiveDomain domain = QLiveDomainBuilder.newDomain(null)
             .objectTypes(Public.PUBLIC)
             .logicBeans(Collections.singleton(new OutputTypeOverrideByParamLogic()))

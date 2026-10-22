@@ -1,8 +1,8 @@
 package io.github.qlivedev.qlive.graphql.beans;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLMutation;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
 import io.github.qlivedev.qlive.api.generic.DomainObject;
 import io.github.qlivedev.qlive.api.generic.GenericDomainObject;
 import io.github.qlivedev.qlive.api.generic.GenericScalar;
@@ -17,10 +17,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-@GraphQLLogic
+@QLiveLogic
 public class GenericScalarLogic
 {
-    @GraphQLMutation
+    @QLiveMutation
     public GenericScalar genericScalarLogic(GenericScalar value)
     {
         if (value.getType().equals(Scalars.GraphQLInt.getName()))
@@ -39,7 +39,7 @@ public class GenericScalarLogic
         }
     }
 
-    @GraphQLQuery
+    @QLiveQuery
     public GenericScalar genericList(GenericScalar input)
     {
         if (input != null && input.getType().equals("[Int]"))
@@ -55,7 +55,7 @@ public class GenericScalarLogic
         return new GenericScalar("[Int]", Arrays.asList(0,3,6));
     }
 
-    @GraphQLQuery
+    @QLiveQuery
     public GenericScalar deserializeObjs(DomainObject in, Timestamp time)
     {
         final Timestamp now = time != null ? time : Timestamp.from(Instant.now());
@@ -76,7 +76,7 @@ public class GenericScalarLogic
         return new GenericScalar("[DomainObject]", Arrays.asList(obj, obj2));
     }
 
-    @GraphQLQuery
+    @QLiveQuery
     public GenericScalar nullScalar(GenericScalar in)
     {
         if (in.getValue() != null)
@@ -92,7 +92,7 @@ public class GenericScalarLogic
      * The types wrapped in a GenericScalar need to be used somewhere in GraphQL domain. For the purpose of the test
      * we artificially add them there, this should not be necessary in a normal domain.
      */
-    @GraphQLQuery
+    @QLiveQuery
     public int queryThatRegistersOurGenericScalarWrappedTypes(Timestamp timestamp)
     {
         return 0;

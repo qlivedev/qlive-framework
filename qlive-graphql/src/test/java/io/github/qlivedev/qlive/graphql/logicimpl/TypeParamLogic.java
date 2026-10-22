@@ -1,8 +1,8 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
-import io.github.qlivedev.qlive.api.annotation.GraphQLTypeParam;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveTypeParam;
 import io.github.qlivedev.qlive.graphql.beans.ComplexInput;
 import io.github.qlivedev.qlive.graphql.beans.Container;
 import io.github.qlivedev.qlive.api.json.JSONUtil;
@@ -12,15 +12,15 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-@GraphQLLogic
+@QLiveLogic
 public class TypeParamLogic
 {
     private final static Logger log = LoggerFactory.getLogger(TypeParamLogic.class);
 
 
-    @GraphQLQuery
+    @QLiveQuery
     public <T> T query(
-        @GraphQLTypeParam(types = { TypeA.class, TypeB.class }) Class<T> cls,
+        @QLiveTypeParam(types = { TypeA.class, TypeB.class }) Class<T> cls,
         ComplexInput complexInput
     ) throws IllegalAccessException, InstantiationException
     {
@@ -34,9 +34,9 @@ public class TypeParamLogic
     }
 
 
-    @GraphQLQuery
+    @QLiveQuery
     public <T> Container<T> queryContainer(
-        @GraphQLTypeParam(types = { TypeA.class, TypeB.class }) Class<T> cls,
+        @QLiveTypeParam(types = { TypeA.class, TypeB.class }) Class<T> cls,
         ComplexInput complexInput
     ) throws IllegalAccessException, InstantiationException
     {
@@ -53,9 +53,9 @@ public class TypeParamLogic
     }
 
 
-    @GraphQLQuery
+    @QLiveQuery
     public <T> List<T> queryList(
-        @GraphQLTypeParam(types = { TypeA.class, TypeB.class }) Class<T> cls,
+        @QLiveTypeParam(types = { TypeA.class, TypeB.class }) Class<T> cls,
         ComplexInput complexInput
     ) throws IllegalAccessException, InstantiationException
     {

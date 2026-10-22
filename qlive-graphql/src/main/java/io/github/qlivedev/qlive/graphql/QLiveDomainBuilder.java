@@ -1,7 +1,7 @@
 package io.github.qlivedev.qlive.graphql;
 
 import com.google.common.collect.Maps;
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
 import io.github.qlivedev.qlive.graphql.config.ManyToManyModel;
 import io.github.qlivedev.qlive.graphql.config.Options;
 import io.github.qlivedev.qlive.graphql.config.RelationModel;
@@ -437,10 +437,10 @@ public class QLiveDomainBuilder
 
 
     /**
-     * Configures the set of @{@link GraphQLLogic} annotated spring beans to check for query and mutation
+     * Configures the set of @{@link QLiveLogic} annotated spring beans to check for query and mutation
      * implementations.
      *
-     * @param logicBeans collection of beans annotated with @{@link GraphQLLogic}.
+     * @param logicBeans collection of beans annotated with @{@link QLiveLogic}.
      *
      * @return this builder
      */
@@ -452,10 +452,10 @@ public class QLiveDomainBuilder
 
 
     /**
-     * Configures the given @{@link GraphQLLogic} annotated spring beans to check for query and mutation
+     * Configures the given @{@link QLiveLogic} annotated spring beans to check for query and mutation
      * implementations.
      *
-     * @param logicBeans beans var args annotated with @{@link GraphQLLogic}.
+     * @param logicBeans beans var args annotated with @{@link QLiveLogic}.
      *
      * @return this builder
      */

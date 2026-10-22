@@ -1,8 +1,8 @@
 package io.github.qlivedev.qlive.runtime.query;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
-import io.github.qlivedev.qlive.api.annotation.GraphQLTypeParam;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveTypeParam;
 import io.github.qlivedev.qlive.model.QueryConfig;
 import io.github.qlivedev.qlive.model.QueryDocument;
 import io.github.qlivedev.qlive.testdomain.tables.pojos.TestBar;
@@ -16,7 +16,7 @@ import jakarta.validation.constraints.NotNull;
 ///
 /// The service needs the schema this bean is part of, so it is set after the domain is built rather than
 /// passed in, which is what an application's `@Lazy` injection does for it.
-@GraphQLLogic
+@QLiveLogic
 public class DocumentTestLogic
 {
     private QueryDocumentService queryDocumentService;
@@ -28,9 +28,9 @@ public class DocumentTestLogic
     }
 
 
-    @GraphQLQuery
+    @QLiveQuery
     public <T> @NotNull QueryDocument<T> queryDocument(
-        @GraphQLTypeParam(
+        @QLiveTypeParam(
             namePattern = "query*Document",
             typeNamePattern = "*Document",
             types = {

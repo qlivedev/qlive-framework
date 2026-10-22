@@ -1,6 +1,6 @@
 package io.github.qlivedev.qlive.graphql.beans;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLField;
+import io.github.qlivedev.qlive.api.annotation.QLiveField;
 
 public class ComplexInput
 {
@@ -20,7 +20,7 @@ public class ComplexInput
     }
 
 
-    @GraphQLField(notNull = true)
+    @QLiveField(notNull = true)
     public String getValue()
     {
         return value;

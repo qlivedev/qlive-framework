@@ -309,7 +309,7 @@ what the page's warning against `objectType()` argues from.
 
 **What the feature is.** The table is real and the generator produced a
 POJO for it. A hand-written subclass says the things the columns cannot:
-a `@GraphQLComputed` field, or a `@GraphQLField(type = ...)` naming the
+a `@QLiveComputed` field, or a `@QLiveField(type = ...)` naming the
 scalar for a Java type that is ambiguous about it -- the `long` that is
 a currency amount, which nothing in the column can tell the schema. The
 table, its relations and its foreign keys are untouched.
@@ -336,7 +336,7 @@ type is supposed to keep.
 
 **What was done.** The page now names the registration route the feature
 actually has -- the class in a logic bean's signature, usually the
-document query's `@GraphQLTypeParam` -- and says why `objectType()` is
+document query's `@QLiveTypeParam` -- and says why `objectType()` is
 not it. A section on pinning a scalar joins the computed-field one, with
 the `long`/`Long` default mapping that makes the pin necessary in either
 direction.

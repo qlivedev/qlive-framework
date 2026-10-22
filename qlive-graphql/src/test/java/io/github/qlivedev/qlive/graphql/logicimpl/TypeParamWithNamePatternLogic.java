@@ -1,22 +1,22 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
-import io.github.qlivedev.qlive.api.annotation.GraphQLTypeParam;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveTypeParam;
 import io.github.qlivedev.qlive.graphql.beans.ComplexInput;
 import io.github.qlivedev.qlive.graphql.util.Paged;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@GraphQLLogic
+@QLiveLogic
 public class TypeParamWithNamePatternLogic
 {
     private final static Logger log = LoggerFactory.getLogger(TypeParamWithNamePatternLogic.class);
 
 
-    @GraphQLQuery
+    @QLiveQuery
     public <T> T query(
-        @GraphQLTypeParam( types = { TypeA.class, TypeB.class }, namePattern = "*Query") Class<T> cls,
+        @QLiveTypeParam( types = { TypeA.class, TypeB.class }, namePattern = "*Query") Class<T> cls,
         ComplexInput complexInput
     ) throws IllegalAccessException, InstantiationException
     {
@@ -24,18 +24,18 @@ public class TypeParamWithNamePatternLogic
     }
 
 
-    @GraphQLQuery
+    @QLiveQuery
     public <T> Paged<T> q2(
-        @GraphQLTypeParam( types = { TypeA.class, TypeB.class }, typeNamePattern = "*Document") Class<T> cls,
+        @QLiveTypeParam( types = { TypeA.class, TypeB.class }, typeNamePattern = "*Document") Class<T> cls,
         String name
     ) throws IllegalAccessException, InstantiationException
     {
         return null;
     }
 
-    @GraphQLQuery
+    @QLiveQuery
     public <T> Paged<T> q3(
-        @GraphQLTypeParam( types = { TypeA.class, TypeB.class }, namePattern = "Q3*") Class<T> cls,
+        @QLiveTypeParam( types = { TypeA.class, TypeB.class }, namePattern = "Q3*") Class<T> cls,
         String name
     ) throws IllegalAccessException, InstantiationException
     {

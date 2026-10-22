@@ -1,15 +1,15 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLMutation;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
 import io.github.qlivedev.qlive.graphql.beans.AnnotatedBean;
 import io.github.qlivedev.qlive.graphql.beans.AnnotatedBeanInput;
 
-@GraphQLLogic
+@QLiveLogic
 public class LogicWithAnnotated
 {
 
-    @GraphQLMutation
+    @QLiveMutation
     public AnnotatedBean annotated(AnnotatedBeanInput in)
     {
         return null;

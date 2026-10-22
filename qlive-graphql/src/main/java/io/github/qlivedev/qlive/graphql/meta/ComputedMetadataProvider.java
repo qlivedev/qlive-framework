@@ -3,7 +3,7 @@ package io.github.qlivedev.qlive.graphql.meta;
 import io.github.qlivedev.qlive.graphql.PojoTypes;
 import io.github.qlivedev.qlive.graphql.QLiveDomain;
 import io.github.qlivedev.qlive.graphql.OutputType;
-import io.github.qlivedev.qlive.api.annotation.GraphQLComputed;
+import io.github.qlivedev.qlive.api.annotation.QLiveComputed;
 import io.github.qlivedev.qlive.api.json.JSONUtil;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLNamedType;
@@ -40,7 +40,7 @@ public class ComputedMetadataProvider
                         {
                             continue;
                         }
-                        final GraphQLComputed computedAnno = JSONUtil.findAnnotation(propertyInfo, GraphQLComputed.class);
+                        final QLiveComputed computedAnno = JSONUtil.findAnnotation(propertyInfo, QLiveComputed.class);
                         if (computedAnno != null)
                         {
                             final String fieldName = propertyInfo.getJsonName();

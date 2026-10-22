@@ -1,17 +1,17 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
 import io.github.qlivedev.qlive.graphql.testdomain.tables.pojos.SourceOne;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@GraphQLLogic
+@QLiveLogic
 public class LogicWithMirrorInput
 {
     private final static Logger log = LoggerFactory.getLogger(LogicWithMirrorInput.class);
 
-    @GraphQLQuery
+    @QLiveQuery
     public boolean queryWithMirrorInput(SourceOne inputOne)
     {
         return true;

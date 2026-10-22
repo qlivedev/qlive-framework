@@ -1,6 +1,6 @@
 package io.github.qlivedev.qlive.graphql.param;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLTypeParam;
+import io.github.qlivedev.qlive.api.annotation.QLiveTypeParam;
 
 import java.lang.annotation.Annotation;
 
@@ -18,7 +18,7 @@ public class TypeParameterProviderFactory
         for (int i = 0; i < annotations.length; i++)
         {
             Annotation annotation = annotations[i];
-            if (annotation instanceof GraphQLTypeParam)
+            if (annotation instanceof QLiveTypeParam)
             {
                 return TypeParameterProvider.INSTANCE;
             }

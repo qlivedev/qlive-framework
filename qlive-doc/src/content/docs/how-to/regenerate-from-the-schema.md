@@ -11,7 +11,7 @@ next to each query. A stale `schema.graphql` is therefore not an error
 anyone sees: it is wrong types in checked-in source.
 
 So after anything that changes the schema -- a column, a logic bean method,
-a new type in a `@GraphQLTypeParam` -- refresh it and regenerate.
+a new type in a `@QLiveTypeParam` -- refresh it and regenerate.
 
 ## Refresh `schema.graphql`
 

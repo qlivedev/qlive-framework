@@ -49,7 +49,7 @@ sense.
 ## An action is a method
 
 **An action is a Java method on a Spring bean**, the way a GraphQL
-query or mutation is a method of a `@GraphQLLogic` bean. The method
+query or mutation is a method of a `@QLiveLogic` bean. The method
 says most of what an action is, and the framework reads it from there:
 
 ```java
@@ -444,7 +444,7 @@ was the first, and stopped fitting once paths start at any parameter;
   evaluated in memory over the rows the server loads anyway, which meets
   the positional and relational readings of a to-many path.
 - **Where action methods live**: a stereotype of their own, as
-  `@GraphQLLogic` is for queries, or an annotation on a method of any
+  `@QLiveLogic` is for queries, or an annotation on a method of any
   bean. `LogicBeanAnalyzer` may be reusable for the scan. The
   annotations' names are open with it.
 - **Parameter names in an application's build**: requiring

@@ -1,6 +1,6 @@
 package io.github.qlivedev.qlive.graphql.beans;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLField;
+import io.github.qlivedev.qlive.api.annotation.QLiveField;
 import io.github.qlivedev.qlive.graphql.docs.DocsExtractorTest;
 
 /// Markdown target for [DocsExtractorTest].
@@ -47,7 +47,7 @@ public class MarkdownDocumentedBean
     ///
     /// @param name  name desc
     /// @param num   num desc
-    @GraphQLField
+    @QLiveField
     public int getFieldWithArgs(
         String name,
         int num

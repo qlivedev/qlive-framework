@@ -1,6 +1,6 @@
 package io.github.qlivedev.qlive.graphql;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLField;
+import io.github.qlivedev.qlive.api.annotation.QLiveField;
 import io.github.qlivedev.qlive.graphql.config.ManyToManyField;
 import io.github.qlivedev.qlive.graphql.config.ManyToManyModel;
 import io.github.qlivedev.qlive.graphql.config.RelationModel;
@@ -94,7 +94,7 @@ public interface TypeRegistry
      *
      * @return scalar type or <code>null</code> if the Java type is not scalar
      */
-    GraphQLScalarType getGraphQLScalarFor(Class<?> cls, GraphQLField inputAnno);
+    GraphQLScalarType getGraphQLScalarFor(Class<?> cls, QLiveField inputAnno);
 
 
     /**

@@ -1,8 +1,8 @@
 package io.github.qlivedev.qlive.runtime.domain;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
-import io.github.qlivedev.qlive.api.annotation.GraphQLTypeParam;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveTypeParam;
 import io.github.qlivedev.qlive.model.QueryConfig;
 import io.github.qlivedev.qlive.model.QueryDocument;
 import io.github.qlivedev.qlive.testdomain.tables.pojos.TestFoo;
@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-@GraphQLLogic
+@QLiveLogic
 public class TestLogic
 {
     private final static Logger log = LoggerFactory.getLogger(TestLogic.class);
@@ -29,9 +29,9 @@ public class TestLogic
      *
      * @return query document
      */
-    @GraphQLQuery
+    @QLiveQuery
     public <T> @NotNull QueryDocument<T> queryDocument(
-        @GraphQLTypeParam(
+        @QLiveTypeParam(
             namePattern = "query*Document",
             typeNamePattern = "*Document",
             types = {
@@ -61,7 +61,7 @@ public class TestLogic
      * Echoes back the page size of every given config, so that a list-typed injection argument can be seen
      * arriving the way a single one is.
      */
-    @GraphQLQuery
+    @QLiveQuery
     public @NotNull List<Integer> queryPageSizes(@NotNull List<QueryConfig> configs)
     {
         return configs.stream().map(QueryConfig::getPageSize).toList();

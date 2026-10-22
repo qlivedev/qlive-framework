@@ -1,19 +1,19 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
-import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
-import io.github.qlivedev.qlive.api.annotation.GraphQLMutation;
-import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
+import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
+import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
+import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
 
-@GraphQLLogic
+@QLiveLogic
 public class MinimalLogic
 {
-    @GraphQLQuery
+    @QLiveQuery
     public boolean query()
     {
         return true;
     }
 
-    @GraphQLMutation
+    @QLiveMutation
     public boolean mutation()
     {
         return false;

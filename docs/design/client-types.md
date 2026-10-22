@@ -178,7 +178,7 @@ one thing in both files.
 A handwritten payload class opts in with an annotation its author has
 already read in every generated POJO, which is a smaller thing to learn
 than a QLive-specific marker would have been. The one asymmetry worth
-knowing is on DomainQL's side: it lets `@GraphQLField(notNull = ...)`
+knowing is on DomainQL's side: it lets `@QLiveField(notNull = ...)`
 set the same bit and errors on disagreement with `@NotNull`. There is no
 second source here, and there should not be one -- `@NotNull` alone
 keeps a single answer to a single question.

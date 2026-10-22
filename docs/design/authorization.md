@@ -13,8 +13,8 @@ QLive doesn't model authorization schemes. It asks questions whose
 answers it doesn't need to understand, and the application answers them
 by implementing **QLive's own permission evaluator interface** as a
 Spring bean. The security context the client gets comes from a provider
-interface, implemented the same way, like the action and layout
-providers (`actions.md`, `layouts.md`).
+interface, implemented the same way, like the layout providers
+(`layouts.md`).
 
 Spring Security stays responsible for what it does anyway:
 authentication and sessions. Its `PermissionEvaluator` is not the seam:

@@ -68,7 +68,7 @@ describe("generated type definitions", () => {
         // DomainObject is absent on purpose: the file declares its own, as the
         // union of the schema's object types.
         expect(generated).toContain(
-            'import { FilterDSL, GenericScalar, QueryConfig, Temporal } from "@qlivedev/qlive-ts"'
+            'import { FilterDSL, GenericScalar, QueryConfig, Subject, Temporal } from "@qlivedev/qlive-ts"'
         )
         expect(generated).toContain("export type DomainObject =")
     })
@@ -91,6 +91,31 @@ describe("generated type definitions", () => {
         expect(generated).toMatch(/big\?: bigint/)
         expect(generated).toMatch(/size\?: number/)
         expect(generated).toMatch(/amount\?: string/)
+    })
+
+    it("merges the actions into qlive-ts's Actions, typed by their arguments", () => {
+        expect(generated).toContain(
+            'declare module "@qlivedev/qlive-ts" {\n' +
+            '    interface Actions {\n' +
+            '        /** Documented so the action doc comment path is exercised too */\n' +
+            '        approveWidget: { args: { widget: Subject, comment: string, notify: boolean, due?: Temporal.Instant | null }, result: '
+        )
+        expect(generated).toContain(
+            'approveWidgets: { args: { widgets: Subject[], filter?: Record<string, unknown> | null, tags?: (string | null)[] | null }, result: ('
+        )
+
+        // a mutation without a subject argument looks like any other in the schema
+        expect(generated).not.toContain("renameWidget:")
+    })
+
+    it("types an action's result by what issueAction() selects of it", () => {
+        // the scalar and enum fields, and not the owner, which is an object
+        const result = /approveWidget: .*result: (Pick<Widget, [^>]*>) }/.exec(generated)?.[1]
+        expect(result).toMatch(/^Pick<Widget, "id" \| "colour" \| /)
+        expect(result).toContain('"tags"')
+        expect(result).not.toContain('"owner"')
+
+        expect(generated).toMatch(/approveWidgets: .*result: \(Pick<Widget, [^>]*> \| null\)\[\] }/)
     })
 
     it("typechecks against qlive-ts", () => {

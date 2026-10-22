@@ -69,3 +69,20 @@ type WidgetDocument {
 type Query {
     widgets(config: QueryConfig): WidgetDocument
 }
+
+input SubjectRefInput {
+    id: String!
+    version: String
+}
+
+input WidgetFilterInput {
+    name: String
+}
+
+type Mutation {
+    "Documented so the action doc comment path is exercised too"
+    approveWidget(widget: SubjectRefInput!, comment: String!, notify: Boolean!, due: Timestamp): Widget!
+    approveWidgets(widgets: [SubjectRefInput!]!, filter: WidgetFilterInput, tags: [String]): [Widget]!
+    "A mutation without a subject, which is no action as far as the schema can tell"
+    renameWidget(id: String!, name: String!): Widget
+}

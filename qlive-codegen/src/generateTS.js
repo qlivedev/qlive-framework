@@ -6,7 +6,7 @@ import path from "path"
 import { introspectionFromSchema } from "graphql"
 import { GraphQLFileLoader } from "@graphql-tools/graphql-file-loader"
 import { loadSchema as gqlLoadSchema } from "@graphql-tools/load"
-import { isListType, unwrapAll } from "./type-utils.js"
+import { isListType, unwrapAll, unwrapNonNull, LIST, NON_NULL } from "./type-utils.js"
 
 /*
  * GraphQL scalar -> the TypeScript the generated file uses for it. Names that
@@ -47,7 +47,13 @@ const GRAPHQL_TO_TYPESCRIPT = {
  * does not use is noise, and a wrong one goes unnoticed for a long time --
  * consuming apps set skipLibCheck, so nothing typechecks a generated .d.ts.
  */
-const QLIVE_TS_IMPORTS = ["FilterDSL", "GenericScalar", "QueryConfig", "Temporal"]
+const QLIVE_TS_IMPORTS = ["FilterDSL", "GenericScalar", "QueryConfig", "Subject", "Temporal"]
+
+/*
+ * The input type of an action's subject argument, which is what tells an action
+ * apart from a plain mutation in the schema.
+ */
+const SUBJECT_REF_INPUT = "SubjectRefInput"
 
 
 function loadSchema(path)
@@ -95,7 +101,12 @@ export function trimIndent(s)
 
 function mapGraphQLToTypeScript(name, imported)
 {
-    const typeScript = GRAPHQL_TO_TYPESCRIPT[name] || name
+    const typeScript = GRAPHQL_TO_TYPESCRIPT[name]
+    if (!typeScript)
+    {
+        // a type of the schema's own, declared in the same file
+        return name
+    }
 
     for (const importable of QLIVE_TS_IMPORTS)
     {
@@ -161,6 +172,97 @@ function enumDefinition(typeDef)
 }
 
 
+/*
+ * The TypeScript of a type reference as a whole, modifiers included: a list is
+ * an array, and a nullable element is one that may be null.
+ */
+function typeExpression(type, imported, schema)
+{
+    if (type.kind === NON_NULL)
+    {
+        return valueExpression(type.ofType, imported, schema)
+    }
+    return valueExpression(type, imported, schema) + " | null"
+}
+
+
+function valueExpression(type, imported, schema)
+{
+    if (type.kind === LIST)
+    {
+        const element = typeExpression(type.ofType, imported, schema)
+        return (element.includes("|") ? "(" + element + ")" : element) + "[]"
+    }
+
+    if (type.name === SUBJECT_REF_INPUT)
+    {
+        imported.add("Subject")
+        return "Subject"
+    }
+
+    // other input objects have no generated type yet
+    if (type.kind === "INPUT_OBJECT")
+    {
+        return "Record<string, unknown>"
+    }
+
+    // an action's result: issueAction() selects its scalar and enum fields, and the type says no more than that
+    if (schema && type.kind === "OBJECT")
+    {
+        const objectType = schema.types.find(t => t.name === type.name)
+        const selected = objectType.fields
+            .filter(fieldDef => {
+                const kind = unwrapAll(fieldDef.type).kind
+                return kind === "SCALAR" || kind === "ENUM"
+            })
+            .map(fieldDef => JSON.stringify(fieldDef.name))
+
+        return selected.length === objectType.fields.length
+            ? type.name
+            : `Pick<${ type.name }, ${ selected.join(" | ") }>`
+    }
+
+    return mapGraphQLToTypeScript(type.name, imported)
+}
+
+
+/*
+ * The actions of the schema, merged into qlive-ts's Actions interface, which is
+ * what types issueAction(). An action is a mutation with a subject argument: one
+ * of input alone looks like any other mutation in the schema, and is left out.
+ */
+function actionsDefinition(schema, imported)
+{
+    const mutationTypeName = schema.mutationType && schema.mutationType.name
+    const mutationType = mutationTypeName && schema.types.find(t => t.name === mutationTypeName)
+    if (!mutationType)
+    {
+        return ""
+    }
+
+    const actions = mutationType.fields.filter(
+        fieldDef => fieldDef.args.some(arg => unwrapAll(arg.type).name === SUBJECT_REF_INPUT)
+    )
+    if (!actions.length)
+    {
+        return ""
+    }
+
+    const entries = actions.map(fieldDef => {
+        const args = fieldDef.args.map(arg =>
+            arg.type.kind === NON_NULL
+                ? `${ arg.name }: ${ valueExpression(unwrapNonNull(arg.type), imported) }`
+                : `${ arg.name }?: ${ typeExpression(arg.type, imported) }`
+        ).join(", ")
+
+        const doc = fieldDef.description ? `        /** ${ fieldDef.description } */\n` : ""
+        return `${ doc }        ${ fieldDef.name }: { args: { ${ args } }, result: ${ typeExpression(fieldDef.type, imported, schema) } }`
+    })
+
+    return "\n\ndeclare module \"@qlivedev/qlive-ts\" {\n    interface Actions {\n" + entries.join("\n") + "\n    }\n}"
+}
+
+
 function generateTypeDefinitions(schemaPath, output)
 {
     loadSchema(schemaPath).then(schema => {
@@ -205,6 +307,8 @@ function generateTypeDefinitions(schemaPath, output)
         })
 
         typeDefinitions += "export type DomainObject = " + typesUnionExpression(types.map(td => td.name))
+
+        typeDefinitions += actionsDefinition(schema, imported)
 
         const names = QLIVE_TS_IMPORTS.filter(name => imported.has(name))
 

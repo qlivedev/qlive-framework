@@ -29,8 +29,9 @@ services:
 - **Reads, in `QueryDocumentService`**: the application's answer as a
   condition, added to the query.
 - **Writes, in `MergeService`**: a decision per row and operation.
-- **Actions, at the action endpoint**, where the framework invokes the
-  implementation itself.
+- **Actions, where the framework stands between GraphQL and the action
+  method**, which loads the subjects and checks the rules before calling
+  it.
 
 Every path goes through these services, which makes "no path forgets to
 check" testable at a few known places.
@@ -103,8 +104,9 @@ far:
   action definitions are the same for every user.
 - **Conditions evaluated in the browser** over rows it already holds,
   which assume the rows were filtered before they arrived.
-- **Action input and results** travel through their own REST endpoint
-  (`actions.md`).
+- **Action mutations** (`actions.md`): a subject argument names rows by
+  id and the framework loads them, so what an action reads is decided
+  by ids the client sends, not by a query the read path filters.
 - **Push payloads**, see the open item below.
 - **Locked field modes** (`layouts.md`, "Field modes and editability"):
   an authorization rule locks a form field's mode so no other rule

@@ -1,8 +1,8 @@
 # Actions (design)
 
 Status: concept settled, details open. Written 2026-10-18, revised
-2026-10-22 to define actions as Java methods. Not built. The companion
-concept is `layouts.md`.
+2026-10-22 to define actions as GraphQL mutations declared by Java
+methods. Not built. The companion concept is `layouts.md`.
 
 What a user does to stored data beyond editing it: approve, close,
 send. Editing is the merge. An action is something the application
@@ -48,25 +48,34 @@ sense.
 
 ## An action is a method
 
-**An action is a Java method on a Spring bean**, the way a GraphQL
-query or mutation is a method of a `@QLiveLogic` bean. The method
-says most of what an action is, and the framework reads it from there:
+**An action is a GraphQL mutation with rules**, declared like any
+other: a method of a `@QLiveLogic` bean, annotated `@QLiveAction` in
+place of `@QLiveMutation`. The method says most of what an action is,
+and the framework reads it from there:
 
 ```java
-@QLiveAction
-@Rules({ DescriptionRequired.class, CommentWhenNotifying.class })
-public ApproveResult approveBar(Bar bar, String comment, boolean notify)
+@QLiveLogic
+public class BarLogic
 {
-    ...
+    @QLiveAction
+    @Rules({ DescriptionRequired.class, CommentWhenNotifying.class })
+    public ApproveResult approveBar(Bar bar, @NotNull String comment, boolean notify)
+    {
+        ...
+    }
 }
 ```
 
-- **The name** is the method's name. It is what a request carries and
-  what a layout refers to.
-- **The parameters** are what the action works on, of two kinds told
+`LogicBeanAnalyzer` scans it with the queries and mutations, and the
+schema holds it next to them. Both annotations live in
+`io.github.qlivedev.qlive.api.annotation`.
+
+- **The name** is the method's name, which is the mutation's name. It
+  is what a request carries and what a layout refers to.
+- **The parameters** are the mutation's arguments, of two kinds told
   apart by their type (see "Subjects and input").
-- **The result** is the return type, a POJO that serializes to JSON, or
-  `void`.
+- **The result** is the return type, an output type in the schema like
+  any mutation's.
 - **The implementation** is the method body. There is nothing to match
   a definition to, so neither a missing implementation nor two claiming
   one action can occur.
@@ -93,21 +102,28 @@ database. An input parameter is a scalar (`String comment`,
 arrays. Whether an array relates to the subjects, and how, is the
 application's business.
 
-**Input is still scalar-typed.** A form editing it picks widgets and
-converts values by scalar, and a `long` sent as a JSON number is
-rounded by the browser before any converter sees it. Each field has a
-scalar, found from its Java type the way a domain field's is, though
-the input itself is not in the schema, and both directions go through
-that scalar's coercing. The endpoint parses the body into a
-`Map`/`List` graph and recasts each input parameter into its declared
-type, the way `PayloadRecast` does for pub/sub, converting each field
-with its scalar's coercing on the way; the result is serialized the
-same way. Enum fields have no scalar to find (see "Open items").
+**Input is in the schema.** An input parameter becomes an argument of
+the input type the analyzer derives from its Java type, as for any
+mutation, so each field has its scalar and both directions go through
+that scalar's coercing. A form editing the input picks widgets and
+converts values by those scalars. An enum becomes a GraphQL enum type.
 
-**The parameter names are API.** They key the request and the generated
-client types, and every path starts with one (see "Rules"). QLive's own
-build compiles with `-parameters`; how an application's build is held
-to that is open.
+**A subject becomes a reference argument.** Where a mutation's `Bar`
+parameter would take a whole `BarInput`, an action's takes the id and
+the version of the row, and `List<Bar>` a list of them. The framework
+loads the rows and passes them to the method (see "Issuing an action").
+The shape and the name of the reference input type are open.
+
+**Required input is marked `@NotNull`**, as on any logic method: the
+argument is non-null in the schema, and GraphQL refuses a request that
+lacks it before the action runs. Input without the annotation is
+optional.
+
+**The parameter names are API.** They are the mutation's argument
+names, they key the generated client types, and every path starts with
+one (see "Rules"). The analyzer already refuses a parameter whose name
+the compiler didn't record and names the `-parameters` option;
+`@QLiveField` with a name is the fallback.
 
 ### Rules
 
@@ -156,9 +172,10 @@ evaluated as a query of that subject's rows. Every reference to input,
 or to another subject, is resolved to a value first, so the database
 sees a bind parameter and never a positional path.
 
-- A reference resolving to one value becomes that value, bound as
-  Svenson produced it. There is no coercion to the column's type for
-  now; whether one is needed is left to experience.
+- A reference resolving to one value becomes that value, bound as the
+  Java value GraphQL coerced the input to. There is no further coercion
+  to the column's type for now; whether one is needed is left to
+  experience.
 - An array, or a `List` subject's field, resolves to a list of values,
   which is valid only where the condition model already allows a list:
   as the operand of `in`. A variadic `concat` over a list is the second
@@ -176,27 +193,25 @@ included, is evaluated in memory.
 
 ## Issuing an action
 
-**An action is not a GraphQL operation.** Queries are GraphQL methods
-because their annotations enumerate them in the domain and the framework
-intercepts them. An action's method already tells the framework
-everything, and the input is nested, so expressing it in GraphQL would
-take an input type and a DomainObject per action, describing again what
-the method describes. Actions go through **one REST endpoint**, and
-the framework invokes the method itself.
-
-The client calls an async function with the action's name, and, keyed
-by parameter name:
+**An action is issued as its mutation.** Being in the schema gives it
+what a separate endpoint would have to rebuild: the input's types and
+coercing, the result's type in the generated client types, and errors
+in the shape the client already handles. The arguments are, keyed by
+parameter name:
 
 - for each subject, the id and the version of each row, as the user saw
   it. The type comes from the parameter; an unversioned type gets the id
   alone.
-- the versions of rows the paths reach beyond the subjects, as far as
-  the view's queries hold them (see "Versions").
-- the input. All input must be filled before issuing, whether a value
-  came from an input, a button or the view's code.
+- the input, with every `@NotNull` argument filled, whether a value came
+  from an input, a button or the view's code.
 
-On the server the framework opens **one transaction on committed data**
-and, inside it:
+and one argument the method doesn't declare, which the framework adds
+to every action: the versions of rows the paths reach beyond the
+subjects, as far as the view's queries hold them (see "Versions"). Its
+name is open.
+
+The framework stands between GraphQL and the method. It opens **one
+transaction on committed data** and, inside it:
 
 1. Loads the subjects' rows, which is also their version check: a row
    whose stored version isn't the one sent fails the action with a
@@ -206,9 +221,24 @@ and, inside it:
    subject row sent without its version is refused as an error.
 2. Checks the versions sent for reached rows.
 3. Evaluates the rules against the database.
-4. Calls the method with the loaded subjects and the recast input.
+4. Calls the method with the loaded subjects and the input.
 
-The method's result is what the client's async function resolves to.
+The method's result is the mutation's data.
+
+### Refusal
+
+**A refusal is an exception.** The framework catches it around the
+method and turns it into GraphQL errors, one per broken rule, each with
+the rule's message key, the blamed field's path or none, and the rule's
+error class if it has one (see "The early check on the client"). A
+version conflict is a refusal with a code of its own. The method may
+throw the same exception itself, for a check no rule can express, so
+the client sees one kind of refusal whatever produced it.
+
+**A response is data or errors, never both.** GraphQL allows both at
+once, but an action that refuses has no result, and one that returns
+has nothing to refuse. Since a refusal is an exception, the method's
+return type stays the application's own.
 
 **The action is the unit.** All rows of all subjects succeed or fail
 together. **The method writes through the merge**, which joins the
@@ -259,15 +289,15 @@ breaks nothing.
 
 - **The action fails during its work.** Its transaction rolls back and
   there is nothing to clean up.
-- **The action refuses the stored state.** The refusal is an exception
-  and rolls the transaction back as well. But the merge that produced
-  that state committed earlier, so only the application can decide what
-  to do with it. The cleanup hook runs after the rollback, in a
-  transaction of its own, and does whatever this action needs. The
-  framework provides the slot, nothing more.
+- **The action refuses the stored state.** The refusal exception rolls
+  the transaction back as well. But the merge that produced that state
+  committed earlier, so only the application can decide what to do with
+  it. The cleanup hook runs after the rollback, in a transaction of its
+  own, and does whatever this action needs. The framework provides the
+  slot, nothing more, and calls it from where it catches the refusal.
 
-Since the second case follows a normal save, the client handles it as a
-normal outcome, not as an exception.
+Since the second case follows a normal save, the client handles the
+refusal's errors as a normal outcome, not as an exception.
 
 ### The early check on the client
 
@@ -329,11 +359,11 @@ record or a call of their own.
 
 ## Client types
 
-The method's parameter and return types are available at runtime,
-which makes actions a second registry for `client-types.md`, next to
-pub/sub's channels. The emitter turns the classes into TypeScript types,
-mapping each field's scalar as for the domain types, and the generated
-map types the async function by name:
+An action's input and result types are schema types, so the generated
+types already hold them, as they hold every mutation's. What the
+schema doesn't say is which arguments are subjects, which is in the
+action model (see "The model"). From both, a generated map types the
+client's issuing function by action name:
 
 ```ts
 export interface Actions {
@@ -369,7 +399,9 @@ data, which is what reaches the browser, and what another source, an
 editor or files, would produce; none is planned, since the developers
 who write the server code are the ones defining actions.
 
-**A name defined twice fails at startup**, naming both methods.
+**A name defined twice fails at startup**, naming both methods. The
+names are mutation names, so an action also can't share one with a
+plain mutation.
 Layouts went the other way: a later source replaces a layout of the
 same name, as the application patches a server layout. That suits
 presentation. For an action it would let the order beans load in decide
@@ -424,10 +456,16 @@ was the first, and stopped fitting once paths start at any parameter;
   each stand on their own: storing valid data, and acting on stored
   data. The versions give the action the guarantee the shared
   transaction was for.
-- **A GraphQL mutation per action**, with the checks running in a
-  service the mutation calls inside its own transaction. It works, but
-  GraphQL only gets in the way: no enumeration or interception is
-  needed, and nested input would need a type per action.
+- **One REST endpoint for all actions**, with the input recast from
+  JSON the way `PayloadRecast` does for pub/sub. It assumed a GraphQL
+  mutation would need a hand-written input type per action, but the
+  analyzer derives input types from parameter types already. Outside
+  the schema, input scalars, enums, result types and error shape would
+  each have had to be rebuilt.
+- **A mutation calling a checking service** inside its own transaction,
+  the application wiring the checks by hand. The framework standing
+  between GraphQL and an `@QLiveAction` method does it for every action
+  alike.
 - **Definitions apart from their implementation**: an `ActionModel`
   built by a fluent builder in an `ActionProvider` bean, matched to
   `Action<E, R>` beans by name, with one input class `E`. It described
@@ -443,39 +481,31 @@ was the first, and stopped fitting once paths start at any parameter;
   with the other bound, which fails where neither is a single row, or
   evaluated in memory over the rows the server loads anyway, which meets
   the positional and relational readings of a to-many path.
-- **Where action methods live**: a stereotype of their own, as
-  `@QLiveLogic` is for queries, or an annotation on a method of any
-  bean. `LogicBeanAnalyzer` may be reusable for the scan. The
-  annotations' names are open with it.
-- **Parameter names in an application's build**: requiring
-  `-parameters`, an annotation naming a parameter as a fallback, or
-  both.
+- **The subject reference input**: one type per subject type, since ids
+  may differ in scalar, or one shared type; and its name.
+- **The reached-versions argument**: its name, and its type of
+  `(type, id, version)` entries.
 - **Replacing an action on purpose**, shelved (2026-10-22). A module
   may ship action beans through `@Import`, and an application could
   want to tighten one of its actions; that would take a declaration
   naming the action it replaces or modifies, never the load order. No
   module ships actions yet.
-- **Enums in input.** Finding a field's scalar from its Java type
-  leaves out enums, which in the domain are GraphQL enum types, not
-  scalars. jOOQ generates none, so an input POJO is the first place
-  QLive meets a hand-written enum; `layouts.md` holds its enum example
-  until this is settled. To decide before the input recast is built:
-  how an enum field is converted, and which widget picks its value.
+- **A widget for enums in input.** An enum in input becomes a GraphQL
+  enum type, so its conversion is settled. jOOQ generates no enums, so
+  an input POJO is the first place a form meets one; `layouts.md` holds
+  its enum example until it is settled which widget picks the value.
 - **Forms over an action**: `layouts.md` has a form edit its entity and
   the action's input, with input paths starting at `input.`. With
   parameters as the namespace, which subject a form's row is, and how
   its paths name the input parameters.
-- **The endpoint's response**: a refusal's errors are GraphQL-shaped
-  (see "The early check on the client"); how a conflict and the result
-  sit next to them, and how errors reach fields on the client, is open.
+- **The refusal exception**: its name and API, the error codes for a
+  broken rule and a conflict, and how errors reach fields on the
+  client.
 - **What the early check reaches**: only what the form loaded, or the
   action's paths added to what a form over it loads.
 - **The cleanup mechanism**: presumably a callback after the rollback,
   which the framework registers when the action refuses, and how the
   method names its hook.
-- **Required and optional input**: whether input parameters and fields
-  are required unless marked optional, so that "filled" applies to the
-  required ones.
 - **Authorization**: who may issue an action. The framework evaluates
   an action's rules itself; whether permissions are rules or a separate
   check is undecided.

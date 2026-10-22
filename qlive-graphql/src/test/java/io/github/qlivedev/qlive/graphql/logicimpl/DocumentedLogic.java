@@ -1,5 +1,6 @@
 package io.github.qlivedev.qlive.graphql.logicimpl;
 
+import io.github.qlivedev.qlive.api.annotation.QLiveField;
 import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
 import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
 import io.github.qlivedev.qlive.api.annotation.QLiveQuery;
@@ -49,6 +50,19 @@ public class DocumentedLogic
      */
     @QLiveMutation
     public boolean mutation(int foo)
+    {
+        return false;
+    }
+
+    /**
+     * A mutation named in the annotation, with an argument named there too
+     *
+     * @param name   label desc
+     *
+     * @return always false
+     */
+    @QLiveMutation("renamedMutation")
+    public boolean mutation2(@QLiveField("label") String name)
     {
         return false;
     }

@@ -61,6 +61,11 @@ public class QLiveDomainTypeDocTest
 
         final GraphQLFieldDefinition mutationField = mutationType.getFieldDefinition("mutation");
         assertThat(mutationField.getDescription(), is("A GraphQL mutation"));
+        assertThat(mutationField.getArgument("foo").getDescription(), is("foo param desc"));
+        assertThat(
+            mutationType.getFieldDefinition("renamedMutation").getArgument("label").getDescription(),
+            is("label desc")
+        );
 
 
         final GraphQLObjectType type = (GraphQLObjectType) graphQLSchema.getType("DocumentedBean");

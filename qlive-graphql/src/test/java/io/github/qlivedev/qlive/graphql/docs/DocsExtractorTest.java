@@ -46,12 +46,17 @@ public class DocsExtractorTest
         assertThat(queryFields.get(1).getParamDocs().size(), is(0));
 
         final List<FieldDoc> mutationFields = mDoc.getFieldDocs();
-        assertThat(mutationFields.size(), is(1));
+        assertThat(mutationFields.size(), is(2));
         assertThat(mutationFields.get(0).getName(), is("mutation"));
         assertThat(mutationFields.get(0).getDescription(), is("A GraphQL mutation"));
         assertThat(mutationFields.get(0).getParamDocs().size(), is(1));
         assertThat(mutationFields.get(0).getParamDocs().get(0).getName(), is("foo"));
         assertThat(mutationFields.get(0).getParamDocs().get(0).getDescription(), is("foo param desc"));
+
+        // names given without "value =", and a parameter documented by the name of its argument
+        assertThat(mutationFields.get(1).getName(), is("renamedMutation"));
+        assertThat(mutationFields.get(1).getParamDocs().get(0).getName(), is("label"));
+        assertThat(mutationFields.get(1).getParamDocs().get(0).getDescription(), is("label desc"));
 
     }
 

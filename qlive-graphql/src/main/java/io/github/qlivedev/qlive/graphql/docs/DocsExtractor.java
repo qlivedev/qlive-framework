@@ -314,8 +314,28 @@ public class DocsExtractor
         final int paramCount = params.size();
         if (paramCount > 0)
         {
+            // keyed by argument name, which @QLiveField can make differ from the parameter's
+            final Map<String, String> argumentNames = new HashMap<>();
+            for (Parameter param : params)
+            {
+                final String paramName = param.getName().getIdentifier();
+                argumentNames.put(
+                    paramName,
+                    param.getAnnotationByName(QLiveField.class.getSimpleName())
+                        .or(() -> param.getAnnotationByName(QLiveField.class.getName()))
+                        .map(fieldAnno -> getAttribute(fieldAnno, "value", paramName))
+                        .filter(argumentName -> !argumentName.isEmpty())
+                        .orElse(paramName)
+                );
+            }
+
             doc.setParamDocs(
-                extractParamDocs(methodJavaDoc)
+                extractParamDocs(methodJavaDoc).stream()
+                    .map(paramDoc -> new ParamDoc(
+                        argumentNames.getOrDefault(paramDoc.getName(), paramDoc.getName()),
+                        paramDoc.getDescription()
+                    ))
+                    .collect(Collectors.toList())
             );
         }
         return doc;

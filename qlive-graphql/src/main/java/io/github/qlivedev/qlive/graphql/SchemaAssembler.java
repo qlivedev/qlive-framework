@@ -511,10 +511,19 @@ class SchemaAssembler
             return null;
         }
 
-        return new FieldDoc(
+        final FieldDoc copy = new FieldDoc(
             fieldDoc.getName(),
             replaceTypeRefs(fieldDoc.getDescription(), typeContext)
         );
+        copy.setParamDocs(
+            fieldDoc.getParamDocs().stream()
+                .map(paramDoc -> new ParamDoc(
+                    paramDoc.getName(),
+                    replaceTypeRefs(paramDoc.getDescription(), typeContext)
+                ))
+                .toList()
+        );
+        return copy;
     }
 
 
@@ -601,9 +610,8 @@ class SchemaAssembler
 
         for (Query query : queries)
         {
-            List<GraphQLArgument> arguments = getGraphQLArguments(query, graphQlInputTypes);
-
             final FieldDoc fieldDoc = lookMethodDoc(queryTypeDoc, query);
+            List<GraphQLArgument> arguments = getGraphQLArguments(query, fieldDoc, graphQlInputTypes);
 
             queryTypeBuilder.field(GraphQLFieldDefinition.newFieldDefinition()
                 .name(query.getName())
@@ -641,9 +649,8 @@ class SchemaAssembler
         final TypeDoc mutationTypeDoc = findTypeDoc(SchemaNames.MUTATION_TYPE);
         for (Mutation mutation : mutations)
         {
-            List<GraphQLArgument> arguments = getGraphQLArguments(mutation, graphQlInputTypes);
-
             final FieldDoc fieldDoc = lookMethodDoc(mutationTypeDoc, mutation);
+            List<GraphQLArgument> arguments = getGraphQLArguments(mutation, fieldDoc, graphQlInputTypes);
 
             mutationTypeBuilder.field(GraphQLFieldDefinition.newFieldDefinition()
                 .name(mutation.getName())
@@ -775,6 +782,7 @@ class SchemaAssembler
 
     private List<GraphQLArgument> getGraphQLArguments(
         QLiveDomainMethod domainMethod,
+        FieldDoc fieldDoc,
         Map<String, GraphQLInputObjectType> graphQlInputTypes
     )
     {
@@ -791,6 +799,7 @@ class SchemaAssembler
                 arguments.add(
                     GraphQLArgument.newArgument()
                         .name(graphQLValueProvider.getArgumentName())
+                        .description(findParamDoc(fieldDoc, graphQLValueProvider.getArgumentName(), null))
                         .defaultValue(graphQLValueProvider.getDefaultValue())
                         .type(
                             graphQLValueProvider.isNotNull() ? GraphQLNonNull.nonNull(inputType) : inputType

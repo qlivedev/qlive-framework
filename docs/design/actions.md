@@ -41,8 +41,9 @@ afterwards may still refuse to act on it.
 
 A rule is a condition from the condition model, which already runs in
 the browser (`evaluate.ts`) and in the database (jOOQ), plus the field
-it blames and a message key. Invariants and action rules are both
-rules in this sense.
+it blames, if any, a message key and, optionally, an error class a
+layout can check on. Invariants and action rules are both rules in this
+sense.
 
 ## What an action is
 
@@ -142,22 +143,25 @@ normal outcome, not as an exception.
 
 ### The early check on the client
 
-The shared condition model makes it cheap to offer evaluating an
-action's rules on the drafts before anything is saved. It is an offer,
-not part of the design: everything above is correct without it.
+**The browser evaluates an action's rules on the drafts** before
+anything is saved (decided 2026-10-20). Usability needs it: a user
+should see that an approval will be refused while still filling the
+form, not after saving. Rules warn in the browser and are enforced only
+on the server, and the shared condition model is what keeps them from
+being written twice. The client therefore gets the action's rules with
+its definition (see "The model and its providers").
 
-**Raw notes, 2026-10-20.** Usability needs the early check: action
-rules are to warn in the browser and are enforced only on the server,
-and writing them twice is what the shared condition model avoids. That
-moves the check from an offer into the design, and the client then
-needs the action's rules in its metadata. The browser can evaluate only
-what it holds: a rule reading references deeper than the form's query,
-or rows the form never fetched, is the same boundary field conditions
-hit on the related-rows endpoint. Either the browser checks what is
-loaded and the server reports the rest, or an action's references
-become part of what a form over it loads. Errors from either side have
-one shape, GraphQL's (`layouts.md`, "Layouts react to errors"), which
-also answers part of the open item on the endpoint's response.
+**The browser can evaluate only what it holds.** A rule reading
+references deeper than the form's query, or rows the form never
+fetched, meets the same boundary field conditions meet on the
+related-rows endpoint. Whether the browser then checks what is loaded
+and leaves the rest to the server, or an action's references become
+part of what a form over it loads, is open.
+
+**Errors from either side have one shape**, GraphQL's (`layouts.md`,
+"Layouts react to errors"): the rule's message, the blamed field's path
+or none, and the rule's class if it has one. A layout can't tell a
+warning from a refusal, and doesn't need to.
 
 ## Implementations
 
@@ -299,8 +303,11 @@ avoided.
 - **Generic `E`**: a mechanism like `@GraphQLTypeParam`, so that an
   implementation handling several actions gets a typed `E` per action
   instead of `Map`. Not for the first implementation.
-- **The endpoint's response**: how verdicts per field, conflicts and a
-  refusal are shaped, and how they reach fields on the client.
+- **The endpoint's response**: a refusal's errors are GraphQL-shaped
+  (see "The early check on the client"); how a conflict and the result
+  sit next to them, and how errors reach fields on the client, is open.
+- **What the early check reaches**: only what the form loaded, or the
+  action's references added to what a form over it loads.
 - **The cleanup mechanism**: presumably a callback after the rollback,
   which the framework registers when the action refuses.
 - **Required and optional input**: whether input fields are required

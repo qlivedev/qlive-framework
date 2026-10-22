@@ -170,7 +170,7 @@ type QueryType {
   queryContainerTypeA(complexInput: ComplexInput = null): ContainerTypeA
   queryContainerTypeB(complexInput: ComplexInput = null): ContainerTypeB
   queryDomainObject: DomainObject
-  queryInt(value: Int = null): Int
+  queryInt(value: Int! = null): Int
   queryListTypeA(complexInput: ComplexInput = null): [TypeA]
   queryListTypeB(complexInput: ComplexInput = null): [TypeB]
   queryString(value: String = null): String

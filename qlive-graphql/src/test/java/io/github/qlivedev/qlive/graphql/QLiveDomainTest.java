@@ -148,7 +148,8 @@ public class QLiveDomainTest
 
             assertThat(queryInt, is(notNullValue()));
             assertThat(queryInt.getArguments().size(), is(1));
-            assertThat(queryInt.getArgument("value").getType(), is(Scalars.GraphQLInt));
+            // an int has no null to receive, so the argument is required
+            assertThat(queryInt.getArgument("value").getType().toString(), is("Int!"));
             assertThat(queryInt.getType(), is(Scalars.GraphQLInt));
         }
 

@@ -618,7 +618,8 @@ class LogicBeanAnalyzer
                 ": Required field disagreement between @NotNull and @QLiveField required value");
         }
 
-        final boolean isNotNull = jpaNotNull || (fieldAnnoPresent && argAnno.notNull());
+        // a primitive has no null to receive, so a request leaving it out has to be refused before the call
+        final boolean isNotNull = jpaNotNull || (fieldAnnoPresent && argAnno.notNull()) || parameterType.isPrimitive();
 
         final String parameterName = fieldAnnoPresent && argAnno.value().length() > 0 ? argAnno
             .value() : parameter.getName();

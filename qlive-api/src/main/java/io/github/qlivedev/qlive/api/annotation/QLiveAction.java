@@ -16,13 +16,11 @@ import java.lang.annotation.Target;
 ///
 /// A refusal, from a rule or from the method itself, reaches the client as GraphQL errors and never together with
 /// data -- see `io.github.qlivedev.qlive.api.action.ActionRefusedException`.
+///
+/// The mutation's description is the method's doc comment, which the build extracts into the type docs.
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface QLiveAction
 {
-    /// Description for this action's mutation.
-    ///
-    /// @return description
-    String description() default "";
 }

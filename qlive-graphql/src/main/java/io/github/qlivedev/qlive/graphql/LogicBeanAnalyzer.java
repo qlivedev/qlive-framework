@@ -188,7 +188,6 @@ class LogicBeanAnalyzer
                     method,
                     parameterTypes,
                     locationInfo,
-                    actionAnno,
                     isNotNullMutation
                 );
                 addMutation(action, locationInfo);
@@ -223,7 +222,6 @@ class LogicBeanAnalyzer
         Method method,
         Class<?>[] parameterTypes,
         String locationInfo,
-        QLiveAction actionAnno,
         boolean isNotNull
     )
     {
@@ -267,7 +265,6 @@ class LogicBeanAnalyzer
         return new Action(
             domain,
             name,
-            actionAnno.description(),
             logicBean,
             methodAccess,
             methodAccess.getIndex(name, parameterTypes),

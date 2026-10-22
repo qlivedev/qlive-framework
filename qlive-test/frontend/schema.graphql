@@ -106,6 +106,18 @@ type AppVersion {
     prev: String
 }
 
+"What approving a bar answers with."
+type ApproveResult {
+    "Id of the approved bar"
+    barId: String
+    "The approval comment"
+    comment: String
+    "Name of the approved bar, as it was stored when the action ran"
+    name: String
+    "Whether the owner was notified"
+    notified: Boolean
+}
+
 "Generated from public.bar"
 type Bar {
     "Many-to-many objects through bar_link.bar_id"
@@ -321,12 +333,14 @@ type MergeResult {
     status: MergeStatus!
 }
 
-"Auto-generated from QueryLogic, MergeLogic"
+"Auto-generated from BarLogic, QueryLogic, MergeLogic"
 type MutationType {
+    approveBar(bar: SubjectRefInput!, comment: String!, notify: Boolean!): ApproveResult!
+    approveBars(bars: [SubjectRefInput!]!, comment: String!): [ApproveResult]!
     mergeWorkingSet(changes: [EntityChangeInput]!, deletions: [EntityDeletionInput]!, links: [LinkChangeInput]!, mergeConfig: MergeConfigInput!): MergeResult!
 }
 
-"Auto-generated from QueryLogic, MergeLogic"
+"Auto-generated from BarLogic, QueryLogic, MergeLogic"
 type QueryType {
     "Queries AppUser objects based on the given query config"
     queryAppUserDocument(config: QueryConfig!): AppUserDocument!
@@ -602,4 +616,10 @@ input MergeConfigInput {
     conflicts in the view.
     """
     conflictValues: Boolean
+}
+
+"Generated for io.github.qlivedev.qlive.graphql.logic.SubjectRef"
+input SubjectRefInput {
+    id: String!
+    version: String
 }

@@ -29,6 +29,13 @@ const FORMS = [
 ];
 
 /**
+ * Actions on stored rows, guarded by the server's rules.
+ */
+const ACTIONS = [
+    {href: "/app/bar/approve", title: "Approving bars", text: "an action on one row and on several, and its refusals"}
+];
+
+/**
  * Everything else.
  */
 const OTHERS = [
@@ -54,6 +61,16 @@ export default function Home()
             <ul className="nav-list">
                 {
                     FORMS.map(example => (
+                        <li key={ example.href }>
+                            <a href={ example.href }>{ example.title }</a> -- { example.text }
+                        </li>
+                    ))
+                }
+            </ul>
+            <h2>Actions</h2>
+            <ul className="nav-list">
+                {
+                    ACTIONS.map(example => (
                         <li key={ example.href }>
                             <a href={ example.href }>{ example.title }</a> -- { example.text }
                         </li>

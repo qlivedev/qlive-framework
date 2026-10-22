@@ -269,3 +269,32 @@ body
 {
     width: 6rem;
 }
+
+/*
+ * The approve view: the reasons a refusal gives, next to what each one blames,
+ * and the approval when there is none.
+ */
+.bar-approve .refusals
+{
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.bar-approve .refusal
+{
+    color: var(--qlive-color-error);
+    font-size: 0.85rem;
+}
+
+.bar-approve .refusal.conflict
+{
+    color: var(--qlive-color-conflict);
+}
+
+.bar-approve .approved
+{
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    border: 1px solid var(--qlive-color-accent);
+}

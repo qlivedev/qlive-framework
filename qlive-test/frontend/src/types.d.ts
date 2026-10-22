@@ -1,7 +1,7 @@
 /*
     Generated types. Do *not* edit. Run "pnpm generate" to update from schema.graphql
 */
-import { GenericScalar, QueryConfig, Temporal } from "@qlivedev/qlive-ts"
+import { GenericScalar, QueryConfig, Subject, Temporal } from "@qlivedev/qlive-ts"
 
 /** How a merge ended.
 
@@ -104,6 +104,18 @@ export type AppVersion = {
     ownerId: string
     /** The version this change was made against, or null for the first recorded change of the row. Best-effort: the record it names may have been pruned, which reads as "assume every field changed" rather than as an error. */
     prev?: string
+}
+
+/** What approving a bar answers with. */
+export type ApproveResult = {
+    /** Id of the approved bar */
+    barId?: string
+    /** The approval comment */
+    comment?: string
+    /** Name of the approved bar, as it was stored when the action ran */
+    name?: string
+    /** Whether the owner was notified */
+    notified?: boolean
 }
 
 /** Generated from public.bar */
@@ -294,12 +306,14 @@ export type MergeResult = {
     status: MergeStatus
 }
 
-/** Auto-generated from QueryLogic, MergeLogic */
+/** Auto-generated from BarLogic, QueryLogic, MergeLogic */
 export type MutationType = {
+    approveBar: ApproveResult
+    approveBars: ApproveResult[]
     mergeWorkingSet: MergeResult
 }
 
-/** Auto-generated from QueryLogic, MergeLogic */
+/** Auto-generated from BarLogic, QueryLogic, MergeLogic */
 export type QueryType = {
     /** Queries AppUser objects based on the given query config */
     queryAppUserDocument: AppUserDocument
@@ -385,6 +399,14 @@ export type QuxDocument = {
     type: string
 }
 
-export type DomainObject = AppFieldSet | AppLogin | AppTranslation | AppUser | AppUserDocument | AppVersion | Bar | BarDocument |
-    BarLink | Baz | BazDocument | Foo | FooDocument | FooType | FooTypeDocument | MergeConflict |
-    MergeConflictField | MergeResult | MutationType | QueryType | Quux | QuuxDocument | Qux | QuxDocument
+export type DomainObject = AppFieldSet | AppLogin | AppTranslation | AppUser | AppUserDocument | AppVersion | ApproveResult | Bar |
+    BarDocument | BarLink | Baz | BazDocument | Foo | FooDocument | FooType | FooTypeDocument |
+    MergeConflict | MergeConflictField | MergeResult | MutationType | QueryType | Quux | QuuxDocument | Qux |
+    QuxDocument
+
+declare module "@qlivedev/qlive-ts" {
+    interface Actions {
+        approveBar: { args: { bar: Subject, comment: string, notify: boolean }, result: ApproveResult }
+        approveBars: { args: { bars: Subject[], comment: string }, result: (ApproveResult | null)[] }
+    }
+}

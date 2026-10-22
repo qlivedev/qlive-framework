@@ -36,8 +36,6 @@ public class GraphQLValueProvider
 
     private final String argumentName;
 
-    private final String description;
-
     private final boolean isNotNull;
 
     private final GraphQLInputType inputType;
@@ -51,7 +49,6 @@ public class GraphQLValueProvider
 
     public GraphQLValueProvider(
         String argumentName,
-        String description,
         boolean isNotNull,
         GraphQLInputType inputType,
         Object defaultValue,
@@ -60,7 +57,6 @@ public class GraphQLValueProvider
     )
     {
         this.argumentName = argumentName;
-        this.description = description;
         this.isNotNull = isNotNull;
         this.inputType = inputType;
         this.defaultValue = defaultValue;
@@ -241,12 +237,6 @@ public class GraphQLValueProvider
     }
 
 
-    public String getDescription()
-    {
-        return description;
-    }
-
-
     public Object getDefaultValue()
     {
         return defaultValue;
@@ -264,7 +254,6 @@ public class GraphQLValueProvider
     {
         return super.toString() + ": "
             + "argumentName = '" + argumentName + '\''
-            + ", description = '" + description + '\''
             + ", inputType = " + inputType
             + ", defaultValue = " + defaultValue
             ;

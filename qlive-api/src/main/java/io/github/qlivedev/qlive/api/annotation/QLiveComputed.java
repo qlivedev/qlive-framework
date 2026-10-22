@@ -8,6 +8,8 @@ import java.lang.annotation.Target;
 
 /**
  * Marks a getter method as a server-side computed method.
+ * <p>
+ * The field's description is the getter's doc comment, which the build extracts into the type docs.
  */
 
 @Target({ElementType.METHOD, ElementType.PARAMETER})
@@ -15,10 +17,4 @@ import java.lang.annotation.Target;
 @Documented
 public @interface QLiveComputed
 {
-    /**
-     * Description for the field.
-     *
-     * @return description
-     */
-    String description() default "";
 }

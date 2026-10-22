@@ -27,13 +27,6 @@ public @interface QLiveField
     String value() default "";
 
     /**
-     * Description for the field.
-     *
-     * @return description
-     */
-    String description() default "";
-
-    /**
      * Default value for the field.
      *
      * @return default value

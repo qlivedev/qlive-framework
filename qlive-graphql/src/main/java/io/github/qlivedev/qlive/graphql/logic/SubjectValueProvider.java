@@ -18,12 +18,11 @@ public class SubjectValueProvider
 
     public SubjectValueProvider(
         ActionSubject subject,
-        String description,
         GraphQLInputType inputType,
         TypeRegistry typeRegistry
     )
     {
-        super(subject.name(), description, true, inputType, null, typeRegistry, SubjectRef.class);
+        super(subject.name(), true, inputType, null, typeRegistry, SubjectRef.class);
         this.subject = subject;
     }
 

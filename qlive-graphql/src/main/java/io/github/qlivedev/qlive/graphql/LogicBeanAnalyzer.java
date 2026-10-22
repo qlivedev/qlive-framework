@@ -29,7 +29,6 @@ import org.apache.commons.beanutils.ConvertUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.framework.AopProxyUtils;
-import org.springframework.util.StringUtils;
 
 import jakarta.validation.constraints.NotNull;
 import java.lang.annotation.Annotation;
@@ -245,7 +244,7 @@ class LogicBeanAnalyzer
             if (subject != null)
             {
                 subjects.add(subject);
-                parameterProviders.add(createSubjectProvider(subject, parameter));
+                parameterProviders.add(createSubjectProvider(subject));
             }
             else
             {
@@ -299,16 +298,13 @@ class LogicBeanAnalyzer
     }
 
 
-    private ParameterProvider createSubjectProvider(ActionSubject subject, Parameter parameter)
+    private ParameterProvider createSubjectProvider(ActionSubject subject)
     {
-        final QLiveField argAnno = parameter.getDeclaredAnnotation(QLiveField.class);
-
         final InputType refType = typeRegistry.registerInput(new TypeContext(null, SubjectRef.class));
         final GraphQLTypeReference ref = GraphQLTypeReference.typeRef(refType.getName());
 
         return new SubjectValueProvider(
             subject,
-            argAnno != null ? argAnno.description() : null,
             subject.list() ? new GraphQLList(new GraphQLNonNull(ref)) : ref,
             typeRegistry
         );
@@ -805,7 +801,6 @@ class LogicBeanAnalyzer
 
         final String parameterName = fieldAnnoPresent && argAnno.value().length() > 0 ? argAnno
             .value() : parameter.getName();
-        final String description = fieldAnnoPresent ? argAnno.description() : null;
         final Object defaultValue;
 
         final Object defaultValueFromAnno = fieldAnnoPresent ? argAnno.defaultValue() : null;
@@ -820,7 +815,6 @@ class LogicBeanAnalyzer
 
         final GraphQLValueProvider graphQLValueProvider = new GraphQLValueProvider(
             parameterName,
-            description,
             isNotNull,
             inputType,
             defaultValue,
@@ -828,9 +822,7 @@ class LogicBeanAnalyzer
             parameterType
         );
 
-        final String paramDesc = graphQLValueProvider.getDescription();
-        log.debug("  {}", graphQLValueProvider.getArgumentName() + ": " + graphQLValueProvider
-            .getInputType() + (StringUtils.hasText(paramDesc) ? " # " + paramDesc : ""));
+        log.debug("  {}", graphQLValueProvider.getArgumentName() + ": " + graphQLValueProvider.getInputType());
 
 
         provider = graphQLValueProvider;

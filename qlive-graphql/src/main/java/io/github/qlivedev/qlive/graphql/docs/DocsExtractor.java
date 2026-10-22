@@ -200,11 +200,9 @@ public class DocsExtractor
                         {
 
                             final String name = getAttribute(anno.get(), "value", method.getName().getIdentifier());
-                            final String description = getAttribute(anno.get(), "description", methodJavaDoc);
-
                             final FieldDoc fieldDoc = new FieldDoc(
                                 name,
-                                description
+                                methodJavaDoc
                             );
 
                             if (params.size() > 0)

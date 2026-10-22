@@ -791,7 +791,6 @@ class SchemaAssembler
                 arguments.add(
                     GraphQLArgument.newArgument()
                         .name(graphQLValueProvider.getArgumentName())
-                        .description(graphQLValueProvider.getDescription())
                         .defaultValue(graphQLValueProvider.getDefaultValue())
                         .type(
                             graphQLValueProvider.isNotNull() ? GraphQLNonNull.nonNull(inputType) : inputType
@@ -1034,11 +1033,9 @@ class SchemaAssembler
 
         final FieldDoc fieldDoc = lookupFieldDoc(typeDoc, fieldName);
 
-        final String defaultDescription = inputFieldAnno != null && inputFieldAnno.description()
-            .length() > 0 ? inputFieldAnno.description() : null;
         return GraphQLInputObjectField.newInputObjectField()
             .name(fieldName)
-            .description(fieldDoc != null ? fieldDoc.getDescription() : defaultDescription)
+            .description(fieldDoc != null ? fieldDoc.getDescription() : null)
             .type(isNotNull ? nonNull(graphQLFieldType) : graphQLFieldType)
             .defaultValue(defaultValue)
             .build();
@@ -1612,7 +1609,7 @@ class SchemaAssembler
         final String fieldName = fieldAnno.value().length() > 0 ? fieldAnno.value() : propertyName;
 
         final FieldDoc fieldDoc = lookupFieldDoc(typeDoc, fieldName);
-        final String description = fieldDoc != null ? fieldDoc.getDescription() : fieldAnno.description();
+        final String description = fieldDoc != null ? fieldDoc.getDescription() : null;
 
         final GraphQLFieldDefinition.Builder fieldBuilder = GraphQLFieldDefinition.newFieldDefinition()
             .name(fieldName)
@@ -1834,11 +1831,7 @@ class SchemaAssembler
 
         final GraphQLFieldDefinition fieldDef;
 
-        final String defaultDescription = fieldAnno != null && fieldAnno.description().length() > 0 ?
-            fieldAnno.description() :
-            jpaColumnAnno != null ?
-                "DB column '" + jpaColumnAnno.name() + "'" :
-                "";
+        final String defaultDescription = jpaColumnAnno != null ? "DB column '" + jpaColumnAnno.name() + "'" : "";
 
         final String fieldName = fieldAnno != null && fieldAnno.value().length() > 0 ? fieldAnno.value() : name;
 

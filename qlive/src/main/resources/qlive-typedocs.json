@@ -772,7 +772,7 @@
     "name":"Publish"
   },
   {
-    "description":"Abstract base class for every message QLive sends over its websocket connection, in either direction.\n\nThe set of message kinds is fixed at compile time and each kind is one subclass, dispatched by the same\nclass-name discriminator io.github.qlivedev.model.condition.CNode uses. Pub/sub is one of\nthose kinds, not the protocol itself: whatever QLive needs to say over the socket next gets a class\nbeside these rather than a second protocol.\n\nA message travels in one direction only, which is what ClientMessage and ServerMessage\nsay. PushMessageParser rejects a message read against the wrong one.",
+    "description":"Abstract base class for every message QLive sends over its websocket connection, in either direction.\n\nThe set of message kinds is fixed at compile time and each kind is one subclass, dispatched by the same\nclass-name discriminator io.github.qlivedev.qlive.model.condition.CNode uses. Pub/sub is one of\nthose kinds, not the protocol itself: whatever QLive needs to say over the socket next gets a class\nbeside these rather than a second protocol.\n\nA message travels in one direction only, which is what ClientMessage and ServerMessage\nsay. PushMessageParser rejects a message read against the wrong one.",
     "fieldDocs":[
       {
         "description":"The discriminator the JSON carries, derived from the class name. Read-only in both directions of\nthe word: there is no field behind it, and a parser must not try to set it -- it is what told the\nparser which class to build in the first place.",
@@ -792,7 +792,7 @@
     "name":"PushMessageParser"
   },
   {
-    "description":"Encapsulates the data for a /api/bootstrap call or to be embedded in the HTML document.\n\n * QLive config - QLiveConfig wrapped in a JSONHolder\n * injected data - Prepared data for the starting view based on static analysis of TypeScript sources.\n * who is asking - AppAuthentication, which is per user and so cannot live in the config, that\n   being rendered once per module and handed to everyone.\n * translations - what the frontend's i18n() translates into, per locale and so not part of the config\n   either. Wrapped in a JSONHolder of its own.\n * layouts - the named forms, see io.github.qlivedev.runtime.layout.LayoutProvider. A JSONHolder\n   too, kept per locale by the bootstrap service.",
+    "description":"Encapsulates the data for a /api/bootstrap call or to be embedded in the HTML document.\n\n * QLive config - QLiveConfig wrapped in a JSONHolder\n * injected data - Prepared data for the starting view based on static analysis of TypeScript sources.\n * who is asking - AppAuthentication, which is per user and so cannot live in the config, that\n   being rendered once per module and handed to everyone.\n * translations - what the frontend's i18n() translates into, per locale and so not part of the config\n   either. Wrapped in a JSONHolder of its own.\n * layouts - the named forms, see io.github.qlivedev.qlive.runtime.layout.LayoutProvider. A JSONHolder\n   too, kept per locale by the bootstrap service.",
     "fieldDocs":[
       {
         "description":"Who the page is being served to: login, roles and id, the last of which is what lets a client tell\nsomebody else's write from its own without asking.\n\nAnonymous is an answer and not an absence, so this is never null.",
@@ -823,7 +823,7 @@
         ]
       },
       {
-        "description":"Layout name to layout, see io.github.qlivedev.runtime.layout.LayoutProvider; null for a page that gets\nno schema.",
+        "description":"Layout name to layout, see io.github.qlivedev.qlive.runtime.layout.LayoutProvider; null for a page that gets\nno schema.",
         "name":"layouts",
         "paramDocs":[
           
@@ -837,7 +837,7 @@
         ]
       },
       {
-        "description":"Tag to translation for the page's locale, see io.github.qlivedev.runtime.i18n.TranslationService.\n\nA JSONHolder like the config, which in production is the same one for every page in that locale.",
+        "description":"Tag to translation for the page's locale, see io.github.qlivedev.qlive.runtime.i18n.TranslationService.\n\nA JSONHolder like the config, which in production is the same one for every page in that locale.",
         "name":"translations",
         "paramDocs":[
           

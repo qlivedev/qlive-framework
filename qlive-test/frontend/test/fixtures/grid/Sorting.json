@@ -14,49 +14,49 @@
     "meta": {
       "genericTypes": [
         {
-          "genericType": "io.github.qlivedev.model.QueryDocument",
+          "genericType": "io.github.qlivedev.qlive.model.QueryDocument",
           "type": "FooDocument",
           "typeParameters": [
             "Foo"
           ]
         },
         {
-          "genericType": "io.github.qlivedev.model.QueryDocument",
+          "genericType": "io.github.qlivedev.qlive.model.QueryDocument",
           "type": "BazDocument",
           "typeParameters": [
             "Baz"
           ]
         },
         {
-          "genericType": "io.github.qlivedev.model.QueryDocument",
+          "genericType": "io.github.qlivedev.qlive.model.QueryDocument",
           "type": "FooTypeDocument",
           "typeParameters": [
             "FooType"
           ]
         },
         {
-          "genericType": "io.github.qlivedev.model.QueryDocument",
+          "genericType": "io.github.qlivedev.qlive.model.QueryDocument",
           "type": "BarDocument",
           "typeParameters": [
             "Bar"
           ]
         },
         {
-          "genericType": "io.github.qlivedev.model.QueryDocument",
+          "genericType": "io.github.qlivedev.qlive.model.QueryDocument",
           "type": "AppUserDocument",
           "typeParameters": [
             "AppUser"
           ]
         },
         {
-          "genericType": "io.github.qlivedev.model.QueryDocument",
+          "genericType": "io.github.qlivedev.qlive.model.QueryDocument",
           "type": "QuuxDocument",
           "typeParameters": [
             "Quux"
           ]
         },
         {
-          "genericType": "io.github.qlivedev.model.QueryDocument",
+          "genericType": "io.github.qlivedev.qlive.model.QueryDocument",
           "type": "QuxDocument",
           "typeParameters": [
             "Qux"

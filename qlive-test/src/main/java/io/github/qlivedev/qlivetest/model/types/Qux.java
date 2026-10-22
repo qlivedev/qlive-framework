@@ -1,7 +1,7 @@
 package io.github.qlivedev.qlivetest.model.types;
 
-import io.github.qlivedev.graphql.annotation.GraphQLComputed;
-import io.github.qlivedev.graphql.annotation.GraphQLField;
+import io.github.qlivedev.qlive.api.annotation.GraphQLComputed;
+import io.github.qlivedev.qlive.api.annotation.GraphQLField;
 import jakarta.persistence.Column;
 
 ///

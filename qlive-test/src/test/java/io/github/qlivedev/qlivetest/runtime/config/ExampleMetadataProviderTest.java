@@ -1,7 +1,7 @@
 package io.github.qlivedev.qlivetest.runtime.config;
 
 import io.github.qlivedev.qlivetest.runtime.logic.QueryLogic;
-import io.github.qlivedev.graphql.meta.DomainMeta;
+import io.github.qlivedev.qlive.graphql.meta.DomainMeta;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

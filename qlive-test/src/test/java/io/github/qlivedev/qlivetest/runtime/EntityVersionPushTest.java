@@ -1,18 +1,18 @@
 package io.github.qlivedev.qlivetest.runtime;
 
-import io.github.qlivedev.model.merge.EntityChange;
-import io.github.qlivedev.model.merge.FieldChange;
-import io.github.qlivedev.model.merge.MergeConfig;
-import io.github.qlivedev.runtime.merge.EntityVersion;
-import io.github.qlivedev.runtime.merge.EntityVersionsEvent;
-import io.github.qlivedev.runtime.merge.MergeService;
-import io.github.qlivedev.runtime.merge.VersionHolder;
-import io.github.qlivedev.runtime.auth.AppAuthentication;
-import io.github.qlivedev.runtime.pubsub.EntityVersionPublisher;
-import io.github.qlivedev.runtime.pubsub.PubSubService;
-import io.github.qlivedev.runtime.push.Recipient;
-import io.github.qlivedev.graphql.generic.GenericScalar;
-import io.github.qlivedev.util.JSONUtil;
+import io.github.qlivedev.qlive.model.merge.EntityChange;
+import io.github.qlivedev.qlive.model.merge.FieldChange;
+import io.github.qlivedev.qlive.model.merge.MergeConfig;
+import io.github.qlivedev.qlive.runtime.merge.EntityVersion;
+import io.github.qlivedev.qlive.runtime.merge.EntityVersionsEvent;
+import io.github.qlivedev.qlive.runtime.merge.MergeService;
+import io.github.qlivedev.qlive.runtime.merge.VersionHolder;
+import io.github.qlivedev.qlive.runtime.auth.AppAuthentication;
+import io.github.qlivedev.qlive.runtime.pubsub.EntityVersionPublisher;
+import io.github.qlivedev.qlive.runtime.pubsub.PubSubService;
+import io.github.qlivedev.qlive.runtime.push.Recipient;
+import io.github.qlivedev.qlive.api.generic.GenericScalar;
+import io.github.qlivedev.qlive.api.json.JSONUtil;
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,9 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static io.github.qlivedev.runtime.scalar.FilterDSL.and;
-import static io.github.qlivedev.runtime.scalar.FilterDSL.field;
-import static io.github.qlivedev.runtime.scalar.FilterDSL.value;
+import static io.github.qlivedev.qlive.runtime.scalar.FilterDSL.and;
+import static io.github.qlivedev.qlive.runtime.scalar.FilterDSL.field;
+import static io.github.qlivedev.qlive.runtime.scalar.FilterDSL.value;
 import static io.github.qlivedev.qlivetest.domain.Tables.APP_VERSION;
 import static io.github.qlivedev.qlivetest.domain.Tables.BAR;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -178,7 +178,7 @@ class EntityVersionPushTest
     // -----------------------------------------------------------------------------------------------------
 
     @SuppressWarnings("unchecked")
-    private static Map<String, Object> record(io.github.qlivedev.model.push.Topic message)
+    private static Map<String, Object> record(io.github.qlivedev.qlive.model.push.Topic message)
     {
         // read back as JSON, which is the form the payload actually reaches a client in
         return (Map<String, Object>) JSONUtil.DEFAULT_PARSER.parse(
@@ -243,13 +243,13 @@ class EntityVersionPushTest
     private static final class Collecting
         implements Recipient
     {
-        private final List<io.github.qlivedev.model.push.Topic> received = new ArrayList<>();
+        private final List<io.github.qlivedev.qlive.model.push.Topic> received = new ArrayList<>();
 
 
         @Override
-        public void send(io.github.qlivedev.model.push.ServerMessage message)
+        public void send(io.github.qlivedev.qlive.model.push.ServerMessage message)
         {
-            received.add((io.github.qlivedev.model.push.Topic) message);
+            received.add((io.github.qlivedev.qlive.model.push.Topic) message);
         }
 
 

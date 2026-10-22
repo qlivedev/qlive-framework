@@ -1,8 +1,8 @@
 package io.github.qlivedev.qlivetest.runtime;
 
-import io.github.qlivedev.graphql.QLiveDomain;
-import io.github.qlivedev.runtime.query.QueryDocumentService;
-import io.github.qlivedev.runtime.service.Catalogs;
+import io.github.qlivedev.qlive.graphql.QLiveDomain;
+import io.github.qlivedev.qlive.runtime.query.QueryDocumentService;
+import io.github.qlivedev.qlive.runtime.service.Catalogs;
 import graphql.GraphQL;
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.Test;

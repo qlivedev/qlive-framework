@@ -1,11 +1,11 @@
 package io.github.qlivedev.qlivetest.runtime;
 
-import io.github.qlivedev.model.bootstrap.Injection;
-import io.github.qlivedev.graphql.util.JSONHolder;
-import io.github.qlivedev.model.bootstrap.QLiveBoostrap;
-import io.github.qlivedev.runtime.service.BootstrapService;
-import io.github.qlivedev.runtime.service.DevStaticAnalysisProvider;
-import io.github.qlivedev.runtime.service.ProdStaticAnalysisProvider;
+import io.github.qlivedev.qlive.model.bootstrap.Injection;
+import io.github.qlivedev.qlive.graphql.util.JSONHolder;
+import io.github.qlivedev.qlive.model.bootstrap.QLiveBoostrap;
+import io.github.qlivedev.qlive.runtime.service.BootstrapService;
+import io.github.qlivedev.qlive.runtime.service.DevStaticAnalysisProvider;
+import io.github.qlivedev.qlive.runtime.service.ProdStaticAnalysisProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

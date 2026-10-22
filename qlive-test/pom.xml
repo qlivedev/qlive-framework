@@ -288,8 +288,8 @@
               <forcedTypes>
                 <!-- QLive has a scalar for its own JSONB type, not for jOOQ's -->
                 <forcedType>
-                  <userType>io.github.qlivedev.graphql.jsonb.JSONB</userType>
-                  <binding>io.github.qlivedev.graphql.jsonb.PGJSONBinding</binding>
+                  <userType>io.github.qlivedev.qlive.graphql.jsonb.JSONB</userType>
+                  <binding>io.github.qlivedev.qlive.graphql.jsonb.PGJSONBinding</binding>
                   <includeTypes>jsonb</includeTypes>
                 </forcedType>
 
@@ -316,7 +316,7 @@
             </generate>
             <strategy>
               <name>
-                io.github.qlivedev.graphql.jooq.DomainObjectGeneratorStrategy
+                io.github.qlivedev.qlive.graphql.jooq.DomainObjectGeneratorStrategy
               </name>
             </strategy>
           </generator>
@@ -356,7 +356,7 @@
             </goals>
             <phase>generate-sources</phase>
             <configuration>
-              <mainClass>io.github.qlivedev.graphql.docs.DocsExtractor</mainClass>
+              <mainClass>io.github.qlivedev.qlive.graphql.docs.DocsExtractor</mainClass>
               <includePluginDependencies>true</includePluginDependencies>
               <arguments>
                 <argument>--sourceRoot</argument>

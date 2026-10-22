@@ -1,6 +1,6 @@
 package io.github.qlivedev.qlivetest.runtime.controller;
 
-import io.github.qlivedev.runtime.view.VitePageRenderer;
+import io.github.qlivedev.qlive.runtime.view.VitePageRenderer;
 import io.github.qlivedev.qlivetest.runtime.config.SecurityConfiguration;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;

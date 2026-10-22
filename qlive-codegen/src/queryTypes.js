@@ -579,7 +579,7 @@ function isQueryDocumentResult(schema, operation)
  *
  * The backend answers this from the domain's generic type registry, which a schema file does not carry.
  * What it does carry is the shape that registry produces, and QueryDocument has exactly one: the four
- * properties of io.github.qlivedev.model.QueryDocument, never more and never fewer. So the shape is
+ * properties of io.github.qlivedev.qlive.model.QueryDocument, never more and never fewer. So the shape is
  * what gets matched -- a naming convention would call an application's own "...Document" type a query
  * document and give it members its values do not have.
  *

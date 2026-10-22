@@ -694,7 +694,7 @@ against the condition (see above).
 ## The format on the server
 
 **The data format exists on the server too** (built 2026-10-21), as
-Java classes in `io.github.qlivedev.model.layout`: `Layout` and a sealed
+Java classes in `io.github.qlivedev.qlive.model.layout`: `Layout` and a sealed
 `LayoutNode` for the field, section, component and status nodes, the
 condition a `Condition`. `Layouts` holds them by name, a layout put
 under a name again replacing the one there was, and reads the

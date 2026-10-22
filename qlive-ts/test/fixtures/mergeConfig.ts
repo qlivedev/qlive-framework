@@ -246,7 +246,7 @@ export const mergeConfig: QLiveConfig = {
             {
                 type: "BarDocument",
                 typeParameters: ["Bar"],
-                genericType: "io.github.qlivedev.model.QueryDocument"
+                genericType: "io.github.qlivedev.qlive.model.QueryDocument"
             }
         ],
         relations: [

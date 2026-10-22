@@ -21,9 +21,9 @@ A logic bean is where your GraphQL methods live. Three annotations carry
 almost all of it:
 
 ```java {6, 10, 16} title='QueryAndMutationExample.java'
-import io.github.qlivedev.graphql.annotation.GraphQLLogic;
-import io.github.qlivedev.graphql.annotation.GraphQLQuery;
-import io.github.qlivedev.graphql.annotation.GraphQLMutation;
+import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
+import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
+import io.github.qlivedev.qlive.api.annotation.GraphQLMutation;
 import jakarta.validation.constraints.NotNull;
 
 @GraphQLLogic

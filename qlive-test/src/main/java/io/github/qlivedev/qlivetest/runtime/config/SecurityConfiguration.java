@@ -1,10 +1,10 @@
 package io.github.qlivedev.qlivetest.runtime.config;
 
-import io.github.qlivedev.runtime.auth.AppUserDetailsService;
-import io.github.qlivedev.runtime.auth.DefaultPersistentTokenRepository;
-import io.github.qlivedev.runtime.QLivePaths;
-import io.github.qlivedev.runtime.controller.GraphQLController;
-import io.github.qlivedev.runtime.security.GraphQLSecurityErrorHandler;
+import io.github.qlivedev.qlive.runtime.auth.AppUserDetailsService;
+import io.github.qlivedev.qlive.runtime.auth.DefaultPersistentTokenRepository;
+import io.github.qlivedev.qlive.runtime.QLivePaths;
+import io.github.qlivedev.qlive.runtime.controller.GraphQLController;
+import io.github.qlivedev.qlive.runtime.security.GraphQLSecurityErrorHandler;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.AppLogin;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.AppUser;
 import org.jooq.DSLContext;

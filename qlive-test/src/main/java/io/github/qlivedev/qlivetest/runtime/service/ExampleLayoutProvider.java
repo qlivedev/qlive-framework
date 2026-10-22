@@ -1,7 +1,7 @@
 package io.github.qlivedev.qlivetest.runtime.service;
 
-import io.github.qlivedev.model.layout.Layouts;
-import io.github.qlivedev.runtime.layout.LayoutProvider;
+import io.github.qlivedev.qlive.model.layout.Layouts;
+import io.github.qlivedev.qlive.runtime.layout.LayoutProvider;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 

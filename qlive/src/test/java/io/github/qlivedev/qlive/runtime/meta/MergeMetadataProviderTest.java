@@ -1,0 +1,221 @@
+package io.github.qlivedev.qlive.runtime.meta;
+
+import io.github.qlivedev.qlive.runtime.QLiveException;
+import io.github.qlivedev.qlive.runtime.domain.TestDomainConfig;
+import io.github.qlivedev.qlive.runtime.domain.TestLogic;
+import io.github.qlivedev.qlive.testdomain.tables.pojos.TestFoo;
+import io.github.qlivedev.qlive.testdomain.tables.pojos.TestUser;
+import io.github.qlivedev.qlive.graphql.QLiveDomain;
+import io.github.qlivedev.qlive.graphql.QLiveDomainTypeException;
+import io.github.qlivedev.qlive.graphql.meta.MetadataProvider;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+/// What a type says about merging it, from the declaration an application writes to the meta data the
+/// server and the client read it back out of. TestFoo is the test domain's versioned type, TestUser and
+/// TestFooType are not.
+class MergeMetadataProviderTest
+{
+    /// Taking part is a property of the schema, so nothing has to be declared and nothing can be forgotten.
+    @Test
+    void derivesWhichTypesTakePart()
+    {
+        final QLiveDomain domain = TestDomainConfig.domain(new TestLogic());
+
+        assertThat(MergeMeta.isVersioned(domain, "TestFoo"), is(true));
+        assertThat(MergeMeta.isVersioned(domain, "TestUser"), is(false));
+
+        // by Java type, which is how a service writing rows of a POJO has the type in hand
+        assertThat(MergeMeta.isVersioned(domain, TestFoo.class), is(true));
+        assertThat(MergeMeta.isVersioned(domain, TestUser.class), is(false));
+
+        // and a name that is no type of the domain, which is what a type name off the wire may be
+        assertThat(MergeMeta.isVersioned(domain, "NoSuchType"), is(false));
+        assertThat(MergeMeta.isVersioned(domain, Object.class), is(false));
+    }
+
+
+    @Test
+    void listsTheVersionedTypes()
+    {
+        final QLiveDomain domain = TestDomainConfig.domain(new TestLogic());
+
+        assertThat(MergeMeta.versionedTypes(domain), hasItem("TestFoo"));
+        assertThat(MergeMeta.versionedTypes(domain), not(hasItem("TestUser")));
+
+        // a query document is no entity, whatever its rows are
+        assertThat(MergeMeta.versionedTypes(domain), not(hasItem("TestFooDocument")));
+    }
+
+
+    /// The statements land in one map under one property, so that the type meta data namespace an
+    /// application extends carries one merge entry rather than three ordinary words.
+    @Test
+    void writesTheDeclarationOntoTheType()
+    {
+        final QLiveDomain domain = domainWith(
+            MergeMetadataProvider.newProvider()
+                .resolveConflicts(TestFoo.class)
+                .ignoreFields(TestFoo.class, "num", "created")
+                .autoMerge(TestFoo.class, false)
+        );
+
+        assertThat(MergeMeta.resolvesConflicts(domain, "TestFoo"), is(true));
+        assertThat(MergeMeta.isAutoMerge(domain, "TestFoo"), is(false));
+        assertThat(MergeMeta.ignoredFields(domain, "TestFoo"), contains("created", "num"));
+    }
+
+
+    /// What a type that declared nothing answers, which is what every type of an application without a
+    /// provider answers.
+    @Test
+    void answersATypeThatDeclaredNothing()
+    {
+        final QLiveDomain domain = TestDomainConfig.domain(new TestLogic());
+
+        assertThat(MergeMeta.resolvesConflicts(domain, "TestFoo"), is(false));
+        assertThat(MergeMeta.ignoredFields(domain, "TestFoo"), is(List.of()));
+
+        // the one default that is not "off": a change that does not overlap ours is merged unless the type
+        // asked to see it, because that case is what the mechanism is for
+        assertThat(MergeMeta.isAutoMerge(domain, "TestFoo"), is(true));
+
+        // and a name that is no type of the domain answers the same, rather than raising
+        assertThat(MergeMeta.resolvesConflicts(domain, "NoSuchType"), is(false));
+        assertThat(MergeMeta.isAutoMerge(domain, "NoSuchType"), is(true));
+    }
+
+
+    /// A type may be named by its GraphQL name where the application has no class for it, the way the query
+    /// config meta data may.
+    @Test
+    void declaresByTypeName()
+    {
+        final QLiveDomain domain = domainWith(
+            MergeMetadataProvider.newProvider().resolveConflicts("TestFoo")
+        );
+
+        assertThat(MergeMeta.resolvesConflicts(domain, "TestFoo"), is(true));
+    }
+
+
+    /// Reported rather than written: a type without a version column takes no part, so every declaration
+    /// would be meta data describing behavior the type can never reach -- which looks exactly like a column
+    /// somebody forgot to add.
+    @Test
+    void reportsMergeBehaviourDeclaredForAnUnversionedType()
+    {
+        for (MergeMetadataProvider provider : List.of(
+            MergeMetadataProvider.newProvider().resolveConflicts(TestUser.class),
+            MergeMetadataProvider.newProvider().autoMerge(TestUser.class, false),
+            MergeMetadataProvider.newProvider().ignoreFields(TestUser.class, "login")
+        ))
+        {
+            final QLiveException e = assertThrows(QLiveException.class, () -> domainWith(provider));
+
+            assertThat(e.getMessage(), containsString("TestUser"));
+            assertThat(e.getMessage(), containsString("version"));
+        }
+    }
+
+
+    @Test
+    void reportsATableGivenForThePojo()
+    {
+        assertThrows(
+            QLiveDomainTypeException.class,
+            () -> MergeMetadataProvider.newProvider().resolveConflicts(io.github.qlivedev.qlive.testdomain.tables.TestFoo.class)
+        );
+    }
+
+
+    @Test
+    void reportsAnIgnoredFieldTheTypeDoesNotHave()
+    {
+        final QLiveException e = assertThrows(
+            QLiveException.class,
+            () -> domainWith(
+                MergeMetadataProvider.newProvider().ignoreFields(TestFoo.class, "noSuchField")
+            )
+        );
+
+        assertThat(e.getMessage(), containsString("noSuchField"));
+    }
+
+
+    @Test
+    void reportsADeclarationForSomethingThatIsNoType()
+    {
+        final QLiveException e = assertThrows(
+            QLiveException.class,
+            () -> domainWith(MergeMetadataProvider.newProvider().resolveConflicts("NoSuchType"))
+        );
+
+        assertThat(e.getMessage(), containsString("NoSuchType"));
+    }
+
+
+    /// Several statements about one type accumulate; the same statement twice does not. It either repeats
+    /// the first or contradicts it, and only this side can tell which was meant.
+    @Test
+    void reportsAStatementMadeTwice()
+    {
+        final MergeMetadataProvider provider = MergeMetadataProvider.newProvider()
+            .resolveConflicts(TestFoo.class)
+            .ignoreFields(TestFoo.class, "num");
+
+        final QLiveException e = assertThrows(
+            QLiveException.class,
+            () -> provider.resolveConflicts(TestFoo.class)
+        );
+
+        assertThat(e.getMessage(), containsString("TestFoo"));
+    }
+
+
+    /// The same type reached both ways is the same mistake, and only the built domain can see it: which
+    /// GraphQL name a class ends up under is QLiveDomain's to decide.
+    @Test
+    void reportsATypeDeclaredByBothClassAndName()
+    {
+        final QLiveException e = assertThrows(
+            QLiveException.class,
+            () -> domainWith(
+                MergeMetadataProvider.newProvider()
+                    .resolveConflicts(TestFoo.class)
+                    .autoMerge("TestFoo", false)
+            )
+        );
+
+        assertThat(e.getMessage(), containsString("TestFoo"));
+    }
+
+
+    /// Ignoring no fields is what a type that says nothing already does, so the empty call is a mistake
+    /// rather than a way to say it.
+    @Test
+    void reportsIgnoredFieldsThatNameNoField()
+    {
+        final QLiveException e = assertThrows(
+            QLiveException.class,
+            () -> MergeMetadataProvider.newProvider().ignoreFields(TestFoo.class)
+        );
+
+        assertThat(e.getMessage(), containsString("ignore"));
+    }
+
+
+    private static QLiveDomain domainWith(MetadataProvider provider)
+    {
+        return TestDomainConfig.domain(List.of(provider), new TestLogic());
+    }
+}

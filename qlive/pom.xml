@@ -202,7 +202,7 @@
           </dependency>
         </dependencies>
         <configuration>
-          <mainClass>io.github.qlivedev.graphql.docs.DocsExtractor</mainClass>
+          <mainClass>io.github.qlivedev.qlive.graphql.docs.DocsExtractor</mainClass>
           <classpathScope>test</classpathScope>
           <includePluginDependencies>true</includePluginDependencies>
           <arguments>
@@ -211,7 +211,7 @@
 
             <!-- Documentation for QLive base models -->
             <argument>--package</argument>
-            <argument>io.github.qlivedev.model</argument>
+            <argument>io.github.qlivedev.qlive.model</argument>
 
             <argument>--output</argument>
             <argument>${project.basedir}/src/main/resources/qlive-typedocs.json</argument>
@@ -280,7 +280,7 @@
               <inputSchema>public</inputSchema>
             </database>
             <target>
-              <packageName>io.github.qlivedev.testdomain</packageName>
+              <packageName>io.github.qlivedev.qlive.testdomain</packageName>
               <directory>src/test/java</directory>
             </target>
             <generate>
@@ -294,7 +294,7 @@
             </generate>
             <strategy>
               <name>
-                io.github.qlivedev.graphql.jooq.DomainObjectGeneratorStrategy
+                io.github.qlivedev.qlive.graphql.jooq.DomainObjectGeneratorStrategy
               </name>
             </strategy>
           </generator>

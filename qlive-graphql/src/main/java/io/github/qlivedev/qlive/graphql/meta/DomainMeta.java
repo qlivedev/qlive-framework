@@ -1,0 +1,126 @@
+package io.github.qlivedev.qlive.graphql.meta;
+
+import io.github.qlivedev.qlive.graphql.GenericTypeReference;
+import io.github.qlivedev.qlive.graphql.config.ManyToManyModel;
+import io.github.qlivedev.qlive.graphql.config.RelationModel;
+import io.github.qlivedev.qlive.api.json.JSONUtil;
+import org.svenson.JSONable;
+
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+/**
+ * Schema meta data on the server-side. Basically a data map with named keys, "types" being special and containing the
+ * type meta data.
+ *
+ * @see DomainTypeMeta
+ */
+public class DomainMeta
+    implements JSONable
+{
+    private final Map<String, Object> data;
+
+    /**
+     * Name of the builtin name fields type meta
+     */
+    public final static String NAME_FIELDS = "nameFields";
+
+    /**
+     * Name of the builtin unique keys type meta
+     */
+    public final static String UNIQUE_KEYS = "uniqueKeys";
+
+    /**
+     * Name of the builtin field meta holding the maximum length of a field, from its {@code @Size(max = n)}
+     */
+    public final static String MAX_LENGTH = "maxLength";
+
+    /**
+     * Name of the builtin field meta holding the minimum length of a field, from its {@code @Size(min = n)}
+     */
+    public final static String MIN_LENGTH = "minLength";
+
+    /**
+     * Name of the builtin field meta holding the precision of a BigDecimal or BigInteger field, from its
+     * {@code @Column(precision = p)}
+     */
+    public final static String PRECISION = "precision";
+
+    /**
+     * Name of the builtin field meta holding the scale of a BigDecimal field, from its {@code @Column(scale = s)}
+     */
+    public final static String SCALE = "scale";
+
+    /**
+     * Name of the builtin relations addendum
+     */
+    public final static String RELATIONS = "relations";
+
+    /**
+     * Name of the builtin many-to-many addendum
+     */
+    public final static String MANY_TO_MANY = "manyToMany";
+
+    /**
+     * Name of the builtin generic types addendum
+     */
+    public final static String GENERIC_TYPES = "genericTypes";
+
+    public DomainMeta(Map<String, DomainTypeMeta> types)
+    {
+
+        data = new TreeMap<>();
+        addAddendum("types", types);
+    }
+
+
+    public <T> void addAddendum(String name, T object)
+    {
+        final Object existing = data.get(name);
+        if (existing != null)
+        {
+            throw new IllegalStateException("Data key '" + name + "' already set.");
+        }
+        data.put(name, object);
+    }
+
+    public DomainTypeMeta getTypeMeta(String typeName)
+    {
+        final Map<String, Object> typesMap = (Map<String, Object>) data.get("types");
+        final DomainTypeMeta domainTypeMeta = (DomainTypeMeta) typesMap.get(typeName);
+        if (domainTypeMeta == null)
+        {
+            throw new IllegalStateException("Invalid type '" + typeName + "'");
+        }
+        return domainTypeMeta;
+    }
+
+
+    public Map<String, Object> getData()
+    {
+        return data;
+    }
+
+
+    public List<RelationModel> getRelationModels()
+    {
+        return (List<RelationModel>) data.get(RELATIONS);
+    }
+
+    public List<ManyToManyModel> getManyToManyModels()
+    {
+        return (List<ManyToManyModel>) data.get(MANY_TO_MANY);
+    }
+
+    public List<GenericTypeReference> getGenericTypes()
+    {
+        return (List<GenericTypeReference>) data.get(GENERIC_TYPES);
+    }
+
+    @Override
+    public String toJSON()
+    {
+        return JSONUtil.DEFAULT_GENERATOR.forValue(data);
+    }
+}

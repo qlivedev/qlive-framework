@@ -363,7 +363,7 @@ An action can serve several views, and several queries can satisfy it.
 ## The model
 
 **The action model is a set of Java classes** in
-`io.github.qlivedev.model.action`, built from the methods at startup:
+`io.github.qlivedev.qlive.model.action`, built from the methods at startup:
 name, parameters with their kinds and types, rules, result type. It is
 data, which is what reaches the browser, and what another source, an
 editor or files, would produce; none is planned, since the developers

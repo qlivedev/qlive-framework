@@ -1,11 +1,11 @@
 package io.github.qlivedev.qlivetest.runtime.config;
 
-import io.github.qlivedev.graphql.QLiveDomain;
-import io.github.qlivedev.runtime.query.QueryDocumentService;
-import io.github.qlivedev.runtime.service.BootstrapService;
-import io.github.qlivedev.runtime.controller.RelatedRowsController;
-import io.github.qlivedev.runtime.controller.ViteIndexController;
-import io.github.qlivedev.runtime.view.VitePageRenderer;
+import io.github.qlivedev.qlive.graphql.QLiveDomain;
+import io.github.qlivedev.qlive.runtime.query.QueryDocumentService;
+import io.github.qlivedev.qlive.runtime.service.BootstrapService;
+import io.github.qlivedev.qlive.runtime.controller.RelatedRowsController;
+import io.github.qlivedev.qlive.runtime.controller.ViteIndexController;
+import io.github.qlivedev.qlive.runtime.view.VitePageRenderer;
 import io.github.qlivedev.qlivetest.runtime.controller.LoginController;
 import graphql.GraphQL;
 import org.springframework.context.annotation.Bean;

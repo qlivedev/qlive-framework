@@ -1,6 +1,6 @@
 package io.github.qlivedev.qlivetest.runtime;
 
-import io.github.qlivedev.runtime.config.QLiveConfiguration;
+import io.github.qlivedev.qlive.runtime.config.QLiveConfiguration;
 import io.github.qlivedev.qlivetest.runtime.config.DevConfiguration;
 import io.github.qlivedev.qlivetest.runtime.config.QLiveDomainConfiguration;
 import io.github.qlivedev.qlivetest.runtime.config.JOQQConfiguration;

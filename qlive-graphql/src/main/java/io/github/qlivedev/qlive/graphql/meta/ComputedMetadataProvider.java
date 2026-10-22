@@ -1,0 +1,61 @@
+package io.github.qlivedev.qlive.graphql.meta;
+
+import io.github.qlivedev.qlive.graphql.PojoTypes;
+import io.github.qlivedev.qlive.graphql.QLiveDomain;
+import io.github.qlivedev.qlive.graphql.OutputType;
+import io.github.qlivedev.qlive.api.annotation.GraphQLComputed;
+import io.github.qlivedev.qlive.api.json.JSONUtil;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLNamedType;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLSchema;
+import org.svenson.info.JSONClassInfo;
+import org.svenson.info.JSONPropertyInfo;
+
+public class ComputedMetadataProvider
+    implements MetadataProvider
+{
+    private static final String COMPUTED = "computed";
+
+    @Override
+    public void provideMetaData(QLiveDomain domain, DomainMeta meta)
+    {
+        final GraphQLSchema graphQLSchema = domain.getGraphQLSchema();
+
+        for (GraphQLNamedType namedType : graphQLSchema.getTypeMap().values())
+        {
+            if (namedType instanceof GraphQLObjectType)
+            {
+                final String typeName = namedType.getName();
+                final OutputType outputType = domain.getTypeRegistry().lookup(typeName);
+
+                if (outputType != null)
+                {
+                    final JSONClassInfo classInfo = JSONUtil.getClassInfo(outputType.getJavaType());
+                    final DomainTypeMeta typeMeta = meta.getTypeMeta(typeName);
+
+                    for (JSONPropertyInfo propertyInfo : classInfo.getPropertyInfos())
+                    {
+                        if (!PojoTypes.isNormalProperty(propertyInfo))
+                        {
+                            continue;
+                        }
+                        final GraphQLComputed computedAnno = JSONUtil.findAnnotation(propertyInfo, GraphQLComputed.class);
+                        if (computedAnno != null)
+                        {
+                            final String fieldName = propertyInfo.getJsonName();
+                            final GraphQLFieldDefinition fieldDef =
+                                ((GraphQLObjectType) namedType).getFieldDefinition(
+                                fieldName);
+
+                            if (fieldDef != null)
+                            {
+                                typeMeta.setFieldMeta(fieldName, COMPUTED, Boolean.TRUE);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -48,7 +48,7 @@ type TestFoo {
     type: String!
 }
 
-"Generated for io.github.qlivedev.model.QueryDocument<TestFoo>"
+"Generated for io.github.qlivedev.qlive.model.QueryDocument<TestFoo>"
 type TestFooDocument {
     config: QueryConfig!
     rowCount: Int
@@ -84,7 +84,7 @@ type TestUser {
     testFoos: [TestFoo]!
 }
 
-"Generated for io.github.qlivedev.model.QueryDocument<TestUser>"
+"Generated for io.github.qlivedev.qlive.model.QueryDocument<TestUser>"
 type TestUserDocument {
     config: QueryConfig!
     rowCount: Int

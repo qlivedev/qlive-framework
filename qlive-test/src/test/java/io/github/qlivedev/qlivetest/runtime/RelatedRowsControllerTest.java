@@ -1,7 +1,7 @@
 package io.github.qlivedev.qlivetest.runtime;
 
-import io.github.qlivedev.runtime.QLiveException;
-import io.github.qlivedev.runtime.controller.RelatedRowsController;
+import io.github.qlivedev.qlive.runtime.QLiveException;
+import io.github.qlivedev.qlive.runtime.controller.RelatedRowsController;
 import org.jooq.DSLContext;
 import org.jooq.Record2;
 import org.junit.jupiter.api.Test;

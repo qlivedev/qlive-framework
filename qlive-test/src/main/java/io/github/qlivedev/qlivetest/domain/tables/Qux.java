@@ -4,8 +4,8 @@
 package io.github.qlivedev.qlivetest.domain.tables;
 
 
-import io.github.qlivedev.graphql.jsonb.JSONB;
-import io.github.qlivedev.graphql.jsonb.PGJSONBinding;
+import io.github.qlivedev.qlive.graphql.jsonb.JSONB;
+import io.github.qlivedev.qlive.graphql.jsonb.PGJSONBinding;
 import io.github.qlivedev.qlivetest.domain.Keys;
 import io.github.qlivedev.qlivetest.domain.Public;
 import io.github.qlivedev.qlivetest.domain.tables.records.QuxRecord;

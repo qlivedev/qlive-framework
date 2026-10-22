@@ -1,9 +1,9 @@
 package io.github.qlivedev.qlivetest.runtime.config;
 
-import io.github.qlivedev.runtime.controller.GraphQLController;
-import io.github.qlivedev.runtime.controller.TrackUsageDevController;
-import io.github.qlivedev.runtime.service.DevStaticAnalysisProvider;
-import io.github.qlivedev.runtime.service.ProdStaticAnalysisProvider;
+import io.github.qlivedev.qlive.runtime.controller.GraphQLController;
+import io.github.qlivedev.qlive.runtime.controller.TrackUsageDevController;
+import io.github.qlivedev.qlive.runtime.service.DevStaticAnalysisProvider;
+import io.github.qlivedev.qlive.runtime.service.ProdStaticAnalysisProvider;
 import graphql.GraphQL;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

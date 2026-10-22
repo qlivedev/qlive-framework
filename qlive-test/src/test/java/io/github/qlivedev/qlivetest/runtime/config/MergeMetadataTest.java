@@ -1,12 +1,12 @@
 package io.github.qlivedev.qlivetest.runtime.config;
 
-import io.github.qlivedev.runtime.meta.MergeMeta;
-import io.github.qlivedev.runtime.meta.MergeMetadataProvider;
+import io.github.qlivedev.qlive.runtime.meta.MergeMeta;
+import io.github.qlivedev.qlive.runtime.meta.MergeMetadataProvider;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Bar;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Baz;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Foo;
 import io.github.qlivedev.qlivetest.runtime.logic.QueryLogic;
-import io.github.qlivedev.graphql.QLiveDomain;
+import io.github.qlivedev.qlive.graphql.QLiveDomain;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

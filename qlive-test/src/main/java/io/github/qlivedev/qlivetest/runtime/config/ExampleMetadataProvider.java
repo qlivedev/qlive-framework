@@ -1,8 +1,8 @@
 package io.github.qlivedev.qlivetest.runtime.config;
 
-import io.github.qlivedev.graphql.QLiveDomain;
-import io.github.qlivedev.graphql.meta.DomainMeta;
-import io.github.qlivedev.graphql.meta.MetadataProvider;
+import io.github.qlivedev.qlive.graphql.QLiveDomain;
+import io.github.qlivedev.qlive.graphql.meta.DomainMeta;
+import io.github.qlivedev.qlive.graphql.meta.MetadataProvider;
 import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLObjectType;
 

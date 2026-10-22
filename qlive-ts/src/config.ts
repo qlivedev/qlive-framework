@@ -13,7 +13,7 @@ import DefaultErrorView, {ErrorViewProps} from "./component/ErrorView";
 /**
  * Meta-information about types that are generic types on the Java side.
  *
- * For example, io.github.qlivedev.model.QueryDocument<T> is the generic Java class for query documents. In the GraphQL
+ * For example, io.github.qlivedev.qlive.model.QueryDocument<T> is the generic Java class for query documents. In the GraphQL
  * world, the same type is called FooDocument with Foo replacing the generic T.
  */
 export type GenericTypeInfo = {
@@ -28,7 +28,7 @@ export type GenericTypeInfo = {
     /**
      * Full-qualified Java class name of the original generic class. Mostly useful as constant in the TS world
      */
-    genericType: "io.github.qlivedev.model.QueryDocument" | string
+    genericType: "io.github.qlivedev.qlive.model.QueryDocument" | string
 }
 
 /**
@@ -390,7 +390,7 @@ export type QLiveConfig = {
  * Domain meta information from the server.
  *
  * Declared as an interface, not a type alias, so that an application can extend it. The server-side
- * io.github.qlivedev.graphql.meta.DomainMeta is an open map that every MetadataProvider bean adds its own addenda to,
+ * io.github.qlivedev.qlive.graphql.meta.DomainMeta is an open map that every MetadataProvider bean adds its own addenda to,
  * and declaration merging is the client-side equivalent: name the addenda your providers write once and they are
  * typed at every place the application reads config().meta.
  *
@@ -618,7 +618,7 @@ function initializeDerivedConfig(theConfig: QLiveConfig)
 
     theConfig.queryDocumentTypes = new Set<string>(
         theConfig.meta.genericTypes
-            .filter(gt => gt.genericType === "io.github.qlivedev.model.QueryDocument")
+            .filter(gt => gt.genericType === "io.github.qlivedev.qlive.model.QueryDocument")
             .map(gt => gt.type)
     )
 }

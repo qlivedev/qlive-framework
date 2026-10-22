@@ -1,11 +1,11 @@
 package io.github.qlivedev.qlivetest.runtime.logic;
 
-import io.github.qlivedev.graphql.annotation.GraphQLLogic;
-import io.github.qlivedev.graphql.annotation.GraphQLQuery;
-import io.github.qlivedev.graphql.annotation.GraphQLTypeParam;
-import io.github.qlivedev.model.QueryConfig;
-import io.github.qlivedev.model.QueryDocument;
-import io.github.qlivedev.runtime.query.QueryDocumentService;
+import io.github.qlivedev.qlive.api.annotation.GraphQLLogic;
+import io.github.qlivedev.qlive.api.annotation.GraphQLQuery;
+import io.github.qlivedev.qlive.api.annotation.GraphQLTypeParam;
+import io.github.qlivedev.qlive.model.QueryConfig;
+import io.github.qlivedev.qlive.model.QueryDocument;
+import io.github.qlivedev.qlive.runtime.query.QueryDocumentService;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.AppUser;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Bar;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Baz;

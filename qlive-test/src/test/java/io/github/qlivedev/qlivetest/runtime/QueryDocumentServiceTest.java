@@ -1,6 +1,6 @@
 package io.github.qlivedev.qlivetest.runtime;
 
-import io.github.qlivedev.graphql.scalar.TimestampScalar;
+import io.github.qlivedev.qlive.graphql.scalar.TimestampScalar;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;

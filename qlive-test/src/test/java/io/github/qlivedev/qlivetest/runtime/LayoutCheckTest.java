@@ -1,16 +1,16 @@
 package io.github.qlivedev.qlivetest.runtime;
 
-import io.github.qlivedev.graphql.QLiveDomain;
-import io.github.qlivedev.model.condition.Condition;
-import io.github.qlivedev.model.condition.FieldReference;
-import io.github.qlivedev.model.condition.Value;
-import io.github.qlivedev.model.layout.Layout;
-import io.github.qlivedev.model.layout.LayoutFieldNode;
-import io.github.qlivedev.model.layout.LayoutNode;
-import io.github.qlivedev.model.layout.LayoutSectionNode;
-import io.github.qlivedev.model.layout.Layouts;
-import io.github.qlivedev.runtime.QLiveException;
-import io.github.qlivedev.runtime.layout.LayoutCheck;
+import io.github.qlivedev.qlive.graphql.QLiveDomain;
+import io.github.qlivedev.qlive.model.condition.Condition;
+import io.github.qlivedev.qlive.model.condition.FieldReference;
+import io.github.qlivedev.qlive.model.condition.Value;
+import io.github.qlivedev.qlive.model.layout.Layout;
+import io.github.qlivedev.qlive.model.layout.LayoutFieldNode;
+import io.github.qlivedev.qlive.model.layout.LayoutNode;
+import io.github.qlivedev.qlive.model.layout.LayoutSectionNode;
+import io.github.qlivedev.qlive.model.layout.Layouts;
+import io.github.qlivedev.qlive.runtime.QLiveException;
+import io.github.qlivedev.qlive.runtime.layout.LayoutCheck;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

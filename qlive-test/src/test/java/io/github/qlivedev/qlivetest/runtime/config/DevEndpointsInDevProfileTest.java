@@ -1,7 +1,7 @@
 package io.github.qlivedev.qlivetest.runtime.config;
 
-import io.github.qlivedev.runtime.controller.GraphQLController;
-import io.github.qlivedev.runtime.controller.TrackUsageDevController;
+import io.github.qlivedev.qlive.runtime.controller.GraphQLController;
+import io.github.qlivedev.qlive.runtime.controller.TrackUsageDevController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

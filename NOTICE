@@ -7,9 +7,10 @@ This product derived in parts from software developed at Quinscape GmbH.
 DomainQL
 --------
 
-The packages io.github.qlivedev.graphql.* in qlive-api and qlive-graphql
-are derived from DomainQL, Copyright 2018 Quinscape GmbH, licensed under
-the Apache License, Version 2.0.
+The packages io.github.qlivedev.qlive.graphql.* in qlive-graphql and
+io.github.qlivedev.qlive.api.* in qlive-api, apart from
+io.github.qlivedev.qlive.api.json, are derived from DomainQL, Copyright
+2018 Quinscape GmbH, licensed under the Apache License, Version 2.0.
 
     https://github.com/quinscape/domainql
 
@@ -21,12 +22,13 @@ claims, and a null jsonb column deserializing as null.
 
 Changed from that commit:
 
-  - repackaged from de.quinscape.domainql.* to io.github.qlivedev.graphql.*
-  - split across two Maven modules, qlive-api and qlive-graphql
+  - repackaged from de.quinscape.domainql.* and split across two Maven
+    modules: io.github.qlivedev.qlive.api.* in qlive-api and
+    io.github.qlivedev.qlive.graphql.* in qlive-graphql
   - the DDL generation subsystem and its command line removed, along with
     the model and schema packages that only served it
   - the dependency on de.quinscape:spring-jsview replaced by QLive's own
-    io.github.qlivedev.util.JSONUtil
+    io.github.qlivedev.qlive.api.json.JSONUtil
   - built against graphql-java 25, jOOQ 3.19 and jakarta.servlet, where
     the original used graphql-java 20, jOOQ 3.17 and javax.servlet
   - GraphQL subscription support dropped; QLive pushes over its own
@@ -63,9 +65,9 @@ Changed from that commit:
 spring-jsview
 -------------
 
-io.github.qlivedev.util.JSONUtil in qlive-api is derived from the class of
-the same name in spring-jsview, Copyright Quinscape GmbH, licensed under
-the Apache License, Version 2.0.
+io.github.qlivedev.qlive.api.json.JSONUtil in qlive-api is derived from
+the class of the same name in spring-jsview, Copyright Quinscape GmbH,
+licensed under the Apache License, Version 2.0.
 
     https://github.com/quinscape/spring-jsview
 

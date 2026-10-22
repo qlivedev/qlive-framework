@@ -1,14 +1,14 @@
 package io.github.qlivedev.qlivetest.runtime;
 
-import io.github.qlivedev.model.push.PushMessageParser;
-import io.github.qlivedev.model.push.ServerMessage;
-import io.github.qlivedev.model.push.Subscribe;
-import io.github.qlivedev.model.push.Subscribed;
-import io.github.qlivedev.runtime.QLivePaths;
-import io.github.qlivedev.runtime.pubsub.PubSubService;
-import io.github.qlivedev.runtime.service.DevStaticAnalysisProvider;
-import io.github.qlivedev.runtime.service.ProdStaticAnalysisProvider;
-import io.github.qlivedev.util.JSONUtil;
+import io.github.qlivedev.qlive.model.push.PushMessageParser;
+import io.github.qlivedev.qlive.model.push.ServerMessage;
+import io.github.qlivedev.qlive.model.push.Subscribe;
+import io.github.qlivedev.qlive.model.push.Subscribed;
+import io.github.qlivedev.qlive.runtime.QLivePaths;
+import io.github.qlivedev.qlive.runtime.pubsub.PubSubService;
+import io.github.qlivedev.qlive.runtime.service.DevStaticAnalysisProvider;
+import io.github.qlivedev.qlive.runtime.service.ProdStaticAnalysisProvider;
+import io.github.qlivedev.qlive.api.json.JSONUtil;
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -178,8 +178,8 @@ class PushWebSocketTest
 
             pubSub.publish(TOPIC, new Note("hello", "kim"));
 
-            final io.github.qlivedev.model.push.Topic message =
-                (io.github.qlivedev.model.push.Topic) client.next();
+            final io.github.qlivedev.qlive.model.push.Topic message =
+                (io.github.qlivedev.qlive.model.push.Topic) client.next();
 
             assertThat(message.getTopic(), is(TOPIC));
             assertThat(message.getIds(), contains("s1"));
@@ -240,7 +240,7 @@ class PushWebSocketTest
 
 
     @SuppressWarnings("unchecked")
-    private static Map<String, Object> payload(io.github.qlivedev.model.push.Topic message)
+    private static Map<String, Object> payload(io.github.qlivedev.qlive.model.push.Topic message)
     {
         return (Map<String, Object>) message.getPayload();
     }

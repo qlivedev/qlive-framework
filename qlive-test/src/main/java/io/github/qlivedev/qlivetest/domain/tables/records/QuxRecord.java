@@ -4,7 +4,7 @@
 package io.github.qlivedev.qlivetest.domain.tables.records;
 
 
-import io.github.qlivedev.graphql.jsonb.JSONB;
+import io.github.qlivedev.qlive.graphql.jsonb.JSONB;
 import io.github.qlivedev.qlivetest.domain.tables.Qux;
 
 import jakarta.persistence.Column;

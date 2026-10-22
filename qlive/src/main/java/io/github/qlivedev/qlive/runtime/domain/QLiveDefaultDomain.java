@@ -1,0 +1,82 @@
+package io.github.qlivedev.qlive.runtime.domain;
+
+import io.github.qlivedev.qlive.graphql.QLiveDomain;
+import io.github.qlivedev.qlive.graphql.QLiveDomainBuilder;
+import io.github.qlivedev.qlive.api.generic.DomainObject;
+import io.github.qlivedev.qlive.graphql.generic.DomainObjectScalar;
+import io.github.qlivedev.qlive.api.generic.GenericScalar;
+import io.github.qlivedev.qlive.graphql.generic.GenericScalarType;
+import io.github.qlivedev.qlive.graphql.jsonb.JSONB;
+import io.github.qlivedev.qlive.graphql.jsonb.JSONBScalar;
+import io.github.qlivedev.qlive.graphql.meta.MetadataProvider;
+import io.github.qlivedev.qlive.graphql.scalar.BigDecimalScalar;
+import io.github.qlivedev.qlive.graphql.scalar.BigIntegerScalar;
+import io.github.qlivedev.qlive.model.QueryConfig;
+import io.github.qlivedev.qlive.runtime.scalar.ComputedValueCoercing;
+import io.github.qlivedev.qlive.runtime.scalar.ComputedValue;
+import io.github.qlivedev.qlive.runtime.scalar.ConditionScalar;
+import io.github.qlivedev.qlive.runtime.scalar.ConditionType;
+import io.github.qlivedev.qlive.runtime.scalar.FieldExpressionScalar;
+import io.github.qlivedev.qlive.runtime.scalar.FieldExpressionType;
+import io.github.qlivedev.qlive.runtime.scalar.QueryConfigCoercing;
+import graphql.schema.GraphQLScalarType;
+import org.jooq.DSLContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Collection;
+
+/**
+ * The default set of scalar registrations a QLive application starts from.
+ *
+ * An application that wants a different set replaces this class rather than customizing it.
+ */
+public class QLiveDefaultDomain
+{
+    private final static Logger log = LoggerFactory.getLogger(QLiveDefaultDomain.class);
+
+    public static QLiveDomainBuilder newDomain(
+        DSLContext dslContext,
+        Collection<MetadataProvider> metadataProviders
+    )
+    {
+        log.debug("Creating automaton domain: metadataProviders = {}", metadataProviders);
+
+        return QLiveDomainBuilder.newDomain(dslContext)
+            .withAdditionalScalar(DomainObject.class, DomainObjectScalar.newDomainObjectScalar())
+            .withAdditionalScalar(JSONB.class, JSONBScalar.newScalar())
+            .withAdditionalScalar(ConditionScalar.class, ConditionType.newConditionType())
+            .withAdditionalScalar(FieldExpressionScalar.class, FieldExpressionType.newFieldExpressionType())
+            .withAdditionalScalar(GenericScalar.class, GenericScalarType.newGenericScalar())
+            .withAdditionalScalar(BigDecimal.class, BigDecimalScalar.newScalar())
+            .withAdditionalScalar(BigInteger.class, BigIntegerScalar.newScalar())
+
+            .withAdditionalScalar(
+                QueryConfig.class,
+                GraphQLScalarType.newScalar()
+                    .name("QueryConfig")
+                    .description("Generalized query configuration")
+                    .coercing(
+                        new QueryConfigCoercing()
+                    )
+                    .build()
+            )
+
+            .withAdditionalScalar(
+                ComputedValue.class,
+                GraphQLScalarType.newScalar()
+                    .name("ComputedValue")
+                    .description("Encapsulates a dynamically evaluated FilterDSL value")
+                    .coercing(
+                        new ComputedValueCoercing()
+                    )
+                    .build()
+            )
+
+            .withMetadataProviders(
+                metadataProviders.toArray(new MetadataProvider[0])
+            );
+    }
+}

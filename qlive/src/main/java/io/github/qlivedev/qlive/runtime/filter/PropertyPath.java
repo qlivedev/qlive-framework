@@ -32,7 +32,7 @@ import java.util.Map;
 /// is not declared -- a collection with no element type, a map's values -- validation stops there and the
 /// remaining segments are whatever the object turns out to hold. Nothing is enforced at read time: the
 /// declared class decides which paths compile, never which objects may be read.
-final class PropertyPath
+public final class PropertyPath
 {
     private final String path;
 
@@ -54,7 +54,7 @@ final class PropertyPath
     ///
     /// @throws QLiveException   if a segment names no property of the type it is read from, or crosses a
     ///                          to-many relation without saying which element
-    static PropertyPath compile(String path, Class<?> declaredType)
+    public static PropertyPath compile(String path, Class<?> declaredType)
     {
         if (path == null || path.isEmpty())
         {
@@ -128,7 +128,7 @@ final class PropertyPath
     ///
     /// @return the value the path reaches, or `null` for a path that runs out part way -- an unpopulated
     ///         relation, a collection shorter than the index, a property the payload does not have
-    Object read(Object payload)
+    public Object read(Object payload)
     {
         Object current = payload;
 

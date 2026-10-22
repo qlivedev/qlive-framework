@@ -1,5 +1,6 @@
 package io.github.qlivedev.qlive.runtime.config;
 
+import io.github.qlivedev.qlive.runtime.action.DefaultActionExecutor;
 import io.github.qlivedev.qlive.runtime.merge.DefaultFieldSetService;
 import io.github.qlivedev.qlive.runtime.merge.DefaultMergeService;
 import io.github.qlivedev.qlive.runtime.merge.DefaultVersionHolder;
@@ -45,6 +46,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
@@ -184,6 +186,20 @@ public class QLiveConfiguration
     )
     {
         return new DefaultMergeService(domain, dslContext, fieldSetService, versionService);
+    }
+
+
+    /// Runs the domain's `@QLiveAction` methods: the transaction, the subjects' rows and versions, the rules. Its
+    /// construction creates and checks every action's rules, so a broken rule fails the application's startup.
+    @Bean
+    public DefaultActionExecutor actionExecutor(
+        QLiveDomain domain,
+        DSLContext dslContext,
+        QueryDocumentService queryDocumentService,
+        PlatformTransactionManager transactionManager
+    )
+    {
+        return new DefaultActionExecutor(domain, dslContext, queryDocumentService, transactionManager);
     }
 
 

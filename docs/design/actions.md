@@ -2,7 +2,8 @@
 
 Status: concept settled, details open. Written 2026-10-18, revised
 2026-10-22 to define actions as GraphQL mutations declared by Java
-methods. Not built. The companion concept is `layouts.md`.
+methods. The server path is built (see "What is built"); the client
+side is not. The companion concept is `layouts.md`.
 
 What a user does to stored data beyond editing it: approve, close,
 send. Editing is the merge. An action is something the application
@@ -112,7 +113,9 @@ converts values by those scalars. An enum becomes a GraphQL enum type.
 parameter would take a whole `BarInput`, an action's takes the id and
 the version of the row, and `List<Bar>` a list of them. The framework
 loads the rows and passes them to the method (see "Issuing an action").
-The shape and the name of the reference input type are open.
+All subject types share one reference type, `SubjectRefInput { id:
+String!, version: String }`: ids travel as strings, as they do in the
+merge's `EntityChange`, and the id column's type converts them.
 
 **Required input is marked `@NotNull`**, as on any logic method: the
 argument is non-null in the schema, and GraphQL refuses a request that
@@ -135,11 +138,14 @@ from the action to them. Bean Validation does the same with
 are the closest prior art for rules over a method's parameters as a
 whole.
 
-**A rule class is a factory.** It implements a QLive interface, is
+**A rule class is a factory.** It implements `RuleFactory`, is
 public, static nested or top-level, with a no-arg constructor, and the
-framework instantiates it itself. Its one method gets a context and
-returns a `Rule`: a FilterDSL condition, the blamed field, the message
-key and the optional error class. The context hands out the references
+framework instantiates it itself. Its one method gets a `RuleContext`
+and returns a `Rule`: a FilterDSL condition, the blamed field, the
+message key and the optional error class. All three live in
+`io.github.qlivedev.qlive.runtime.action`, next to the condition model
+they need, which qlive-api can't see; that is also why `@Rules` takes
+`Class<?>[]` and the interface is checked at startup. The context hands out the references
 the condition reads, and since it knows the method's parameters, a path
 naming no parameter or no field fails right where the factory asks for
 it, at startup, naming the action and the rule class.
@@ -153,6 +159,10 @@ rule over `bar` and `comment` belongs to neither.
 **A rule class can serve several actions** whose parameters share the
 names it uses, such as `approveBar` and a bulk `approveBars`. Its
 paths are checked against each action it is named on.
+
+**A rule holds where its condition is true.** False refuses, and so
+does SQL's unknown: the database is asked which subject rows the
+condition holds for, and a comparison with a null column is no proof.
 
 **References are not declared.** The paths the rules read are the
 references: they fix which stored rows take part and how deep, the way
@@ -187,6 +197,10 @@ A rule reading the stored fields of two subjects has no single anchor,
 and binding one side fails where neither is a single row: "every
 `bars.num` below some `bazs.limit`". How such a rule is evaluated is
 open (see "Open items").
+
+A rule reading no stored field at all, `notify` and `comment`, is
+evaluated in memory on the server, by the backend pub/sub filters use
+(`FilterTransformer`).
 
 In the browser the distinction doesn't exist: everything, drafts
 included, is evaluated in memory.
@@ -227,11 +241,17 @@ The method's result is the mutation's data.
 
 ### Refusal
 
-**A refusal is an exception.** The framework catches it around the
-method and turns it into GraphQL errors, one per broken rule, each with
-the rule's message key, the blamed field's path or none, and the rule's
-error class if it has one (see "The early check on the client"). A
-version conflict is a refusal with a code of its own. The method may
+**A refusal is an exception**, `ActionRefusedException` in
+`io.github.qlivedev.qlive.api.action`, carrying one `Refusal` per
+reason. The framework catches it around the method and turns it into
+GraphQL errors, one per broken rule. Each error's message is the
+message key, and its extensions hold `code`, `messageKey`, `field` (the
+blamed path or null) and `errorClass` (see "The early check on the
+client"). The code is `RULE` for a broken rule. A version conflict is a
+refusal with a code of its own, `CONFLICT`, blaming the subject
+(`bar`, `bars.2`), with the key `Action.subjectChanged`, or
+`Action.subjectGone` for a row that no longer exists. A row of a list
+subject is blamed by its position: `bars.2.description`. The method may
 throw the same exception itself, for a check no rule can express, so
 the client sees one kind of refusal whatever produced it.
 
@@ -446,6 +466,29 @@ was the first, and stopped fitting once paths start at any parameter;
 "target" is a relation's target type, "operand" a condition's, and
 "entity" is taken by the merge (`EntityChange`).
 
+## What is built
+
+The server path, 2026-10-22: `@QLiveAction` and `@Rules` scanned by
+`LogicBeanAnalyzer`, subject arguments as `SubjectRefInput`, and
+`DefaultActionExecutor`, a bean of `QLiveConfiguration`, which creates
+and checks every rule at startup and runs each action in one
+repeatable-read transaction: subjects loaded and version-checked,
+rules evaluated, method called. `BarLogic` in qlive-test has
+`approveBar` and the bulk `approveBars`, covered by `ActionTest`.
+
+Not built yet:
+
+- **The reached-versions argument.** Only the subjects' versions are
+  checked.
+- **Rules over two subjects' stored fields** fail at startup (see
+  "Open items").
+- **The merge joining the action's transaction.** `MergeService`
+  opens a transaction of its own, so a method writing through it today
+  commits that write whatever happens after it.
+- **The cleanup hook**, the action model and its delivery in the
+  bootstrap, and everything on the client: the issuing function, the
+  generated `Actions` map, the early check.
+
 ## Considered and set aside
 
 - **A use case bound to the working set**, carrying an entity shape,
@@ -481,8 +524,6 @@ was the first, and stopped fitting once paths start at any parameter;
   with the other bound, which fails where neither is a single row, or
   evaluated in memory over the rows the server loads anyway, which meets
   the positional and relational readings of a to-many path.
-- **The subject reference input**: one type per subject type, since ids
-  may differ in scalar, or one shared type; and its name.
 - **The reached-versions argument**: its name, and its type of
   `(type, id, version)` entries.
 - **Replacing an action on purpose**, shelved (2026-10-22). A module
@@ -498,9 +539,11 @@ was the first, and stopped fitting once paths start at any parameter;
   the action's input, with input paths starting at `input.`. With
   parameters as the namespace, which subject a form's row is, and how
   its paths name the input parameters.
-- **The refusal exception**: its name and API, the error codes for a
-  broken rule and a conflict, and how errors reach fields on the
-  client.
+- **Refusals on the client**: how errors reach fields, and the
+  response status. The GraphQL endpoint answers any response with
+  errors with 500, a refusal included, and the client rejects it as a
+  `GraphQLResponseError` and logs it as an error, though it is a normal
+  outcome.
 - **What the early check reaches**: only what the form loaded, or the
   action's paths added to what a form over it loads.
 - **The cleanup mechanism**: presumably a callback after the rollback,

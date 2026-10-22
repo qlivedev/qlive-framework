@@ -165,6 +165,7 @@ also answers part of the open item on the endpoint's response.
 `E` the input and `R` the result. The framework goes through the defined
 actions and asks the implementations which one handles each.
 
+**Two implementations claiming one action** fail at startup.
 **A missing implementation** is an error at startup in production. In
 dev, the action gets a stand-in that logs that it was invoked, with the
 data it was invoked with.
@@ -225,24 +226,46 @@ type-safe through jOOQ references. The implementation interface is `Action<E, R>
 goes to what application code implements.
 
 **Providers are Spring beans** implementing an `ActionProvider`
-interface. The builder is the one implementation planned. Definitions
-from elsewhere, an editor or files, would be another implementation of
-the same interface; none is planned, since the developers who write the
-server code are the ones defining actions. The framework injects all
-providers as a list, merges what they provide, and fails at startup on a
-name defined twice.
+interface in `io.github.qlivedev.runtime.action`, next to the check,
+as `LayoutProvider` and `LayoutCheck` sit in `runtime.layout`. The
+builder is the one implementation planned. Definitions from elsewhere,
+an editor or files, would be another implementation of the same
+interface; none is planned, since the developers who write the server
+code are the ones defining actions. The framework injects all providers
+as a list and merges what they provide.
+
+**A name defined twice fails at startup**, naming both providers.
+Layouts went the other way: a later source replaces a layout of the
+same name, as the application patches a server layout. That suits
+presentation. For an action it would let the order providers load in
+decide which rules the server enforces, so that importing one more
+configuration could weaken an approval unnoticed. Replacing an action on
+purpose, as an application tightening a module's action would, is
+shelved (see "Open items").
 
 **The model holds no functions.** A code rule or a cleanup hook is
 referenced by name and registered under it. The model reaches the
 browser, which can only evaluate rules that are data, and any future
 provider would produce the same classes.
 
-**Everything is built and validated at Spring context startup**,
-against the domain: an unknown type, field or relation fails.
+**Everything is built and validated once, at Spring context startup**,
+against the domain: an unknown type, field or relation fails. Layouts
+are built anew after `flushCache()`; actions are not, for three reasons.
+They have no locale, since their rules carry message keys the client
+translates. They are bound to code: implementations are matched, input
+shapes checked against `E` and dev stand-ins set up at startup, and
+redoing that would move failures from startup into a running
+application. And they are enforced, so reloading one changes what the
+server permits, where reloading a layout changes what a form shows.
+The layout check runs against the finished actions, at startup and
+after every `flushCache()` alike.
 
 **Actions are constant for an application's run** and reach the client
-in the cached part of the bootstrap. They are not part of DomainMeta,
-which describes the type model.
+in the run-cached part of the bootstrap. They are not part of
+DomainMeta, which describes the type model. **On the client they are
+read-only**: unlike layouts, they are not put where `init` could change
+them, since a changed rule would warn about something other than what
+the server enforces.
 
 ## Naming
 
@@ -268,6 +291,11 @@ avoided.
 
 ## Open items
 
+- **Replacing an action on purpose**, shelved (2026-10-22). A module
+  may ship an `ActionProvider` through `@Import`, and an application
+  could want to tighten one of its actions; that would take a provider
+  naming the action it replaces or modifies, never the load order. No
+  module ships actions yet.
 - **Generic `E`**: a mechanism like `@GraphQLTypeParam`, so that an
   implementation handling several actions gets a typed `E` per action
   instead of `Map`. Not for the first implementation.

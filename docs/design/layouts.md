@@ -711,9 +711,10 @@ relations. All problems of all layouts fail together. Widget,
 component and section names are the frontend's and aren't checked, nor
 is what the application's init hook changes.
 
-Once actions exist, the check runs in two passes, since a layout may
-refer to an action from a different provider: first all actions, then
-the layouts against the domain and the actions. Layouts would ship in the
+Once actions exist, the check also covers the actions a layout refers
+to, which may come from a different provider. Actions are built and
+checked once at startup and don't change after (`actions.md`, "The
+model and its providers"), so every layout check finds them complete. Layouts would ship in the
 cached part of the bootstrap -- a large form is 3 to 5 KB of JSON, so
 even a hundred layouts don't justify a per-route mechanism -- and views
 refer to them by name, so delivery could change later without touching

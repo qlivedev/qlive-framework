@@ -6,6 +6,7 @@ import io.github.qlivedev.qlive.api.json.JSONUtil;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
+import io.github.qlivedev.qlive.graphql.logic.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -100,7 +101,14 @@ public class GraphQLController
         );
 
         final List<GraphQLError> errors = executionResult.getErrors();
-        if (errors.size() > 0)
+
+        // an action refusing is an answer, not a failure: the request was fine and the server did what it is for
+        final boolean refused = !errors.isEmpty() && errors.stream().allMatch(e -> e.getErrorType() == Action.REFUSED);
+        if (refused)
+        {
+            log.debug("Action refused: {}", GraphQLUtil.formatErrors(errors));
+        }
+        else if (errors.size() > 0)
         {
             log.warn("Errors in graphql query: " + GraphQLUtil.formatErrors(errors));
         }
@@ -111,7 +119,7 @@ public class GraphQLController
             JSONUtil.DEFAULT_GENERATOR.forValue(
                 result
             ),
-            errors.size() == 0 ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR
+            errors.size() == 0 || refused ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR
         );
     }
 }

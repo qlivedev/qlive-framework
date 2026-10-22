@@ -129,6 +129,10 @@ class ActionTest
             extensions(result.getErrors().get(0)),
             is(refusal("RULE", "Bar.descriptionRequired", "bar.description"))
         );
+
+        // what the client and the endpoint tell a refusal from a failure by
+        final Map<String, Object> specification = result.getErrors().get(0).toSpecification();
+        assertThat(((Map<?, ?>) specification.get("extensions")).get("classification"), is("REFUSED"));
     }
 
 

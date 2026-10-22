@@ -5,6 +5,7 @@ import io.github.qlivedev.qlive.api.action.ActionRefusedException;
 import io.github.qlivedev.qlive.api.action.Refusal;
 import io.github.qlivedev.qlive.graphql.QLiveDomain;
 import io.github.qlivedev.qlive.graphql.param.ParameterProvider;
+import graphql.ErrorClassification;
 import graphql.GraphQLError;
 import graphql.GraphqlErrorBuilder;
 import graphql.execution.DataFetcherResult;
@@ -27,6 +28,10 @@ import java.util.function.Supplier;
 public class Action
     extends Mutation
 {
+    /// The classification of a refusal's errors, in their extensions as `classification`. A response whose errors
+    /// all have it is a normal outcome, not a failure.
+    public final static ErrorClassification REFUSED = ErrorClassification.errorClassification("REFUSED");
+
     private final Method method;
 
     private final List<ActionSubject> subjects;
@@ -115,6 +120,7 @@ public class Action
 
         return GraphqlErrorBuilder.newError(env)
             .message(refusal.messageKey())
+            .errorType(REFUSED)
             .extensions(extensions)
             .build();
     }

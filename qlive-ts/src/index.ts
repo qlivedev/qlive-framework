@@ -95,6 +95,9 @@ export { useMerge } from "./merge/useMerge";
 export { fieldStatusText } from "./merge/MergeAccessor";
 export { mergeWorkingSet } from "./merge/mergeWorkingSet";
 
+// Actions: the mutations of @QLiveAction methods, issued by name, and their refusals.
+export { issueAction, refusalMessage, refusalsOf, REFUSED } from "./action";
+
 export { default as useQueryDocument } from "./useQueryDocument";
 /**
  * Declares that this entry point needs no domain schema.
@@ -224,6 +227,7 @@ export type { Widget, WidgetProps, FieldDecorator, FieldDecoratorProps, WidgetOv
 export type { Layout, LayoutNode, LayoutFieldNode, LayoutSectionNode, LayoutComponentNode, LayoutStatusNode } from "./form/layout";
 export type { RelatedRows } from "./form/relatedRows";
 export type { GraphQLParams, GraphQLError, GraphQLErrorLocation } from "./util/graphql";
+export type { Actions, ActionName, ActionArgs, ActionResult, ActionOutcome, Refusal, Subject } from "./action";
 export type {
     QueryConfig,
     QueryConfigDelta,

@@ -1,4 +1,6 @@
 {
+  "Action.subjectChanged": "Somebody else changed this in the meantime",
+  "Action.subjectGone": "Somebody else deleted this in the meantime",
   "Add...": "Add...",
   "All": "All",
   "Amount too large": "Amount too large",

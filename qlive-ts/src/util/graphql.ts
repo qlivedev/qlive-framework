@@ -75,6 +75,15 @@ export class GraphQLResponseError extends Error
     {
         return this.errors.some(error => error.extensions?.classification === classification);
     }
+
+    /**
+     * True if the errors are an action's refusal, every one of them classified "REFUSED": a normal outcome
+     * rather than a failure, see issueAction().
+     */
+    get refused(): boolean
+    {
+        return this.errors.length > 0 && this.errors.every(error => error.extensions?.classification === "REFUSED");
+    }
 }
 
 /**
@@ -248,7 +257,11 @@ export default function graphql<T>(query: GraphQLQuery<T> | string, params: Grap
             return data.data as T
         })
         .catch(error => {
-            console.error("GraphQL error: ", error);
+            // a refusal is an answer, which whoever issued the action deals with
+            if (!(error instanceof GraphQLResponseError && error.refused))
+            {
+                console.error("GraphQL error: ", error);
+            }
             return Promise.reject(error)
         })
 }

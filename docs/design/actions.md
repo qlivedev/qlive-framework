@@ -2,8 +2,8 @@
 
 Status: concept settled, details open. Written 2026-10-18, revised
 2026-10-22 to define actions as GraphQL mutations declared by Java
-methods. The server path is built (see "What is built"); the client
-side is not. The companion concept is `layouts.md`.
+methods. The server path and issuing from the client are built (see
+"What is built"). The companion concept is `layouts.md`.
 
 What a user does to stored data beyond editing it: approve, close,
 send. Editing is the merge. An action is something the application
@@ -380,24 +380,47 @@ record or a call of their own.
 ## Client types
 
 An action's input and result types are schema types, so the generated
-types already hold them, as they hold every mutation's. What the
-schema doesn't say is which arguments are subjects, which is in the
-action model (see "The model"). From both, a generated map types the
-client's issuing function by action name:
+types already hold them, as they hold every mutation's. The schema
+also says which arguments are subjects: those of `SubjectRefInput`.
+From it, `generate-ts` merges a map into qlive-ts's `Actions`
+interface, which types the issuing function by action name:
 
 ```ts
-export interface Actions {
-    approveBar: {
-        subjects: { bar: Subject },
-        input: { comment: string, notify: boolean },
-        result: ApproveResult
+declare module "@qlivedev/qlive-ts" {
+    interface Actions {
+        approveBar: { args: { bar: Subject, comment: string, notify: boolean }, result: ApproveResult }
     }
-    sendWeeklyReport: { subjects: {}, input: { week: number }, result: void }
 }
 ```
 
-A misspelled action or parameter name is a compile error, and the
-result is typed without the caller naming it.
+The arguments are one object keyed by parameter name, subjects and
+input alike, since the parameters are one namespace. A subject takes
+the row itself, any row with its id and version. A misspelled action
+or parameter name is a compile error, and the result is typed without
+the caller naming it. It is typed as what is selected: `issueAction()`
+selects the result's scalar and enum fields, and a result type with
+object fields becomes a `Pick` of them.
+
+What the schema can't say is that a mutation without a subject is an
+action: one of input alone looks like any other mutation, and is left
+out of the map (see "Open items").
+
+```ts
+const outcome = await issueAction("approveBar", { bar, comment, notify })
+if (outcome.refused)
+{
+    refusalsOf(outcome.refusals, "bar")      // the reasons blaming the bar
+}
+```
+
+`issueAction()` builds the mutation from the schema on first use.
+It resolves with `{ refused: false, result }` or `{ refused: true,
+refusals }`, so a refusal is the normal outcome the client handles,
+not a rejection; transport failures and other errors still reject.
+`refusalMessage()` translates a refusal's message key. The server
+offers every rule's key among the page's translations, since none
+reaches the frontend through an `i18n()` call its analysis could find.
+QLive's two conflict keys come with English like its other texts.
 
 ## Actions, queries and layouts
 
@@ -476,6 +499,12 @@ repeatable-read transaction: subjects loaded and version-checked,
 rules evaluated, method called. `BarLogic` in qlive-test has
 `approveBar` and the bulk `approveBars`, covered by `ActionTest`.
 
+Issuing from the client, the same day: `issueAction()`,
+`refusalsOf()` and `refusalMessage()` in qlive-ts, the `Actions` map
+from `generate-ts`, and the `/app/bar/approve` example view. A
+refusal's errors are classified `REFUSED`, and the GraphQL endpoint
+answers a response whose errors all are with 200.
+
 Not built yet:
 
 - **The reached-versions argument.** Only the subjects' versions are
@@ -486,8 +515,7 @@ Not built yet:
   opens a transaction of its own, so a method writing through it today
   commits that write whatever happens after it.
 - **The cleanup hook**, the action model and its delivery in the
-  bootstrap, and everything on the client: the issuing function, the
-  generated `Actions` map, the early check.
+  bootstrap, and the early check on the client.
 
 ## Considered and set aside
 
@@ -539,11 +567,12 @@ Not built yet:
   the action's input, with input paths starting at `input.`. With
   parameters as the namespace, which subject a form's row is, and how
   its paths name the input parameters.
-- **Refusals on the client**: how errors reach fields, and the
-  response status. The GraphQL endpoint answers any response with
-  errors with 500, a refusal included, and the client rejects it as a
-  `GraphQLResponseError` and logs it as an error, though it is a normal
-  outcome.
+- **Refusals in forms**: a refusal names fields by path, and
+  `refusalsOf()` finds them, but a `Form` doesn't show them yet; that
+  waits for forms over an action.
+- **Actions without subjects in the generated map**: the schema can't
+  tell them from plain mutations, so the map needs the action model,
+  or a mark codegen can read.
 - **What the early check reaches**: only what the form loaded, or the
   action's paths added to what a form over it loads.
 - **The cleanup mechanism**: presumably a callback after the rollback,
@@ -553,5 +582,5 @@ Not built yet:
   an action's rules itself; whether permissions are rules or a separate
   check is undecided.
 - **The variadic `concat`**, see "Rules that mix stored state and input".
-- **The client API** for holding input, checking completeness and
-  issuing.
+- **The client API** for holding input and checking completeness.
+  Issuing is built.

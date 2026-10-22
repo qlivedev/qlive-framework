@@ -171,8 +171,10 @@ a query document's paths do.
 ### Rules that mix stored state and input
 
 Stored state and input are addressed differently. A path into stored
-state is relational: a to-many path asks about some or all related rows,
-and rows have no position unless a query sorts them. Input is an
+state is relational, and rows have no position unless a query sorts
+them. A to-many path asks whether some related row satisfies the rest
+of it, as in a query filter: `bar.bazes.name` becomes an EXISTS. That
+holds for a back-reference and a many-to-many alike. Input is an
 in-memory graph addressed positionally: `bars.0.name`.
 `client-types.md` already notes the same split between query conditions
 and subscription payloads.

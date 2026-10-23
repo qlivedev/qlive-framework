@@ -92,14 +92,16 @@ class ActionTest
     }
 
 
-    /// The ordinary path: the rules hold and the method gets the row as it is stored.
+    /// The ordinary path: the rules hold, the method gets the row as it is stored, and its write lands in the
+    /// action's transaction under a new version.
     @Test
     void approvesABarWhoseRulesHold()
     {
         final String id = newBar("Action #1", "described");
+        final String seen = version(id);
 
         final ExecutionResult result = execute(APPROVE_BAR, Map.of(
-            "bar", ref(id, version(id)),
+            "bar", ref(id, seen),
             "comment", "fine",
             "notify", true
         ));
@@ -109,6 +111,8 @@ class ActionTest
             data(result, "approveBar"),
             is(Map.of("barId", id, "name", "Action #1", "comment", "fine", "notified", true))
         );
+        assertThat(approved(id), is(true));
+        assertThat(version(id).equals(seen), is(false));
     }
 
 
@@ -240,6 +244,7 @@ class ActionTest
             refused.getErrors().stream().map(ActionTest::extensions).toList(),
             contains(refusal("RULE", "Bar.descriptionRequired", "bars.1.description"))
         );
+        assertThat(approved(first) || approved(second) || approved(third), is(false));
 
         final ExecutionResult approved = execute(APPROVE_BARS, Map.of(
             "bars", List.of(ref(third, version(third)), ref(first, version(first))),
@@ -251,6 +256,7 @@ class ActionTest
             data(approved, "approveBars"),
             is(List.of(Map.of("barId", third, "name", "Action #8"), Map.of("barId", first, "name", "Action #6")))
         );
+        assertThat(approved(first) && approved(third) && !approved(second), is(true));
     }
 
 
@@ -336,6 +342,12 @@ class ActionTest
     private MergeStatus merge(EntityChange change)
     {
         return mergeService.merge(List.of(change), List.of(), List.of(), new MergeConfig()).getStatus();
+    }
+
+
+    private boolean approved(String id)
+    {
+        return dslContext.select(BAR.APPROVED).from(BAR).where(BAR.ID.eq(id)).fetchOne(BAR.APPROVED) != null;
     }
 
 

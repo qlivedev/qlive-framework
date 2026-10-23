@@ -6,17 +6,29 @@ import io.github.qlivedev.qlive.api.annotation.Rules;
 import io.github.qlivedev.qlive.runtime.action.Rule;
 import io.github.qlivedev.qlive.runtime.action.RuleContext;
 import io.github.qlivedev.qlive.runtime.action.RuleFactory;
+import io.github.qlivedev.qlive.runtime.merge.EntityWriter;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Bar;
 import jakarta.validation.constraints.NotNull;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 import static io.github.qlivedev.qlive.runtime.scalar.FilterDSL.value;
+import static io.github.qlivedev.qlivetest.domain.Tables.BAR;
 
 /// Example actions on bars.
 @QLiveLogic
 public class BarLogic
 {
+    private final EntityWriter entityWriter;
+
+
+    public BarLogic(EntityWriter entityWriter)
+    {
+        this.entityWriter = entityWriter;
+    }
+
+
     /// Approves a bar. `bar` is a subject: the request names the row by id and version, and the method gets the row
     /// as it is stored. The rules hold before the method runs.
     ///
@@ -29,6 +41,7 @@ public class BarLogic
     @Rules({ DescriptionRequired.class, CommentWhenNotifying.class })
     public @NotNull ApproveResult approveBar(Bar bar, @NotNull String comment, boolean notify)
     {
+        approve(bar);
         return new ApproveResult(bar.getId(), bar.getName(), comment, notify);
     }
 
@@ -44,8 +57,18 @@ public class BarLogic
     public @NotNull List<ApproveResult> approveBars(List<Bar> bars, @NotNull String comment)
     {
         return bars.stream()
-            .map(bar -> new ApproveResult(bar.getId(), bar.getName(), comment, false))
+            .map(bar -> {
+                approve(bar);
+                return new ApproveResult(bar.getId(), bar.getName(), comment, false);
+            })
             .toList();
+    }
+
+
+    private void approve(Bar bar)
+    {
+        bar.setApproved(new Timestamp(System.currentTimeMillis()));
+        entityWriter.update(bar, BAR.APPROVED);
     }
 
 

@@ -143,9 +143,9 @@ to make way, and the condition node with it, in Java and on the wire. The other 
 
 The sketch below is what was built, apart from these, as of 2026-10-20:
 
-- **No action yet.** `Form` has no `action` or `subject`, the context
-  no action, and `deriveLayout` no action argument, until
-  `useActionDraft()` exists (`actions.md`, "Actions in a view").
+- **A form may have no row** where it has an action, and edits the
+  action's parameters alone; `row` and `domainType` are then null
+  (`actions.md`, "Actions in a view", built 2026-10-23).
 - **Nothing locks a mode.** `setMode` changes any field; locking is the
   authorization work's.
 - **`modes` holds what the layout gave and `setMode` set.** A field not
@@ -227,7 +227,7 @@ The sketch below is what was built, apart from these, as of 2026-10-20:
   `useActionDraft("approveBar")`, whose arguments the form also edits.
   Its row is then one of them.
 - **`subject`** names the parameter the row is. It may be left out
-  where exactly one subject parameter has the row's type.
+  where the action has exactly one subject.
 
 The context holds the three sources and what only a form has:
 

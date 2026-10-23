@@ -515,11 +515,18 @@ deliver the action models and the rules' message keys a page uses (see
 
 **A form fills a subject.** A form edits one row, and given an action,
 its row is the argument of the subject it names. `subject` may be left
-out where exactly one subject parameter has the row's type; with two,
-leaving it out is an error naming them. Any other subject comes from
+out where the action has exactly one subject, which isn't a list; with
+two, leaving it out is an error naming them. The schema doesn't say a
+subject's type, so the row's type can't pick among several until the
+action model reaches the client. Any other subject comes from
 the view, as above, so an action over two rows that aren't connected
 yet, "assign this employee to that project", needs nothing more than
 two sources setting two arguments.
+
+**A form without a row edits the parameters alone**, for input that
+belongs to no row the view edits: `<Form action={ approve }>` with
+`comment` and `notify` in it. Its fields are parameter fields, so every
+path names a parameter.
 
 **A form path's first segment says what it is.** In a form with an
 action, a path whose first segment is a parameter name is that
@@ -537,7 +544,10 @@ action, since without one no path names a parameter.
 name from the refusals under it and takes those of the parameters as
 they are; a refusal no field of the view takes -- a rule over two
 subjects, a conflict, a field nobody shows -- belongs to the action as
-a whole, which a status part shows.
+a whole. A field claims the path it shows on the action draft, and so
+does `useRefusals()` for a part of the application's, a selected row
+showing `bars.2`; `ActionRefusals` shows what nobody claimed, once per
+action.
 
 **A subject is a stored row.** The arguments are references to rows as
 the user saw them, so a subject can't carry changes that aren't saved:
@@ -670,6 +680,13 @@ Holding an action in a view, 2026-10-23: `useActionDraft()` in qlive-ts,
 with the arguments, what is missing, the last outcome and issuing,
 covered by `useActionDraft.test.tsx`.
 
+Forms over an action, the same day: `Form` with `action` and `subject`,
+or without a row; parameter paths in `useField()`; refusals at the
+field, `useRefusals()` and `ActionRefusals`; unsaved subjects holding
+the action back; `deriveLayout()` adding the input parameters; and the
+translations offering each input parameter's label, `approveBar.comment`.
+Covered by `ActionForm.test.tsx`; the `/app/bar/approve` view uses them.
+
 Not built yet:
 
 - **The reached-versions argument.** Only the subjects' versions are
@@ -678,9 +695,11 @@ Not built yet:
   "Open items").
 - **The cleanup hook**, the action model and its delivery in the
   bootstrap, and the early check on the client.
-- **Actions in a view** beyond the hook: forms filling a subject and
-  their parameter paths, refusals shown at the field, unsaved subjects
-  holding the action back, and the build tracking `useActionDraft()`.
+- **The build tracking `useActionDraft()`**, so the bootstrap knows
+  which actions a page uses.
+- **Paths into a `DomainObject` parameter**, resolved against the
+  value's type; a form refuses them, and so does the executor at
+  startup.
 
 ## Considered and set aside
 

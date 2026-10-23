@@ -337,3 +337,20 @@ export function createAccessor(host: MergeHost, entity: MergeEntity): MergeAcces
         of: (row: object) => host.accessor(row)
     }
 }
+
+
+/**
+ * A field of no row: nothing ever happens to it.
+ *
+ * @internal
+ */
+export function untouchedField(name: string, value: unknown): MergeField
+{
+    const untouched = (): never => {
+        throw new Error("Field " + JSON.stringify(name) + " is no field of a row, and has no conflict to resolve.")
+    }
+    return {
+        name, status: "unchanged", className: "", value, mine: value, stored: value, conflict: false,
+        storedKnown: false, resolution: null, resolve: untouched, resolveWith: untouched
+    }
+}

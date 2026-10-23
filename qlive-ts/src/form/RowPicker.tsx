@@ -33,7 +33,8 @@ import type {WidgetProps} from "./widgets";
  */
 export function RowPicker({field}: WidgetProps): JSX.Element
 {
-    const {row} = useFormState()
+    // only a field of the row reads it, and a form without a row has none
+    const row = useFormState().row ?? {}
     const type = field.fieldType
     const key = field.kind === "scalar" ? null : targetKey(field)
     const catalog = key !== null && isCatalog(type)

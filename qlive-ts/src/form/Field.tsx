@@ -3,6 +3,7 @@
  */
 import type {JSX} from "react";
 
+import {Refusal, refusalMessage} from "../action";
 import i18n from "../i18n";
 import {fieldStatusText} from "../merge/MergeAccessor";
 import {fieldText} from "./fieldText";
@@ -21,7 +22,8 @@ import {builtInWidget, FieldDecoratorProps, findOverride, namedWidget, Widget} f
 export function ConflictResolution({field, children}: FieldDecoratorProps): JSX.Element
 {
     const {merge} = field
-    const {row} = useFormState()
+    // only a field of the row reads it, and a form without a row has none
+    const row = useFormState().row ?? {}
     return (
         <>
             { children }
@@ -68,6 +70,8 @@ function widgetOf(form: FormContext, field: FieldState, given: Widget | string |
  *
  * A field in `text` mode renders no widget at all, but the value as text in a `qlive-field-text` span.
  *
+ * In a form with an action, the refusals of the last issue that blame the field follow, in a `qlive-refusals` list.
+ *
  * The control, widget or text, carries the merge mark; a decorator goes around the control, so what it adds sits
  * beside the marked box rather than in it. Before the control sits the mark's icon, so the states differ by shape
  * and not by color alone; after it a visually hidden text naming the state, which the widget's input is described
@@ -106,6 +110,7 @@ export function Field(props: { path: string } & FieldOptions): JSX.Element
                     { fieldStatusText(field.merge.status) }
                 </span>
                 { field.error !== null && <div className="qlive-field-error" role="alert">{ field.error }</div> }
+                <Refusals refusals={ field.refusals }/>
             </div>
         </div>
     )
@@ -117,6 +122,32 @@ export function Field(props: { path: string } & FieldOptions): JSX.Element
  */
 function FieldText({field}: { field: FieldState }): JSX.Element
 {
-    const {row} = useFormState()
+    // only a field of the row reads it, and a form without a row has none
+    const row = useFormState().row ?? {}
     return <span id={ field.id } className="qlive-field-text">{ fieldText(field, row) }</span>
+}
+
+
+/**
+ * The refusals of an action's last issue, as a list a screen reader reads out when it appears; nothing for none.
+ *
+ * @internal
+ */
+export function Refusals({refusals}: { refusals: readonly Refusal[] }): JSX.Element | null
+{
+    if (!refusals.length)
+    {
+        return null
+    }
+    return (
+        <ul className="qlive-refusals" role="alert">
+            {
+                refusals.map((refusal, index) => (
+                    <li key={ index } className={ "qlive-refusal-" + refusal.code.toLowerCase() }>
+                        { refusalMessage(refusal) }
+                    </li>
+                ))
+            }
+        </ul>
+    )
 }

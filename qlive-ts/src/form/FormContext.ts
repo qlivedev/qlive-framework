@@ -4,6 +4,7 @@
 import {createContext, useContext} from "react";
 
 import type {MergeAccessor} from "../merge/MergeAccessor";
+import type {ActionDraft} from "../useActionDraft";
 import type {FieldMode} from "./fieldMode";
 
 /**
@@ -12,13 +13,17 @@ import type {FieldMode} from "./fieldMode";
  */
 export interface FormContext
 {
-    /** the draft the form edits */
-    row: object
-    /** its type */
-    domainType: string
+    /** the draft the form edits, null for a form of an action's parameters alone */
+    row: object | null
+    /** its type, null without a row */
+    domainType: string | null
+    /** the action whose arguments the form edits too, null for none */
+    action: ActionDraft<any> | null
+    /** the subject parameter the row fills, null without an action or a row */
+    subject: string | null
     /** the name of the layout the form renders, null for a derived layout and a form with children */
     layoutName: string | null
-    /** its merge state */
+    /** its merge state; without a row, that of no row, where nothing ever happens */
     merge: MergeAccessor
     /**
      * The fields whose text didn't parse, by path, holding the text. That text never reaches the draft, which holds

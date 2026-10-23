@@ -5,8 +5,9 @@ import type {ComponentType, ReactNode} from "react";
 
 import config from "../config";
 import type {FilterExpression} from "../FilterDSL";
+import {actionParameters, ActionName} from "../action";
 import {manyToManyField} from "../merge/meta";
-import {isListType, objectFields, unwrapAll} from "../type-utils";
+import {findType, isListType, objectFields, unwrapAll} from "../type-utils";
 import type {FieldMode} from "./fieldMode";
 import type {Widget} from "./widgets";
 
@@ -17,8 +18,10 @@ export interface Layout
 {
     /** the name overrides match it by (WidgetOverride), if it has one */
     name?: string
-    /** the type of the row the form edits */
-    domainType: string
+    /** the type of the row the form edits, null for a form of an action's parameters alone */
+    domainType: string | null
+    /** the action whose parameters the layout's fields include, by name */
+    action?: string
     nodes: LayoutNode[]
 }
 
@@ -146,10 +149,33 @@ function relationByKey(type: string, field: string)
  *
  * Every node is a plain field node, so the modes are the defaults (defaultFieldMode()).
  *
- * @param type      the row's type
- * @param row       a row, or a draft of one
+ * With an action, the action's input parameters follow, those a field edits as they are: a scalar or an enum. A
+ * subject is the form's row or set by the view, and an input object is laid out by the application. Without a row,
+ * those are all there is.
+ *
+ * @param type      the row's type, null for a form without a row
+ * @param row       a row, or a draft of one; null for a form without a row
+ * @param action    the action whose parameters the form edits too
  */
-export function deriveLayout(type: string, row: object): Layout
+export function deriveLayout(type: string | null, row: object | null, action?: ActionName): Layout
+{
+    const paths = type !== null && row !== null ? rowPaths(type, row) : []
+    if (action)
+    {
+        for (const parameter of actionParameters(action))
+        {
+            const kind = findType(parameter.type).kind
+            if (!parameter.subject && !parameter.list && (kind === "SCALAR" || kind === "ENUM"))
+            {
+                paths.push(parameter.name)
+            }
+        }
+    }
+    return {domainType: type, ...(action ? {action} : {}), nodes: paths.map(field => ({field}))}
+}
+
+
+function rowPaths(type: string, row: object): string[]
 {
     const fields = new Map(objectFields(type).map(f => [f.name, f]))
     const paths: string[] = []
@@ -189,5 +215,5 @@ export function deriveLayout(type: string, row: object): Layout
         add(relationByKey(type, name)?.leftSideObjectName ?? name)
     }
 
-    return {domainType: type, nodes: paths.map(field => ({field}))}
+    return paths
 }

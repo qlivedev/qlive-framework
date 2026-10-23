@@ -3,12 +3,14 @@
  */
 import {ReactNode, useLayoutEffect} from "react";
 
+import {actionParameters, Refusal} from "../action";
 import config, {DomainFieldMeta} from "../config";
 import type {FilterExpression} from "../FilterDSL";
 import {hasInput, inputText, parseInput} from "../converter";
 import i18n from "../i18n";
-import type {MergeField} from "../merge/MergeAccessor";
+import {MergeField, untouchedField} from "../merge/MergeAccessor";
 import {manyToManyField} from "../merge/meta";
+import {GraphQLTypeRef} from "../GraphQLSchema";
 import {findType, isListType, isNonNull, objectFields, unwrapAll} from "../type-utils";
 import {scalarEqual} from "../util/scalar";
 import {defaultFieldMode, FieldMode} from "./fieldMode";
@@ -47,10 +49,12 @@ export interface FieldState
 {
     /** the path the field was asked for by */
     path: string
-    /** the form's type */
+    /** the form's type; for a field of an action's parameters, the action's name */
     domainType: string
-    /** the field's name in it */
+    /** the field's name in it; for a field of an action's parameters, its path */
     name: string
+    /** true for a field of an action's parameters rather than of the row */
+    parameter: boolean
     /** the field's type: a scalar or enum type, or the related type for a relation */
     fieldType: string
     /**
@@ -91,8 +95,14 @@ export interface FieldState
     /** why the text didn't parse, a message for the user; null where it did */
     error: string | null
 
-    /** the merge state of the field the value is in */
+    /** the merge state of the field the value is in; for a field of an action's parameters, that of no row's */
     merge: MergeField
+
+    /**
+     * The refusals of the action's last issue that blame the field or one below it. For a field of the form's row, a
+     * refusal blames it by the subject's name, `bar.description` for the field `description`.
+     */
+    refusals: Refusal[]
 }
 
 /** what a path resolves to */
@@ -104,6 +114,8 @@ interface Resolved
     /** the field the value is in */
     storage: string
     required: boolean
+    /** for a field of an action's parameters: the parameter, and the path into its value */
+    parameter?: { name: string, rest: string[] }
 }
 
 function fieldError(type: string, path: string, message: string)
@@ -111,12 +123,68 @@ function fieldError(type: string, path: string, message: string)
     return new Error("Field " + JSON.stringify(path) + " of " + type + ": " + message)
 }
 
+/**
+ * What a path resolves to in a form with an action, where its first segment names a parameter; null where it names
+ * none, which makes it a field of the row.
+ */
+function resolveParameter(form: FormState, path: string): Resolved | null
+{
+    const {action, subject, domainType} = form
+    if (!action)
+    {
+        return null
+    }
+
+    const [first, ...rest] = path.split(".")
+    const parameter = actionParameters(action.name).find(p => p.name === first && p.name !== subject)
+    if (!parameter)
+    {
+        if (domainType === null)
+        {
+            throw fieldError(action.name, path, "a form without a row edits the action's parameters, and names none.")
+        }
+        return null
+    }
+    if (domainType !== null && objectFields(domainType).some(f => f.name === first))
+    {
+        throw fieldError(
+            domainType, path, "both a field of the row and a parameter of action '" + action.name + "', which a " +
+            "path can't tell apart. Rename the parameter."
+        )
+    }
+    if (parameter.subject)
+    {
+        throw fieldError(
+            action.name, path, "a subject, which is a row: the form's own, or one the view sets on the action."
+        )
+    }
+
+    // along the input object types, to a scalar or an enum
+    let type: GraphQLTypeRef = parameter.typeRef
+    let required = parameter.required
+    for (const segment of rest)
+    {
+        const named = findType(unwrapAll(type).name!)
+        const field = isListType(type) ? undefined : named.inputFields?.find(f => f.name === segment)
+        if (!field)
+        {
+            throw fieldError(action.name, path, "no field '" + segment + "' in " + named.name + ".")
+        }
+        type = field.type
+        required = isNonNull(field.type)
+    }
+    const named = findType(unwrapAll(type).name!)
+    if (isListType(type) || (named.kind !== "SCALAR" && named.kind !== "ENUM"))
+    {
+        throw fieldError(action.name, path, "a " + (isListType(type) ? "list" : named.name) + ", which no field edits.")
+    }
+    return {
+        name: path, kind: "scalar", fieldType: named.name, storage: path, required, parameter: {name: first, rest}
+    }
+}
+
 function resolve(type: string, path: string): Resolved
 {
-    if (path.startsWith("input."))
-    {
-        throw fieldError(type, path, "action input isn't supported yet.")
-    }
     if (path.includes("."))
     {
         throw fieldError(type, path, "a form edits its own row's fields; a related row's are a field group's.")
@@ -173,18 +241,32 @@ function textual(resolved: Resolved): boolean
  */
 export function fieldState(form: FormState, path: string, options: FieldOptions = {}): FieldState
 {
-    const {row, domainType: type} = form
-    const resolved = resolve(type, path)
+    const {action, subject} = form
+    const resolved = resolveParameter(form, path) ?? resolve(form.domainType!, path)
+    const parameter = resolved.parameter
+    const type = parameter ? action!.name : form.domainType!
     if (options.condition && resolved.kind !== "toOne")
     {
         throw fieldError(type, path, "a condition narrows the rows a to-one relation offers, and this is none.")
     }
     const {storage, fieldType} = resolved
-    const draft = row as Record<string, unknown>
-    const value = draft[storage]
-    const edit = form.edits.get(path)
 
-    const write = (next: unknown) => { draft[storage] = next }
+    let value: unknown
+    let write: (next: unknown) => void
+    if (parameter)
+    {
+        const args = action!.args as Record<string, unknown>
+        value = readPath(args[parameter.name], parameter.rest)
+        const set = action!.set as (parameter: string, value: unknown) => void
+        write = next => set(parameter.name, writePath(args[parameter.name], parameter.rest, next))
+    }
+    else
+    {
+        const draft = form.row as Record<string, unknown>
+        value = draft[storage]
+        write = next => { draft[storage] = next }
+    }
+    const edit = form.edits.get(path)
 
     let text: string
     if (edit && (edit.error !== null || scalarEqual(edit.value, value)))
@@ -204,15 +286,16 @@ export function fieldState(form: FormState, path: string, options: FieldOptions 
         path,
         domainType: type,
         name: resolved.name,
+        parameter: !!parameter,
         fieldType,
         kind: resolved.kind,
         label: options.label ?? i18n(type + "." + resolved.name),
         id: form.idPrefix + path,
         labelId: form.idPrefix + path + "-label",
         descriptionId: form.idPrefix + path + "-state",
-        mode: form.modes.get(path) ?? options.mode ?? defaultFieldMode(type, storage),
+        mode: form.modes.get(path) ?? options.mode ?? (parameter ? "normal" : defaultFieldMode(type, storage)),
         required: resolved.required,
-        meta: config().meta.types[type]?.fields?.[storage] ?? {},
+        meta: parameter ? {} : config().meta.types[type]?.fields?.[storage] ?? {},
         condition: options.condition ?? null,
 
         value,
@@ -242,8 +325,35 @@ export function fieldState(form: FormState, path: string, options: FieldOptions 
         },
         error: edit?.error ?? null,
 
-        merge: form.merge.field(storage)
+        merge: parameter ? untouchedField(path, value) : form.merge.field(storage),
+        refusals: action ? action.refusalsOf(refusalPath(path, !!parameter, subject)) : []
     }
+}
+
+/**
+ * The path a refusal blames a field by: a parameter's as it is, a field of the row after the subject's name.
+ */
+function refusalPath(path: string, parameter: boolean, subject: string | null): string
+{
+    return parameter || subject === null ? path : subject + "." + path
+}
+
+/** the value at a path into a parameter's argument */
+function readPath(value: unknown, rest: string[]): unknown
+{
+    return rest.reduce((current: any, segment) => current == null ? undefined : current[segment], value)
+}
+
+/** the argument with the value at a path into it replaced, as a new object along the path */
+function writePath(value: unknown, rest: string[], next: unknown): unknown
+{
+    if (!rest.length)
+    {
+        return next
+    }
+    const [segment, ...deeper] = rest
+    const current = (value ?? {}) as Record<string, unknown>
+    return {...current, [segment]: writePath(current[segment], deeper, next)}
 }
 
 /**
@@ -252,6 +362,11 @@ export function fieldState(form: FormState, path: string, options: FieldOptions 
  * A path is a field of the form's row. A to-one relation is named by its object field, `owner`, and edits the
  * foreign key behind it; a many-to-many field holds the related rows. A field of a related row, `owner.login`, is
  * not a form field.
+ *
+ * In a form with an action, a path whose first segment names one of the action's parameters is that parameter's
+ * instead: `comment`, or `address.street` into an input object, as the action's rules name it. It ends at a scalar or
+ * an enum, and reads and writes the action draft's argument. A name both a parameter and a field of the row is an
+ * error, and so is a subject, which is a row. The field claims its refusals (ActionDraft.claim()).
  *
  * A widget editing text calls `setText()`: text that parses (parseInput()) sets the value, text that doesn't stays as
  * it was typed, with an `error`, and is listed in the form's `invalid`. A widget editing a value, a checkbox or a
@@ -272,6 +387,11 @@ export function useField(path: string, options?: FieldOptions): FieldState
     // what the form's live region calls the field, if it ever has to
     const {registerField} = form
     const {labelId} = field
+
+    // the refusals the field shows are not the action's unclaimed ones
+    const claim = form.action?.claim
+    const claimed = form.action ? refusalPath(path, field.parameter, form.subject) : null
+    useLayoutEffect(() => claim && claimed !== null ? claim(claimed) : undefined, [claim, claimed])
     const name = field.merge.name
     const label = typeof field.label === "string" ? field.label : i18n(field.domainType + "." + field.name)
     useLayoutEffect(() => registerField(name, labelId, label), [registerField, name, labelId, label])

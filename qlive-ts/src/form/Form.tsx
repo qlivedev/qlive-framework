@@ -1,11 +1,24 @@
 /*
  * Form: the provider of a form's context, and the renderer of its layout.
  */
-import {Fragment, JSX, ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState} from "react";
+import {
+    Fragment,
+    JSX,
+    ReactNode,
+    useCallback,
+    useEffect,
+    useId,
+    useMemo,
+    useRef,
+    useState,
+    useSyncExternalStore
+} from "react";
 
+import {actionParameters} from "../action";
 import i18n from "../i18n";
-import type {MergeAccessor} from "../merge/MergeAccessor";
-import {useMerge} from "../merge/useMerge";
+import {MergeAccessor, untouchedField} from "../merge/MergeAccessor";
+import {workingSetOf} from "../merge/WorkingSet";
+import type {ActionDraft} from "../useActionDraft";
 import {primaryKeyFields} from "../type-utils";
 import {isViteDev} from "../util/viteEnv";
 import {Field} from "./Field";
@@ -20,8 +33,18 @@ import {deriveLayout, Layout, LayoutNode, namedComponent, namedLayout} from "./l
  */
 export interface FormProps
 {
-    /** the draft the form edits, what `ws.edit(row)` or `ws.create(type)` returned */
-    row: object
+    /**
+     * the draft the form edits, what `ws.edit(row)` or `ws.create(type)` returned; may be left out in a form with an
+     * action, which then edits the action's parameters alone
+     */
+    row?: object
+    /** the action draft, from useActionDraft(), whose arguments the form edits too */
+    action?: ActionDraft<any>
+    /**
+     * the subject parameter of the action the row fills; may be left out where the action has exactly one subject,
+     * which is not a list
+     */
+    subject?: string
     /**
      * what the form renders, or the name of one in `config().layouts` (namedLayout()); derived from the row without
      * either
@@ -83,6 +106,76 @@ function renderNodes(nodes: LayoutNode[]): ReactNode
         const Component = typeof node.component === "string" ? namedComponent(node.component) : node.component
         return <Component key={ index } { ...node.props }>{ node.nodes && renderNodes(node.nodes) }</Component>
     })
+}
+
+/** the merge state of a form without a row */
+const NO_ROW: MergeAccessor = {
+    type: "",
+    id: "",
+    gone: false,
+    isNew: false,
+    deleted: false,
+    field: name => untouchedField(name, undefined),
+    changedFields: () => [],
+    conflictedFields: () => [],
+    resolvedFields: () => [],
+    remoteChangedFields: () => [],
+    of: () => {
+        throw new Error("A form without a row has no working set.")
+    }
+}
+
+const noSubscription = () => () => {}
+
+/**
+ * useMerge() for a form that may have no row.
+ */
+function useFormMerge(row: object | null): MergeAccessor
+{
+    const workingSet = row ? workingSetOf(row) : null
+    return useSyncExternalStore(
+        workingSet ? workingSet.subscribe : noSubscription,
+        () => workingSet ? workingSet.accessor(row!) : NO_ROW
+    )
+}
+
+/**
+ * The subject parameter a form's row fills: the one given, or the action's one subject.
+ */
+function subjectOf(action: ActionDraft<any> | null, row: object | null, given: string | undefined): string | null
+{
+    if (!action || !row)
+    {
+        if (given)
+        {
+            throw new Error("A form fills subject '" + given + "' with its row, and needs a row and an action.")
+        }
+        return null
+    }
+
+    const subjects = actionParameters(action.name).filter(parameter => parameter.subject)
+    const subject = given !== undefined
+        ? subjects.find(parameter => parameter.name === given)
+        : subjects.length === 1 ? subjects[0] : undefined
+    if (!subject)
+    {
+        throw new Error(
+            "Action '" + action.name + "' " + (
+                given !== undefined
+                    ? "has no subject '" + given + "'."
+                    : "has " + (subjects.length ? "the subjects " + subjects.map(p => p.name).join(", ") +
+                        ", so the form names the one its row fills: subject=\"...\"." : "no subject for a row.")
+            )
+        )
+    }
+    if (subject.list)
+    {
+        throw new Error(
+            "Subject '" + subject.name + "' of action '" + action.name + "' is a list, which the view sets; a form " +
+            "fills one row."
+        )
+    }
+    return subject.name
 }
 
 /** the fields of the row somebody else changed, and those both changed, as of one render */
@@ -159,6 +252,22 @@ function markedOf(row: object, merge: MergeAccessor): Marked
  * One form edits one row: its type and merge state are the working set's for the draft. A screen editing several
  * rows has several forms.
  *
+ * Given an action draft (useActionDraft()), the form edits the action's arguments too, and its row is one of them,
+ * the subject it names or the action's one subject:
+ *
+ * ```tsx
+ * const approve = useActionDraft("approveBar")
+ *
+ * <Form row={ ws.edit(bar) } action={ approve }/>      // the row's fields and the action's input
+ * <Form action={ approve }>                            // the action's parameters alone
+ *     <Field path="comment"/>
+ * </Form>
+ * ```
+ *
+ * A path whose first segment names a parameter is that parameter's, `comment` or `address.street`; any other is a
+ * field of the row (see useField()). Each field shows the refusals of the last issue that blame it; ActionRefusals
+ * shows those no field takes.
+ *
  * Without children, the form renders a layout, the one given or the one derived from the row (deriveLayout()), and
  * wraps every widget in the conflict buttons (ConflictResolution). With children, it only provides the context, and
  * the application's fields and components render inside it as they are; useFormContext() reads it.
@@ -169,21 +278,39 @@ function markedOf(row: object, merge: MergeAccessor): Marked
  * @throws Error for a form given both a layout and children, for a layout name config().layouts doesn't have, and for
  *         a layout of another type than the row's
  */
-export function Form({row, layout, children}: FormProps): JSX.Element
+export function Form({row: givenRow, action: givenAction, subject: givenSubject, layout, children}: FormProps): JSX.Element
 {
-    const merge = useMerge(row)
-    const type = merge.type
+    const row = givenRow ?? null
+    const action = givenAction ?? null
+    if (!row && !action)
+    {
+        throw new Error("A form edits a row, an action's parameters, or both, and was given neither.")
+    }
+    const merge = useFormMerge(row)
+    const type = row ? merge.type : null
     if (layout && children !== undefined)
     {
         throw new Error("A form renders a layout or its children, not both.")
     }
+    const subject = subjectOf(action, row, givenSubject)
+
+    // the row is the argument of the subject it fills, for as long as the form shows it
+    const set = action?.set as ((parameter: string, value: unknown) => void) | undefined
+    useEffect(() => {
+        if (set && subject)
+        {
+            set(subject, row)
+            return () => set(subject, null)
+        }
+    }, [set, subject, row])
 
     const fromLayout = children === undefined
+    const actionName = action?.name
     const resolvedLayout = useMemo(
         () => fromLayout
-            ? (typeof layout === "string" ? namedLayout(layout) : layout) ?? deriveLayout(type, row)
+            ? (typeof layout === "string" ? namedLayout(layout) : layout) ?? deriveLayout(type, row, actionName)
             : null,
-        [fromLayout, layout, type, row]
+        [fromLayout, layout, type, row, actionName]
     )
     if (resolvedLayout && resolvedLayout.domainType !== type)
     {
@@ -208,6 +335,10 @@ export function Form({row, layout, children}: FormProps): JSX.Element
         }
     }, [])
     useEffect(() => {
+        if (!row || !type)
+        {
+            return
+        }
         const now = markedOf(row, merge)
         const text = newlyMarked(marked.current, now, shown.current, type)
         marked.current = now
@@ -262,12 +393,12 @@ export function Form({row, layout, children}: FormProps): JSX.Element
         }
         const layoutName = resolvedLayout?.name ?? null
         return {
-            row, domainType: type, layoutName, merge, invalid, modes, setMode, edits, setEdit, idPrefix, fromLayout,
-            announcement, registerStatus, registerField
+            row, domainType: type, action, subject, layoutName, merge, invalid, modes, setMode, edits, setEdit,
+            idPrefix, fromLayout, announcement, registerStatus, registerField
         }
     }, [
-        row, type, resolvedLayout, merge, modes, setMode, edits, setEdit, idPrefix, fromLayout, announcement,
-        registerStatus, registerField
+        row, type, action, subject, resolvedLayout, merge, modes, setMode, edits, setEdit, idPrefix, fromLayout,
+        announcement, registerStatus, registerField
     ])
 
     const status = !statusPlaced && <StatusRegion announcement={ announcement }/>

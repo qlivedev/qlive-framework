@@ -63,6 +63,10 @@ export type ActionParameter = {
      * Name of its scalar, enum or input type: "SubjectRefInput" for a subject
      */
     type: string
+    /**
+     * Its type as the schema says it, modifiers included
+     */
+    typeRef: GraphQLTypeRef
 }
 
 /**
@@ -287,7 +291,8 @@ function mutationOf(name: string): Mutation
             required: arg.type.kind === "NON_NULL",
             subject: unwrapAll(arg.type).name === SUBJECT_REF_INPUT,
             list: (arg.type.kind === "NON_NULL" ? arg.type.ofType! : arg.type).kind === "LIST",
-            type: unwrapAll(arg.type).name
+            type: unwrapAll(arg.type).name,
+            typeRef: arg.type
         }))
         const subjects = new Set(parameters.filter(p => p.subject).map(p => p.name))
         const inputTypes = new Map(field.args.filter(arg => !subjects.has(arg.name)).map(arg => [arg.name, arg.type]))

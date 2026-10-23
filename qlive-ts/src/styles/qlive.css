@@ -757,11 +757,18 @@
         background-color: var(--qlive-mark-color);
         mask: var(--qlive-mark-icon) center / contain no-repeat;
     }
-    .qlive-field-error
+    .qlive-field-error,
+    .qlive-refusals
     {
         flex-basis: 100%;
         color: var(--qlive-color-error);
         font-size: 0.9em;
+    }
+    .qlive-refusals
+    {
+        margin: 0;
+        padding: 0;
+        list-style: none;
     }
     .qlive-field-resolve
     {

@@ -555,25 +555,16 @@ while a form filling a subject has unsaved changes, the action isn't
 complete, and issuing refuses on the client, saying the row is to be
 saved first. Merge and action stay apart (see "Merge and invariants").
 
-**`DomainObject` is the escape hatch** for an action that wants unsaved
-data anyway. It is a scalar carrying a whole domain object with its
-type in `_type`, so a parameter of it is input, set whole by the view:
-`assign.set("draft", barDraft)`. Paths into it, `draft.name`, resolve
-against the value's type where they are read -- in the form and the
-early check on the client, and in the executor's read of input paths
-on the server. They are not checked at startup. What the action gives
-up is what a subject has: no version check, and no rules over stored
-fields.
-
-**`@Input` is the typed escape hatch** (decided 2026-10-23), for an
-action that knows the type of the unsaved data it wants. A parameter of
+**`@Input` is the escape hatch** (decided 2026-10-23) for an action
+that wants unsaved data anyway. A parameter of
 a table-backed type marked `@Input` is input, not a subject:
 `quoteBar(@Input Bar draft)` takes the values the client sends as
 `BarInput`, every field through its scalar, and `@Input List<Bar>`
 takes a list of them. Being input of a Java type, the paths into it,
 `draft.num`, are checked at startup like any other input's, and its
-rules are evaluated in memory. It gives up what `DomainObject` gives
-up. On the client, a working set's draft carries more than the input
+rules are evaluated in memory. What the action gives up is what a
+subject has: no version check, and no rules over stored fields. On the
+client, a working set's draft carries more than the input
 type has -- relation objects, computed fields -- so issuing sends only
 the input type's fields.
 
@@ -697,9 +688,6 @@ Not built yet:
   bootstrap, and the early check on the client.
 - **The build tracking `useActionDraft()`**, so the bootstrap knows
   which actions a page uses.
-- **Paths into a `DomainObject` parameter**, resolved against the
-  value's type; a form refuses them, and so does the executor at
-  startup.
 
 ## Considered and set aside
 
@@ -737,6 +725,13 @@ Not built yet:
 
 ## Open items
 
+- **Paths into a `DomainObject` parameter**, shelved (2026-10-23).
+  `DomainObject` is a scalar carrying a domain object of any type in
+  `_type`, so a parameter of it is input already, set whole. Paths into
+  it, `draft.name`, would resolve against the value's type where they
+  are read, unchecked at startup; `@Input` covers unsaved data with a
+  known type, checked. Until then, a form and the executor refuse such
+  paths.
 - **Rules over two subjects' stored fields**: anchored at one subject
   with the other bound, which fails where neither is a single row, or
   evaluated in memory over the rows the server loads anyway, which meets

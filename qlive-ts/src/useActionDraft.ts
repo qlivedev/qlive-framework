@@ -34,9 +34,9 @@ export interface ActionDraft<N extends ActionName>
      * Sets one argument. A subject takes the row, or the rows of a list subject, as issueAction() does.
      *
      * @param parameter     parameter name
-     * @param value         argument
+     * @param value         argument, or null for none
      */
-    set<K extends keyof ActionArgs<N> & string>(parameter: K, value: ActionArgs<N>[K]): void
+    set<K extends keyof ActionArgs<N> & string>(parameter: K, value: ActionArgs<N>[K] | null): void
 
     /**
      * the required parameters that have no argument yet, in the method's order
@@ -108,8 +108,8 @@ export interface ActionDraft<N extends ActionName>
  * once every required parameter has one. A required Boolean starts out false, being one GraphQL can't leave out.
  *
  * A subject is a row as it is stored. One given as a working set's draft holds the action back while it has changes
- * that aren't saved (`unsaved`). Setting a subject anew drops the outcome of the last issue, whose refusals were
- * about the rows it was issued for.
+ * that aren't saved (`unsaved`). Setting a subject to other rows drops the outcome of the last issue, whose refusals
+ * were about the rows it was issued for; the same rows read again keep it.
  *
  * The name is a string literal, and the call sits at the view's top level. The arguments are typed by the
  * `Actions` map, like issueAction()'s.
@@ -237,10 +237,14 @@ class ActionDraftStore<N extends ActionName>
         {
             return
         }
+        const before = this.args[parameter]
         this.args = {...this.args, [parameter]: value}
         if (definition.subject)
         {
-            this.outcome = null
+            if (idsOf(before) !== idsOf(value))
+            {
+                this.outcome = null
+            }
             this.watch()
         }
         this.notify()
@@ -424,4 +428,14 @@ class ActionDraftStore<N extends ActionName>
             subscriber()
         }
     }
+}
+
+
+/**
+ * The ids of a subject's rows, in their order, which is what its refusals' paths count by.
+ */
+function idsOf(value: unknown): string
+{
+    const rows = Array.isArray(value) ? value : value == null ? [] : [value]
+    return JSON.stringify(rows.map(row => (row as { id?: unknown }).id ?? null))
 }

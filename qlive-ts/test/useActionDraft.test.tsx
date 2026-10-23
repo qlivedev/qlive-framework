@@ -148,6 +148,28 @@ describe("useActionDraft", () => {
         expect(review.args.comment).toBe("fine")
     })
 
+    it("drops the outcome for other rows, and keeps it for the same rows read again", async () => {
+        respondWith({
+            data: null,
+            errors: [{
+                message: "Action.subjectChanged",
+                path: ["reviewBar"],
+                extensions: {code: "CONFLICT", messageKey: "Action.subjectChanged", field: "bar", classification: "REFUSED"}
+            }]
+        })
+        act(() => {
+            review.set("bar", BAR)
+            review.set("comment", "fine")
+        })
+        await act(() => review.issue())
+
+        act(() => review.set("bar", {...BAR, version: "v2"}))
+        expect(review.refusalsOf("bar")).toHaveLength(1)
+
+        act(() => review.set("bar", {id: "bar-2", version: "v1"}))
+        expect(review.outcome).toBeNull()
+    })
+
     it("refuses a parameter the action does not have", () => {
         // @ts-expect-error: the generated map says so already
         expect(() => review.set("comentt", "fine")).toThrowError(/no parameter 'comentt'/)

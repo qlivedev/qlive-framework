@@ -101,11 +101,27 @@ describe("generated type definitions", () => {
             '        approveWidget: { args: { widget: Subject, comment: string, notify: boolean, due?: Temporal.Instant | null }, result: '
         )
         expect(generated).toContain(
-            'approveWidgets: { args: { widgets: Subject[], filter?: Record<string, unknown> | null, tags?: (string | null)[] | null }, result: ('
+            'approveWidgets: { args: { widgets: Subject[], filter?: WidgetFilterInput | null, tags?: (string | null)[] | null }, result: ('
         )
 
         // a mutation without a subject argument looks like any other in the schema
         expect(generated).not.toContain("renameWidget:")
+    })
+
+    it("declares the input types an argument takes", () => {
+        expect(generated).toContain(
+            '/** A widget as an action takes it as input */\n' +
+            'export type WidgetInput = {\n' +
+            '    id: string\n' +
+            '    /** Documented so the input field doc comment path is exercised too */\n' +
+            '    name: string\n' +
+            '    size?: number | null\n' +
+            '    filter?: WidgetFilterInput | null\n' +
+            '}'
+        )
+
+        // a subject reference is qlive-ts's Subject, not a type of the schema's own
+        expect(generated).not.toContain("export type SubjectRefInput")
     })
 
     it("types an action's result by what issueAction() selects of it", () => {

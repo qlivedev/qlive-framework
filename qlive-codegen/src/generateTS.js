@@ -150,6 +150,24 @@ function fieldDocs(fieldDef)
 }
 
 
+/*
+ * An input object type, as the object a mutation's argument takes: a
+ * non-null field is required, any other may be left out or null.
+ */
+function inputDefinition(typeDef, imported)
+{
+    const fields = typeDef.inputFields.map(fieldDef =>
+        fieldDocs(fieldDef) + (
+            fieldDef.type.kind === NON_NULL
+                ? `    ${ fieldDef.name }: ${ valueExpression(unwrapNonNull(fieldDef.type), imported) }`
+                : `    ${ fieldDef.name }?: ${ typeExpression(fieldDef.type, imported) }`
+        )
+    )
+
+    return `${ typeDocs(typeDef) }export type ${ typeDef.name } = {\n${ fields.join("\n") }\n}\n\n`
+}
+
+
 function typeDocs(typeDef)
 {
     return typeDef.description ? `/** ${ typeDef.description } */\n` : ""
@@ -200,10 +218,10 @@ function valueExpression(type, imported, schema)
         return "Subject"
     }
 
-    // other input objects have no generated type yet
+    // declared in the same file, see inputDefinition()
     if (type.kind === "INPUT_OBJECT")
     {
-        return "Record<string, unknown>"
+        return type.name
     }
 
     // an action's result: issueAction() selects its scalar and enum fields, and the type says no more than that
@@ -281,10 +299,17 @@ function generateTypeDefinitions(schemaPath, output)
         //fs.writeFileSync("schema.json", JSON.stringify(schema, null, 4), "utf8")
         //console.log("schema.json", JSON.stringify(schema, null, 4))
 
+        const inputs = schema.types.filter(typeDef =>
+                typeDef.kind === "INPUT_OBJECT" &&
+                typeDef.name !== SUBJECT_REF_INPUT &&
+                typeDef.name[0] !== "_"
+            )
+
         const imported = new Set()
 
         // before the object types, which is where the references to them are
         let typeDefinitions = enums.map(enumDefinition).join("")
+        typeDefinitions += inputs.map(typeDef => inputDefinition(typeDef, imported)).join("")
 
         types.forEach(typeDef => {
 

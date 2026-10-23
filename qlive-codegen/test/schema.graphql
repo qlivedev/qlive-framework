@@ -79,6 +79,15 @@ input WidgetFilterInput {
     name: String
 }
 
+"A widget as an action takes it as input"
+input WidgetInput {
+    id: String!
+    "Documented so the input field doc comment path is exercised too"
+    name: String!
+    size: Number
+    filter: WidgetFilterInput
+}
+
 type Mutation {
     "Documented so the action doc comment path is exercised too"
     approveWidget(widget: SubjectRefInput!, comment: String!, notify: Boolean!, due: Timestamp): Widget!

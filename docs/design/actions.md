@@ -645,6 +645,10 @@ failures, and the system user with `AppAuthentication.runAs()`.
 `ActionTest` and `EntityWriterTest`; `ActionConflictTest` covers both
 refusals, with a concurrent merge and with a conflict inside the action.
 
+Holding an action in a view, 2026-10-23: `useAction()` in qlive-ts,
+with the arguments, what is missing, the last outcome and issuing,
+covered by `useAction.test.tsx`.
+
 Not built yet:
 
 - **The reached-versions argument.** Only the subjects' versions are
@@ -653,8 +657,9 @@ Not built yet:
   "Open items").
 - **The cleanup hook**, the action model and its delivery in the
   bootstrap, and the early check on the client.
-- **Actions in a view**: `useAction()`, forms filling a subject and
-  their parameter paths, and refusals shown at the field.
+- **Actions in a view** beyond the hook: forms filling a subject and
+  their parameter paths, refusals shown at the field, unsaved subjects
+  holding the action back, and the build tracking `useAction()`.
 
 ## Considered and set aside
 

@@ -341,6 +341,8 @@ type MutationType {
 
     Approves a bar. `bar` is a subject: the request names the row by id and version, and the method gets the row
     as it is stored. The rules hold before the method runs.
+
+    @action
     """
     approveBar(
         "the bar to approve"
@@ -350,7 +352,12 @@ type MutationType {
         "whether to notify the bar's owner"
         notify: Boolean!
     ): ApproveResult!
-    "Approves several bars at once. All of them are approved, or none is."
+    """
+
+    Approves several bars at once. All of them are approved, or none is.
+
+    @action
+    """
     approveBars(
         "the bars to approve"
         bars: [SubjectRefInput!]!,
@@ -362,6 +369,8 @@ type MutationType {
 
     Quotes a bar that may not be saved yet. `draft` is input rather than a subject: marked `@Input`, it takes
     the values the user is editing, and no row is loaded.
+
+    @action
     """
     quoteBar(
         "the bar as the user is editing it"

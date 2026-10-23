@@ -2,8 +2,9 @@
 
 Status: concept settled, details open. Written 2026-10-18, revised
 2026-10-22 to define actions as GraphQL mutations declared by Java
-methods. The server path and issuing from the client are built (see
-"What is built"). The companion concept is `layouts.md`.
+methods. The server path, issuing from the client and writing from
+Java are built (see "What is built"). The companion concept is
+`layouts.md`.
 
 What a user does to stored data beyond editing it: approve, close,
 send. Editing is the merge. An action is something the application
@@ -560,15 +561,19 @@ from `generate-ts`, and the `/app/bar/approve` example view. A
 refusal's errors are classified `REFUSED`, and the GraphQL endpoint
 answers a response whose errors all are with 200.
 
+Writing from Java, 2026-10-23: `EntityWriter` over
+`MergeService.mergeInTransaction()`, `MergeConflictException` and the
+executor's `CONFLICT` refusals for write conflicts and serialization
+failures, and the system user with `AppAuthentication.runAs()`.
+`approveBar` and `approveBars` write `bar.approved`, covered by
+`ActionTest` and `EntityWriterTest`.
+
 Not built yet:
 
 - **The reached-versions argument.** Only the subjects' versions are
   checked.
 - **Rules over two subjects' stored fields** fail at startup (see
   "Open items").
-- **The merge joining the action's transaction.** `MergeService`
-  opens a transaction of its own, so a method writing through it today
-  commits that write whatever happens after it.
 - **The cleanup hook**, the action model and its delivery in the
   bootstrap, and the early check on the client.
 

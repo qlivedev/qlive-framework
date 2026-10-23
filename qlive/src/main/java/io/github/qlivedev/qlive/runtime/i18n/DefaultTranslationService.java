@@ -74,7 +74,7 @@ public class DefaultTranslationService
 
     private final boolean prod;
 
-    private final Set<String> ruleTags;
+    private final Set<String> actionTags;
 
     private final Map<Locale, JSONHolder> kept = new ConcurrentHashMap<>();
 
@@ -85,14 +85,14 @@ public class DefaultTranslationService
     /// @param locales  the locales the application offers, the first being the one a request gets that asks for
     ///                 none of them
     /// @param prod     true when running in production, where the translations are read once
-    /// @param ruleTags the message keys of the actions' rules
+    /// @param actionTags the tags the actions bring, see `DefaultActionExecutor.getActionTags()`
     public DefaultTranslationService(
         DSLContext dslContext,
         QLiveDomain domain,
         StaticAnalysisProvider staticAnalysisProvider,
         List<Locale> locales,
         boolean prod,
-        Set<String> ruleTags
+        Set<String> actionTags
     )
     {
         if (locales.isEmpty())
@@ -105,7 +105,7 @@ public class DefaultTranslationService
         this.staticAnalysisProvider = staticAnalysisProvider;
         this.locales = List.copyOf(locales);
         this.prod = prod;
-        this.ruleTags = Set.copyOf(ruleTags);
+        this.actionTags = Set.copyOf(actionTags);
     }
 
 
@@ -182,7 +182,7 @@ public class DefaultTranslationService
             .where(LOCALE.eq(languageTag))
             .forEach(r -> stored.put(r.get(TAG), r.get(VALUE)));
 
-        final Map<String, String> translations = translations(tags(analysis, domain, ruleTags), stored);
+        final Map<String, String> translations = translations(tags(analysis, domain, actionTags), stored);
 
         translations.forEach((tag, translation) -> {
             final Set<String> expected = placeholders(tag);
@@ -202,13 +202,13 @@ public class DefaultTranslationService
 
     /// Every tag there is: the static first argument of every recorded i18n() call, every type the domain has a
     /// table for, by itself and with each of its fields, each value of an enum such a field holds, and the given
-    /// rule tags.
+    /// action tags.
     ///
     /// @param analysis     the frontend's static analysis, or `null` where there is none yet
-    /// @param ruleTags     the message keys of the actions' rules
-    static Set<String> tags(TrackUsageData analysis, QLiveDomain domain, Set<String> ruleTags)
+    /// @param actionTags   the tags the actions bring, see `DefaultActionExecutor.getActionTags()`
+    static Set<String> tags(TrackUsageData analysis, QLiveDomain domain, Set<String> actionTags)
     {
-        final Set<String> tags = new TreeSet<>(ruleTags);
+        final Set<String> tags = new TreeSet<>(actionTags);
 
         if (analysis != null)
         {

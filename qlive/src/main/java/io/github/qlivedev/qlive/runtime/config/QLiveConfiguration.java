@@ -146,7 +146,7 @@ public class QLiveConfiguration
             staticAnalysis,
             DefaultTranslationService.parseLocales(locales),
             environment.matchesProfiles("prod"),
-            actionExecutor.getRuleTags()
+            actionExecutor.getActionTags()
         );
     }
 

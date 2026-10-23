@@ -5,6 +5,7 @@ import io.github.qlivedev.qlive.model.merge.EntityChange;
 import io.github.qlivedev.qlive.model.merge.FieldChange;
 import io.github.qlivedev.qlive.model.merge.MergeConfig;
 import io.github.qlivedev.qlive.model.merge.MergeStatus;
+import io.github.qlivedev.qlive.runtime.action.DefaultActionExecutor;
 import io.github.qlivedev.qlive.runtime.merge.MergeService;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static io.github.qlivedev.qlivetest.domain.Tables.APP_VERSION;
@@ -29,8 +31,11 @@ import static io.github.qlivedev.qlivetest.domain.Tables.BAR;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 
 /// Issues the example actions of `BarLogic` as the mutations they are, against bars the test makes: the rows are
@@ -56,6 +61,9 @@ class ActionTest
 
     @Autowired
     private MergeService mergeService;
+
+    @Autowired
+    private DefaultActionExecutor actionExecutor;
 
     @Autowired
     private DSLContext dslContext;
@@ -98,6 +106,18 @@ class ActionTest
                 .getArgument("bars").getType().toString(),
             is("[SubjectRefInput!]!")
         );
+    }
+
+
+    /// What the translations offer for the actions: the rules' message keys, and the labels of the input a form
+    /// field edits, but none for a subject, which is a row.
+    @Test
+    void offersTheActionsTags()
+    {
+        final Set<String> tags = actionExecutor.getActionTags();
+
+        assertThat(tags, hasItems("Bar.descriptionRequired", "approveBar.comment", "approveBar.notify", "quoteBar.draft"));
+        assertThat(tags, not(hasItem("approveBar.bar")));
     }
 
 

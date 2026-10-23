@@ -112,16 +112,25 @@ public class DefaultActionExecutor
     }
 
 
-    /// The message keys of every action's rules. They reach the frontend with a refusal, never through an `i18n()`
-    /// call its analysis could find, so the translations offer them on their own.
-    public Set<String> getRuleTags()
+    /// The tags the actions bring to the frontend that no `i18n()` call its analysis could find names, so that the
+    /// translations offer them on their own: the message keys of every action's rules, which arrive with a refusal,
+    /// and the label of every input parameter a form field edits, `approveBar.comment`.
+    public Set<String> getActionTags()
     {
         final Set<String> tags = new LinkedHashSet<>();
-        for (List<CompiledRule> compiled : rules.values())
+        for (Map.Entry<Action, List<CompiledRule>> entry : rules.entrySet())
         {
-            for (CompiledRule rule : compiled)
+            final Action action = entry.getKey();
+            for (CompiledRule rule : entry.getValue())
             {
                 tags.add(rule.rule().getMessageKey());
+            }
+            for (String parameterName : action.getParameterNames())
+            {
+                if (parameterName != null && subject(action, parameterName) == null)
+                {
+                    tags.add(action.getName() + "." + parameterName);
+                }
             }
         }
         return tags;

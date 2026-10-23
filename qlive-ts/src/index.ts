@@ -97,6 +97,7 @@ export { mergeWorkingSet } from "./merge/mergeWorkingSet";
 
 // Actions: the mutations of @QLiveAction methods, issued by name, and their refusals.
 export { issueAction, refusalMessage, refusalsOf, REFUSED } from "./action";
+export { useAction } from "./useAction";
 
 export { default as useQueryDocument } from "./useQueryDocument";
 /**
@@ -227,7 +228,16 @@ export type { Widget, WidgetProps, FieldDecorator, FieldDecoratorProps, WidgetOv
 export type { Layout, LayoutNode, LayoutFieldNode, LayoutSectionNode, LayoutComponentNode, LayoutStatusNode } from "./form/layout";
 export type { RelatedRows } from "./form/relatedRows";
 export type { GraphQLParams, GraphQLError, GraphQLErrorLocation } from "./util/graphql";
-export type { Actions, ActionName, ActionArgs, ActionResult, ActionOutcome, Refusal, Subject } from "./action";
+export type {
+    Actions,
+    ActionName,
+    ActionArgs,
+    ActionResult,
+    ActionOutcome,
+    Refusal,
+    Subject
+} from "./action";
+export type { ActionState } from "./useAction";
 export type {
     QueryConfig,
     QueryConfigDelta,

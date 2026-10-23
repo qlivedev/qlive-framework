@@ -43,6 +43,29 @@ export type Subject = {
 }
 
 /**
+ * One parameter of an action, as its mutation declares it.
+ */
+export type ActionParameter = {
+    name: string
+    /**
+     * Whether the argument is non-null in the schema: a subject, or input marked `@NotNull` or of a primitive type
+     */
+    required: boolean
+    /**
+     * Whether it is a subject, which takes a row or a list of rows
+     */
+    subject: boolean
+    /**
+     * Whether it takes a list
+     */
+    list: boolean
+    /**
+     * Name of its scalar, enum or input type: "SubjectRefInput" for a subject
+     */
+    type: string
+}
+
+/**
  * One reason an action refused, as the server says it.
  */
 export type Refusal = {
@@ -89,7 +112,13 @@ const MUTATION_TYPE = "MutationType"
 /**
  * The mutation of each action issued so far. Built from the schema on first use, like a query's conversion map.
  */
-const mutations = new Map<string, { query: GraphQLQuery<unknown>, subjects: Set<string> }>()
+const mutations = new Map<string, Mutation>()
+
+type Mutation = {
+    query: GraphQLQuery<unknown>
+    subjects: Set<string>
+    parameters: ActionParameter[]
+}
 
 /**
  * Issues an action: the mutation of an `@QLiveAction` method, with the given arguments.
@@ -140,6 +169,16 @@ export async function issueAction<N extends ActionName>(
 }
 
 /**
+ * The parameters of an action, in the order of its method's.
+ *
+ * @param name  name of the action
+ */
+export function actionParameters(name: ActionName): readonly ActionParameter[]
+{
+    return mutationOf(name).parameters
+}
+
+/**
  * The text of a refusal, in the page's locale: the translation of its message key. The keys of QLive's own
  * conflicts are translated like any other QLive text, and the server offers those of the application's rules
  * among its translations.
@@ -186,7 +225,7 @@ function subjectRef(row: unknown): Subject
 }
 
 
-function mutationOf(name: string): { query: GraphQLQuery<unknown>, subjects: Set<string> }
+function mutationOf(name: string): Mutation
 {
     let mutation = mutations.get(name)
     if (!mutation)
@@ -198,9 +237,14 @@ function mutationOf(name: string): { query: GraphQLQuery<unknown>, subjects: Set
             throw new Error("No action '" + name + "': the schema has no mutation of that name")
         }
 
-        const subjects = new Set(
-            field.args.filter(arg => unwrapAll(arg.type).name === SUBJECT_REF_INPUT).map(arg => arg.name)
-        )
+        const parameters = field.args.map(arg => ({
+            name: arg.name,
+            required: arg.type.kind === "NON_NULL",
+            subject: unwrapAll(arg.type).name === SUBJECT_REF_INPUT,
+            list: (arg.type.kind === "NON_NULL" ? arg.type.ofType! : arg.type).kind === "LIST",
+            type: unwrapAll(arg.type).name
+        }))
+        const subjects = new Set(parameters.filter(p => p.subject).map(p => p.name))
 
         const variables = field.args.map(arg => "$" + arg.name + ": " + typeSource(arg.type)).join(", ")
         const passed = field.args.map(arg => arg.name + ": $" + arg.name).join(", ")
@@ -208,7 +252,7 @@ function mutationOf(name: string): { query: GraphQLQuery<unknown>, subjects: Set
         const source = "mutation " + name + (variables ? "(" + variables + ")" : "") + " { " +
             name + (passed ? "(" + passed + ")" : "") + selection(field) + " }"
 
-        mutation = {query: new GraphQLQuery<unknown>(source), subjects}
+        mutation = {query: new GraphQLQuery<unknown>(source), subjects, parameters}
         mutations.set(name, mutation)
     }
     return mutation

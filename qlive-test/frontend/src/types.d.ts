@@ -120,6 +120,8 @@ export type ApproveResult = {
 
 /** Generated from public.bar */
 export type Bar = {
+    /** DB column 'approved' */
+    approved?: Temporal.Instant
     /** Many-to-many objects through bar_link.bar_id */
     bazes: Baz[]
     /** DB column 'created' */

@@ -139,6 +139,21 @@ public class BarRecord extends UpdatableRecordImpl<BarRecord> {
         return (String) get(5);
     }
 
+    /**
+     * Setter for <code>public.bar.approved</code>.
+     */
+    public void setApproved(Timestamp value) {
+        set(6, value);
+    }
+
+    /**
+     * Getter for <code>public.bar.approved</code>.
+     */
+    @Column(name = "approved", precision = 6)
+    public Timestamp getApproved() {
+        return (Timestamp) get(6);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -162,7 +177,7 @@ public class BarRecord extends UpdatableRecordImpl<BarRecord> {
     /**
      * Create a detached, initialised BarRecord
      */
-    public BarRecord(String id, String name, Integer num, Timestamp created, String description, String version) {
+    public BarRecord(String id, String name, Integer num, Timestamp created, String description, String version, Timestamp approved) {
         super(Bar.BAR);
 
         setId(id);
@@ -171,6 +186,7 @@ public class BarRecord extends UpdatableRecordImpl<BarRecord> {
         setCreated(created);
         setDescription(description);
         setVersion(version);
+        setApproved(approved);
         resetChangedOnNotNull();
     }
 
@@ -187,6 +203,7 @@ public class BarRecord extends UpdatableRecordImpl<BarRecord> {
             setCreated(value.getCreated());
             setDescription(value.getDescription());
             setVersion(value.getVersion());
+            setApproved(value.getApproved());
             resetChangedOnNotNull();
         }
     }

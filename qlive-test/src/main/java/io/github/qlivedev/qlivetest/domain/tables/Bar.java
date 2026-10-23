@@ -95,6 +95,11 @@ public class Bar extends TableImpl<BarRecord> {
      */
     public final TableField<BarRecord, String> VERSION = createField(DSL.name("version"), SQLDataType.VARCHAR(36), this, "");
 
+    /**
+     * The column <code>public.bar.approved</code>.
+     */
+    public final TableField<BarRecord, Timestamp> APPROVED = createField(DSL.name("approved"), SQLDataType.TIMESTAMP(6), this, "");
+
     private Bar(Name alias, Table<BarRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

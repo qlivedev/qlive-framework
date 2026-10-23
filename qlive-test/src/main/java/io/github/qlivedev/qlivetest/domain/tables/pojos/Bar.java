@@ -45,6 +45,7 @@ public class Bar extends GeneratedDomainObject implements Serializable {
     private Timestamp created;
     private String description;
     private String version;
+    private Timestamp approved;
 
     public Bar() {}
 
@@ -55,6 +56,7 @@ public class Bar extends GeneratedDomainObject implements Serializable {
         this.created = value.created;
         this.description = value.description;
         this.version = value.version;
+        this.approved = value.approved;
     }
 
     public Bar(
@@ -63,7 +65,8 @@ public class Bar extends GeneratedDomainObject implements Serializable {
         Integer num,
         Timestamp created,
         String description,
-        String version
+        String version,
+        Timestamp approved
     ) {
         this.id = id;
         this.name = name;
@@ -71,6 +74,7 @@ public class Bar extends GeneratedDomainObject implements Serializable {
         this.created = created;
         this.description = description;
         this.version = version;
+        this.approved = approved;
     }
 
     /**
@@ -171,6 +175,21 @@ public class Bar extends GeneratedDomainObject implements Serializable {
         this.version = version;
     }
 
+    /**
+     * Getter for <code>public.bar.approved</code>.
+     */
+    @Column(name = "approved", precision = 6)
+    public Timestamp getApproved() {
+        return this.approved;
+    }
+
+    /**
+     * Setter for <code>public.bar.approved</code>.
+     */
+    public void setApproved(Timestamp approved) {
+        this.approved = approved;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -216,6 +235,12 @@ public class Bar extends GeneratedDomainObject implements Serializable {
         }
         else if (!this.version.equals(other.version))
             return false;
+        if (this.approved == null) {
+            if (other.approved != null)
+                return false;
+        }
+        else if (!this.approved.equals(other.approved))
+            return false;
         return true;
     }
 
@@ -229,6 +254,7 @@ public class Bar extends GeneratedDomainObject implements Serializable {
         result = prime * result + ((this.created == null) ? 0 : this.created.hashCode());
         result = prime * result + ((this.description == null) ? 0 : this.description.hashCode());
         result = prime * result + ((this.version == null) ? 0 : this.version.hashCode());
+        result = prime * result + ((this.approved == null) ? 0 : this.approved.hashCode());
         return result;
     }
 
@@ -242,6 +268,7 @@ public class Bar extends GeneratedDomainObject implements Serializable {
         sb.append(", ").append(created);
         sb.append(", ").append(description);
         sb.append(", ").append(version);
+        sb.append(", ").append(approved);
 
         sb.append(")");
         return sb.toString();

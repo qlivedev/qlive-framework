@@ -32,6 +32,8 @@ public class AppUserDetails
 
     private final Set<String> roles;
 
+    private final boolean disabled;
+
     public AppUserDetails(Object appUser)
     {
         final JSONBeanUtil util = JSONUtil.DEFAULT_UTIL;
@@ -43,6 +45,9 @@ public class AppUserDetails
         this.authorities = this.roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
         this.password = (String) util.getProperty(appUser, "password");
         this.lastLogin = (Timestamp) util.getProperty(appUser, "lastLogin");
+        // optional: a user table without the column has no disabled users
+        this.disabled = util.getAllPropertyNames(appUser).contains("disabled") &&
+            Boolean.TRUE.equals(util.getProperty(appUser, "disabled"));
     }
 
     public Set<String> getRoles()
@@ -102,7 +107,7 @@ public class AppUserDetails
     @Override
     public boolean isEnabled()
     {
-        return true;
+        return !disabled;
     }
 
     public static Set<String> splitRoles(String s)

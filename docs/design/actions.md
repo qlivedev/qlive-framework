@@ -436,10 +436,14 @@ no user and no request; tests.
 ## Client types
 
 An action's input and result types are schema types, so the generated
-types already hold them, as they hold every mutation's. The schema
-also says which arguments are subjects: those of `SubjectRefInput`.
-From it, `generate-ts` merges a map into qlive-ts's `Actions`
-interface, which types the issuing function by action name:
+types already hold them, as they hold every mutation's, input types
+included. The schema also says which arguments are subjects: those of
+`SubjectRefInput`. And it says which mutations are actions: the
+framework ends an action's description with a line `@action`
+(decided 2026-10-23), since a schema file carries descriptions but no
+annotation. From that, `generate-ts` merges a map into qlive-ts's
+`Actions` interface, which types the issuing function by action name,
+and leaves the marker out of the doc comments it writes:
 
 ```ts
 declare module "@qlivedev/qlive-ts" {
@@ -457,9 +461,8 @@ the caller naming it. It is typed as what is selected: `issueAction()`
 selects the result's scalar and enum fields, and a result type with
 object fields becomes a `Pick` of them.
 
-What the schema can't say is that a mutation without a subject is an
-action: one of input alone looks like any other mutation, and is left
-out of the map (see "Open items").
+An action without a subject, of input alone, is in the map like any
+other; a plain mutation is not.
 
 ```ts
 const outcome = await issueAction("approveBar", { bar, comment, notify })
@@ -658,6 +661,10 @@ failures, and the system user with `AppAuthentication.runAs()`.
 `approveBar` and `approveBars` write `bar.approved`, covered by
 `ActionTest` and `EntityWriterTest`; `ActionConflictTest` covers both
 refusals, with a concurrent merge and with a conflict inside the action.
+
+Marking actions in the schema, 2026-10-23: the `@action` line in an
+action's description, and `generate-ts` recognizing actions by it and
+generating the input types.
 
 Holding an action in a view, 2026-10-23: `useActionDraft()` in qlive-ts,
 with the arguments, what is missing, the last outcome and issuing,

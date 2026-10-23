@@ -67,6 +67,13 @@ export const QLIVE_TRACKED_FUNCTIONS: Record<string, TrackedFunctionSpec> = {
     GraphQLQuery: {
         module: "@qlivedev/qlive-ts", fn: "GraphQLQuery", requireStatic: true
     },
+    // the action's name only: the server offers the translations of the actions named here
+    useActionDraft: {
+        module: "@qlivedev/qlive-ts", fn: "useActionDraft", varArgs: 1, requireStatic: true
+    },
+    issueAction: {
+        module: "@qlivedev/qlive-ts", fn: "issueAction", varArgs: 1, requireStatic: true
+    },
 };
 
 /**

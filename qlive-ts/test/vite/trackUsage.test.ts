@@ -752,6 +752,47 @@ describe("trackUsage", () => {
     });
 
 
+    describe("actions", () => {
+
+        it("records the name of the action a draft or an issue names, and nothing else of the call", () => {
+            write("app/Approve.tsx", `
+                import {issueAction, useActionDraft} from "@qlivedev/qlive-ts";
+
+                export default function Approve({bar, comment}) {
+                    const approve = useActionDraft("approveBar", {comment});
+                    const all = () => issueAction("approveBars", {bars: [bar], comment});
+                    return null;
+                }
+            `);
+            const skipped: string[] = [];
+
+            const {usages} = analyzeSourceTree({sourceRoot, onSkippedCall: (call) => skipped.push(call.name)});
+
+            expect((usages["./app/Approve"] as {calls: unknown}).calls).toEqual({
+                useActionDraft: [["approveBar"]],
+                issueAction: [["approveBars"]]
+            });
+            expect(skipped).toEqual([]);
+        });
+
+
+        it("leaves out an action named by a variable, and says so", () => {
+            write("app/Approve.tsx", `
+                import {issueAction} from "@qlivedev/qlive-ts";
+
+                export default function Approve({name}) {
+                    return issueAction(name, {});
+                }
+            `);
+            const skipped: string[] = [];
+
+            analyzeSourceTree({sourceRoot, onSkippedCall: (call) => skipped.push(call.name)});
+
+            expect(skipped).toEqual(["issueAction"]);
+        });
+    });
+
+
     describe("FilterDSL in arguments", () => {
 
         /**

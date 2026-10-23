@@ -2,6 +2,7 @@ package io.github.qlivedev.qlive.graphql;
 
 import io.github.qlivedev.qlive.api.QLiveDomainException;
 import com.esotericsoftware.reflectasm.MethodAccess;
+import io.github.qlivedev.qlive.api.annotation.Input;
 import io.github.qlivedev.qlive.api.annotation.QLiveAction;
 import io.github.qlivedev.qlive.api.annotation.QLiveField;
 import io.github.qlivedev.qlive.api.annotation.QLiveMutation;
@@ -278,9 +279,14 @@ class LogicBeanAnalyzer
 
 
     /// The subject a parameter is, or `null` where it is input: a subject is a parameter of a table-backed type,
-    /// or a `List` of one.
+    /// or a `List` of one, unless it is marked {@link Input}.
     private ActionSubject subjectOf(String locationInfo, Parameter parameter, int index)
     {
+        if (parameter.isAnnotationPresent(Input.class))
+        {
+            return null;
+        }
+
         final Class<?> type = parameter.getType();
         if (subjectTypes.contains(type))
         {

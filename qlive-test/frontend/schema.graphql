@@ -358,6 +358,15 @@ type MutationType {
         comment: String!
     ): [ApproveResult]!
     mergeWorkingSet(changes: [EntityChangeInput]!, deletions: [EntityDeletionInput]!, links: [LinkChangeInput]!, mergeConfig: MergeConfigInput!): MergeResult!
+    """
+
+    Quotes a bar that may not be saved yet. `draft` is input rather than a subject: marked `@Input`, it takes
+    the values the user is editing, and no row is loaded.
+    """
+    quoteBar(
+        "the bar as the user is editing it"
+        draft: BarInput!
+    ): Int!
 }
 
 "Auto-generated from BarLogic, QueryLogic, MergeLogic"
@@ -510,6 +519,17 @@ scalar QueryConfig
 
 "SQL timestamp equivalent"
 scalar Timestamp
+
+"Generated for io.github.qlivedev.qlivetest.domain.tables.pojos.Bar"
+input BarInput {
+    approved: Timestamp
+    created: Timestamp!
+    description: String
+    id: String!
+    name: String!
+    num: Int!
+    version: String
+}
 
 """
 

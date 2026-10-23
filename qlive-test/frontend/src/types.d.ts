@@ -316,6 +316,9 @@ as it is stored. The rules hold before the method runs. */
     /** Approves several bars at once. All of them are approved, or none is. */
     approveBars: ApproveResult[]
     mergeWorkingSet: MergeResult
+    /** Quotes a bar that may not be saved yet. `draft` is input rather than a subject: marked `@Input`, it takes
+the values the user is editing, and no row is loaded. */
+    quoteBar: number
 }
 
 /** Auto-generated from BarLogic, QueryLogic, MergeLogic */

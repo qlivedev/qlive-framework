@@ -482,13 +482,13 @@ QLive's two conflict keys come with English like its other texts.
 
 Decided 2026-10-23.
 
-**A view holds an action with `useAction()`.** The hook owns
+**A view drafts an action with `useActionDraft()`.** The hook owns
 everything an action needs on the client: the arguments by parameter
 name, the refusals of the last issue, whether every required argument
 is there, and issuing.
 
 ```tsx
-const assign = useAction("assignEmployee")
+const assign = useActionDraft("assignEmployee")
 
 <Form row={ employee } action={ assign } subject="employee"/>
 <ProjectPicker value={ assign.args.project } onChange={ p => assign.set("project", p) }/>
@@ -611,10 +611,13 @@ the server enforces.
 ## Naming
 
 **Action**, and "QLive actions" in prose where React's meaning could
-interfere: `<form action={...}>`, `useActionState`. The hook is
-`useAction()` all the same (decided 2026-10-23): it holds a QLive
-action, and the name says so more plainly than any detour around
-`useActionState`, which is imported from React and not from QLive.
+interfere: `<form action={...}>`, `useActionState`. What a view holds
+before issuing is an **action draft**, `useActionDraft()` (decided
+2026-10-23): the arguments as they are being gathered, which the early
+check can hold against the same rules the server enforces, the way a
+working set's draft is held against the invariants before the merge.
+The name also stays clear of `useActionState`; `useAction` would have
+sat right next to it.
 
 **Subject** is the working term for a parameter of stored state. "Root"
 was the first, and stopped fitting once paths start at any parameter;
@@ -645,9 +648,9 @@ failures, and the system user with `AppAuthentication.runAs()`.
 `ActionTest` and `EntityWriterTest`; `ActionConflictTest` covers both
 refusals, with a concurrent merge and with a conflict inside the action.
 
-Holding an action in a view, 2026-10-23: `useAction()` in qlive-ts,
+Holding an action in a view, 2026-10-23: `useActionDraft()` in qlive-ts,
 with the arguments, what is missing, the last outcome and issuing,
-covered by `useAction.test.tsx`.
+covered by `useActionDraft.test.tsx`.
 
 Not built yet:
 
@@ -659,7 +662,7 @@ Not built yet:
   bootstrap, and the early check on the client.
 - **Actions in a view** beyond the hook: forms filling a subject and
   their parameter paths, refusals shown at the field, unsaved subjects
-  holding the action back, and the build tracking `useAction()`.
+  holding the action back, and the build tracking `useActionDraft()`.
 
 ## Considered and set aside
 

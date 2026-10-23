@@ -97,7 +97,7 @@ export { mergeWorkingSet } from "./merge/mergeWorkingSet";
 
 // Actions: the mutations of @QLiveAction methods, issued by name, and their refusals.
 export { issueAction, refusalMessage, refusalsOf, REFUSED } from "./action";
-export { useAction } from "./useAction";
+export { useActionDraft } from "./useActionDraft";
 
 export { default as useQueryDocument } from "./useQueryDocument";
 /**
@@ -237,7 +237,7 @@ export type {
     Refusal,
     Subject
 } from "./action";
-export type { ActionState } from "./useAction";
+export type { ActionDraft } from "./useActionDraft";
 export type {
     QueryConfig,
     QueryConfigDelta,

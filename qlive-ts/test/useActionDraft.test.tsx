@@ -4,7 +4,7 @@ import {act} from "react";
 import {createRoot, Root} from "react-dom/client";
 import {init, QLiveConfig} from "../src/config";
 import {Refusal, Subject} from "../src/action";
-import {ActionState, useAction} from "../src/useAction";
+import {ActionDraft, useActionDraft} from "../src/useActionDraft";
 import {
     field,
     inputObject,
@@ -74,14 +74,14 @@ const reviewConfig: QLiveConfig = {
 const BAR = {id: "bar-1", version: "v1", name: "Bar #1"}
 
 /** the state the last render was given, and how often the view rendered */
-let review: ActionState<"reviewBar">
-let reviews: ActionState<"reviewBars">
+let review: ActionDraft<"reviewBar">
+let reviews: ActionDraft<"reviewBars">
 let renderCount = 0
 
 function ReviewView()
 {
-    review = useAction("reviewBar")
-    reviews = useAction("reviewBars", {bars: []})
+    review = useActionDraft("reviewBar")
+    reviews = useActionDraft("reviewBars", {bars: []})
     renderCount++
     return null
 }
@@ -112,7 +112,7 @@ afterEach(() => {
     vi.restoreAllMocks()
 })
 
-describe("useAction", () => {
+describe("useActionDraft", () => {
 
     it("starts with a required Boolean false and the other required parameters missing", () => {
         expect(review.args).toEqual({notify: false})

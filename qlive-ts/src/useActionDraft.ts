@@ -12,12 +12,12 @@ import {
 } from "./action";
 
 /**
- * An action as a view holds it: the arguments gathered so far, and what issuing them came to.
+ * An action as a view drafts it before issuing: the arguments gathered so far, and what issuing them came to.
  *
  * What a view renders from. It is replaced, never changed, so a part of the view handed it re-renders like for
  * any other prop.
  */
-export interface ActionState<N extends ActionName>
+export interface ActionDraft<N extends ActionName>
 {
     /**
      * name of the action
@@ -73,10 +73,10 @@ export interface ActionState<N extends ActionName>
 }
 
 /**
- * Holds an action in a view: one of the application's `@QLiveAction` methods, with the arguments the view gathers
+ * Drafts an action in a view: one of the application's `@QLiveAction` methods, with the arguments the view gathers
  * for it.
  *
- *     const approve = useAction("approveBar")
+ *     const approve = useActionDraft("approveBar")
  *
  *     approve.set("bar", row)
  *     <button disabled={ !approve.complete } onClick={ () => approve.issue() }>Approve</button>
@@ -94,18 +94,18 @@ export interface ActionState<N extends ActionName>
  *
  * @returns the current state of the action
  */
-export function useAction<N extends ActionName>(name: N, initial?: Partial<ActionArgs<N>>): ActionState<N>
+export function useActionDraft<N extends ActionName>(name: N, initial?: Partial<ActionArgs<N>>): ActionDraft<N>
 {
-    const [store] = useState(() => new ActionStore(name, initial))
+    const [store] = useState(() => new ActionDraftStore(name, initial))
 
     return useSyncExternalStore(store.subscribe, store.getSnapshot)
 }
 
 
 /**
- * The state behind useAction(): the arguments, and whoever re-renders when they change.
+ * The state behind useActionDraft(): the arguments, and whoever re-renders when they change.
  */
-class ActionStore<N extends ActionName>
+class ActionDraftStore<N extends ActionName>
 {
     private readonly parameters: readonly ActionParameter[]
 
@@ -115,7 +115,7 @@ class ActionStore<N extends ActionName>
 
     private pending: Promise<ActionOutcome<ActionResult<N>>> | null = null
 
-    private snapshot: ActionState<N> | null = null
+    private snapshot: ActionDraft<N> | null = null
 
     private subscribers: (() => void)[] = []
 
@@ -147,7 +147,7 @@ class ActionStore<N extends ActionName>
     }
 
 
-    getSnapshot = (): ActionState<N> =>
+    getSnapshot = (): ActionDraft<N> =>
     {
         if (!this.snapshot)
         {

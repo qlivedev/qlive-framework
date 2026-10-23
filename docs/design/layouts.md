@@ -145,7 +145,7 @@ The sketch below is what was built, apart from these, as of 2026-10-20:
 
 - **No action yet.** `Form` has no `action` or `subject`, the context
   no action, and `deriveLayout` no action argument, until
-  `useAction()` exists (`actions.md`, "Actions in a view").
+  `useActionDraft()` exists (`actions.md`, "Actions in a view").
 - **Nothing locks a mode.** `setMode` changes any field; locking is the
   authorization work's.
 - **`modes` holds what the layout gave and `setMode` set.** A field not
@@ -223,8 +223,9 @@ The sketch below is what was built, apart from these, as of 2026-10-20:
   field groups go.
 - **`layout`** or **`children`**, never both, and a form given both is
   an error, not a precedence rule.
-- **`action`** is the action the view holds, `useAction("approveBar")`,
-  whose arguments the form also edits. Its row is then one of them.
+- **`action`** is the action draft the view holds,
+  `useActionDraft("approveBar")`, whose arguments the form also edits.
+  Its row is then one of them.
 - **`subject`** names the parameter the row is. It may be left out
   where exactly one subject parameter has the row's type.
 
@@ -240,7 +241,7 @@ interface FormContext
     layoutName: string | null
     merge: MergeAccessor
     /** the action the form fills an argument of, the third source; null without one */
-    action: ActionState | null
+    action: ActionDraft | null
     /** the subject parameter the row is, null without an action */
     subject: string | null
     /** the fields whose text didn't parse, by path */
@@ -255,7 +256,7 @@ function useFormContext(): FormContext   // throws outside a Form
 ```
 
 The action's arguments live in no working set and not in the form
-either: the view owns them through `useAction()`, and other parts of
+either: the view owns them through `useActionDraft()`, and other parts of
 the view set arguments of the same action (`actions.md`, "Actions in a
 view"). The form writes its fields' parameters there, and takes the
 refusals blaming its row's fields or its parameters from there.

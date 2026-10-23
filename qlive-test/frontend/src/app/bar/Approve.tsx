@@ -1,23 +1,32 @@
-import { useState } from "react";
-import { formatValue, issueAction, refusalMessage, refusalsOf, useInjection } from "@qlivedev/qlive-ts";
-import type { ActionOutcome, Refusal } from "@qlivedev/qlive-ts";
-import type { ApproveResult } from "../../types";
+import { useEffect, useMemo, useState } from "react";
+import {
+    ActionDraft,
+    ActionRefusals,
+    Field,
+    Form,
+    formatValue,
+    refusalMessage,
+    useActionDraft,
+    useInjection,
+    useRefusals
+} from "@qlivedev/qlive-ts";
 import { Q_BarApprove, Q_BarApproveResult } from "./Q_BarApprove";
 
 /**
- * Actions: approving bars through BarLogic's approveBar and approveBars.
+ * Actions: approving bars through BarLogic's approveBar and approveBars, each held as an action draft.
  *
- * The rows go to the action as they are -- issueAction() sends each one's id and version, and the server loads
- * the row as it is stored. Nothing here checks a rule: the server does, and a refusal comes back as an outcome
- * with one reason per broken rule, each blaming a field by its path. The view puts each reason next to what it
- * blames.
+ * The selected rows are the drafts' subjects as they are -- the action sends each one's id and version, and the
+ * server loads the row as it is stored. The comment and the notify flag are the actions' input, edited in a form of
+ * the action's parameters alone, with no row of its own. Nothing here checks a rule: the server does, and a refusal
+ * comes back with one reason per broken rule, each blaming a field by its path. The form's fields show the reasons
+ * blaming them, each selected row those blaming it, and ActionRefusals whatever is left.
  *
  * The action writes the approval, which gives each row a new version, so the rows are read again after it:
  * approving one again is then no conflict.
  *
  * Worth trying:
- *  - a bar without a description, which the stored-state rule refuses
- *  - "notify" with an empty comment, which the input rule refuses -- both at once give two reasons
+ *  - a bar without a description, which the stored-state rule refuses, at its row
+ *  - an empty comment, which keeps Approve disabled: the comment is required, and blank text is none
  *  - several bars at once, one of them without a description: none is approved, and the reason names its row
  *  - /bar/edit in another window: change a bar there and approve it here without reloading, which is a conflict
  */
@@ -27,45 +36,48 @@ export default function Approve()
 {
     const bars: Q_BarApproveResult = useInjection(Q_BarApprove, { config: { pageSize: 20 } });
 
+    const approve = useActionDraft("approveBar")
+    const approveAll = useActionDraft("approveBars")
+
     const [selected, setSelected] = useState<string[]>([])
-    const [comment, setComment] = useState("")
-    const [notify, setNotify] = useState(false)
-    // with the ids it was issued for: a refusal counts the rows of its request, not of the current selection
-    const [issued, setIssued] = useState<{ ids: string[], outcome: ActionOutcome<ApproveResult[]> } | null>(null)
-    const outcome = issued?.outcome
 
     // the rows in the order they were selected, which is the order the request sends them in
-    const rows = selected.map(id => bars.rows.find(row => row.id === id)).filter((row): row is Row => !!row)
+    const rows = useMemo(
+        () => selected.map(id => bars.rows.find(row => row.id === id)).filter((row): row is Row => !!row),
+        [selected, bars.rows]
+    )
 
-    const approve = async () => {
-        const ids = rows.map(row => row.id)
-        if (rows.length === 1)
+    // one bar is approveBar's, several are approveBars'
+    const bulk = rows.length > 1
+    const action = bulk ? approveAll : approve
+
+    const { set: setBar } = approve
+    const { set: setBars } = approveAll
+    useEffect(() => {
+        setBar("bar", rows.length === 1 ? rows[0] : null)
+        setBars("bars", rows)
+    }, [rows, setBar, setBars])
+
+    const toggle = (id: string) => {
+        const next = selected.includes(id) ? selected.filter(s => s !== id) : [...selected, id]
+        // the comment goes along when the selection moves from one action to the other
+        const comment = action.args.comment
+        if (comment != null && next.length > 1 !== bulk)
         {
-            const single = await issueAction("approveBar", { bar: rows[0], comment, notify })
-            setIssued({ ids, outcome: single.refused ? single : { refused: false, result: [single.result] } })
+            next.length > 1 ? approveAll.set("comment", comment) : approve.set("comment", comment)
         }
-        else
-        {
-            const all = await issueAction("approveBars", { bars: rows, comment })
-            setIssued({ ids, outcome: all.refused ? all : { refused: false, result: all.result.filter(r => r !== null) } })
-        }
-        bars.update({})
+        setSelected(next)
     }
 
-    // The single action names its subject "bar", the bulk one "bars", with the row's position after it.
-    const blamedOn = (id: string): Refusal[] => {
-        const index = issued?.ids.indexOf(id) ?? -1
-        if (!outcome?.refused || index < 0)
+    const issue = async () => {
+        const outcome = await action.issue()
+        if (!outcome.refused)
         {
-            return []
+            bars.update({})
         }
-        return issued!.ids.length === 1
-            ? refusalsOf(outcome.refusals, "bar")
-            : refusalsOf(outcome.refusals, "bars." + index)
     }
 
-    const toggle = (id: string) =>
-        setSelected(current => current.includes(id) ? current.filter(s => s !== id) : [...current, id])
+    const result = action.outcome && !action.outcome.refused ? action.outcome.result : null
 
     return (
         <div className="bar-approve">
@@ -83,52 +95,30 @@ export default function Approve()
                 </thead>
                 <tbody>
                     {
-                        bars.rows.map(row => {
-                            const index = selected.indexOf(row.id)
-                            return (
-                                <tr key={ row.id }>
-                                    <td>
-                                        <input
-                                            type="checkbox"
-                                            aria-label={ "Select " + row.name }
-                                            checked={ index >= 0 }
-                                            onChange={ () => toggle(row.id) }
-                                        />
-                                    </td>
-                                    <td>{ row.name }</td>
-                                    <td>{ row.description }</td>
-                                    <td>{ formatValue(row.approved, "Timestamp") }</td>
-                                    <td>
-                                        <Reasons refusals={ blamedOn(row.id) }/>
-                                    </td>
-                                </tr>
-                            )
-                        })
+                        bars.rows.map(row => (
+                            <BarRow
+                                key={ row.id }
+                                row={ row }
+                                action={ action }
+                                // the single action names its subject "bar", the bulk one "bars", with the position
+                                path={ !selected.includes(row.id) ? null : bulk ? "bars." + rows.indexOf(row) : "bar" }
+                                toggle={ toggle }
+                            />
+                        ))
                     }
                 </tbody>
             </table>
 
-            <div className="qlive-form">
-                <label>
-                    Comment
-                    <input type="text" value={ comment } onChange={ ev => setComment(ev.target.value) }/>
-                </label>
-                <Reasons refusals={ outcome?.refused ? refusalsOf(outcome.refusals, "comment") : [] }/>
+            <Form key={ action.name } action={ action }>
+                <Field path="comment"/>
+                { !bulk && <Field path="notify"/> }
+            </Form>
 
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={ notify }
-                        disabled={ rows.length > 1 }
-                        onChange={ ev => setNotify(ev.target.checked) }
-                    />
-                    Notify the owner (one bar only)
-                </label>
-            </div>
+            <ActionRefusals action={ action }/>
 
             <div className="toolbar">
-                <button className="btn" type="button" disabled={ !rows.length } onClick={ approve }>
-                    { rows.length > 1 ? "Approve " + rows.length + " bars" : "Approve" }
+                <button className="btn" type="button" disabled={ !action.complete || action.pending } onClick={ issue }>
+                    { bulk ? "Approve " + rows.length + " bars" : "Approve" }
                 </button>
                 <button className="btn" type="button" onClick={ () => bars.update({}) }>
                     Reload
@@ -136,9 +126,9 @@ export default function Approve()
             </div>
 
             {
-                outcome && !outcome.refused && (
+                result && (
                     <p className="approved">
-                        Approved: { outcome.result.map(result => result.name).join(", ") }
+                        Approved: { (Array.isArray(result) ? result : [result]).map(r => r?.name).join(", ") }
                     </p>
                 )
             }
@@ -148,10 +138,40 @@ export default function Approve()
 
 
 /**
- * The reasons blaming one thing, in the page's locale.
+ * One bar, with the reasons blaming it while it is selected.
  */
-function Reasons({ refusals }: { refusals: Refusal[] })
+function BarRow({ row, action, path, toggle }: {
+    row: Row,
+    action: ActionDraft<"approveBar"> | ActionDraft<"approveBars">,
+    path: string | null,
+    toggle: (id: string) => void
+})
 {
+    return (
+        <tr>
+            <td>
+                <input
+                    type="checkbox"
+                    aria-label={ "Select " + row.name }
+                    checked={ path !== null }
+                    onChange={ () => toggle(row.id) }
+                />
+            </td>
+            <td>{ row.name }</td>
+            <td>{ row.description }</td>
+            <td>{ formatValue(row.approved, "Timestamp") }</td>
+            <td>{ path !== null && <Reasons action={ action } path={ path }/> }</td>
+        </tr>
+    )
+}
+
+
+/**
+ * The reasons blaming one selected bar, claimed so that ActionRefusals doesn't show them again.
+ */
+function Reasons({ action, path }: { action: ActionDraft<any>, path: string })
+{
+    const refusals = useRefusals(action, path)
     if (!refusals.length)
     {
         return null

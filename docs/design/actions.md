@@ -566,7 +566,8 @@ Writing from Java, 2026-10-23: `EntityWriter` over
 executor's `CONFLICT` refusals for write conflicts and serialization
 failures, and the system user with `AppAuthentication.runAs()`.
 `approveBar` and `approveBars` write `bar.approved`, covered by
-`ActionTest` and `EntityWriterTest`.
+`ActionTest` and `EntityWriterTest`; `ActionConflictTest` covers both
+refusals, with a concurrent merge and with a conflict inside the action.
 
 Not built yet:
 

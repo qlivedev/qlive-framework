@@ -507,11 +507,14 @@ sets `decision` before it issues. A provider component was considered
 and set aside: it can't carry the action's types to its children, and
 it would make the view hand over what it owns.
 
-**The hook is tracked**, like `useInjection()`: the action name is a
-string literal and the call sits at the view's top level, so the build
-knows which actions a view uses. That is what the bootstrap needs to
-deliver the action models and the rules' message keys a page uses (see
-"The model").
+**The hook is tracked**, and so is `issueAction()`: the action name is
+a string literal, which the build records, so the server knows which
+actions the frontend uses and offers their translations -- the rules'
+message keys and the input labels -- and no others', as it offers the
+tags of the `i18n()` calls it finds. A name that isn't a literal is
+left out with a warning. The action models will reach the page the
+same way (see "The model"). Unlike `useInjection()`, the call may sit
+in any module: what it brings is the application's, not one view's.
 
 **A form fills a subject.** A form edits one row, and given an action,
 its row is the argument of the subject it names. `subject` may be left
@@ -678,6 +681,11 @@ the action back; `deriveLayout()` adding the input parameters; and the
 translations offering each input parameter's label, `approveBar.comment`.
 Covered by `ActionForm.test.tsx`; the `/app/bar/approve` view uses them.
 
+Tracking the actions the frontend uses, the same day: the track-usage
+plugin records the action name of every `useActionDraft()` and
+`issueAction()` call, and the translations offer the tags of those
+actions alone, all of them while there is no analysis.
+
 Not built yet:
 
 - **The reached-versions argument.** Only the subjects' versions are
@@ -686,8 +694,6 @@ Not built yet:
   "Open items").
 - **The cleanup hook**, the action model and its delivery in the
   bootstrap, and the early check on the client.
-- **The build tracking `useActionDraft()`**, so the bootstrap knows
-  which actions a page uses.
 
 ## Considered and set aside
 

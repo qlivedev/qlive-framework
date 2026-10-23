@@ -85,6 +85,12 @@ class ActionTest
         assertThat(approveBar.getArgument("notify").getType().toString(), is("Boolean!"));
         assertThat(approveBar.getType().toString(), is("ApproveResult!"));
         assertThat(approveBar.getDescription().startsWith("Approves a bar."), is(true));
+        // what tells an action from a plain mutation in a schema file
+        assertThat(approveBar.getDescription().endsWith("\n\n@action"), is(true));
+        assertThat(
+            graphQL.getGraphQLSchema().getMutationType().getFieldDefinition("mergeWorkingSet").getDescription(),
+            is(nullValue())
+        );
         assertThat(approveBar.getArgument("bar").getDescription(), is("the bar to approve"));
 
         assertThat(

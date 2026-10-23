@@ -652,9 +652,10 @@ class SchemaAssembler
             final FieldDoc fieldDoc = lookMethodDoc(mutationTypeDoc, mutation);
             List<GraphQLArgument> arguments = getGraphQLArguments(mutation, fieldDoc, graphQlInputTypes);
 
+            final String doc = fieldDoc != null ? fieldDoc.getDescription() : null;
             mutationTypeBuilder.field(GraphQLFieldDefinition.newFieldDefinition()
                 .name(mutation.getName())
-                .description(fieldDoc != null ? fieldDoc.getDescription() : null)
+                .description(mutation instanceof Action ? Action.describe(doc) : doc)
                 .type(mutation.getResultType())
                 .arguments(arguments)
                 .build());

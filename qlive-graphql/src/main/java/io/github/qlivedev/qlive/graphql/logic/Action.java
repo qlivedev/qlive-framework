@@ -32,6 +32,10 @@ public class Action
     /// all have it is a normal outcome, not a failure.
     public final static ErrorClassification REFUSED = ErrorClassification.errorClassification("REFUSED");
 
+    /// The last line of an action's description in the schema, which is what tells it apart from a plain mutation
+    /// there: introspection, and with it a schema file, carries a field's description but no annotation of it.
+    public final static String DESCRIPTION_MARKER = "@action";
+
     private final Method method;
 
     private final List<ActionSubject> subjects;
@@ -62,6 +66,18 @@ public class Action
         this.subjects = List.copyOf(subjects);
         this.ruleClasses = List.copyOf(ruleClasses);
         this.location = location;
+    }
+
+
+    /// The description of an action's mutation: the method's doc, or none, with the {@link #DESCRIPTION_MARKER} line
+    /// after it.
+    ///
+    /// @param doc  description from the method's doc comment, `null` for none
+    ///
+    /// @return description
+    public static String describe(String doc)
+    {
+        return doc == null || doc.isBlank() ? DESCRIPTION_MARKER : doc.stripTrailing() + "\n\n" + DESCRIPTION_MARKER;
     }
 
 

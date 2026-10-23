@@ -361,23 +361,76 @@ the version among them. A record-level call, `store(barRecord)`, could
 derive the whole change from it. A POJO can't serve: it doesn't know
 which of its fields changed.
 
-**The transaction is the caller's.** The client's merge is a unit of
-its own and opens its own transaction. A Java caller -- an action, a
-job, a service doing several things -- wants the merge to join its
-transaction instead. That suggests two entry points over one engine, so
-that version records, field sets and push events come out the same
-whoever writes.
+**The transaction is the caller's** (decided 2026-10-23). The client's
+merge is a unit of its own and opens its own transaction. A Java
+caller -- an action, a job, a service doing several things -- wants
+its writes to join its transaction instead. So there are two entry
+points over one engine, and version records, field sets and push
+events come out the same whoever writes:
 
-Scenarios: an action sets `status` on its subjects; an action creates a
+- `MergeService.merge()` stays the client's: a transaction of its own,
+  conflicts as data.
+- `EntityWriter` is the Java caller's. It requires a running
+  transaction and joins it, and each call writes at once, so later
+  reads in the same transaction see it. The caller orders its writes,
+  a row before the rows pointing at it.
+
+```java
+bar.setApproved(now);
+entityWriter.update(bar, BAR.APPROVED);
+entityWriter.insert(approval);
+entityWriter.delete(bar);
+entityWriter.link(bar, "bazes", baz);
+entityWriter.unlink(bar, "bazes", baz);
+```
+
+**Writes take POJOs and Java values.** Subjects reach an action as
+POJOs, and a POJO knows its type, id and the version it was read at,
+but not which of its fields changed, so an update names them as jOOQ
+fields. An insert writes every field. Links are calls of their own,
+since a many-to-many isn't part of the row; they mirror `LinkChange`.
+A `store(UpdatableRecord)` could follow, for code that fetches
+records itself, deriving the changed fields from the record.
+
+**An update holds to the version the POJO carries**, with the chain
+walk the client's merge has: where the other writes touched other
+fields, the row is written again against what they left. Push events
+go out after the caller's transaction commits, and not at all if it
+rolls back.
+
+**A conflict throws.** Java code doesn't check return values, and a
+throw rolls the caller's transaction back, which is what a conflict
+does to a client merge:
+
+- An action's subject was loaded and version-checked in the same
+  repeatable-read snapshot, so its version can't mismatch. A write
+  committed in between fails the `UPDATE` with a serialization failure
+  (SQL state 40001), which the executor turns into the refusal a stale
+  version gets, `CONFLICT` and `SUBJECT_CHANGED`.
+- A row read at an older version, by a job or outside the action's
+  subjects, whose writes met ours throws `MergeConflictException`,
+  carrying the `MergeConflict`s. So does an insert of an id that
+  exists, which aborts the transaction. In an action the executor
+  turns it into a `CONFLICT` refusal.
+
+Nothing retries on its own: an action method may have done something
+outside the database, such as sending mail. A job retries in a loop of
+its own. Nothing overwrites either; a job that wants the last write to
+win reads the row in its transaction and writes against that version.
+
+**A write is recorded for whoever the security context holds.** In an
+action that is the user who issued it. A job has no request, and the
+anonymous user stands for visitors who aren't logged in, not for the
+application. So the framework has a **system user**, a row like
+anonymous that nobody can log in as, and a way to run code as a given
+identity: a scheduled job runs as the system user, an import a user
+started runs as that user. Whatever reads the security context after
+that, an authorization check say, sees the same identity.
+
+Scenarios: an action sets a field on its subjects; an action creates a
 row of another versioned type, such as an approval record; an action
 deletes, or changes many-to-many links; a scheduled job writes rows with
 no user and no request; tests.
-
-Open: what a conflict means to Java code. Inside an action the
-subjects' versions are checked and the transaction is repeatable read,
-so a concurrent write surfaces as a serialization failure; a job might
-want to retry, fail or overwrite. Also whether links are part of the
-record or a call of their own.
 
 ## Client types
 

@@ -46,6 +46,16 @@
             "name":"comment"
           }
         ]
+      },
+      {
+        "description":"Quotes a bar that may not be saved yet. `draft` is input rather than a subject: marked `@Input`, it takes\nthe values the user is editing, and no row is loaded.",
+        "name":"quoteBar",
+        "paramDocs":[
+          {
+            "description":"the bar as the user is editing it",
+            "name":"draft"
+          }
+        ]
       }
     ],
     "name":"MutationType"

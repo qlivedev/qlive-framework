@@ -48,6 +48,9 @@ class ActionTest
             "  approveBars(bars: $bars, comment: $comment) { barId name }" +
             "}";
 
+    private final static String QUOTE_BAR =
+        "mutation quote($draft: BarInput!) { quoteBar(draft: $draft) }";
+
     @Autowired
     private GraphQL graphQL;
 
@@ -257,6 +260,38 @@ class ActionTest
             is(List.of(Map.of("barId", third, "name", "Action #8"), Map.of("barId", first, "name", "Action #6")))
         );
         assertThat(approved(first) && approved(third) && !approved(second), is(true));
+    }
+
+
+    /// A parameter of a table-backed type marked `@Input` is input: it takes the row's values, saved or not, and its
+    /// rule reads them in memory.
+    @Test
+    void takesAnUnsavedRowAsInput()
+    {
+        assertThat(
+            graphQL.getGraphQLSchema().getMutationType().getFieldDefinition("quoteBar")
+                .getArgument("draft").getType().toString(),
+            is("BarInput!")
+        );
+
+        final String id = UUID.randomUUID().toString();
+        final ExecutionResult quoted = execute(QUOTE_BAR, Map.of(
+            "draft", Map.of("id", id, "name", "Quote #1", "num", 3, "created", "2026-10-23T12:00:00.000Z")
+        ));
+
+        assertThat(quoted.getErrors(), is(empty()));
+        assertThat(data(quoted, "quoteBar"), is(300));
+        assertThat(version(id), is(nullValue()));
+
+        final ExecutionResult refused = execute(QUOTE_BAR, Map.of(
+            "draft", Map.of("id", id, "name", "Quote #1", "num", 0)
+        ));
+
+        assertThat(refused.getData(), is(nullValue()));
+        assertThat(
+            refused.getErrors().stream().map(ActionTest::extensions).toList(),
+            contains(refusal("RULE", "Bar.numPositive", "draft.num"))
+        );
     }
 
 

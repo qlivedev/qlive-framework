@@ -1,5 +1,6 @@
 package io.github.qlivedev.qlivetest.runtime.logic;
 
+import io.github.qlivedev.qlive.api.annotation.Input;
 import io.github.qlivedev.qlive.api.annotation.QLiveAction;
 import io.github.qlivedev.qlive.api.annotation.QLiveLogic;
 import io.github.qlivedev.qlive.api.annotation.Rules;
@@ -65,6 +66,20 @@ public class BarLogic
     }
 
 
+    /// Quotes a bar that may not be saved yet. `draft` is input rather than a subject: marked `@Input`, it takes
+    /// the values the user is editing, and no row is loaded.
+    ///
+    /// @param draft    the bar as the user is editing it
+    ///
+    /// @return the price, a hundred per unit
+    @QLiveAction
+    @Rules(NumPositive.class)
+    public @NotNull int quoteBar(@NotNull @Input Bar draft)
+    {
+        return draft.getNum() * 100;
+    }
+
+
     private void approve(Bar bar)
     {
         bar.setApproved(new Timestamp(System.currentTimeMillis()));
@@ -120,6 +135,22 @@ public class BarLogic
                     .and(ctx.field("bars.description").ne(value(""))),
                 "bars.description",
                 "Bar.descriptionRequired"
+            );
+        }
+    }
+
+
+    /// A quote is for at least one unit. Reads input alone, the unsaved bar's field, so it is evaluated in memory.
+    public static class NumPositive
+        implements RuleFactory
+    {
+        @Override
+        public Rule create(RuleContext ctx)
+        {
+            return new Rule(
+                ctx.field("draft.num").gt(value(0)),
+                "draft.num",
+                "Bar.numPositive"
             );
         }
     }

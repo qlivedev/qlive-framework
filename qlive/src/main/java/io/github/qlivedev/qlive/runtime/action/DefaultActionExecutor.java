@@ -15,9 +15,11 @@ import io.github.qlivedev.qlive.model.condition.Component;
 import io.github.qlivedev.qlive.model.condition.Condition;
 import io.github.qlivedev.qlive.model.condition.FieldReference;
 import io.github.qlivedev.qlive.model.condition.Operation;
+import io.github.qlivedev.qlive.model.merge.MergeConflict;
 import io.github.qlivedev.qlive.runtime.QLiveException;
 import io.github.qlivedev.qlive.runtime.filter.FilterTransformer;
 import io.github.qlivedev.qlive.runtime.filter.PropertyPath;
+import io.github.qlivedev.qlive.runtime.merge.MergeConflictException;
 import io.github.qlivedev.qlive.runtime.meta.MergeMeta;
 import io.github.qlivedev.qlive.runtime.meta.QueryConfigMeta;
 import io.github.qlivedev.qlive.runtime.query.QueryDocumentService;
@@ -36,6 +38,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -62,6 +65,10 @@ public class DefaultActionExecutor
 
     /// i18n key of the conflict where a subject's row no longer exists.
     public final static String SUBJECT_GONE = "Action.subjectGone";
+
+    /// SQL state of a write refused because a concurrent transaction changed the row. Standard, so no dialect has
+    /// to be asked.
+    private final static String SERIALIZATION_FAILURE = "40001";
 
     private final QLiveDomain domain;
 
@@ -130,6 +137,29 @@ public class DefaultActionExecutor
             throw new IllegalStateException(action + " is not an action of this executor's domain");
         }
 
+        try
+        {
+            return run(action, compiled, arguments);
+        }
+        catch (MergeConflictException e)
+        {
+            throw new ActionRefusedException(conflicts(action, arguments, e.getConflicts()));
+        }
+        catch (RuntimeException e)
+        {
+            // a subject's row is read and version-checked in the action's snapshot, so a write committed since
+            // surfaces here rather than as a version that doesn't match
+            if (serializationFailure(e))
+            {
+                throw new ActionRefusedException(List.of(new Refusal(Refusal.CONFLICT, SUBJECT_CHANGED, null, null)));
+            }
+            throw e;
+        }
+    }
+
+
+    private Object run(Action action, List<CompiledRule> compiled, Object[] arguments)
+    {
         return transactionTemplate.execute(status -> {
 
             final Object[] values = arguments.clone();
@@ -156,6 +186,65 @@ public class DefaultActionExecutor
 
             return action.invoke(values);
         });
+    }
+
+
+    /// One refusal per conflict a write of the method met, blaming the subject the row is, where it is one.
+    private List<Refusal> conflicts(Action action, Object[] arguments, List<MergeConflict> conflicts)
+    {
+        final List<Refusal> refusals = new ArrayList<>(conflicts.size());
+        for (MergeConflict conflict : conflicts)
+        {
+            refusals.add(
+                new Refusal(
+                    Refusal.CONFLICT,
+                    conflict.isDeleted() ? SUBJECT_GONE : SUBJECT_CHANGED,
+                    subjectPath(action, arguments, conflict),
+                    null
+                )
+            );
+        }
+        return refusals;
+    }
+
+
+    /// The path of the subject row a conflict is about, or `null` where the row is no subject.
+    private String subjectPath(Action action, Object[] arguments, MergeConflict conflict)
+    {
+        for (ActionSubject subject : action.getSubjects())
+        {
+            if (!subjectTables.get(subject.pojoType()).typeName().equals(conflict.getType()))
+            {
+                continue;
+            }
+
+            final List<SubjectRef> refs = refs(subject, arguments);
+            for (int i = 0; i < refs.size(); i++)
+            {
+                if (refs.get(i).getId().equals(conflict.getId()))
+                {
+                    return subject.list() ? subject.name() + "." + i : subject.name();
+                }
+            }
+        }
+        return null;
+    }
+
+
+    /// Whether the given exception is the database refusing a write that a concurrent transaction got in front of.
+    ///
+    /// By SQL state through the whole cause chain, like the merge's duplicate check: what wraps it depends on
+    /// whether Spring's exception translator is installed.
+    private static boolean serializationFailure(Throwable e)
+    {
+        for (Throwable cause = e; cause != null; cause = cause == cause.getCause() ? null : cause.getCause())
+        {
+            if (cause instanceof SQLException sql && SERIALIZATION_FAILURE.equals(sql.getSQLState()))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
 

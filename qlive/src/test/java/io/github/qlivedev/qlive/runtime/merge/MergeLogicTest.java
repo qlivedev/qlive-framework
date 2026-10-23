@@ -348,6 +348,18 @@ class MergeLogicTest
 
 
         @Override
+        public MergeResult mergeInTransaction(
+            List<EntityChange> changes,
+            List<LinkChange> links,
+            List<EntityDeletion> deletions,
+            MergeConfig config
+        )
+        {
+            throw new UnsupportedOperationException();
+        }
+
+
+        @Override
         public void ensureNotVersioned(Table<?> table)
         {
             throw new UnsupportedOperationException();

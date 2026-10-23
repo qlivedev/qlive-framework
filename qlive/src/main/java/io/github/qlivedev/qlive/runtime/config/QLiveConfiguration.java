@@ -1,10 +1,12 @@
 package io.github.qlivedev.qlive.runtime.config;
 
 import io.github.qlivedev.qlive.runtime.action.DefaultActionExecutor;
+import io.github.qlivedev.qlive.runtime.merge.DefaultEntityWriter;
 import io.github.qlivedev.qlive.runtime.merge.DefaultFieldSetService;
 import io.github.qlivedev.qlive.runtime.merge.DefaultMergeService;
 import io.github.qlivedev.qlive.runtime.merge.DefaultVersionHolder;
 import io.github.qlivedev.qlive.runtime.merge.DefaultVersionService;
+import io.github.qlivedev.qlive.runtime.merge.EntityWriter;
 import io.github.qlivedev.qlive.runtime.merge.FieldSetService;
 import io.github.qlivedev.qlive.runtime.merge.MergeLogic;
 import io.github.qlivedev.qlive.runtime.merge.MergeService;
@@ -188,6 +190,19 @@ public class QLiveConfiguration
     )
     {
         return new DefaultMergeService(domain, dslContext, fieldSetService, versionService);
+    }
+
+
+    /// The write side for Java code: an action, a job, a service writing rows of the domain's types in its own
+    /// transaction, through the merge. Logic beans inject it, so it asks for the domain only once it writes.
+    @Bean
+    public EntityWriter entityWriter(
+        ObjectProvider<QLiveDomain> domain,
+        DSLContext dslContext,
+        ObjectProvider<MergeService> mergeService
+    )
+    {
+        return new DefaultEntityWriter(domain::getObject, dslContext, mergeService::getObject);
     }
 
 

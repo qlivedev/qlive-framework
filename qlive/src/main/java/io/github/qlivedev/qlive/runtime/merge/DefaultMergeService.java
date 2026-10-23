@@ -127,6 +127,38 @@ public class DefaultMergeService
         MergeConfig config
     )
     {
+        final MergeResult result = run(changes, links, deletions, config);
+
+        if (result.getStatus() == MergeStatus.CONFLICT)
+        {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+        }
+
+        return result;
+    }
+
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public MergeResult mergeInTransaction(
+        List<EntityChange> changes,
+        List<LinkChange> links,
+        List<EntityDeletion> deletions,
+        MergeConfig config
+    )
+    {
+        return run(changes, links, deletions, config);
+    }
+
+
+    /// The merge itself, in whatever transaction is running.
+    private MergeResult run(
+        List<EntityChange> changes,
+        List<LinkChange> links,
+        List<EntityDeletion> deletions,
+        MergeConfig config
+    )
+    {
         final List<PreparedChange> prepared = new ArrayList<>();
         for (EntityChange change : nullSafe(changes))
         {
@@ -190,7 +222,7 @@ public class DefaultMergeService
             }
         }
 
-        // E -- commit, or roll back and hand the conflicts to whoever has to decide about them
+        // E -- the records, or the conflicts for whoever has to decide about them
         final MergeResult result = new MergeResult();
         if (conflicts.isEmpty())
         {
@@ -205,7 +237,6 @@ public class DefaultMergeService
         {
             log.debug("Merge conflicts: {}", conflicts);
 
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             result.setStatus(MergeStatus.CONFLICT);
             result.setConflicts(conflicts);
         }

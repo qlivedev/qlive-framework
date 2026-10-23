@@ -44,6 +44,27 @@ public interface MergeService
     );
 
 
+    /// The same merge, in the caller's transaction, which must be running: the Java callers' entry point.
+    ///
+    /// Version records and push events come out as they do for {@link #merge}; the events go out once the
+    /// caller's transaction commits. A conflict comes back as data and rolls nothing back: what this call wrote
+    /// before it stays in the transaction, and the caller rolls back. A duplicate has aborted the transaction
+    /// already.
+    ///
+    /// @param changes      rows to insert or update
+    /// @param links        associations gained and lost, applied after the changes
+    /// @param deletions    rows to remove, applied after the associations
+    /// @param config       what the caller can do about a conflict
+    ///
+    /// @return what came of it, never null
+    MergeResult mergeInTransaction(
+        List<EntityChange> changes,
+        List<LinkChange> links,
+        List<EntityDeletion> deletions,
+        MergeConfig config
+    );
+
+
     /// Raises unless the given table is one nothing versions, i.e. one that may be written directly.
     ///
     /// The guard for the service that has its own reason to write a table with JOOQ. A versioned row written

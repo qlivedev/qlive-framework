@@ -104,8 +104,14 @@ describe("generated type definitions", () => {
             'approveWidgets: { args: { widgets: Subject[], filter?: WidgetFilterInput | null, tags?: (string | null)[] | null }, result: ('
         )
 
-        // a mutation without a subject argument looks like any other in the schema
+        // an action without a subject is one all the same, and a plain mutation is none
+        expect(generated).toContain("        quoteWidget: { args: { draft: WidgetInput }, result: number }")
         expect(generated).not.toContain("renameWidget:")
+    })
+
+    it("leaves the action marker out of the doc comments", () => {
+        expect(generated).not.toContain("@action")
+        expect(generated).toContain("    /** Documented so the action doc comment path is exercised too */\n    approveWidget")
     })
 
     it("declares the input types an argument takes", () => {

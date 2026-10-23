@@ -50,10 +50,16 @@ const GRAPHQL_TO_TYPESCRIPT = {
 const QLIVE_TS_IMPORTS = ["FilterDSL", "GenericScalar", "QueryConfig", "Subject", "Temporal"]
 
 /*
- * The input type of an action's subject argument, which is what tells an action
- * apart from a plain mutation in the schema.
+ * The input type of an action's subject argument, which is qlive-ts's Subject.
  */
 const SUBJECT_REF_INPUT = "SubjectRefInput"
+
+/*
+ * The last line of an action's description, which the server adds to tell an
+ * action apart from a plain mutation: a schema file carries descriptions, and no
+ * annotation. See Action.DESCRIPTION_MARKER.
+ */
+const ACTION_MARKER = "@action"
 
 
 function loadSchema(path)
@@ -146,7 +152,40 @@ function typesUnionExpression(typeNames)
 
 function fieldDocs(fieldDef)
 {
-    return fieldDef.description ? `    /** ${ fieldDef.description } */\n` : ""
+    const doc = withoutMarker(fieldDef.description)
+    return doc ? `    /** ${ doc } */\n` : ""
+}
+
+
+/*
+ * Whether a mutation is an action: its description ends with the marker line.
+ */
+function isAction(fieldDef)
+{
+    const lines = (fieldDef.description || "").trimEnd().split("\n")
+    return lines[lines.length - 1].trim() === ACTION_MARKER
+}
+
+
+/*
+ * A description without the action marker, which is for the generator and says
+ * nothing to a reader of the doc comment. Null where nothing else is left.
+ */
+function withoutMarker(description)
+{
+    if (!description)
+    {
+        return null
+    }
+
+    const lines = description.trimEnd().split("\n")
+    if (lines[lines.length - 1].trim() === ACTION_MARKER)
+    {
+        lines.pop()
+    }
+
+    const doc = lines.join("\n").trimEnd()
+    return doc.trim() ? doc : null
 }
 
 
@@ -246,8 +285,8 @@ function valueExpression(type, imported, schema)
 
 /*
  * The actions of the schema, merged into qlive-ts's Actions interface, which is
- * what types issueAction(). An action is a mutation with a subject argument: one
- * of input alone looks like any other mutation in the schema, and is left out.
+ * what types issueAction(). An action is a mutation the server marked as one,
+ * with or without a subject.
  */
 function actionsDefinition(schema, imported)
 {
@@ -258,9 +297,7 @@ function actionsDefinition(schema, imported)
         return ""
     }
 
-    const actions = mutationType.fields.filter(
-        fieldDef => fieldDef.args.some(arg => unwrapAll(arg.type).name === SUBJECT_REF_INPUT)
-    )
+    const actions = mutationType.fields.filter(isAction)
     if (!actions.length)
     {
         return ""
@@ -273,7 +310,9 @@ function actionsDefinition(schema, imported)
                 : `${ arg.name }?: ${ typeExpression(arg.type, imported) }`
         ).join(", ")
 
-        const doc = fieldDef.description ? `        /** ${ fieldDef.description } */\n` : ""
+        const doc = withoutMarker(fieldDef.description)
+            ? `        /** ${ withoutMarker(fieldDef.description) } */\n`
+            : ""
         return `${ doc }        ${ fieldDef.name }: { args: { ${ args } }, result: ${ typeExpression(fieldDef.type, imported, schema) } }`
     })
 

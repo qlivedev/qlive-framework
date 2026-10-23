@@ -89,9 +89,16 @@ input WidgetInput {
 }
 
 type Mutation {
-    "Documented so the action doc comment path is exercised too"
+    """
+    Documented so the action doc comment path is exercised too
+
+    @action
+    """
     approveWidget(widget: SubjectRefInput!, comment: String!, notify: Boolean!, due: Timestamp): Widget!
+    "@action"
     approveWidgets(widgets: [SubjectRefInput!]!, filter: WidgetFilterInput, tags: [String]): [Widget]!
-    "A mutation without a subject, which is no action as far as the schema can tell"
+    "@action"
+    quoteWidget(draft: WidgetInput!): Int!
+    "A plain mutation, with nothing marking it as an action"
     renameWidget(id: String!, name: String!): Widget
 }

@@ -2,7 +2,7 @@
 
 Status: concept settled, details open. Written 2026-10-18, revised
 2026-10-22 to define actions as GraphQL mutations declared by Java
-methods. The server path, issuing from the client and writing from
+methods, and 2026-10-23 for actions in a view. The server path, issuing from the client and writing from
 Java are built (see "What is built"). The companion concept is
 `layouts.md`.
 
@@ -478,6 +478,81 @@ offers every rule's key among the page's translations, since none
 reaches the frontend through an `i18n()` call its analysis could find.
 QLive's two conflict keys come with English like its other texts.
 
+## Actions in a view
+
+Decided 2026-10-23.
+
+**A view holds an action with `useAction()`.** The hook owns
+everything an action needs on the client: the arguments by parameter
+name, the refusals of the last issue, whether every required argument
+is there, and issuing.
+
+```tsx
+const assign = useAction("assignEmployee")
+
+<Form row={ employee } action={ assign } subject="employee"/>
+<ProjectPicker value={ assign.args.project } onChange={ p => assign.set("project", p) }/>
+<button disabled={ !assign.complete } onClick={ () => assign.issue() }>Assign</button>
+```
+
+It is typed from the `Actions` map like `issueAction()`, which it
+issues through: `set("projct", ...)` is a compile error, and the
+outcome carries the action's result type. It is plain state of the
+view, like a working set, so whatever part of the view knows an
+argument sets it: a form, a picker, a grid's selection, a button that
+sets `decision` before it issues. A provider component was considered
+and set aside: it can't carry the action's types to its children, and
+it would make the view hand over what it owns.
+
+**The hook is tracked**, like `useInjection()`: the action name is a
+string literal and the call sits at the view's top level, so the build
+knows which actions a view uses. That is what the bootstrap needs to
+deliver the action models and the rules' message keys a page uses (see
+"The model").
+
+**A form fills a subject.** A form edits one row, and given an action,
+its row is the argument of the subject it names. `subject` may be left
+out where exactly one subject parameter has the row's type; with two,
+leaving it out is an error naming them. Any other subject comes from
+the view, as above, so an action over two rows that aren't connected
+yet, "assign this employee to that project", needs nothing more than
+two sources setting two arguments.
+
+**A form path's first segment says what it is.** In a form with an
+action, a path whose first segment is a parameter name is that
+parameter's -- `comment`, `address.street`, `project` -- and any other
+path is a field of the form's row, as without an action. These are the
+paths the rules and refusals use, so nothing is prefixed and nothing
+translated, except that the form's own subject is not named: its
+`description` is the rule's `bar.description`. A row field and a
+parameter of the same name can't be told apart, and the form refuses
+them with an error naming both; parameter names are API, and the
+parameter is the one to rename. A layout works with or without the
+action, since without one no path names a parameter.
+
+**Refusals go to the field they blame.** The form strips its subject's
+name from the refusals under it and takes those of the parameters as
+they are; a refusal no field of the view takes -- a rule over two
+subjects, a conflict, a field nobody shows -- belongs to the action as
+a whole, which a status part shows.
+
+**A subject is a stored row.** The arguments are references to rows as
+the user saw them, so a subject can't carry changes that aren't saved:
+while a form filling a subject has unsaved changes, the action isn't
+complete, and issuing refuses on the client, saying the row is to be
+saved first. Merge and action stay apart (see "Merge and invariants").
+
+**`DomainObject` is the escape hatch** for an action that wants unsaved
+data anyway. It is a scalar carrying a whole domain object with its
+type in `_type`, so a parameter of it is input, set whole by the view:
+`assign.set("draft", barDraft)`. Paths into it, `draft.name`, resolve
+against the value's type where they are read -- in the form and the
+early check on the client, and in the executor's read of input paths
+on the server. They are not checked at startup; an annotation naming
+the expected type could tighten that later. What the action gives up
+is what a subject has: no version check, and no rules over stored
+fields.
+
 ## Actions, queries and layouts
 
 **An action names no query**, and no query names an action. They meet in
@@ -536,9 +611,10 @@ the server enforces.
 ## Naming
 
 **Action**, and "QLive actions" in prose where React's meaning could
-interfere: `<form action={...}>`, `useActionState`. A hook named
-`useAction` would sit right next to `useActionState` and is best
-avoided.
+interfere: `<form action={...}>`, `useActionState`. The hook is
+`useAction()` all the same (decided 2026-10-23): it holds a QLive
+action, and the name says so more plainly than any detour around
+`useActionState`, which is imported from React and not from QLive.
 
 **Subject** is the working term for a parameter of stored state. "Root"
 was the first, and stopped fitting once paths start at any parameter;
@@ -577,6 +653,8 @@ Not built yet:
   "Open items").
 - **The cleanup hook**, the action model and its delivery in the
   bootstrap, and the early check on the client.
+- **Actions in a view**: `useAction()`, forms filling a subject and
+  their parameter paths, and refusals shown at the field.
 
 ## Considered and set aside
 
@@ -606,6 +684,11 @@ Not built yet:
 - **Rules per parameter**, `@Rules` on each subject. Once any rule can
   read any parameter, a rule on `List<Bar>` could be about `bazs`.
 - **Versions propagated to a root row**, see "Versions".
+- **An `input.` prefix for parameter paths in a form**, which
+  `layouts.md` first had. It needed translating to and from the paths
+  rules and refusals use, and it named a picked subject "input".
+- **An action context provider** wrapping the forms and fields of an
+  action, see "Actions in a view".
 
 ## Open items
 
@@ -624,16 +707,13 @@ Not built yet:
   enum type, so its conversion is settled. jOOQ generates no enums, so
   an input POJO is the first place a form meets one; `layouts.md` holds
   its enum example until it is settled which widget picks the value.
-- **Forms over an action**: `layouts.md` has a form edit its entity and
-  the action's input, with input paths starting at `input.`. With
-  parameters as the namespace, which subject a form's row is, and how
-  its paths name the input parameters.
-- **Refusals in forms**: a refusal names fields by path, and
-  `refusalsOf()` finds them, but a `Form` doesn't show them yet; that
-  waits for forms over an action.
-- **Actions without subjects in the generated map**: the schema can't
-  tell them from plain mutations, so the map needs the action model,
-  or a mark codegen can read.
+- **A subject picked in a form**: a field whose path names a subject
+  parameter, `project`, is a picker of that subject's type, holding
+  the picked row's id and version. Which widget, and how its query
+  selects the version.
+- **Typing the `DomainObject` escape hatch**: an annotation naming the
+  expected type, which would bring back the startup check of paths
+  into it.
 - **What the early check reaches**: only what the form loaded, or the
   action's paths added to what a form over it loads.
 - **The cleanup mechanism**: presumably a callback after the rollback,

@@ -1,10 +1,11 @@
 # Layouts (design)
 
 Status: concept settled, client building blocks built, details open.
-Written 2026-10-18, revised 2026-10-20. Field modes, input conversion
+Written 2026-10-18, revised 2026-10-20, and 2026-10-23 for forms over
+an action. Field modes, input conversion
 and the client building blocks are built (`qlive-ts/src/form/`), and
-so are the to-one picker and the related-rows endpoint; action input,
-catalog types, field conditions, server layouts and rules are not.
+so are the to-one picker and the related-rows endpoint; forms over an
+action, catalog types, field conditions, server layouts and rules are not.
 The companion concept is `actions.md`.
 
 The auto-form. A layout says which fields a form shows, how they are
@@ -142,9 +143,9 @@ to make way, and the condition node with it, in Java and on the wire. The other 
 
 The sketch below is what was built, apart from these, as of 2026-10-20:
 
-- **No action input yet.** `Form` has no `action`, the context no
-  `input`, `deriveLayout` no action argument, and a path starting with
-  `input.` is an error, until actions exist.
+- **No action yet.** `Form` has no `action` or `subject`, the context
+  no action, and `deriveLayout` no action argument, until
+  `useAction()` exists (`actions.md`, "Actions in a view").
 - **Nothing locks a mode.** `setMode` changes any field; locking is the
   authorization work's.
 - **`modes` holds what the layout gave and `setMode` set.** A field not
@@ -208,7 +209,7 @@ The sketch below is what was built, apart from these, as of 2026-10-20:
 <Form row={ bar }/>                           // derived layout
 <Form row={ bar } layout={ barLayout }/>      // given layout
 <Form row={ bar } layout="barEdit"/>          // named layout
-<Form row={ bar } action="approveBar"/>       // derived, plus the action's input
+<Form row={ bar } action={ approve }/>        // derived, plus the action's input
 <Form row={ bar }>                            // provider only
     <Field path="name"/>
     <Field path="owner"/>
@@ -222,7 +223,10 @@ The sketch below is what was built, apart from these, as of 2026-10-20:
   field groups go.
 - **`layout`** or **`children`**, never both, and a form given both is
   an error, not a precedence rule.
-- **`action`** names the action whose input the form also edits.
+- **`action`** is the action the view holds, `useAction("approveBar")`,
+  whose arguments the form also edits. Its row is then one of them.
+- **`subject`** names the parameter the row is. It may be left out
+  where exactly one subject parameter has the row's type.
 
 The context holds the three sources and what only a form has:
 
@@ -235,8 +239,10 @@ interface FormContext
     /** the name of the layout the form renders, null for none */
     layoutName: string | null
     merge: MergeAccessor
-    /** the action's input, the third source; null without an action */
-    input: ActionInput | null
+    /** the action the form fills an argument of, the third source; null without one */
+    action: ActionState | null
+    /** the subject parameter the row is, null without an action */
+    subject: string | null
     /** the fields whose text didn't parse, by path */
     invalid: ReadonlyMap<string, string>
     /** each field's current mode, initialized from the layout */
@@ -248,9 +254,11 @@ interface FormContext
 function useFormContext(): FormContext   // throws outside a Form
 ```
 
-`input` is state the form owns, since action input lives in no working
-set: initialized from the action's definition, written through the same
-fields. How the action is issued with it is `actions.md`'s.
+The action's arguments live in no working set and not in the form
+either: the view owns them through `useAction()`, and other parts of
+the view set arguments of the same action (`actions.md`, "Actions in a
+view"). The form writes its fields' parameters there, and takes the
+refusals blaming its row's fields or its parameters from there.
 
 **`invalid` lives in the form context.** Text a field holds but
 couldn't turn into a value, `"12x"` in an Int field, never reaches the
@@ -313,8 +321,9 @@ stays in the field as typed and is reported to `invalid`. A widget that
 edits a value rather than text -- a checkbox, a picker -- uses
 `setValue` and never has an error.
 
-A path is a field of the form's entity, or the action input's when it
-starts with `input.`. A to-one relation is named by its object field,
+A path is a field of the form's entity, or, in a form with an action,
+a parameter's when its first segment names one: `comment`,
+`address.street`. A name that is both is an error. A to-one relation is named by its object field,
 `owner`, and edits the foreign key behind it, as a grid column's
 `statusField` does. A path one relation hop further, `owner.login`, is
 a field group's business and not a field's.

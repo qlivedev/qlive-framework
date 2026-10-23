@@ -27,7 +27,11 @@ class DefaultTranslationServiceTest
         """
         {
             "usages": {
-                "./app/Home": { "requires": [], "calls": { "i18n": [ ["Welcome {0}"], ["Home"] ] } },
+                "./app/Home": {
+                    "requires": [],
+                    "calls": { "i18n": [ ["Welcome {0}"], ["Home"] ], "useActionDraft": [ ["approveFoo"] ] }
+                },
+                "./app/Bulk": { "requires": [], "calls": { "issueAction": [ ["approveFoos"] ] } },
                 "./component/Other": { "requires": [], "calls": { "useInjection": [ ["Q_Foo"] ] } },
                 "@qlivedev/qlive-ts": {
                     "requires": [],
@@ -39,20 +43,27 @@ class DefaultTranslationServiceTest
         """
     );
 
+    /// What the executor would say: each action's rule keys and input labels.
+    private final static Map<String, Set<String>> ACTION_TAGS = Map.of(
+        "approveFoo", Set.of("Rule.key", "approveFoo.comment"),
+        "approveFoos", Set.of("Rule.bulk"),
+        "deleteFoo", Set.of("Rule.unused")
+    );
+
     private final DefaultTranslationService service = new DefaultTranslationService(
         null,
         null,
         () -> null,
         DefaultTranslationService.parseLocales(List.of("en", "de", "de-CH")),
         false,
-        Set.of()
+        Map.of()
     );
 
 
     @Test
     void collectsTheTagsOfTheCallsAndOfTheDomainTypes()
     {
-        final Set<String> tags = DefaultTranslationService.tags(ANALYSIS, TestDomainConfig.domainNoMeta(), Set.of("Rule.key"));
+        final Set<String> tags = DefaultTranslationService.tags(ANALYSIS, TestDomainConfig.domainNoMeta(), ACTION_TAGS);
 
         // the application's calls and QLive's own, the latter filed under a module of their own
         assertThat(tags, hasItems("Welcome {0}", "Home", "Not a number"));
@@ -60,15 +71,20 @@ class DefaultTranslationServiceTest
         assertThat(tags, hasItems("TestFoo", "TestFoo.name", "TestFoo.num", "TestFooType", "TestFooType.ordinal"));
         // the query type is no domain type of a table
         assertThat(tags, not(hasItem("QueryType")));
-        // the actions' rule keys, which reach the frontend with a refusal rather than through a call
-        assertThat(tags, hasItem("Rule.key"));
+        // the tags of the actions the frontend uses, by useActionDraft() or issueAction(), and of no other
+        assertThat(tags, hasItems("Rule.key", "approveFoo.comment", "Rule.bulk"));
+        assertThat(tags, not(hasItem("Rule.unused")));
     }
 
 
     @Test
     void collectsTheDomainTagsWithoutAnalysis()
     {
-        assertThat(DefaultTranslationService.tags(null, TestDomainConfig.domainNoMeta(), Set.of()), hasItem("TestFoo.name"));
+        final Set<String> tags = DefaultTranslationService.tags(null, TestDomainConfig.domainNoMeta(), ACTION_TAGS);
+
+        assertThat(tags, hasItem("TestFoo.name"));
+        // without an analysis, nothing says which actions are used, so every action's are offered
+        assertThat(tags, hasItems("Rule.key", "Rule.bulk", "Rule.unused"));
     }
 
 
@@ -129,6 +145,6 @@ class DefaultTranslationServiceTest
     void refusesAnOfferedLocaleThatNamesNoLanguage()
     {
         assertThrows(QLiveException.class, () -> DefaultTranslationService.parseLocales(List.of("en", "de_DE")));
-        assertThrows(QLiveException.class, () -> new DefaultTranslationService(null, null, () -> null, List.of(), false, Set.of()));
+        assertThrows(QLiveException.class, () -> new DefaultTranslationService(null, null, () -> null, List.of(), false, Map.of()));
     }
 }

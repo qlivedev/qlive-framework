@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -112,15 +113,18 @@ public class DefaultActionExecutor
     }
 
 
-    /// The tags the actions bring to the frontend that no `i18n()` call its analysis could find names, so that the
-    /// translations offer them on their own: the message keys of every action's rules, which arrive with a refusal,
-    /// and the label of every input parameter a form field edits, `approveBar.comment`.
-    public Set<String> getActionTags()
+    /// The tags each action brings to the frontend that no `i18n()` call its analysis could find names, so that the
+    /// translations offer them on their own: the message keys of its rules, which arrive with a refusal, and the
+    /// label of every input parameter a form field edits, `approveBar.comment`.
+    ///
+    /// @return the tags by action name
+    public Map<String, Set<String>> getActionTags()
     {
-        final Set<String> tags = new LinkedHashSet<>();
+        final Map<String, Set<String>> tagsByAction = new LinkedHashMap<>();
         for (Map.Entry<Action, List<CompiledRule>> entry : rules.entrySet())
         {
             final Action action = entry.getKey();
+            final Set<String> tags = new LinkedHashSet<>();
             for (CompiledRule rule : entry.getValue())
             {
                 tags.add(rule.rule().getMessageKey());
@@ -132,8 +136,9 @@ public class DefaultActionExecutor
                     tags.add(action.getName() + "." + parameterName);
                 }
             }
+            tagsByAction.put(action.getName(), Set.copyOf(tags));
         }
-        return tags;
+        return tagsByAction;
     }
 
 

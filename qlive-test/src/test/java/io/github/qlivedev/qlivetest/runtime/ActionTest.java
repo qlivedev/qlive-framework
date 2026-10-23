@@ -31,11 +31,8 @@ import static io.github.qlivedev.qlivetest.domain.Tables.BAR;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 
 /// Issues the example actions of `BarLogic` as the mutations they are, against bars the test makes: the rows are
@@ -114,10 +111,11 @@ class ActionTest
     @Test
     void offersTheActionsTags()
     {
-        final Set<String> tags = actionExecutor.getActionTags();
+        final Map<String, Set<String>> tags = actionExecutor.getActionTags();
 
-        assertThat(tags, hasItems("Bar.descriptionRequired", "approveBar.comment", "approveBar.notify", "quoteBar.draft"));
-        assertThat(tags, not(hasItem("approveBar.bar")));
+        assertThat(tags.get("approveBar"), is(Set.of("Bar.descriptionRequired", "Bar.commentWhenNotifying",
+            "approveBar.comment", "approveBar.notify")));
+        assertThat(tags.get("quoteBar"), is(Set.of("Bar.numPositive", "quoteBar.draft")));
     }
 
 

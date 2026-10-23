@@ -74,7 +74,7 @@ public class DefaultTranslationService
 
     private final boolean prod;
 
-    private final Set<String> actionTags;
+    private final Map<String, Set<String>> actionTags;
 
     private final Map<Locale, JSONHolder> kept = new ConcurrentHashMap<>();
 
@@ -92,7 +92,7 @@ public class DefaultTranslationService
         StaticAnalysisProvider staticAnalysisProvider,
         List<Locale> locales,
         boolean prod,
-        Set<String> actionTags
+        Map<String, Set<String>> actionTags
     )
     {
         if (locales.isEmpty())
@@ -105,7 +105,7 @@ public class DefaultTranslationService
         this.staticAnalysisProvider = staticAnalysisProvider;
         this.locales = List.copyOf(locales);
         this.prod = prod;
-        this.actionTags = Set.copyOf(actionTags);
+        this.actionTags = Map.copyOf(actionTags);
     }
 
 
@@ -201,17 +201,27 @@ public class DefaultTranslationService
 
 
     /// Every tag there is: the static first argument of every recorded i18n() call, every type the domain has a
-    /// table for, by itself and with each of its fields, each value of an enum such a field holds, and the given
-    /// action tags.
+    /// table for, by itself and with each of its fields, each value of an enum such a field holds, and the tags of
+    /// the actions the frontend uses: those it names in a `useActionDraft()` or `issueAction()` call, or all of them
+    /// where there is no analysis yet.
     ///
     /// @param analysis     the frontend's static analysis, or `null` where there is none yet
     /// @param actionTags   the tags the actions bring, see `DefaultActionExecutor.getActionTags()`
-    static Set<String> tags(TrackUsageData analysis, QLiveDomain domain, Set<String> actionTags)
+    static Set<String> tags(TrackUsageData analysis, QLiveDomain domain, Map<String, Set<String>> actionTags)
     {
-        final Set<String> tags = new TreeSet<>(actionTags);
+        final Set<String> tags = new TreeSet<>();
 
-        if (analysis != null)
+        if (analysis == null)
         {
+            actionTags.values().forEach(tags::addAll);
+        }
+        else
+        {
+            for (String action : usedActions(analysis))
+            {
+                tags.addAll(actionTags.getOrDefault(action, Set.of()));
+            }
+
             for (ModuleFunctionReferences refs : analysis.getModuleFunctionReferences().values())
             {
                 for (List<?> args : refs.getCalls(I18N_CALL))
@@ -270,6 +280,32 @@ public class DefaultTranslationService
             }
         }
         return shipped;
+    }
+
+
+    /// The names of the actions the frontend uses, by the calls naming one: `useActionDraft()` and `issueAction()`.
+    ///
+    /// @param analysis     the frontend's static analysis
+    static Set<String> usedActions(TrackUsageData analysis)
+    {
+        final Set<String> actions = new TreeSet<>();
+        for (ModuleFunctionReferences refs : analysis.getModuleFunctionReferences().values())
+        {
+            for (String call : List.of(
+                ModuleFunctionReferences.USE_ACTION_DRAFT_CALL_NAME,
+                ModuleFunctionReferences.ISSUE_ACTION_CALL_NAME
+            ))
+            {
+                for (List<?> args : refs.getCalls(call))
+                {
+                    if (!args.isEmpty() && args.getFirst() instanceof String action)
+                    {
+                        actions.add(action);
+                    }
+                }
+            }
+        }
+        return actions;
     }
 
 

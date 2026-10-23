@@ -22,6 +22,13 @@ public class ModuleFunctionReferences
 
     public static final String GRAPHQL_QUERY_CONSTRUCTOR_NAME = "GraphQLQuery";
 
+    /**
+     * Call names of the frontend's ways to an action, recorded with the action's name as their one argument
+     */
+    public static final String USE_ACTION_DRAFT_CALL_NAME = "useActionDraft";
+
+    public static final String ISSUE_ACTION_CALL_NAME = "issueAction";
+
     private final String module;
 
     private final List<String> requires;

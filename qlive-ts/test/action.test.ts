@@ -30,6 +30,7 @@ declare module "../src/action" {
         approveBar: { args: { bar: Subject, comment: string, when?: Temporal.Instant | null }, result: ApproveResult }
         approveBars: { args: { bars: Subject[] }, result: ApproveResult[] }
         countBars: { args: {}, result: number }
+        quoteBar: { args: { draft: { name?: string | null, created?: Temporal.Instant | null } }, result: number }
     }
 }
 
@@ -46,6 +47,10 @@ const actionConfig: QLiveConfig = {
             inputObject("SubjectRefInput", [
                 inputValue("id", NOT_NULL(STRING)),
                 inputValue("version", STRING)
+            ]),
+            inputObject("BarInput", [
+                inputValue("name", STRING),
+                inputValue("created", TIMESTAMP)
             ]),
             object("ApproveResult", [
                 field("barId", STRING),
@@ -67,7 +72,13 @@ const actionConfig: QLiveConfig = {
                         inputValue("bars", NOT_NULL(LIST_OF(NOT_NULL(NAMED("SubjectRefInput", "INPUT_OBJECT")))))
                     ]
                 },
-                field("countBars", NAMED("Int"))
+                field("countBars", NAMED("Int")),
+                {
+                    ...field("quoteBar", NOT_NULL(NAMED("Int"))),
+                    args: [
+                        inputValue("draft", NOT_NULL(NAMED("BarInput", "INPUT_OBJECT")))
+                    ]
+                }
             ])
         ]
     }
@@ -142,6 +153,24 @@ describe("issueAction", () => {
         await issueAction("approveBars", {bars: [BAR, {id: "bar-2", version: "v7"}]})
 
         expect(sentVariables(fetchMock).bars).toEqual([{id: "bar-1", version: "v1"}, {id: "bar-2", version: "v7"}])
+    })
+
+    it("sends an input row with only its input type's fields", async () => {
+        const fetchMock = respondWith({data: {quoteBar: 100}, errors: []})
+
+        // what a working set's draft carries besides: the version, a relation object, a computed field
+        const draft = {
+            id: "bar-1",
+            version: "v1",
+            name: "Bar #1",
+            created: Temporal.Instant.from("2026-10-23T10:00:00Z"),
+            owner: {id: "user-1", login: "userA"},
+            label: "Bar #1 (userA)"
+        }
+
+        await issueAction("quoteBar", {draft})
+
+        expect(sentVariables(fetchMock)).toEqual({draft: {name: "Bar #1", created: "2026-10-23T10:00:00Z"}})
     })
 
     it("resolves with the converted result", async () => {

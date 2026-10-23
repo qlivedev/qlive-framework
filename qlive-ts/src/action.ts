@@ -118,6 +118,8 @@ type Mutation = {
     query: GraphQLQuery<unknown>
     subjects: Set<string>
     parameters: ActionParameter[]
+    /** the type of each input argument, by name */
+    inputTypes: Map<string, GraphQLTypeRef>
 }
 
 /**
@@ -144,13 +146,20 @@ export async function issueAction<N extends ActionName>(
     args: ActionArgs<N>
 ): Promise<ActionOutcome<ActionResult<N>>>
 {
-    const {query, subjects} = mutationOf(name)
+    const {query, subjects, inputTypes} = mutationOf(name)
 
     const params: Record<string, unknown> = {...(args as Record<string, unknown>)}
     for (const subject of subjects)
     {
         const value = params[subject]
         params[subject] = Array.isArray(value) ? value.map(subjectRef) : value == null ? value : subjectRef(value)
+    }
+    for (const [parameter, type] of inputTypes)
+    {
+        if (parameter in params)
+        {
+            params[parameter] = inputOnly(params[parameter], type)
+        }
     }
 
     try
@@ -218,6 +227,42 @@ function refusalOf(extensions: Record<string, unknown>): Refusal
 }
 
 
+/**
+ * A value with only the fields its input type declares, at every level. A working set's draft handed to an `@Input`
+ * parameter carries more than its input type -- relation objects, computed fields -- which the server would refuse.
+ */
+function inputOnly(value: unknown, type: GraphQLTypeRef): unknown
+{
+    if (value == null)
+    {
+        return value
+    }
+    switch (type.kind)
+    {
+        case "NON_NULL":
+            return inputOnly(value, type.ofType!)
+        case "LIST":
+            return Array.isArray(value) ? value.map(v => inputOnly(v, type.ofType!)) : inputOnly(value, type.ofType!)
+        case "INPUT_OBJECT":
+        {
+            const inputType = findType(type.name)
+            const source = value as Record<string, unknown>
+            const out: Record<string, unknown> = {}
+            for (const field of inputType.inputFields ?? [])
+            {
+                if (field.name in source)
+                {
+                    out[field.name] = inputOnly(source[field.name], field.type)
+                }
+            }
+            return out
+        }
+        default:
+            return value
+    }
+}
+
+
 function subjectRef(row: unknown): Subject
 {
     const {id, version} = row as Subject
@@ -245,6 +290,7 @@ function mutationOf(name: string): Mutation
             type: unwrapAll(arg.type).name
         }))
         const subjects = new Set(parameters.filter(p => p.subject).map(p => p.name))
+        const inputTypes = new Map(field.args.filter(arg => !subjects.has(arg.name)).map(arg => [arg.name, arg.type]))
 
         const variables = field.args.map(arg => "$" + arg.name + ": " + typeSource(arg.type)).join(", ")
         const passed = field.args.map(arg => arg.name + ": $" + arg.name).join(", ")
@@ -252,7 +298,7 @@ function mutationOf(name: string): Mutation
         const source = "mutation " + name + (variables ? "(" + variables + ")" : "") + " { " +
             name + (passed ? "(" + passed + ")" : "") + selection(field) + " }"
 
-        mutation = {query: new GraphQLQuery<unknown>(source), subjects, parameters}
+        mutation = {query: new GraphQLQuery<unknown>(source), subjects, parameters, inputTypes}
         mutations.set(name, mutation)
     }
     return mutation

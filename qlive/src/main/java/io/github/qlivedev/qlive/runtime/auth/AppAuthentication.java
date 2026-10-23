@@ -1,12 +1,15 @@
 package io.github.qlivedev.qlive.runtime.auth;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Limited, immutable view on the current user's {@link AppUserDetails} for client consumption.
@@ -31,11 +34,29 @@ public final class AppAuthentication
      */
     private static final AppAuthentication ANONYMOUS_AUTH;
 
+    /// Login name of the system account, which work nobody in particular started runs as: a scheduled job, a
+    /// cleanup. Like anonymous, it is a row of the user table that nobody can log in as.
+    public static final String SYSTEM = "system";
+
+    /// System role.
+    public static final String ROLE_SYSTEM = "ROLE_SYSTEM";
+
+    /// The id the system user's row must have.
+    public static final String SYSTEM_ID = "3f7c1a10-0000-4000-8000-777777777777";
+
+    /// The identity of the system user, for {@link #runAs}.
+    public static final AppAuthentication SYSTEM_AUTH;
+
     static {
         ANONYMOUS_AUTH = new AppAuthentication(
             ANONYMOUS,
             Collections.singleton(ROLE_ANONYMOUS),
             ANONYMOUS_ID
+        );
+        SYSTEM_AUTH = new AppAuthentication(
+            SYSTEM,
+            Collections.singleton(ROLE_SYSTEM),
+            SYSTEM_ID
         );
     }
 
@@ -91,6 +112,54 @@ public final class AppAuthentication
         {
             return ANONYMOUS_AUTH;
         }
+    }
+
+
+    /// Runs the given work as the given identity, which whatever reads the security context in it sees: the merge
+    /// records its writes for it, authorization checks it. The context is restored afterwards.
+    ///
+    /// For work outside a request: a scheduled job runs as {@link #SYSTEM_AUTH}, a background import as the user
+    /// who started it, whose identity {@link #current()} gave on the request.
+    ///
+    /// @param identity identity to run as
+    /// @param work     work to run
+    /// @param <T>      result type
+    ///
+    /// @return what the work returned
+    public static <T> T runAs(AppAuthentication identity, Supplier<T> work)
+    {
+        final SecurityContext previous = SecurityContextHolder.getContext();
+
+        final SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(
+            UsernamePasswordAuthenticationToken.authenticated(
+                identity,
+                null,
+                identity.getRoles().stream().map(SimpleGrantedAuthority::new).toList()
+            )
+        );
+        SecurityContextHolder.setContext(context);
+        try
+        {
+            return work.get();
+        }
+        finally
+        {
+            SecurityContextHolder.setContext(previous);
+        }
+    }
+
+
+    /// Runs the given work as the given identity, see {@link #runAs(AppAuthentication, Supplier)}.
+    ///
+    /// @param identity identity to run as
+    /// @param work     work to run
+    public static void runAs(AppAuthentication identity, Runnable work)
+    {
+        runAs(identity, () -> {
+            work.run();
+            return null;
+        });
     }
 
 

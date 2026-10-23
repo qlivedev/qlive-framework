@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { issueAction, refusalMessage, refusalsOf, useInjection } from "@qlivedev/qlive-ts";
+import { formatValue, issueAction, refusalMessage, refusalsOf, useInjection } from "@qlivedev/qlive-ts";
 import type { ActionOutcome, Refusal } from "@qlivedev/qlive-ts";
 import type { ApproveResult } from "../../types";
 import { Q_BarApprove, Q_BarApproveResult } from "./Q_BarApprove";
@@ -11,6 +11,9 @@ import { Q_BarApprove, Q_BarApproveResult } from "./Q_BarApprove";
  * the row as it is stored. Nothing here checks a rule: the server does, and a refusal comes back as an outcome
  * with one reason per broken rule, each blaming a field by its path. The view puts each reason next to what it
  * blames.
+ *
+ * The action writes the approval, which gives each row a new version, so the rows are read again after it:
+ * approving one again is then no conflict.
  *
  * Worth trying:
  *  - a bar without a description, which the stored-state rule refuses
@@ -46,6 +49,7 @@ export default function Approve()
             const all = await issueAction("approveBars", { bars: rows, comment })
             setIssued({ ids, outcome: all.refused ? all : { refused: false, result: all.result.filter(r => r !== null) } })
         }
+        bars.update({})
     }
 
     // The single action names its subject "bar", the bulk one "bars", with the row's position after it.
@@ -73,6 +77,7 @@ export default function Approve()
                         <th/>
                         <th>name</th>
                         <th>description</th>
+                        <th>approved</th>
                         <th/>
                     </tr>
                 </thead>
@@ -92,6 +97,7 @@ export default function Approve()
                                     </td>
                                     <td>{ row.name }</td>
                                     <td>{ row.description }</td>
+                                    <td>{ formatValue(row.approved, "Timestamp") }</td>
                                     <td>
                                         <Reasons refusals={ blamedOn(row.id) }/>
                                     </td>

@@ -548,10 +548,21 @@ type in `_type`, so a parameter of it is input, set whole by the view:
 `assign.set("draft", barDraft)`. Paths into it, `draft.name`, resolve
 against the value's type where they are read -- in the form and the
 early check on the client, and in the executor's read of input paths
-on the server. They are not checked at startup; an annotation naming
-the expected type could tighten that later. What the action gives up
-is what a subject has: no version check, and no rules over stored
+on the server. They are not checked at startup. What the action gives
+up is what a subject has: no version check, and no rules over stored
 fields.
+
+**`@Input` is the typed escape hatch** (decided 2026-10-23), for an
+action that knows the type of the unsaved data it wants. A parameter of
+a table-backed type marked `@Input` is input, not a subject:
+`quoteBar(@Input Bar draft)` takes the values the client sends as
+`BarInput`, every field through its scalar, and `@Input List<Bar>`
+takes a list of them. Being input of a Java type, the paths into it,
+`draft.num`, are checked at startup like any other input's, and its
+rules are evaluated in memory. It gives up what `DomainObject` gives
+up. On the client, a working set's draft carries more than the input
+type has -- relation objects, computed fields -- so issuing sends only
+the input type's fields.
 
 ## Actions, queries and layouts
 
@@ -719,9 +730,6 @@ Not built yet:
   parameter, `project`, is a picker of that subject's type, holding
   the picked row's id and version. Which widget, and how its query
   selects the version.
-- **Typing the `DomainObject` escape hatch**: an annotation naming the
-  expected type, which would bring back the startup check of paths
-  into it.
 - **What the early check reaches**: only what the form loaded, or the
   action's paths added to what a form over it loads.
 - **The cleanup mechanism**: presumably a callback after the rollback,

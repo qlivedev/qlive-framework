@@ -76,8 +76,10 @@ invariants and actions, so ejecting copies presentation only.
 
 ## Widgets
 
-Customized at two levels: **per application**, by type ("`Money` always
-renders as X"), and **per action**, by field.
+Customized **per application**, by type ("`Money` always renders as
+X"), and narrowed by where a field is: a layout, the row's type, or the
+action whose parameter it edits (see "Widgets" under the building
+blocks).
 
 Carried over from an earlier sketch and not discussed again since:
 widgets resolve by scalar type, field metadata and an explicit name.
@@ -348,7 +350,8 @@ interface WidgetOverride
 {
     // where the field is: one of
     layout?: string         // the layout's name
-    domainType?: string     // the type of the row the form edits
+    domainType?: string     // the type of the row the form edits, for its fields
+    action?: string         // the action the form edits, for its parameters' fields
     // what the field is: one of
     path?: string           // field path from that type
     fieldType?: string      // scalar or enum type, or a relation's related type
@@ -374,33 +377,38 @@ names no widget: layouts from the server and from `deriveLayout()`, and
 a hand-written form's fields where it names none. A matcher keys on
 where the field is and on what it is, and nothing else:
 
-- **Where**: the `layout` by its name, or the `domainType` of the row.
-  The two are nearly the same thing, but a layout is one indirection
-  away from its type: two layouts of one type are told apart by name,
-  and the derived layout and a hand-written form, which have no name,
-  are reached by their type.
+- **Where**: the `layout` by its name, the `domainType` of the row, or
+  the `action` whose parameters the form edits. A layout and a domain
+  type are nearly the same thing, but a layout is one indirection away
+  from its type: two layouts of one type are told apart by name, and
+  the derived layout and a hand-written form, which have no name, are
+  reached by their type. A parameter is no field of the row, so a
+  domain type matches only the row's fields and an action only the
+  parameters' (added 2026-10-24): without it, a form of an action's
+  input alone, which has no row and usually no name, could be reached
+  only by a path matching that name in every form.
 - **What**: the field's `path`, or its `fieldType`. A relation's field
   type is the related type, since a relation field is named by its
   relation object; that is how a picker for every foreign key to
   `AppUser` is configured. "Scalar" was the wrong name for it.
 
-**One key of each kind at most.** An override giving both a layout and
-a domain type, or both a path and a field type, is an error rather than
-a ranking. A key left out matches anything. Matching an action seemed
-too esoteric to be worth a key.
+**One key of each kind at most.** An override giving two of layout,
+domain type and action, or both a path and a field type, is an error
+rather than a ranking. A key left out matches anything.
 
 ```ts
 config().widgets = [
     { fieldType: "Money", widget: MoneyInput },
     { fieldType: "AppUser", widget: UserPicker },
-    { domainType: "Bar", path: "num", widget: Slider }
+    { domainType: "Bar", path: "num", widget: Slider },
+    { action: "approveBar", path: "comment", widget: TextArea }
 ]
 ```
 
 **The most specific matcher wins**, and the later of two equally
 specific ones. What the field is counts first, a path over a field type
-over neither, then where it is, a layout over a domain type over
-neither; so `{ domainType: "Foo", path: "price" }` beats
+over neither, then where it is, a layout over an action over a domain
+type over neither; so `{ domainType: "Foo", path: "price" }` beats
 `{ layout: "fooEdit", fieldType: "Money" }`.
 
 Resolution for a field, first hit wins: the component the layout node

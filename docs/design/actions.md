@@ -84,10 +84,11 @@ schema holds it next to them. Both annotations live in
 - **The rules** are named by `@Rules` on the method (see "Rules").
 - **A cleanup hook**, optional: application code for when the action
   refuses stored state (see "Failure").
-- **Widget overrides**, the per-action level of widget customization
-  (`layouts.md`, "Widgets").
 
-Which fields a form shows is the layout's business, not the action's.
+Which fields a form shows is the layout's business, not the action's,
+and which widgets edit them the application's, whose widget overrides
+may name the action as where a parameter's field is (`layouts.md`,
+"Widgets").
 
 ### Subjects and input
 

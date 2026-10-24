@@ -229,6 +229,7 @@ public class DefaultMergeService
             // the records go in with the rows they describe, so that a row and the account of how it got
             // there commit together or not at all
             versions.write(written);
+            WrittenRows.add(writtenRows(prepared, nullSafe(links), nullSafe(deletions), written));
 
             result.setStatus(MergeStatus.DONE);
             result.setConflicts(List.of());
@@ -658,6 +659,65 @@ public class DefaultMergeService
         }
 
         return at == null ? null : names;
+    }
+
+
+    /// What a merge that is done wrote, row by row, for a transaction that collects it ({@link WrittenRows}): each
+    /// change with the version its record gives, each association change and each deletion.
+    private static List<WrittenRow> writtenRows(
+        List<PreparedChange> prepared,
+        List<LinkChange> links,
+        List<EntityDeletion> deletions,
+        List<EntityVersion> written
+    )
+    {
+        final List<WrittenRow> rows = new ArrayList<>();
+        for (PreparedChange change : prepared)
+        {
+            final EntityChange entityChange = change.change;
+            final EntityVersion record = recordOf(written, change.typeName, entityChange.getId());
+
+            final Map<String, GenericScalar> fields = new LinkedHashMap<>();
+            for (FieldChange field : nullSafe(entityChange.getChanges()))
+            {
+                fields.put(field.getField(), field.getValue());
+            }
+
+            rows.add(
+                new WrittenRow(
+                    change.typeName,
+                    entityChange.getId(),
+                    record == null ? null : record.getId(),
+                    record == null ? null : record.getPrev(),
+                    false,
+                    fields,
+                    List.of()
+                )
+            );
+        }
+        for (LinkChange link : links)
+        {
+            rows.add(new WrittenRow(link.getType(), link.getId(), null, null, false, Map.of(), List.of(link.getField())));
+        }
+        for (EntityDeletion deletion : deletions)
+        {
+            rows.add(new WrittenRow(deletion.getType(), deletion.getId(), null, null, true, Map.of(), List.of()));
+        }
+        return rows;
+    }
+
+
+    /// The record a merge wrote for the given row, `null` for none: an unversioned type gets no record.
+    private static EntityVersion recordOf(List<EntityVersion> written, String type, String id)
+    {
+        for (EntityVersion record : written)
+        {
+            if (record.getEntityType().equals(type) && record.getEntityId().equals(id))
+            {
+                return record;
+            }
+        }
+        return null;
     }
 
 

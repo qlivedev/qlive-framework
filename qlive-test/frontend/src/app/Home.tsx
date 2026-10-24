@@ -33,7 +33,8 @@ const FORMS = [
  */
 const ACTIONS = [
     {href: "/app/bar/approve", title: "Approving bars", text: "an action on one row and on several, and its refusals"},
-    {href: "/app/bar/review", title: "Reviewing bars", text: "a form's row as an action's subject, and a draft quoted unsaved"}
+    {href: "/app/bar/review", title: "Reviewing bars", text: "a form's row as an action's subject, and a draft quoted unsaved"},
+    {href: "/app/bar/link", title: "Linking a baz", text: "an action over two subjects of different types, set apart"}
 ];
 
 /**

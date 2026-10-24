@@ -32,7 +32,8 @@ const FORMS = [
  * Actions on stored rows, guarded by the server's rules.
  */
 const ACTIONS = [
-    {href: "/app/bar/approve", title: "Approving bars", text: "an action on one row and on several, and its refusals"}
+    {href: "/app/bar/approve", title: "Approving bars", text: "an action on one row and on several, and its refusals"},
+    {href: "/app/bar/review", title: "Reviewing bars", text: "a form's row as an action's subject, and a draft quoted unsaved"}
 ];
 
 /**

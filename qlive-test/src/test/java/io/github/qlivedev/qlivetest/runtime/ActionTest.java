@@ -137,7 +137,7 @@ class ActionTest
         assertThat(tags.get("approveBar"), is(Set.of("Bar.descriptionRequired", "Bar.commentWhenNotifying",
             "approveBar.comment", "approveBar.notify")));
         assertThat(tags.get("quoteBar"), is(Set.of("Bar.numPositive", "quoteBar.draft")));
-        assertThat(tags.get("linkBaz"), is(Set.of("Bar.descriptionRequired", "Baz.descriptionRequired")));
+        assertThat(tags.get("linkBaz"), is(Set.of("Bar.linkDescriptionRequired", "Baz.descriptionRequired")));
         assertThat(tags.get("approveNamed"), is(Set.of("Bar.prefixRequired", "approveNamed.prefix",
             "approveNamed.comment")));
     }
@@ -437,7 +437,7 @@ class ActionTest
         assertThat(
             result.getErrors().stream().map(ActionTest::extensions).toList(),
             containsInAnyOrder(
-                refusal("RULE", "Bar.descriptionRequired", "bar.description"),
+                refusal("RULE", "Bar.linkDescriptionRequired", "bar.description"),
                 refusal("RULE", "Baz.descriptionRequired", "baz.description")
             )
         );

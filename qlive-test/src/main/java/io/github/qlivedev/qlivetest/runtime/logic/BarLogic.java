@@ -79,7 +79,7 @@ public class BarLogic
     ///
     /// @return the bar's id
     @QLiveAction
-    @Rules({ DescriptionRequired.class, BazDescriptionRequired.class })
+    @Rules({ LinkedBarDescribed.class, BazDescriptionRequired.class })
     public @NotNull String linkBaz(Bar bar, Baz baz)
     {
         entityWriter.link(bar, "bazes", baz);
@@ -180,6 +180,24 @@ public class BarLogic
                     .and(ctx.field("bars.description").ne(value(""))),
                 "bars.description",
                 "Bar.descriptionRequired"
+            );
+        }
+    }
+
+
+    /// A bar takes a baz only with a description. The same condition as {@link DescriptionRequired}, under a key of
+    /// its own, since the message says what is refused: linking, not approving.
+    public static class LinkedBarDescribed
+        implements RuleFactory
+    {
+        @Override
+        public Rule create(RuleContext ctx)
+        {
+            return new Rule(
+                ctx.field("bar.description").isNotNull()
+                    .and(ctx.field("bar.description").ne(value(""))),
+                "bar.description",
+                "Bar.linkDescriptionRequired"
             );
         }
     }

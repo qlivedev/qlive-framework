@@ -10,6 +10,7 @@ import {WorkingSet} from "../../src/merge/WorkingSet";
 import {Form} from "../../src/form/Form";
 import {Field} from "../../src/form/Field";
 import {ActionRefusals} from "../../src/form/ActionRefusals";
+import type {FieldState} from "../../src/form/useField";
 import {deriveLayout} from "../../src/form/layout";
 import {ActionDraft, useActionDraft, useRefusals} from "../../src/useActionDraft";
 import {barDocument, mergeConfig} from "../fixtures/mergeConfig";
@@ -320,6 +321,96 @@ describe("a form with an action", () => {
         expect(() => render(<Probe action="moveBar" row={ bar } path="name"/>)).toThrowError(/subject="\.\.\."/)
         // without a row, there are only parameters
         expect(() => render(<Probe action="signBar" path="name"/>)).toThrowError(/names none/)
+
+        silenced.mockRestore()
+    })
+})
+
+
+describe("widget overrides with an action", () => {
+
+    function Stars({field}: { field: FieldState })
+    {
+        return <span className="stars">{ String(field.value) }</span>
+    }
+
+    function Slider({field}: { field: FieldState })
+    {
+        return <span className="slider">{ String(field.value) }</span>
+    }
+
+    /** the class of the widget the field of the given path renders, by its label */
+    function widgetAt(path: string): string | null
+    {
+        const field = container.querySelector(`label[for$="-${path}"]`)!.closest(".qlive-field")!
+        return field.querySelector(".stars") ? "stars" : field.querySelector(".slider") ? "slider" : null
+    }
+
+    function SignForm({bar}: { bar?: object })
+    {
+        sign = useActionDraft("signBar")
+        return <Form row={ bar } action={ sign }/>
+    }
+
+    it("matches the parameters of the action it names, and the row's fields by their type", async () => {
+        const {bar} = await editableBar()
+        config().widgets = [
+            {action: "signBar", path: "comment", widget: Stars},
+            {domainType: "Bar", path: "name", widget: Slider},
+            // a parameter is no field of the row, and a row's field none of the action
+            {domainType: "Bar", path: "comment", widget: Slider},
+            {action: "signBar", path: "name", widget: Stars}
+        ]
+        render(<SignForm bar={ bar }/>)
+
+        expect(widgetAt("comment")).toBe("stars")
+        expect(widgetAt("name")).toBe("slider")
+    })
+
+    it("matches without a row, and not for another action", () => {
+        config().widgets = [
+            {action: "renameBar", path: "comment", widget: Slider},
+            {action: "signBar", fieldType: "Boolean", widget: Stars}
+        ]
+        render(<SignForm/>)
+
+        expect(widgetAt("comment")).toBeNull()
+        expect(widgetAt("notify")).toBe("stars")
+    })
+
+    it("ranks an action above a domain type and below a layout", async () => {
+        const {bar} = await editableBar()
+        config().widgets = [
+            {action: "signBar", fieldType: "String", widget: Stars},
+            {fieldType: "String", widget: Slider}
+        ]
+        render(<SignForm bar={ bar }/>)
+
+        // the comment is the action's, the row's Strings are nobody's in particular
+        expect(widgetAt("comment")).toBe("stars")
+        expect(widgetAt("name")).toBe("slider")
+
+        function LayoutForm()
+        {
+            sign = useActionDraft("signBar")
+            const layout = {name: "signing", domainType: "Bar", action: "signBar", nodes: [{field: "comment"}]}
+            return <Form row={ bar } action={ sign } layout={ layout }/>
+        }
+        config().widgets = [
+            {layout: "signing", path: "comment", widget: Slider},
+            {action: "signBar", path: "comment", widget: Stars}
+        ]
+        render(<LayoutForm/>)
+
+        expect(widgetAt("comment")).toBe("slider")
+    })
+
+    it("refuses an action next to another key of where", async () => {
+        const {bar} = await editableBar()
+        const silenced = vi.spyOn(console, "error").mockImplementation(() => {})
+
+        config().widgets = [{action: "signBar", domainType: "Bar", widget: Slider}]
+        expect(() => render(<SignForm bar={ bar }/>)).toThrowError(/one of a layout, a domain type and an action/)
 
         silenced.mockRestore()
     })

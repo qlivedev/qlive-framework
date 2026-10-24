@@ -460,7 +460,7 @@ describe("widgets", () => {
         vi.spyOn(console, "error").mockImplementation(() => {})
 
         config().widgets = [{layout: "barNumbers", domainType: "Bar", widget: Slider}]
-        expect(() => render(<Form row={ bar }/>)).toThrowError(/a layout or a domain type/)
+        expect(() => render(<Form row={ bar }/>)).toThrowError(/one of a layout, a domain type and an action/)
 
         config().widgets = [{path: "num", fieldType: "Int", widget: Slider}]
         expect(() => render(<Form key="what" row={ bar }/>)).toThrowError(/a path or a field type/)

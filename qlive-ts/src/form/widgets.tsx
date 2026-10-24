@@ -53,19 +53,22 @@ export interface FieldDecoratorProps
  * A widget or decorator for the fields an application doesn't name one for, listed in `config().widgets`. It matches
  * on where the field is and on what it is, each by one key at most:
  *
- * - where: the `layout` the field is in, by name, or the `domainType` of the row the form edits
+ * - where: the `layout` the field is in, by name; the `domainType` of the row the form edits, for a field of the
+ *   row; or the `action` whose parameters the form edits, for a field of a parameter
  * - what: the field's `path`, or its `fieldType`
  *
- * A key left out matches anything, and an override giving both keys of one kind is an error.
+ * A key left out matches anything, and an override giving two keys of one kind is an error.
  *
  *     config.widgets = [
  *         {fieldType: "Money", widget: MoneyInput},
  *         {fieldType: "AppUser", widget: UserPicker},
- *         {domainType: "Bar", path: "num", widget: Slider}
+ *         {domainType: "Bar", path: "num", widget: Slider},
+ *         {action: "approveBar", path: "comment", widget: TextArea}
  *     ]
  *
  * Of the overrides that match, the most specific wins: what the field is counts first, a path over a field type over
- * neither, then where it is, a layout over a domain type over neither. Of two equally specific ones the later wins.
+ * neither, then where it is, a layout over an action over a domain type over neither. Of two equally specific ones
+ * the later wins.
  * Widgets and decorators are matched separately, so a decorator override doesn't hide a widget override that is less
  * specific.
  */
@@ -73,8 +76,10 @@ export interface WidgetOverride
 {
     /** the name of the layout the field is in */
     layout?: string
-    /** the type of the row the form edits */
+    /** the type of the row the form edits; matches the row's fields, not the action's parameters */
     domainType?: string
+    /** the action whose parameters the form edits; matches the parameters' fields, not the row's */
+    action?: string
     /** the field's path from that type */
     path?: string
     /** the field's type: a scalar or enum type, or the related type for a relation */
@@ -117,11 +122,12 @@ export function namedWidget(name: string): Widget
  */
 function checkOverride(override: WidgetOverride): void
 {
-    if (override.layout !== undefined && override.domainType !== undefined ||
-        override.path !== undefined && override.fieldType !== undefined)
+    const where = [override.layout, override.domainType, override.action].filter(key => key !== undefined)
+    if (where.length > 1 || override.path !== undefined && override.fieldType !== undefined)
     {
         throw new Error(
-            "A widget override gives a layout or a domain type, and a path or a field type, not both: " +
+            "A widget override gives one of a layout, a domain type and an action, and a path or a field type, " +
+            "not two of either: " +
             JSON.stringify({...override, widget: undefined, decorator: undefined})
         )
     }
@@ -132,15 +138,17 @@ function specificity(override: WidgetOverride, form: FormContext, field: FieldSt
 {
     checkOverride(override)
     if (override.layout !== undefined && override.layout !== form.layoutName ||
-        override.domainType !== undefined && override.domainType !== form.domainType ||
+        override.domainType !== undefined && (field.parameter || override.domainType !== form.domainType) ||
+        override.action !== undefined && (!field.parameter || override.action !== form.action?.name) ||
         override.path !== undefined && override.path !== field.path ||
         override.fieldType !== undefined && override.fieldType !== field.fieldType)
     {
         return -1
     }
     const what = override.path !== undefined ? 2 : override.fieldType !== undefined ? 1 : 0
-    const where = override.layout !== undefined ? 2 : override.domainType !== undefined ? 1 : 0
-    return what * 3 + where
+    const where = override.layout !== undefined ? 3 : override.action !== undefined ? 2 :
+        override.domainType !== undefined ? 1 : 0
+    return what * 4 + where
 }
 
 /**

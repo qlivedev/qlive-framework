@@ -417,6 +417,12 @@ as it is stored. The rules hold before the method runs. */
     approveBar: ApproveResult
     /** Approves several bars at once. All of them are approved, or none is. */
     approveBars: ApproveResult[]
+    /** Approves every bar not approved yet whose name starts with the given prefix. An action of input alone: it
+has no subject, and the rows it writes are the method's to find, read in the action's transaction. */
+    approveNamed: ApproveResult[]
+    /** Associates a baz with a bar: two rows of different types that nothing connects yet, set by two parts of a
+view. Both are subjects, named by id and version, and each has a rule of its own over its stored fields. */
+    linkBaz: string
     mergeWorkingSet: MergeResult
     /** Quotes a bar that may not be saved yet. `draft` is input rather than a subject: marked `@Input`, it takes
 the values the user is editing, and no row is loaded. */
@@ -521,6 +527,12 @@ as it is stored. The rules hold before the method runs. */
         approveBar: { args: { bar: Subject, comment: string, notify: boolean }, result: ApproveResult }
         /** Approves several bars at once. All of them are approved, or none is. */
         approveBars: { args: { bars: Subject[], comment: string }, result: (ApproveResult | null)[] }
+        /** Approves every bar not approved yet whose name starts with the given prefix. An action of input alone: it
+has no subject, and the rows it writes are the method's to find, read in the action's transaction. */
+        approveNamed: { args: { prefix: string, comment: string }, result: (ApproveResult | null)[] }
+        /** Associates a baz with a bar: two rows of different types that nothing connects yet, set by two parts of a
+view. Both are subjects, named by id and version, and each has a rule of its own over its stored fields. */
+        linkBaz: { args: { bar: Subject, baz: Subject }, result: string }
         /** Quotes a bar that may not be saved yet. `draft` is input rather than a subject: marked `@Input`, it takes
 the values the user is editing, and no row is loaded. */
         quoteBar: { args: { draft: BarInput }, result: number }

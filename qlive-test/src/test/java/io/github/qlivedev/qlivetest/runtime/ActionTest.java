@@ -28,8 +28,11 @@ import java.util.UUID;
 
 import static io.github.qlivedev.qlivetest.domain.Tables.APP_VERSION;
 import static io.github.qlivedev.qlivetest.domain.Tables.BAR;
+import static io.github.qlivedev.qlivetest.domain.Tables.BAR_LINK;
+import static io.github.qlivedev.qlivetest.domain.Tables.BAZ;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -53,6 +56,14 @@ class ActionTest
     private final static String QUOTE_BAR =
         "mutation quote($draft: BarInput!) { quoteBar(draft: $draft) }";
 
+    private final static String LINK_BAZ =
+        "mutation link($bar: SubjectRefInput!, $baz: SubjectRefInput!) { linkBaz(bar: $bar, baz: $baz) }";
+
+    private final static String APPROVE_NAMED =
+        "mutation approve($prefix: String!, $comment: String!) {" +
+            "  approveNamed(prefix: $prefix, comment: $comment) { barId name comment }" +
+            "}";
+
     @Autowired
     private GraphQL graphQL;
 
@@ -65,15 +76,25 @@ class ActionTest
     @Autowired
     private DSLContext dslContext;
 
-    /// Ids of the bars this test made, for the cleanup that has to run either way.
+    /// Ids of the bars and bazes this test made, for the cleanup that has to run either way.
     private final List<String> bars = new ArrayList<>();
+
+    private final List<String> bazes = new ArrayList<>();
 
 
     @AfterEach
     void removeWhatWasMade()
     {
+        final List<String> links = dslContext.select(BAR_LINK.ID).from(BAR_LINK)
+            .where(BAR_LINK.BAR_ID.in(bars).or(BAR_LINK.BAZ_ID.in(bazes)))
+            .fetch(BAR_LINK.ID);
+        dslContext.deleteFrom(BAR_LINK).where(BAR_LINK.ID.in(links)).execute();
         dslContext.deleteFrom(BAR).where(BAR.ID.in(bars)).execute();
-        dslContext.deleteFrom(APP_VERSION).where(APP_VERSION.ENTITY_ID.in(bars)).execute();
+        dslContext.deleteFrom(BAZ).where(BAZ.ID.in(bazes)).execute();
+        dslContext.deleteFrom(APP_VERSION).where(APP_VERSION.ENTITY_ID.in(bars)
+            .or(APP_VERSION.ENTITY_ID.in(bazes))
+            .or(APP_VERSION.ENTITY_ID.in(links))
+        ).execute();
     }
 
 
@@ -116,6 +137,9 @@ class ActionTest
         assertThat(tags.get("approveBar"), is(Set.of("Bar.descriptionRequired", "Bar.commentWhenNotifying",
             "approveBar.comment", "approveBar.notify")));
         assertThat(tags.get("quoteBar"), is(Set.of("Bar.numPositive", "quoteBar.draft")));
+        assertThat(tags.get("linkBaz"), is(Set.of("Bar.descriptionRequired", "Baz.descriptionRequired")));
+        assertThat(tags.get("approveNamed"), is(Set.of("Bar.prefixRequired", "approveNamed.prefix",
+            "approveNamed.comment")));
     }
 
 
@@ -363,6 +387,140 @@ class ActionTest
     }
 
 
+    /// Two subjects of different types, each named by id and version, and each loaded as its own POJO: the method
+    /// associates the rows, and the response tells the association as a write to the bar's many-to-many field.
+    @Test
+    @SuppressWarnings("unchecked")
+    void actsOnTwoSubjectsOfDifferentTypes()
+    {
+        assertThat(
+            graphQL.getGraphQLSchema().getMutationType().getFieldDefinition("linkBaz").getArguments().stream()
+                .map(argument -> argument.getName() + ": " + argument.getType()).toList(),
+            contains("bar: SubjectRefInput!", "baz: SubjectRefInput!")
+        );
+
+        final String barId = newBar("Action #8", "described");
+        final String bazId = newBaz("Baz #8", "described");
+
+        final ExecutionResult result = execute(LINK_BAZ, Map.of(
+            "bar", ref(barId, version(barId)),
+            "baz", ref(bazId, bazVersion(bazId))
+        ));
+
+        assertThat(result.getErrors(), is(empty()));
+        assertThat(data(result, "linkBaz"), is(barId));
+        assertThat(linked(barId), contains(bazId));
+
+        final List<Map<String, Object>> written =
+            (List<Map<String, Object>>) result.getExtensions().get(DefaultActionExecutor.WRITTEN);
+        assertThat(written, hasSize(1));
+        assertThat(written.get(0).get("type"), is("Bar"));
+        assertThat(written.get(0).get("id"), is(barId));
+        assertThat(written.get(0).get("links"), is(List.of("bazes")));
+    }
+
+
+    /// Each subject's rule reads its own stored fields, and a refusal blames the subject it is about; both broken
+    /// rules are reported, and nothing is associated.
+    @Test
+    void checksEachSubjectByItsOwnRules()
+    {
+        final String barId = newBar("Action #9", null);
+        final String bazId = newBaz("Baz #9", null);
+
+        final ExecutionResult result = execute(LINK_BAZ, Map.of(
+            "bar", ref(barId, version(barId)),
+            "baz", ref(bazId, bazVersion(bazId))
+        ));
+
+        assertThat(result.getData(), is(nullValue()));
+        assertThat(
+            result.getErrors().stream().map(ActionTest::extensions).toList(),
+            containsInAnyOrder(
+                refusal("RULE", "Bar.descriptionRequired", "bar.description"),
+                refusal("RULE", "Baz.descriptionRequired", "baz.description")
+            )
+        );
+        assertThat(linked(barId), is(empty()));
+    }
+
+
+    /// Every subject's version is checked, the second's as much as the first's, and the conflict blames the one
+    /// that moved.
+    @Test
+    void refusesWhenTheSecondSubjectChanged()
+    {
+        final String barId = newBar("Action #10", "described");
+        final String bazId = newBaz("Baz #10", "described");
+        final String seen = bazVersion(bazId);
+
+        final EntityChange change = new EntityChange();
+        change.setType("Baz");
+        change.setId(bazId);
+        change.setVersion(seen);
+        change.setChanges(List.of(field("name", "String", "Baz #10 renamed")));
+        assertThat(merge(change), is(MergeStatus.DONE));
+
+        final ExecutionResult result = execute(LINK_BAZ, Map.of(
+            "bar", ref(barId, version(barId)),
+            "baz", ref(bazId, seen)
+        ));
+
+        assertThat(result.getData(), is(nullValue()));
+        assertThat(
+            result.getErrors().stream().map(ActionTest::extensions).toList(),
+            contains(refusal("CONFLICT", "Action.subjectChanged", "baz"))
+        );
+        assertThat(linked(barId), is(empty()));
+    }
+
+
+    /// An action without a subject: input alone in the schema, a rule over that input evaluated in memory, and the
+    /// rows found by the method, whose writes the response tells like any other action's.
+    @Test
+    @SuppressWarnings("unchecked")
+    void actsOnInputAlone()
+    {
+        assertThat(
+            graphQL.getGraphQLSchema().getMutationType().getFieldDefinition("approveNamed").getArguments().stream()
+                .map(argument -> argument.getName() + ": " + argument.getType()).toList(),
+            contains("prefix: String!", "comment: String!")
+        );
+
+        final String prefix = "Named " + UUID.randomUUID() + " ";
+        final String first = newBar(prefix + "#1", null);
+        final String second = newBar(prefix + "#2", "described");
+        final String other = newBar("Other " + UUID.randomUUID(), "described");
+
+        final ExecutionResult result = execute(APPROVE_NAMED, Map.of("prefix", prefix, "comment", "all of them"));
+
+        assertThat(result.getErrors(), is(empty()));
+        assertThat(
+            data(result, "approveNamed"),
+            is(List.of(
+                Map.of("barId", first, "name", prefix + "#1", "comment", "all of them"),
+                Map.of("barId", second, "name", prefix + "#2", "comment", "all of them")
+            ))
+        );
+        assertThat(approved(first), is(true));
+        assertThat(approved(second), is(true));
+        assertThat(approved(other), is(false));
+
+        final List<Map<String, Object>> written =
+            (List<Map<String, Object>>) result.getExtensions().get(DefaultActionExecutor.WRITTEN);
+        assertThat(written.stream().map(entry -> entry.get("id")).toList(), contains(first, second));
+
+        final ExecutionResult refused = execute(APPROVE_NAMED, Map.of("prefix", "", "comment", "everything"));
+
+        assertThat(refused.getData(), is(nullValue()));
+        assertThat(
+            refused.getErrors().stream().map(ActionTest::extensions).toList(),
+            contains(refusal("RULE", "Bar.prefixRequired", "prefix"))
+        );
+        assertThat(approved(other), is(false));
+    }
+
+
     private ExecutionResult execute(String mutation, Map<String, Object> variables)
     {
         return graphQL.execute(
@@ -430,6 +588,32 @@ class ActionTest
     }
 
 
+    private String newBaz(String name, String description)
+    {
+        final String id = UUID.randomUUID().toString();
+        bazes.add(id);
+
+        final List<FieldChange> fields = new ArrayList<>(List.of(
+            field("name", "String", name),
+            field("num", "Int", 1),
+            field("created", "Timestamp", Timestamp.valueOf("2026-10-24 12:00:00"))
+        ));
+        if (description != null)
+        {
+            fields.add(field("description", "String", description));
+        }
+
+        final EntityChange change = new EntityChange();
+        change.setType("Baz");
+        change.setId(id);
+        change.setNew(true);
+        change.setChanges(fields);
+
+        assertThat(merge(change), is(MergeStatus.DONE));
+        return id;
+    }
+
+
     private void changeName(String id, String version, String name)
     {
         final EntityChange change = new EntityChange();
@@ -457,6 +641,19 @@ class ActionTest
     private String version(String id)
     {
         return dslContext.select(BAR.VERSION).from(BAR).where(BAR.ID.eq(id)).fetchOne(BAR.VERSION);
+    }
+
+
+    private String bazVersion(String id)
+    {
+        return dslContext.select(BAZ.VERSION).from(BAZ).where(BAZ.ID.eq(id)).fetchOne(BAZ.VERSION);
+    }
+
+
+    /// The ids of the bazes associated with the given bar.
+    private List<String> linked(String barId)
+    {
+        return dslContext.select(BAR_LINK.BAZ_ID).from(BAR_LINK).where(BAR_LINK.BAR_ID.eq(barId)).fetch(BAR_LINK.BAZ_ID);
     }
 
 

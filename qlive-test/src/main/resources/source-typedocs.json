@@ -48,6 +48,34 @@
         ]
       },
       {
+        "description":"Approves every bar not approved yet whose name starts with the given prefix. An action of input alone: it\nhas no subject, and the rows it writes are the method's to find, read in the action's transaction.",
+        "name":"approveNamed",
+        "paramDocs":[
+          {
+            "description":"what the names of the bars to approve start with",
+            "name":"prefix"
+          },
+          {
+            "description":"approval comment",
+            "name":"comment"
+          }
+        ]
+      },
+      {
+        "description":"Associates a baz with a bar: two rows of different types that nothing connects yet, set by two parts of a\nview. Both are subjects, named by id and version, and each has a rule of its own over its stored fields.",
+        "name":"linkBaz",
+        "paramDocs":[
+          {
+            "description":"the bar",
+            "name":"bar"
+          },
+          {
+            "description":"the baz to associate with it",
+            "name":"baz"
+          }
+        ]
+      },
+      {
         "description":"Quotes a bar that may not be saved yet. `draft` is input rather than a subject: marked `@Input`, it takes\nthe values the user is editing, and no row is loaded.",
         "name":"quoteBar",
         "paramDocs":[

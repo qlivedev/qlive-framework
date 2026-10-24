@@ -9,7 +9,9 @@ import io.github.qlivedev.qlive.runtime.action.RuleContext;
 import io.github.qlivedev.qlive.runtime.action.RuleFactory;
 import io.github.qlivedev.qlive.runtime.merge.EntityWriter;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Bar;
+import io.github.qlivedev.qlivetest.domain.tables.pojos.Baz;
 import jakarta.validation.constraints.NotNull;
+import org.jooq.DSLContext;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -23,10 +25,13 @@ public class BarLogic
 {
     private final EntityWriter entityWriter;
 
+    private final DSLContext dslContext;
 
-    public BarLogic(EntityWriter entityWriter)
+
+    public BarLogic(EntityWriter entityWriter, DSLContext dslContext)
     {
         this.entityWriter = entityWriter;
+        this.dslContext = dslContext;
     }
 
 
@@ -58,6 +63,46 @@ public class BarLogic
     public @NotNull List<ApproveResult> approveBars(List<Bar> bars, @NotNull String comment)
     {
         return bars.stream()
+            .map(bar -> {
+                approve(bar);
+                return new ApproveResult(bar.getId(), bar.getName(), comment, false);
+            })
+            .toList();
+    }
+
+
+    /// Associates a baz with a bar: two rows of different types that nothing connects yet, set by two parts of a
+    /// view. Both are subjects, named by id and version, and each has a rule of its own over its stored fields.
+    ///
+    /// @param bar  the bar
+    /// @param baz  the baz to associate with it
+    ///
+    /// @return the bar's id
+    @QLiveAction
+    @Rules({ DescriptionRequired.class, BazDescriptionRequired.class })
+    public @NotNull String linkBaz(Bar bar, Baz baz)
+    {
+        entityWriter.link(bar, "bazes", baz);
+        return bar.getId();
+    }
+
+
+    /// Approves every bar not approved yet whose name starts with the given prefix. An action of input alone: it
+    /// has no subject, and the rows it writes are the method's to find, read in the action's transaction.
+    ///
+    /// @param prefix   what the names of the bars to approve start with
+    /// @param comment  approval comment
+    ///
+    /// @return one approval per bar, by name
+    @QLiveAction
+    @Rules(PrefixGiven.class)
+    public @NotNull List<ApproveResult> approveNamed(@NotNull String prefix, @NotNull String comment)
+    {
+        return dslContext.selectFrom(BAR)
+            .where(BAR.NAME.startsWith(prefix), BAR.APPROVED.isNull())
+            .orderBy(BAR.NAME)
+            .fetchInto(Bar.class)
+            .stream()
             .map(bar -> {
                 approve(bar);
                 return new ApproveResult(bar.getId(), bar.getName(), comment, false);
@@ -135,6 +180,39 @@ public class BarLogic
                     .and(ctx.field("bars.description").ne(value(""))),
                 "bars.description",
                 "Bar.descriptionRequired"
+            );
+        }
+    }
+
+
+    /// A baz is associated only with a description. The second subject's rule, over its own stored fields.
+    public static class BazDescriptionRequired
+        implements RuleFactory
+    {
+        @Override
+        public Rule create(RuleContext ctx)
+        {
+            return new Rule(
+                ctx.field("baz.description").isNotNull()
+                    .and(ctx.field("baz.description").ne(value(""))),
+                "baz.description",
+                "Baz.descriptionRequired"
+            );
+        }
+    }
+
+
+    /// Approving by name takes a prefix, or every bar would match. Reads input alone, so it is evaluated in memory.
+    public static class PrefixGiven
+        implements RuleFactory
+    {
+        @Override
+        public Rule create(RuleContext ctx)
+        {
+            return new Rule(
+                ctx.field("prefix").ne(value("")),
+                "prefix",
+                "Bar.prefixRequired"
             );
         }
     }

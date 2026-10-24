@@ -98,6 +98,10 @@ type GraphQLResponse = {
      * Contains an errors GraphQLError instances
      */
     errors: GraphQLError[]
+    /**
+     * What the server adds beside the data, such as the rows an action wrote
+     */
+    extensions?: Record<string, unknown>
 }
 
 /**
@@ -191,6 +195,25 @@ export type GraphQLParams =
  * @returns the "data" member of the GraphQL response
  */
 export default function graphql<T>(query: GraphQLQuery<T> | string, params: GraphQLParams): Promise<T> {
+    return graphqlResponse(query, params).then(response => response.data)
+}
+
+/**
+ * graphql(), resolving with the response's top-level extensions beside its data: what the server adds outside the
+ * schema, such as what an action wrote.
+ *
+ * @param query     query to run, as a GraphQLQuery or its source
+ * @param params    variables for the query, in wire format
+ *
+ * @returns the "data" and "extensions" members of the GraphQL response, extensions empty where it has none
+ *
+ * @internal
+ */
+export function graphqlResponse<T>(
+    query: GraphQLQuery<T> | string,
+    params: GraphQLParams
+): Promise<{data: T, extensions: Record<string, unknown>}>
+{
     let queryInstance: GraphQLQuery<T>
     if (typeof query === "string")
     {
@@ -254,7 +277,7 @@ export default function graphql<T>(query: GraphQLQuery<T> | string, params: Grap
             {
                 return Promise.reject(new GraphQLResponseError(data.errors));
             }
-            return data.data as T
+            return {data: data.data as T, extensions: data.extensions ?? {}}
         })
         .catch(error => {
             // a refusal is an answer, which whoever issued the action deals with

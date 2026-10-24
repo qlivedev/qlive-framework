@@ -1,4 +1,4 @@
-import graphql, {firstValue, GraphQLParams} from "./util/graphql";
+import {firstValue, GraphQLParams, graphqlResponse} from "./util/graphql";
 import {type OperationType, type ParsedQuery, parseQuery, type QuerySelection} from "./util/parseQuery";
 import {buildConversionMap} from "./util/conversionMap";
 import {warnMissingNameFields} from "./util/nameFieldCheck";
@@ -137,9 +137,21 @@ export class GraphQLQuery<T>
      */
     async execute(params: GraphQLParams): Promise<T>
     {
+        return (await this.executeResponse(params)).result;
+    }
+
+    /**
+     * execute(), resolving with the response's top-level extensions beside the result.
+     *
+     * @param params
+     *
+     * @internal
+     */
+    async executeResponse(params: GraphQLParams): Promise<{result: T, extensions: Record<string, unknown>}>
+    {
         const map = this.conversionMap;
 
-        const data = await graphql<any>(this, convertVariablesToServer(params, map));
+        const {data, extensions} = await graphqlResponse<any>(this, convertVariablesToServer(params, map));
         const result = firstValue(convertResultFromServer(data, map)) as T;
         if (result instanceof QueryDocument)
         {
@@ -147,6 +159,6 @@ export class GraphQLQuery<T>
             // update() re-executes -- inject() does the same for its value
             this.register(result);
         }
-        return result;
+        return {result, extensions};
     }
 }

@@ -3,7 +3,7 @@ import {afterEach, beforeAll, beforeEach, describe, expect, it, vi} from "vitest
 import {act} from "react";
 import {createRoot, Root} from "react-dom/client";
 import config, {init, QLiveConfig} from "../../src/config";
-import {Refusal, Subject} from "../../src/action";
+import {issueAction, Refusal, Subject} from "../../src/action";
 import {GraphQLQuery} from "../../src/GraphQLQuery";
 import {QueryDocument} from "../../src/QueryDocument";
 import {WorkingSet} from "../../src/merge/WorkingSet";
@@ -14,7 +14,7 @@ import type {FieldState} from "../../src/form/useField";
 import {deriveLayout} from "../../src/form/layout";
 import {ActionDraft, useActionDraft, useRefusals} from "../../src/useActionDraft";
 import {barDocument, mergeConfig} from "../fixtures/mergeConfig";
-import {respondWith} from "../fixtures/graphqlMock";
+import {respondWith, sentVariables} from "../fixtures/graphqlMock";
 import {
     field,
     inputObject,
@@ -413,6 +413,59 @@ describe("widget overrides with an action", () => {
         expect(() => render(<SignForm bar={ bar }/>)).toThrowError(/one of a layout, a domain type and an action/)
 
         silenced.mockRestore()
+    })
+})
+
+
+describe("what an action wrote", () => {
+
+    function wrote(prev: string)
+    {
+        return respondWith({
+            data: {signBar: true},
+            extensions: {
+                written: [{
+                    type: "Bar",
+                    id: "bar-1",
+                    version: "v2",
+                    prev,
+                    deleted: false,
+                    fields: {
+                        description: {type: "String", value: "by the action"},
+                        // not selected, so nothing the working set holds
+                        approved: {type: "Timestamp", value: "2026-10-24T12:00:00.000Z"}
+                    },
+                    links: []
+                }]
+            }
+        })
+    }
+
+    it("moves a working set holding the row on to the version the action left", async () => {
+        const {ws, bar} = await editableBar()
+
+        wrote("v1")
+        await issueAction("signBar", {bar, comment: "ok", notify: false})
+
+        expect(bar.version).toBe("v2")
+        expect(bar.description).toBe("by the action")
+        expect(ws.accessor(bar).field("description").status).toBe("remoteChanged")
+        expect("approved" in bar).toBe(false)
+
+        // the next action holds to it
+        const fetchMock = respondWith({data: {signBar: true}})
+        await issueAction("signBar", {bar, comment: "again", notify: false})
+        expect(sentVariables(fetchMock).bar).toEqual({id: "bar-1", version: "v2"})
+    })
+
+    it("leaves the version where the action wrote over somebody else's write", async () => {
+        const {bar} = await editableBar()
+
+        wrote("v1b")
+        await issueAction("signBar", {bar, comment: "ok", notify: false})
+
+        expect(bar.version).toBe("v1")
+        expect(bar.description).toBe("by the action")
     })
 })
 

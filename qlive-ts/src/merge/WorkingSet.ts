@@ -94,6 +94,54 @@ export type StoredState = {
 }
 
 /**
+ * One write an action made, as its response tells it beside the result: the row, the version the write left and
+ * the one it was made against, and what it wrote.
+ *
+ * @internal
+ */
+export type WrittenRow = {
+    type: string
+    id: string
+    /** the version the write left, null for an unversioned type and a deletion */
+    version: string | null
+    /** the version the write was made against, null for a new row and where version is */
+    prev: string | null
+    deleted: boolean
+    /** the scalar fields written, with their values in live form */
+    fields: Record<string, unknown>
+    /** the many-to-many fields whose associations changed */
+    links: string[]
+}
+
+/**
+ * Every working set there is, so that what an action wrote reaches the ones holding the rows. Weak, since a
+ * working set lives as long as its view and nothing else should keep it.
+ */
+const workingSets = new Set<WeakRef<WorkingSet>>()
+
+/**
+ * Hands what an action wrote to every working set holding the rows, so that the next save or action holds to the
+ * versions it left (see WorkingSet.written()).
+ *
+ * @param rows  the writes, in the order they were made
+ *
+ * @internal
+ */
+export function takeWritten(rows: readonly WrittenRow[]): void
+{
+    for (const ref of [...workingSets])
+    {
+        const workingSet = ref.deref()
+        if (!workingSet)
+        {
+            workingSets.delete(ref)
+            continue
+        }
+        rows.forEach(row => workingSet.written(row))
+    }
+}
+
+/**
  * Options a working set is made with. Everything a *type* decides about merging is type meta data and is
  * declared once, in the application's MergeMetadataProvider; what is in here is the other half, which is
  * about this caller.
@@ -221,6 +269,8 @@ export class WorkingSet
         this.viewFlag = "merged"
         this.accessors = new Map()
         this.unannounced = false
+
+        workingSets.add(new WeakRef(this))
 
         this.host = {
             view: () => this.viewFlag,
@@ -548,6 +598,55 @@ export class WorkingSet
         }
 
         this.notify()
+    }
+
+
+    /**
+     * Takes what an action wrote to a row this working set holds. The action wrote it outside the working set,
+     * so to it the write is somebody else's, taken like one (see storedState()): a field the user changed
+     * too becomes a conflict, and a field the working set doesn't hold is left out.
+     *
+     * The version moves only where the working set stood at the version the write was made against. Where
+     * somebody else wrote the row in between, it stays, so the next save still meets what this working set
+     * never saw, as the merge's chain walk would for any other write.
+     *
+     * @param row   what the action wrote to one row
+     *
+     * @internal
+     */
+    written(row: WrittenRow): void
+    {
+        const entity = this.entities.get(key(row.type, row.id))
+
+        if (!entity)
+        {
+            return
+        }
+
+        const fields: Record<string, unknown> = {}
+        for (const [name, value] of Object.entries(row.fields))
+        {
+            if (entity.base.has(name))
+            {
+                fields[name] = value
+            }
+        }
+        for (const name of row.links)
+        {
+            if (entity.base.has(name))
+            {
+                // the associations changed, and to what is not said
+                fields[name] = undefined
+            }
+        }
+
+        this.storedState({
+            type: row.type,
+            id: row.id,
+            version: row.version !== null && entity.version === row.prev ? row.version : undefined,
+            deleted: row.deleted,
+            fields
+        })
     }
 
 

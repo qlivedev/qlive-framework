@@ -3,6 +3,9 @@ import {GraphQLResponseError} from "./util/graphql";
 import {GraphQLField, GraphQLTypeRef} from "./GraphQLSchema";
 import {findType, unwrapAll} from "./type-utils";
 import i18n from "./i18n";
+import {convertSelectionFromServer} from "./converter";
+import {GenericScalar} from "./GraphQL";
+import {takeWritten, WrittenRow} from "./merge/WorkingSet";
 
 /**
  * The application's actions by name, each with its arguments and its result. Empty here: the types generated from
@@ -142,6 +145,9 @@ type Mutation = {
  * Resolves with the outcome, a refusal included, and rejects where the request failed: no GraphQL response, or
  * errors that are not a refusal.
  *
+ * Before it resolves, every working set holding a row the action wrote takes what it wrote, so the next save or
+ * action on the row holds to the version the action left.
+ *
  * @param name  name of the action, which is the name of its method
  * @param args  arguments by parameter name
  */
@@ -168,8 +174,9 @@ export async function issueAction<N extends ActionName>(
 
     try
     {
-        const result = await query.execute(params) as ActionResult<N>
-        return {refused: false, result}
+        const {result, extensions} = await query.executeResponse(params)
+        takeWritten(writtenRows(extensions.written))
+        return {refused: false, result: result as ActionResult<N>}
     }
     catch (e)
     {
@@ -221,6 +228,26 @@ export function refusalMessage(refusal: Refusal): string
 export function refusalsOf(refusals: readonly Refusal[], path: string): Refusal[]
 {
     return refusals.filter(r => r.field === path || (r.field?.startsWith(path + ".") ?? false))
+}
+
+
+/**
+ * What an action wrote, as the response's extensions carry it, with the values in live form.
+ */
+function writtenRows(written: unknown): WrittenRow[]
+{
+    if (!Array.isArray(written))
+    {
+        return []
+    }
+    return written.map(entry => {
+        const fields: Record<string, unknown> = {}
+        for (const [name, wire] of Object.entries(entry.fields as Record<string, unknown>))
+        {
+            fields[name] = convertSelectionFromServer<GenericScalar>(wire, {type: "GenericScalar"}).value
+        }
+        return {...entry, fields}
+    })
 }
 
 

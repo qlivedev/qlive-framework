@@ -298,6 +298,8 @@
         "EntityDeletion",
         "MergeConflict",
         "MergeConflictField",
+        "MergeRefusal",
+        "Invariant",
         "MergeMeta",
         "MergeTypeMeta",
         "ManyToManyField"

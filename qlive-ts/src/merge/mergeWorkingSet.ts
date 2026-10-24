@@ -5,7 +5,7 @@ import {EntityChange, EntityDeletion, LinkChange, MergeConfig, MergeResult} from
  * QLive's write mutation, and the only one an application needs in order to store anything.
  *
  * The selection is fixed because the result type is: a merge answers with a status and, where it did not
- * land, one conflict per row that stood in the way. There is nothing here an application would want to
+ * land, one conflict per row that stood in the way or one refusal per invariant a row broke. There is nothing here an application would want to
  * select differently, and the working set reads all of it.
  *
  * Declared at module scope like any other query. Parsing needs the source and nothing else, so this costs
@@ -30,6 +30,14 @@ const MERGE_WORKING_SET = new GraphQLQuery<MergeResult>(
                     stored
                     informational
                 }
+            }
+            refusals
+            {
+                type
+                id
+                field
+                messageKey
+                errorClass
             }
         }
     }`

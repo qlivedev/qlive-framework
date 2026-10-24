@@ -298,8 +298,10 @@ export type {
     MergeConfig,
     MergeConflictField,
     MergeConflict,
+    MergeRefusal,
     MergeResult
 } from "./merge/types";
+export type { Invariant } from "./merge/invariants";
 
 export type {
     Converter,

@@ -16,7 +16,8 @@ import {
 } from "./MergeAccessor";
 import {mergeWorkingSet} from "./mergeWorkingSet";
 import * as MergeMeta from "./meta";
-import {EntityChange, EntityDeletion, FieldChange, LinkChange, MergeConflict, MergeResult} from "./types";
+import {EntityChange, EntityDeletion, FieldChange, LinkChange, MergeConflict, MergeRefusal, MergeResult} from "./types";
+import {Invariant, invariantFields, invariantHolds, invariants} from "./invariants";
 
 /**
  * Marks a draft and carries the entity behind it, so that a draft can be handed back to the working set
@@ -50,6 +51,12 @@ export type WorkingSetSnapshot = {
      * empty again once one lands.
      */
     conflicts: MergeConflict[]
+
+    /**
+     * One entry per invariant a row broke when the last merge was refused, before anything went to the server or
+     * by the server's answer. Empty until a merge is refused, and empty again once one lands.
+     */
+    refusals: MergeRefusal[]
 
     /**
      * Which values a draft read returns: the user's own edits, what is in the database, or the two folded
@@ -237,6 +244,14 @@ export class WorkingSet
 
     private conflicts: MergeConflict[];
 
+    private refusals: MergeRefusal[];
+
+    /**
+     * true once a merge was refused for an invariant: from then on every broken invariant shows, those over
+     * fields of a new row the user never touched included, until a merge lands or the changes are undone
+     */
+    private refused: boolean;
+
     private subscribers: (() => void)[];
 
     private snapshot: WorkingSetSnapshot | null;
@@ -264,6 +279,8 @@ export class WorkingSet
         this.entities = new Map()
         this.rows = new WeakMap()
         this.conflicts = []
+        this.refusals = []
+        this.refused = false
         this.subscribers = []
         this.snapshot = null
         this.viewFlag = "merged"
@@ -276,6 +293,7 @@ export class WorkingSet
             view: () => this.viewFlag,
             resolve: (entity, field, choice) => this.resolveField(entity as Entity, field, choice),
             resolveWith: (entity, field, value) => this.resolveFieldWith(entity as Entity, field, value),
+            refusals: entity => this.shownRefusals(entity as Entity),
             accessor: row => this.accessor(row)
         }
     }
@@ -692,6 +710,8 @@ export class WorkingSet
         }
 
         this.conflicts = []
+        this.refusals = []
+        this.refused = false
         this.notify()
     }
 
@@ -706,6 +726,8 @@ export class WorkingSet
         this.entities = new Map()
         this.rows = new WeakMap()
         this.conflicts = []
+        this.refusals = []
+        this.refused = false
         this.viewFlag = "merged"
         this.notify()
     }
@@ -725,10 +747,24 @@ export class WorkingSet
      * writes the user's values over the other ones. That second save is deliberately theirs to make: a
      * working set never re-sends by itself.
      *
+     * Refused, and nothing was written either: a row breaks an invariant of its type. The working set checks
+     * them itself first and sends nothing while one breaks; the server's answer for one it could not check is
+     * taken the same way. Either way, every broken invariant now shows at its field, see MergeField.refusals.
+     *
      * @returns what came of it
      */
     merge = async (): Promise<MergeResult> =>
     {
+        const broken = [...this.entities.values()].flatMap(entity => this.brokenInvariants(entity))
+        if (broken.length > 0)
+        {
+            this.refused = true
+            this.refusals = broken
+            this.notify()
+
+            return {status: "REFUSED", conflicts: [], refusals: broken}
+        }
+
         const changes: EntityChange[] = []
         const links: LinkChange[] = []
         const deletions: EntityDeletion[] = []
@@ -761,14 +797,21 @@ export class WorkingSet
         {
             // Nothing to write: the documents are holding what a merge would have gone and fetched again. A
             // form that saves an untouched row costs a round trip otherwise.
-            return {status: "DONE", conflicts: []}
+            return {status: "DONE", conflicts: [], refusals: []}
         }
 
         const result = await mergeWorkingSet(changes, links, deletions, {conflictValues: this.conflictValues})
 
         if (result.status === "DONE")
         {
+            this.refusals = []
+            this.refused = false
             await this.refresh()
+        }
+        else if (result.status === "REFUSED")
+        {
+            this.refusals = result.refusals
+            this.refused = true
         }
         else
         {
@@ -812,6 +855,7 @@ export class WorkingSet
             this.snapshot = {
                 dirty: this.dirty,
                 conflicts: this.conflicts,
+                refusals: this.refusals,
                 view: this.viewFlag,
                 merge: this.merge,
                 undo: this.undo,
@@ -1255,8 +1299,129 @@ export class WorkingSet
             })
         }
 
+        // what the invariants reading a changed field read besides: the merge checks one on the row as the
+        // change sends it. A field the query didn't select is left out, and the server fails the merge
+        if (!entity.isNew)
+        {
+            const named = new Set(changes.map(change => change.field))
+            for (const invariant of applying(entity))
+            {
+                for (const name of invariantFields(entity.type, invariant))
+                {
+                    const value = valueOf(entity, name, "merged")
+                    if (!named.has(name) && value !== undefined)
+                    {
+                        named.add(name)
+                        changes.push({field: name, value: {type: scalarTypeName(entity.type, name), value}})
+                    }
+                }
+            }
+        }
+
         return changes
     }
+
+
+    /**
+     * The invariants a row breaks as the next merge would send it, whether a form shows them yet or not.
+     */
+    private brokenInvariants(entity: Entity): MergeRefusal[]
+    {
+        if (entity.deleted)
+        {
+            return []
+        }
+
+        const broken: MergeRefusal[] = []
+        for (const invariant of applying(entity))
+        {
+            const row = rowFor(entity, invariant)
+            if (row && !invariantHolds(entity.type, invariant, row))
+            {
+                broken.push({
+                    type: entity.type,
+                    id: entity.id,
+                    field: invariant.field,
+                    messageKey: invariant.messageKey,
+                    errorClass: invariant.errorClass
+                })
+            }
+        }
+        return broken
+    }
+
+
+    /**
+     * The invariants a row breaks that a form shows: those reading a field the user changed, at once, and after
+     * a refused merge all of them. A new form doesn't open full of errors over fields nobody has filled in yet.
+     * The server's refusals of the row join them where the working set couldn't evaluate the rule itself.
+     */
+    private shownRefusals(entity: Entity): MergeRefusal[]
+    {
+        const shown = this.brokenInvariants(entity).filter(refusal => this.refused || invariants(entity.type).some(
+            invariant => matches(invariant, refusal) &&
+                [...invariantFields(entity.type, invariant)].some(name => entity.changes.has(name))
+        ))
+
+        // what the server refused that the working set has no say about: a rule it doesn't know, or one over a
+        // field the query didn't select. One it can evaluate is evaluated, and is gone once the user fixed it
+        for (const refusal of this.refusals)
+        {
+            if (refusal.type === entity.type && refusal.id === entity.id && !invariants(entity.type).some(
+                invariant => matches(invariant, refusal) && rowFor(entity, invariant) !== null
+            ))
+            {
+                shown.push(refusal)
+            }
+        }
+        return shown
+    }
+}
+
+
+/**
+ * Whether a refusal is the given invariant's.
+ */
+function matches(invariant: Invariant, refusal: MergeRefusal): boolean
+{
+    return invariant.messageKey === refusal.messageKey && invariant.field === refusal.field
+}
+
+
+/**
+ * The invariants the next merge holds a row to: every one of a new row, and those of an update that read a field
+ * it changes, the others keeping the outcome they had.
+ */
+function applying(entity: Entity): Invariant[]
+{
+    const all = invariants(entity.type)
+    if (entity.isNew)
+    {
+        return [...all]
+    }
+
+    const changed = pending(entity)
+    return all.filter(invariant => changed.some(name => invariantFields(entity.type, invariant).has(name)))
+}
+
+
+/**
+ * The values an invariant reads off a row, merged, or null where the row doesn't hold one of them: the query
+ * didn't select it, and only the server can tell. A new row's field nobody set is null.
+ */
+function rowFor(entity: Entity, invariant: Invariant): Record<string, unknown> | null
+{
+    const row: Record<string, unknown> = {}
+    for (const name of invariantFields(entity.type, invariant))
+    {
+        const value = valueOf(entity, name, "merged")
+        if (value === undefined && !entity.isNew)
+        {
+            return null
+        }
+        row[name] = value ?? null
+    }
+    return row
 }
 
 

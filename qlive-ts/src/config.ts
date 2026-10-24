@@ -2,6 +2,7 @@ import type {ComponentType} from "react";
 
 import type {QueryConfigDelta} from "./QueryDocument";
 import type {MergeTypeMeta} from "./merge/meta";
+import type {Invariant} from "./merge/invariants";
 import type {Layout} from "./form/layout";
 import type {WidgetOverride} from "./form/widgets";
 
@@ -525,6 +526,13 @@ export interface DomainTypeMetaProps {
      * "declared nothing" and "no such type" answer the same way.
      */
     merge?: MergeTypeMeta
+
+    /**
+     * The invariants of the type: rules that hold for every write of its rows. Written server-side from `@Rules` on
+     * a POJO's class and by QLive's RulesMetadataProvider; absent on a type that has none. Read it through
+     * invariants() in merge/invariants.
+     */
+    rules?: Invariant[]
 }
 
 /**

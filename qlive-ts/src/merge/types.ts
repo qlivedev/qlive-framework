@@ -10,9 +10,10 @@ import {GenericScalar} from "../GraphQL";
  */
 
 /**
- * How a merge ended: everything landed, or nothing did.
+ * How a merge ended: everything landed, or nothing did, because somebody else's write stood in the way or because
+ * a row broke an invariant of its type.
  */
-export type MergeStatus = "DONE" | "CONFLICT"
+export type MergeStatus = "DONE" | "CONFLICT" | "REFUSED"
 
 /**
  * One field of one row set to one value. The value travels as a generic scalar, which is what lets one
@@ -116,10 +117,26 @@ export type MergeConflict = {
 }
 
 /**
- * What came of one merge. All or nothing: either everything landed or the conflicts say which rows stood in
- * the way and nothing was written.
+ * One invariant one row broke, and what to tell the user.
+ */
+export type MergeRefusal = {
+    type: string
+    id: string
+
+    /**
+     * The field the rule blames, null where it blames none
+     */
+    field: string | null
+    messageKey: string
+    errorClass: string | null
+}
+
+/**
+ * What came of one merge. All or nothing: either everything landed, or nothing was written and the conflicts say
+ * which rows stood in the way, or the refusals which invariants they broke.
  */
 export type MergeResult = {
     status: MergeStatus
     conflicts: MergeConflict[]
+    refusals: MergeRefusal[]
 }

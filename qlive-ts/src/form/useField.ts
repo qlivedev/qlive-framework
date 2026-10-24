@@ -9,6 +9,7 @@ import type {FilterExpression} from "../FilterDSL";
 import {hasInput, inputText, parseInput} from "../converter";
 import i18n from "../i18n";
 import {MergeField, untouchedField} from "../merge/MergeAccessor";
+import type {MergeRefusal} from "../merge/types";
 import {manyToManyField} from "../merge/meta";
 import {GraphQLTypeRef} from "../GraphQLSchema";
 import {findType, isListType, isNonNull, objectFields, unwrapAll} from "../type-utils";
@@ -100,7 +101,8 @@ export interface FieldState
 
     /**
      * The refusals of the action's last issue that blame the field or one below it. For a field of the form's row, a
-     * refusal blames it by the subject's name, `bar.description` for the field `description`.
+     * refusal blames it by the subject's name, `bar.description` for the field `description`. Then the invariants of
+     * the row's type that blame the field and that the row breaks, as `merge.refusals` has them.
      */
     refusals: Refusal[]
 }
@@ -282,6 +284,8 @@ export function fieldState(form: FormState, path: string, options: FieldOptions 
         text = value === null || value === undefined ? "" : String(value)
     }
 
+    const merge = parameter ? untouchedField(path, value) : form.merge.field(storage)
+
     return {
         path,
         domainType: type,
@@ -325,9 +329,20 @@ export function fieldState(form: FormState, path: string, options: FieldOptions 
         },
         error: edit?.error ?? null,
 
-        merge: parameter ? untouchedField(path, value) : form.merge.field(storage),
-        refusals: action ? action.refusalsOf(refusalPath(path, !!parameter, subject)) : []
+        merge,
+        refusals: [
+            ...(action ? action.refusalsOf(refusalPath(path, !!parameter, subject)) : []),
+            ...merge.refusals.map(invariantRefusal)
+        ]
     }
+}
+
+/**
+ * An invariant the row breaks, as a field shows it among an action's refusals.
+ */
+function invariantRefusal(refusal: MergeRefusal): Refusal
+{
+    return {code: "RULE", messageKey: refusal.messageKey, field: refusal.field, errorClass: refusal.errorClass}
 }
 
 /**

@@ -26,9 +26,9 @@ const Q_BARS = new GraphQLQuery<QueryDocument<any>>(
 
 const CONFIG = {offset: 0, pageSize: 10, condition: null, sortFields: []}
 
-function mergeResponse(result: MergeResult)
+function mergeResponse(result: Omit<MergeResult, "refusals"> & Partial<MergeResult>)
 {
-    return {data: {mergeWorkingSet: result}, errors: []}
+    return {data: {mergeWorkingSet: {refusals: [], ...result}}, errors: []}
 }
 
 /**
@@ -39,7 +39,8 @@ function conflictOn(fields: MergeConflictField[]): MergeResult
 {
     return {
         status: "CONFLICT",
-        conflicts: [{type: "Bar", id: "bar-1", storedVersion: "v9", deleted: false, fields}]
+        conflicts: [{type: "Bar", id: "bar-1", storedVersion: "v9", deleted: false, fields}],
+        refusals: []
     }
 }
 
@@ -189,7 +190,8 @@ describe("what a field is", () => {
 
         const {ws, bar} = await edited({
             status: "CONFLICT",
-            conflicts: [{type: "Bar", id: "bar-1", storedVersion: null, deleted: true, fields: []}]
+            conflicts: [{type: "Bar", id: "bar-1", storedVersion: null, deleted: true, fields: []}],
+            refusals: []
         })
 
         expect(ws.accessor(bar).gone).toBe(true)

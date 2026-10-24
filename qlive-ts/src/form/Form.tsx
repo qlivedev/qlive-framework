@@ -115,6 +115,7 @@ const NO_ROW: MergeAccessor = {
     gone: false,
     isNew: false,
     deleted: false,
+    refusals: [],
     field: name => untouchedField(name, undefined),
     changedFields: () => [],
     conflictedFields: () => [],

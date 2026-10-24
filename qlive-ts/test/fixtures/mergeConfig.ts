@@ -220,7 +220,15 @@ export const mergeConfig: QLiveConfig = {
             ]),
             object("MergeResult", [
                 field("status", NOT_NULL(NAMED("MergeStatus", "ENUM"))),
-                field("conflicts", NOT_NULL(LIST_OF(OBJECT("MergeConflict"))))
+                field("conflicts", NOT_NULL(LIST_OF(OBJECT("MergeConflict")))),
+                field("refusals", NOT_NULL(LIST_OF(OBJECT("MergeRefusal"))))
+            ]),
+            object("MergeRefusal", [
+                field("type", NOT_NULL(STRING)),
+                field("id", NOT_NULL(STRING)),
+                field("field", STRING),
+                field("messageKey", NOT_NULL(STRING)),
+                field("errorClass", STRING)
             ]),
             object("MergeConflict", [
                 field("type", NOT_NULL(STRING)),

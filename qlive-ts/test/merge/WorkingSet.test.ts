@@ -81,9 +81,9 @@ function documentResponse(name?: string, version?: string)
     return {data: {queryBarDocument: barDocument(name, version)}, errors: []}
 }
 
-function mergeResponse(result: MergeResult)
+function mergeResponse(result: Omit<MergeResult, "refusals"> & Partial<MergeResult>)
 {
-    return {data: {mergeWorkingSet: result}, errors: []}
+    return {data: {mergeWorkingSet: {refusals: [], ...result}}, errors: []}
 }
 
 /**
@@ -511,7 +511,7 @@ describe("what a merge sends", () => {
         const fetchMock = respondWith(mergeResponse({status: "CONFLICT", conflicts: []}))
         const result = await ws.merge()
 
-        expect(result).toEqual({status: "DONE", conflicts: []})
+        expect(result).toEqual({status: "DONE", conflicts: [], refusals: []})
         expect(fetchMock).not.toHaveBeenCalled()
     })
 

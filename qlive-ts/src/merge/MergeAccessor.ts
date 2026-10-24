@@ -8,6 +8,7 @@
  * the three lines over it.
  */
 import i18n from "../i18n";
+import type {MergeRefusal} from "./types";
 
 /**
  * Which values a read returns: the user's own edits, what is in the database, or the two folded together.
@@ -116,6 +117,7 @@ export type MergeHost = {
     view(): MergeView
     resolve(entity: MergeEntity, field: string, choice: Resolution): void
     resolveWith(entity: MergeEntity, field: string, value: unknown): void
+    refusals(entity: MergeEntity): MergeRefusal[]
     accessor(row: object): MergeAccessor
 }
 
@@ -192,6 +194,12 @@ export type MergeField = {
      * value is a string could not tell `resolve("stored")` from a user meaning to store the word.
      */
     resolveWith(value: unknown): void
+
+    /**
+     * The invariants of the row's type that blame this field and that the row breaks as it stands: shown once the
+     * user changed a field the rule reads, and all of them after a merge was refused for one.
+     */
+    refusals: readonly MergeRefusal[]
 }
 
 /**
@@ -216,6 +224,12 @@ export type MergeAccessor = {
 
     /** true for a row marked for deletion, which the next merge deletes */
     deleted: boolean
+
+    /**
+     * The invariants the row breaks as it stands, as its fields show them, those blaming no field included --
+     * what a form shows above or below its fields.
+     */
+    refusals: readonly MergeRefusal[]
 
     field(name: string): MergeField
 
@@ -303,12 +317,15 @@ export function createAccessor(host: MergeHost, entity: MergeEntity): MergeAcces
             .filter(name => statusOf(entity, name) === wanted)
             .sort()
 
+    const refusals = host.refusals(entity)
+
     return {
         type: entity.type,
         id: entity.id,
         gone: entity.gone,
         isNew: entity.isNew,
         deleted: entity.deleted,
+        refusals,
 
         field: (name: string): MergeField =>
         {
@@ -325,7 +342,8 @@ export function createAccessor(host: MergeHost, entity: MergeEntity): MergeAcces
                 storedKnown: entity.stored.get(name) !== undefined,
                 resolution: entity.resolutions.get(name) ?? null,
                 resolve: choice => host.resolve(entity, name, choice),
-                resolveWith: value => host.resolveWith(entity, name, value)
+                resolveWith: value => host.resolveWith(entity, name, value),
+                refusals: refusals.filter(refusal => refusal.field === name)
             }
         },
 
@@ -351,6 +369,6 @@ export function untouchedField(name: string, value: unknown): MergeField
     }
     return {
         name, status: "unchanged", className: "", value, mine: value, stored: value, conflict: false,
-        storedKnown: false, resolution: null, resolve: untouched, resolveWith: untouched
+        storedKnown: false, resolution: null, resolve: untouched, resolveWith: untouched, refusals: []
     }
 }

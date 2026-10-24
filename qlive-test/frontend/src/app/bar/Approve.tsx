@@ -25,11 +25,15 @@ import { Q_BarApprove, Q_BarApproveResult } from "./Q_BarApprove";
  * The action writes the approval, which gives each row a new version, so the rows are read again after it:
  * approving one again is then no conflict.
  *
+ * Approving by name is an action of input alone: approveNamed has no subject, only the prefix and the comment, and
+ * finds the bars itself. Its form is derived from the action, with no row, and its rule reads the input.
+ *
  * Worth trying:
  *  - a bar without a description, which the stored-state rule refuses, at its row
  *  - an empty comment, which keeps Approve disabled: the comment is required, and blank text is none
  *  - several bars at once, one of them without a description: none is approved, and the reason names its row
  *  - /bar/edit in another window: change a bar there and approve it here without reloading, which is a conflict
+ *  - approving by name with an empty prefix, which the rule refuses at the prefix field
  */
 type Row = Q_BarApproveResult["rows"][number]
 
@@ -39,6 +43,7 @@ export default function Approve()
 
     const approve = useActionDraft("approveBar")
     const approveAll = useActionDraft("approveBars")
+    const named = useActionDraft("approveNamed")
 
     const [selected, setSelected] = useState<string[]>([])
 
@@ -78,7 +83,16 @@ export default function Approve()
         }
     }
 
+    const issueNamed = async () => {
+        const outcome = await named.issue()
+        if (!outcome.refused)
+        {
+            bars.update({})
+        }
+    }
+
     const result = action.outcome && !action.outcome.refused ? action.outcome.result : null
+    const namedResult = named.outcome && !named.outcome.refused ? named.outcome.result : null
 
     return (
         <div className="bar-approve">
@@ -130,6 +144,31 @@ export default function Approve()
                 result && (
                     <p className="approved">
                         Approved: { (Array.isArray(result) ? result : [result]).map(r => r?.name).join(", ") }
+                    </p>
+                )
+            }
+
+            <h2>Approve by name</h2>
+
+            <Form action={ named }/>
+
+            <ActionRefusals action={ named }/>
+
+            <div className="toolbar">
+                <button
+                    className="btn"
+                    type="button"
+                    disabled={ !named.complete || named.pending }
+                    onClick={ issueNamed }
+                >
+                    Approve by name
+                </button>
+            </div>
+
+            {
+                namedResult && (
+                    <p className="approved">
+                        Approved by name: { namedResult.map(r => r?.name).join(", ") || "none left to approve" }
                     </p>
                 )
             }

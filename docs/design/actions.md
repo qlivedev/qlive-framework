@@ -309,6 +309,40 @@ up, that a row joining or leaving a relation since the user read it
 counts as a conflict. Its default is the rule above, so adding it
 breaks nothing.
 
+### What an action wrote (decided 2026-10-24)
+
+**A working set has to learn what an action wrote.** It holds the
+version a row was read at, and an action's writes don't go through it:
+push leaves out the user's own writes, and registering a document again
+keeps the entities it has. So after an action writes its subject, the
+form still holds the old version, and the next action on the row is
+refused as a conflict. Any screen that edits and acts on the same rows
+meets this; `/app/bar/approve` doesn't, having no working set.
+
+**The response carries it, beside the result.** A successful action's
+response holds, in GraphQL's top-level `extensions`, one entry under
+`written` per write `EntityWriter` made, in order: the row's type and
+id, the version written and the one it was written against, whether it
+was deleted, and the fields written with their values as
+`GenericScalar`s -- a link change names its many-to-many field with no
+value. The mutation's result type stays the application's own and
+`issueAction()` still resolves to it; the entries are the framework's,
+outside the schema. A generated wrapper type per action was set aside:
+GraphQL has no generics, and it would put plumbing into every action's
+schema and every selection. Push was set aside too: it depends on
+watching, and could arrive after the user's next click.
+
+**`issueAction()` hands the entries to every working set holding the
+rows** before it resolves, so the next save or action holds to what
+the action left. From a working set's side an action's write is a write
+it didn't make, and `storedState()` already takes those, with one
+difference: the version is adopted only where the working set stood at
+the version the write was made against. A write the working set didn't
+directly follow, because somebody else wrote the row in between, leaves
+the version where it is, as push does, so the merge's chain walk still
+guards what the working set never saw. A field the user changed and the
+action wrote becomes a conflict, as it would from anybody's write.
+
 ### Failure
 
 - **The action fails during its work.** Its transaction rolls back and

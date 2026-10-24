@@ -17,7 +17,8 @@ import { Q_BarApprove, Q_BarApproveResult } from "./Q_BarApprove";
  *
  * The selected rows are the drafts' subjects as they are -- the action sends each one's id and version, and the
  * server loads the row as it is stored. The comment and the notify flag are the actions' input, edited in a form of
- * the action's parameters alone, with no row of its own. Nothing here checks a rule: the server does, and a refusal
+ * the action's parameters alone, with no row of its own; the comment is a text area by main.tsx's widget overrides,
+ * which name each action as where the field is. Nothing here checks a rule: the server does, and a refusal
  * comes back with one reason per broken rule, each blaming a field by its path. The form's fields show the reasons
  * blaming them, each selected row those blaming it, and ActionRefusals whatever is left.
  *

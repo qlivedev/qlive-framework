@@ -30,9 +30,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             registerWidget("textarea", TextArea)
 
             // Applies wherever a form shows Foo.num without naming a widget: the derived form, a layout, and a
-            // hand-written <Field path="num"/> alike.
+            // hand-written <Field path="num"/> alike. An action names where a parameter's field is, as a domain
+            // type does for a row's: app/bar/Approve.tsx edits the comments in a text area.
             config.widgets = [
-                { domainType: "Foo", path: "num", widget: Stepper }
+                { domainType: "Foo", path: "num", widget: Stepper },
+                { action: "approveBar", path: "comment", widget: TextArea },
+                { action: "approveBars", path: "comment", widget: TextArea }
             ]
 
             // The server's fooSummary (layouts.json), changed here before any view renders it:

@@ -13,10 +13,14 @@ import io.github.qlivedev.qlivetest.domain.tables.pojos.Bar;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Baz;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.Foo;
 import io.github.qlivedev.qlivetest.domain.tables.pojos.FooType;
+import io.github.qlivedev.qlivetest.domain.tables.pojos.Quux;
+import io.github.qlivedev.qlivetest.runtime.rules.NumsOrdered;
+import io.github.qlivedev.qlive.runtime.action.Rule;
 import io.github.qlivedev.qlive.runtime.domain.QLiveDefaultDomain;
 import io.github.qlivedev.qlive.runtime.meta.CatalogMetadataProvider;
 import io.github.qlivedev.qlive.runtime.meta.MergeMetadataProvider;
 import io.github.qlivedev.qlive.runtime.meta.QueryConfigMetadataProvider;
+import io.github.qlivedev.qlive.runtime.meta.RulesMetadataProvider;
 import io.github.qlivedev.qlive.runtime.query.DefaultQueryDocumentService;
 import io.github.qlivedev.qlive.runtime.query.QueryDocumentService;
 import org.jooq.DSLContext;
@@ -33,6 +37,7 @@ import java.util.Collection;
 
 import static io.github.qlivedev.qlivetest.domain.Tables.BAR_LINK;
 import static io.github.qlivedev.qlivetest.domain.Tables.FOO;
+import static io.github.qlivedev.qlive.runtime.scalar.FilterDSL.value;
 
 /// Exemplary configuration of GraphQL in a project.
 @Configuration
@@ -129,7 +134,16 @@ public class QLiveDomainConfiguration {
                         // Four foo types that nothing writes: their rows ship with the bootstrap, and a picker of
                         // Foo.fooType filters them in the browser.
                         CatalogMetadataProvider.newProvider()
-                                .catalog(FooType.class)
+                                .catalog(FooType.class),
+
+                        // Invariants of Quux, which hold for every write of its rows: a rule class, and a lambda
+                        RulesMetadataProvider.newProvider()
+                                .rules(Quux.class, new NumsOrdered())
+                                .rules(Quux.class, ctx -> new Rule(
+                                        ctx.field("name").isNotNull().and(ctx.field("name").ne(value(""))),
+                                        "name",
+                                        "Quux.nameRequired"
+                                ))
                 )
 
                 // documentation for the types defined in the QLive library

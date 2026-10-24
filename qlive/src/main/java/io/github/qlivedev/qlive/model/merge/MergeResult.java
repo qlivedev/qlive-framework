@@ -8,14 +8,16 @@ import java.util.List;
  * What came of one merge.
  *
  * All or nothing: either every change and every deletion landed, or none of them did and the conflicts say
- * which rows stood in the way. There is no partial success to reconcile, which is what lets a working set
- * keep holding exactly what the user has not saved yet.
+ * which rows stood in the way, or the refusals which invariants they broke. There is no partial success to
+ * reconcile, which is what lets a working set keep holding exactly what the user has not saved yet.
  */
 public class MergeResult
 {
     private MergeStatus status;
 
     private List<MergeConflict> conflicts;
+
+    private List<MergeRefusal> refusals;
 
 
     /**
@@ -50,12 +52,29 @@ public class MergeResult
     }
 
 
+    /**
+     * One entry per invariant a row broke. Empty unless the merge was refused.
+     */
+    @NotNull
+    public List<MergeRefusal> getRefusals()
+    {
+        return refusals;
+    }
+
+
+    public void setRefusals(List<MergeRefusal> refusals)
+    {
+        this.refusals = refusals;
+    }
+
+
     @Override
     public String toString()
     {
         return super.toString() + ": "
             + "status = " + status
             + ", conflicts = " + conflicts
+            + ", refusals = " + refusals
             ;
     }
 }

@@ -17,10 +17,12 @@ import io.github.qlivedev.qlive.model.condition.Condition;
 import io.github.qlivedev.qlive.model.condition.FieldReference;
 import io.github.qlivedev.qlive.model.condition.Operation;
 import io.github.qlivedev.qlive.model.merge.MergeConflict;
+import io.github.qlivedev.qlive.model.merge.MergeRefusal;
 import io.github.qlivedev.qlive.runtime.QLiveException;
 import io.github.qlivedev.qlive.runtime.filter.FilterTransformer;
 import io.github.qlivedev.qlive.runtime.filter.PropertyPath;
 import io.github.qlivedev.qlive.runtime.merge.MergeConflictException;
+import io.github.qlivedev.qlive.runtime.merge.MergeRefusedException;
 import io.github.qlivedev.qlive.runtime.merge.WrittenRow;
 import io.github.qlivedev.qlive.runtime.merge.WrittenRows;
 import io.github.qlivedev.qlive.runtime.meta.MergeMeta;
@@ -166,6 +168,10 @@ public class DefaultActionExecutor
         {
             throw new ActionRefusedException(conflicts(action, arguments, e.getConflicts()));
         }
+        catch (MergeRefusedException e)
+        {
+            throw new ActionRefusedException(broken(action, arguments, e.getRefusals()));
+        }
         catch (RuntimeException e)
         {
             // a subject's row is read and version-checked in the action's snapshot, so a write committed since
@@ -249,7 +255,7 @@ public class DefaultActionExecutor
                 new Refusal(
                     Refusal.CONFLICT,
                     conflict.isDeleted() ? SUBJECT_GONE : SUBJECT_CHANGED,
-                    subjectPath(action, arguments, conflict),
+                    subjectPath(action, arguments, conflict.getType(), conflict.getId()),
                     null
                 )
             );
@@ -258,12 +264,35 @@ public class DefaultActionExecutor
     }
 
 
-    /// The path of the subject row a conflict is about, or `null` where the row is no subject.
-    private String subjectPath(Action action, Object[] arguments, MergeConflict conflict)
+    /// One `RULE` refusal per invariant a write of the method broke, blaming the field within the subject the row
+    /// is, where it is one, and nothing where it isn't: the row is the method's, which the client knows nothing of.
+    private List<Refusal> broken(Action action, Object[] arguments, List<MergeRefusal> refusals)
+    {
+        final List<Refusal> broken = new ArrayList<>(refusals.size());
+        for (MergeRefusal refusal : refusals)
+        {
+            final String subjectPath = subjectPath(action, arguments, refusal.getType(), refusal.getId());
+            broken.add(
+                new Refusal(
+                    Refusal.RULE,
+                    refusal.getMessageKey(),
+                    subjectPath != null && refusal.getField() != null
+                        ? subjectPath + "." + refusal.getField()
+                        : subjectPath,
+                    refusal.getErrorClass()
+                )
+            );
+        }
+        return broken;
+    }
+
+
+    /// The path of the subject row of the given type and id, or `null` where the row is no subject.
+    private String subjectPath(Action action, Object[] arguments, String type, String id)
     {
         for (ActionSubject subject : action.getSubjects())
         {
-            if (!subjectTables.get(subject.pojoType()).typeName().equals(conflict.getType()))
+            if (!subjectTables.get(subject.pojoType()).typeName().equals(type))
             {
                 continue;
             }
@@ -271,7 +300,7 @@ public class DefaultActionExecutor
             final List<SubjectRef> refs = refs(subject, arguments);
             for (int i = 0; i < refs.size(); i++)
             {
-                if (refs.get(i).getId().equals(conflict.getId()))
+                if (refs.get(i).getId().equals(id))
                 {
                     return subject.list() ? subject.name() + "." + i : subject.name();
                 }

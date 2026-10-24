@@ -322,15 +322,37 @@ type MergeConflictField {
 
 """
 
+One invariant one row broke, and what to tell the user.
+
+Like a conflict, a refusal is data: the merge rolled back, the user still has everything they typed, and the
+form shows the message at the field the rule blames.
+"""
+type MergeRefusal {
+    "Class a layout can react to, or null where the rule names none."
+    errorClass: String
+    "The field the rule blames, as the GraphQL type spells it, or null where it blames none."
+    field: String
+    "Id of the row."
+    id: String!
+    "i18n key of the message."
+    messageKey: String!
+    "GraphQL name of the type whose row this is."
+    type: String!
+}
+
+"""
+
 What came of one merge.
 
 All or nothing: either every change and every deletion landed, or none of them did and the conflicts say
-which rows stood in the way. There is no partial success to reconcile, which is what lets a working set
-keep holding exactly what the user has not saved yet.
+which rows stood in the way, or the refusals which invariants they broke. There is no partial success to
+reconcile, which is what lets a working set keep holding exactly what the user has not saved yet.
 """
 type MergeResult {
     "One entry per row that could not be written. Empty when the merge is done."
     conflicts: [MergeConflict]!
+    "One entry per invariant a row broke. Empty unless the merge was refused."
+    refusals: [MergeRefusal]!
     "Whether the merge landed."
     status: MergeStatus!
 }
@@ -494,9 +516,10 @@ type QuxDocument {
 
 How a merge ended.
 
-Two outcomes and no third one. Everything that is neither -- a type nobody exposes, a field name that
-matches no column, a foreign key pointing at nothing -- is a programming error rather than a state of the
-data, and comes back as a GraphQL error instead of as a status a caller has to branch on.
+Three outcomes: it landed, somebody else's write stood in the way, or the data broke an invariant of its
+type. Everything else -- a type nobody exposes, a field name that matches no column, a foreign key pointing
+at nothing, a change leaving out a field an invariant reads -- is a programming error rather than a state of
+the data, and comes back as a GraphQL error instead of as a status a caller has to branch on.
 
 A unique constraint is the one refusal that is not in that list. A row refused for being a duplicate of
 one already there is somebody else having got in first, which is the same thing every other conflict is,
@@ -511,6 +534,13 @@ enum MergeStatus {
     CONFLICT
     "Everything in the working set landed. Nothing else is written, and the transaction committed."
     DONE
+    """
+
+    At least one row broke an invariant of its type, and nothing was written at all. Checked before anything
+    is written, so a refused merge carries no conflicts; the result carries one refusal per broken rule and
+    row.
+    """
+    REFUSED
 }
 
 "BigDecimal wrapped as string"

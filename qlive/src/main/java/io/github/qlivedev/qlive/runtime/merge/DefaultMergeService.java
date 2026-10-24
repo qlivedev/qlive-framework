@@ -7,9 +7,12 @@ import io.github.qlivedev.qlive.model.merge.LinkChange;
 import io.github.qlivedev.qlive.model.merge.MergeConfig;
 import io.github.qlivedev.qlive.model.merge.MergeConflict;
 import io.github.qlivedev.qlive.model.merge.MergeConflictField;
+import io.github.qlivedev.qlive.model.merge.MergeRefusal;
 import io.github.qlivedev.qlive.model.merge.MergeResult;
 import io.github.qlivedev.qlive.model.merge.MergeStatus;
 import io.github.qlivedev.qlive.runtime.QLiveException;
+import io.github.qlivedev.qlive.runtime.action.Invariants;
+import io.github.qlivedev.qlive.runtime.action.Rule;
 import io.github.qlivedev.qlive.runtime.auth.AppAuthentication;
 import io.github.qlivedev.qlive.runtime.meta.MergeMeta;
 import io.github.qlivedev.qlive.graphql.QLiveDomain;
@@ -129,7 +132,7 @@ public class DefaultMergeService
     {
         final MergeResult result = run(changes, links, deletions, config);
 
-        if (result.getStatus() == MergeStatus.CONFLICT)
+        if (result.getStatus() != MergeStatus.DONE)
         {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
         }
@@ -163,6 +166,23 @@ public class DefaultMergeService
         for (EntityChange change : nullSafe(changes))
         {
             prepared.add(prepare(change));
+        }
+
+        // the invariants before anything is written: a refused merge has nothing to roll back and no conflicts
+        final List<MergeRefusal> refusals = new ArrayList<>();
+        for (PreparedChange change : prepared)
+        {
+            checkInvariants(change, refusals);
+        }
+        if (!refusals.isEmpty())
+        {
+            log.debug("Merge refused: {}", refusals);
+
+            final MergeResult result = new MergeResult();
+            result.setStatus(MergeStatus.REFUSED);
+            result.setConflicts(List.of());
+            result.setRefusals(refusals);
+            return result;
         }
 
         final List<MergeConflict> conflicts = new ArrayList<>();
@@ -233,6 +253,7 @@ public class DefaultMergeService
 
             result.setStatus(MergeStatus.DONE);
             result.setConflicts(List.of());
+            result.setRefusals(List.of());
         }
         else
         {
@@ -240,6 +261,7 @@ public class DefaultMergeService
 
             result.setStatus(MergeStatus.CONFLICT);
             result.setConflicts(conflicts);
+            result.setRefusals(List.of());
         }
 
         return result;
@@ -370,6 +392,62 @@ public class DefaultMergeService
         }
 
         return prepared;
+    }
+
+
+    /// The invariants one change breaks, evaluated in memory on the row as the change sends it.
+    ///
+    /// A new row is held to every invariant of its type, and a field it leaves out reads as null. An update is
+    /// held to those reading a field it changes, the others keeping the outcome they had; and since the change
+    /// is all there is to evaluate, it has to carry every field those read, changed or not. One that doesn't
+    /// is the client's mistake, not the user's, and fails the merge.
+    private void checkInvariants(PreparedChange change, List<MergeRefusal> refusals)
+    {
+        final List<Rule> rules = Invariants.of(domain, change.typeName);
+        if (rules.isEmpty())
+        {
+            return;
+        }
+
+        final Map<String, Object> row = new HashMap<>();
+        for (FieldChange fieldChange : nullSafe(change.change.getChanges()))
+        {
+            final GenericScalar scalar = fieldChange.getValue();
+            row.put(fieldChange.getField(), scalar == null ? null : scalar.getValue());
+        }
+
+        for (Rule rule : rules)
+        {
+            final Set<String> fields = Invariants.fields(rule);
+            if (!change.change.isNew())
+            {
+                if (fields.stream().noneMatch(row::containsKey))
+                {
+                    continue;
+                }
+
+                final List<String> missing = fields.stream().filter(field -> !row.containsKey(field)).toList();
+                if (!missing.isEmpty())
+                {
+                    throw new QLiveException(
+                        change.change + " changes a field " + rule + " reads, but leaves out " + missing + ". " +
+                            "An invariant is checked on the row as the change sends it, so an update sends every " +
+                            "field of a rule it touches, the unchanged ones with their current values."
+                    );
+                }
+            }
+
+            if (!Invariants.holds(rule, row))
+            {
+                final MergeRefusal refusal = new MergeRefusal();
+                refusal.setType(change.typeName);
+                refusal.setId(change.change.getId());
+                refusal.setField(rule.getField());
+                refusal.setMessageKey(rule.getMessageKey());
+                refusal.setErrorClass(rule.getErrorClass());
+                refusals.add(refusal);
+            }
+        }
     }
 
 

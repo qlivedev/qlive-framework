@@ -692,11 +692,59 @@
     "name":"MergeConflictField"
   },
   {
-    "description":"What came of one merge.\n\nAll or nothing: either every change and every deletion landed, or none of them did and the conflicts say\nwhich rows stood in the way. There is no partial success to reconcile, which is what lets a working set\nkeep holding exactly what the user has not saved yet.",
+    "description":"One invariant one row broke, and what to tell the user.\n\nLike a conflict, a refusal is data: the merge rolled back, the user still has everything they typed, and the\nform shows the message at the field the rule blames.",
+    "fieldDocs":[
+      {
+        "description":"Class a layout can react to, or null where the rule names none.",
+        "name":"errorClass",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"The field the rule blames, as the GraphQL type spells it, or null where it blames none.",
+        "name":"field",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"Id of the row.",
+        "name":"id",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"i18n key of the message.",
+        "name":"messageKey",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"GraphQL name of the type whose row this is.",
+        "name":"type",
+        "paramDocs":[
+          
+        ]
+      }
+    ],
+    "name":"MergeRefusal"
+  },
+  {
+    "description":"What came of one merge.\n\nAll or nothing: either every change and every deletion landed, or none of them did and the conflicts say\nwhich rows stood in the way, or the refusals which invariants they broke. There is no partial success to\nreconcile, which is what lets a working set keep holding exactly what the user has not saved yet.",
     "fieldDocs":[
       {
         "description":"One entry per row that could not be written. Empty when the merge is done.",
         "name":"conflicts",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"One entry per invariant a row broke. Empty unless the merge was refused.",
+        "name":"refusals",
         "paramDocs":[
           
         ]
@@ -712,7 +760,7 @@
     "name":"MergeResult"
   },
   {
-    "description":"How a merge ended.\n\nTwo outcomes and no third one. Everything that is neither -- a type nobody exposes, a field name that\nmatches no column, a foreign key pointing at nothing -- is a programming error rather than a state of the\ndata, and comes back as a GraphQL error instead of as a status a caller has to branch on.\n\nA unique constraint is the one refusal that is not in that list. A row refused for being a duplicate of\none already there is somebody else having got in first, which is the same thing every other conflict is,\nand it comes back as one.",
+    "description":"How a merge ended.\n\nThree outcomes: it landed, somebody else's write stood in the way, or the data broke an invariant of its\ntype. Everything else -- a type nobody exposes, a field name that matches no column, a foreign key pointing\nat nothing, a change leaving out a field an invariant reads -- is a programming error rather than a state of\nthe data, and comes back as a GraphQL error instead of as a status a caller has to branch on.\n\nA unique constraint is the one refusal that is not in that list. A row refused for being a duplicate of\none already there is somebody else having got in first, which is the same thing every other conflict is,\nand it comes back as one.",
     "fieldDocs":[
       {
         "description":"At least one row could not be written as asked, and nothing was written at all. The result carries one\nconflict per row that stood in the way.",
@@ -724,6 +772,13 @@
       {
         "description":"Everything in the working set landed. Nothing else is written, and the transaction committed.",
         "name":"DONE",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"At least one row broke an invariant of its type, and nothing was written at all. Checked before anything\nis written, so a refused merge carries no conflicts; the result carries one refusal per broken rule and\nrow.",
+        "name":"REFUSED",
         "paramDocs":[
           
         ]

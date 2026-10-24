@@ -5,9 +5,10 @@ import { GenericScalar, QueryConfig, Subject, Temporal } from "@qlivedev/qlive-t
 
 /** How a merge ended.
 
-Two outcomes and no third one. Everything that is neither -- a type nobody exposes, a field name that
-matches no column, a foreign key pointing at nothing -- is a programming error rather than a state of the
-data, and comes back as a GraphQL error instead of as a status a caller has to branch on.
+Three outcomes: it landed, somebody else's write stood in the way, or the data broke an invariant of its
+type. Everything else -- a type nobody exposes, a field name that matches no column, a foreign key pointing
+at nothing, a change leaving out a field an invariant reads -- is a programming error rather than a state of
+the data, and comes back as a GraphQL error instead of as a status a caller has to branch on.
 
 A unique constraint is the one refusal that is not in that list. A row refused for being a duplicate of
 one already there is somebody else having got in first, which is the same thing every other conflict is,
@@ -17,7 +18,11 @@ export type MergeStatus =
 conflict per row that stood in the way. */
     "CONFLICT" |
     /** Everything in the working set landed. Nothing else is written, and the transaction committed. */
-    "DONE"
+    "DONE" |
+    /** At least one row broke an invariant of its type, and nothing was written at all. Checked before anything
+is written, so a refused merge carries no conflicts; the result carries one refusal per broken rule and
+row. */
+    "REFUSED"
 
 /** Generated for io.github.qlivedev.qlivetest.domain.tables.pojos.Bar */
 export type BarInput = {
@@ -398,14 +403,33 @@ carried at all. */
     stored?: GenericScalar
 }
 
+/** One invariant one row broke, and what to tell the user.
+
+Like a conflict, a refusal is data: the merge rolled back, the user still has everything they typed, and the
+form shows the message at the field the rule blames. */
+export type MergeRefusal = {
+    /** Class a layout can react to, or null where the rule names none. */
+    errorClass?: string
+    /** The field the rule blames, as the GraphQL type spells it, or null where it blames none. */
+    field?: string
+    /** Id of the row. */
+    id: string
+    /** i18n key of the message. */
+    messageKey: string
+    /** GraphQL name of the type whose row this is. */
+    type: string
+}
+
 /** What came of one merge.
 
 All or nothing: either every change and every deletion landed, or none of them did and the conflicts say
-which rows stood in the way. There is no partial success to reconcile, which is what lets a working set
-keep holding exactly what the user has not saved yet. */
+which rows stood in the way, or the refusals which invariants they broke. There is no partial success to
+reconcile, which is what lets a working set keep holding exactly what the user has not saved yet. */
 export type MergeResult = {
     /** One entry per row that could not be written. Empty when the merge is done. */
     conflicts: MergeConflict[]
+    /** One entry per invariant a row broke. Empty unless the merge was refused. */
+    refusals: MergeRefusal[]
     /** Whether the merge landed. */
     status: MergeStatus
 }
@@ -517,8 +541,8 @@ export type QuxDocument = {
 
 export type DomainObject = AppFieldSet | AppLogin | AppTranslation | AppUser | AppUserDocument | AppVersion | ApproveResult | Bar |
     BarDocument | BarLink | Baz | BazDocument | Foo | FooDocument | FooType | FooTypeDocument |
-    MergeConflict | MergeConflictField | MergeResult | MutationType | QueryType | Quux | QuuxDocument | Qux |
-    QuxDocument
+    MergeConflict | MergeConflictField | MergeRefusal | MergeResult | MutationType | QueryType | Quux | QuuxDocument |
+    Qux | QuxDocument
 
 declare module "@qlivedev/qlive-ts" {
     interface Actions {

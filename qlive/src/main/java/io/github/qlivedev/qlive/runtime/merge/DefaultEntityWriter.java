@@ -14,6 +14,8 @@ import io.github.qlivedev.qlive.model.merge.MergeConfig;
 import io.github.qlivedev.qlive.model.merge.MergeResult;
 import io.github.qlivedev.qlive.model.merge.MergeStatus;
 import io.github.qlivedev.qlive.runtime.QLiveException;
+import io.github.qlivedev.qlive.runtime.action.Invariants;
+import io.github.qlivedev.qlive.runtime.action.Rule;
 import io.github.qlivedev.qlive.runtime.meta.MergeMeta;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLObjectType;
@@ -26,9 +28,12 @@ import org.jooq.Table;
 import org.jooq.UniqueKey;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
@@ -128,6 +133,7 @@ public class DefaultEntityWriter
             }
             changes.add(fieldChange(rowType, name, property(row, name)));
         }
+        addInvariantFields(rowType, row, changes);
 
         final Object id = requireId(rowType, row);
 
@@ -185,6 +191,33 @@ public class DefaultEntityWriter
         if (result.getStatus() == MergeStatus.CONFLICT)
         {
             throw new MergeConflictException(result.getConflicts());
+        }
+        if (result.getStatus() == MergeStatus.REFUSED)
+        {
+            throw new MergeRefusedException(result.getRefusals());
+        }
+    }
+
+
+    /// Adds what the invariants reading a written field read besides, with the POJO's values: the merge checks an
+    /// invariant on the row as the change sends it.
+    private void addInvariantFields(RowType rowType, Object row, List<FieldChange> changes)
+    {
+        final Set<String> named = new HashSet<>();
+        changes.forEach(change -> named.add(change.getField()));
+
+        final Set<String> added = new LinkedHashSet<>();
+        for (Rule rule : Invariants.of(domain.get(), rowType.name()))
+        {
+            final Set<String> fields = Invariants.fields(rule);
+            if (fields.stream().anyMatch(named::contains))
+            {
+                fields.stream().filter(field -> !named.contains(field)).forEach(added::add);
+            }
+        }
+        for (String name : added)
+        {
+            changes.add(fieldChange(rowType, name, property(row, name)));
         }
     }
 

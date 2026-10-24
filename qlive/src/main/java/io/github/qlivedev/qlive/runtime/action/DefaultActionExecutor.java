@@ -7,6 +7,7 @@ import io.github.qlivedev.qlive.graphql.QLiveDomain;
 import io.github.qlivedev.qlive.graphql.TypeRegistry;
 import io.github.qlivedev.qlive.graphql.logic.Action;
 import io.github.qlivedev.qlive.graphql.logic.ActionExecutor;
+import io.github.qlivedev.qlive.graphql.logic.ActionResult;
 import io.github.qlivedev.qlive.graphql.logic.ActionSubject;
 import io.github.qlivedev.qlive.graphql.logic.SubjectRef;
 import io.github.qlivedev.qlive.model.QueryConfig;
@@ -20,6 +21,8 @@ import io.github.qlivedev.qlive.runtime.QLiveException;
 import io.github.qlivedev.qlive.runtime.filter.FilterTransformer;
 import io.github.qlivedev.qlive.runtime.filter.PropertyPath;
 import io.github.qlivedev.qlive.runtime.merge.MergeConflictException;
+import io.github.qlivedev.qlive.runtime.merge.WrittenRow;
+import io.github.qlivedev.qlive.runtime.merge.WrittenRows;
 import io.github.qlivedev.qlive.runtime.meta.MergeMeta;
 import io.github.qlivedev.qlive.runtime.meta.QueryConfigMeta;
 import io.github.qlivedev.qlive.runtime.query.QueryDocumentService;
@@ -66,6 +69,10 @@ public class DefaultActionExecutor
 
     /// i18n key of the conflict where a subject's row no longer exists.
     public final static String SUBJECT_GONE = "Action.subjectGone";
+
+    /// Key in the response's `extensions` of what an action wrote: one entry per write, in order, which is how the
+    /// client's working sets learn the versions an action left.
+    public final static String WRITTEN = "written";
 
     /// SQL state of a write refused because a concurrent transaction changed the row. Standard, so no dialect has
     /// to be asked.
@@ -143,7 +150,7 @@ public class DefaultActionExecutor
 
 
     @Override
-    public Object execute(Action action, Object[] arguments)
+    public ActionResult execute(Action action, Object[] arguments)
     {
         final List<CompiledRule> compiled = rules.get(action);
         if (compiled == null)
@@ -172,10 +179,11 @@ public class DefaultActionExecutor
     }
 
 
-    private Object run(Action action, List<CompiledRule> compiled, Object[] arguments)
+    private ActionResult run(Action action, List<CompiledRule> compiled, Object[] arguments)
     {
         return transactionTemplate.execute(status -> {
 
+            final WrittenRows written = WrittenRows.collect();
             final Object[] values = arguments.clone();
 
             final List<Refusal> conflicts = new ArrayList<>();
@@ -198,8 +206,36 @@ public class DefaultActionExecutor
                 throw new ActionRefusedException(broken);
             }
 
-            return action.invoke(values);
+            final Object result = action.invoke(values);
+            return new ActionResult(result, Map.of(WRITTEN, written(written.getRows())));
         });
+    }
+
+
+    /// What the action wrote, as the client reads it: the row's type, id, the version left and the one it was made
+    /// against, whether it was deleted, the fields written as `GenericScalar` values, and the many-to-many fields
+    /// whose associations changed.
+    private List<Map<String, Object>> written(List<WrittenRow> rows)
+    {
+        final GraphQLScalarType genericScalar = (GraphQLScalarType) domain.getGraphQLSchema().getType("GenericScalar");
+
+        final List<Map<String, Object>> entries = new ArrayList<>(rows.size());
+        for (WrittenRow row : rows)
+        {
+            final Map<String, Object> fields = new LinkedHashMap<>();
+            row.fields().forEach((name, value) -> fields.put(name, genericScalar.getCoercing().serialize(value)));
+
+            final Map<String, Object> entry = new LinkedHashMap<>();
+            entry.put("type", row.type());
+            entry.put("id", row.id());
+            entry.put("version", row.version());
+            entry.put("prev", row.prev());
+            entry.put("deleted", row.deleted());
+            entry.put("fields", fields);
+            entry.put("links", row.links());
+            entries.add(entry);
+        }
+        return entries;
     }
 
 

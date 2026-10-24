@@ -143,6 +143,50 @@ class ActionTest
     }
 
 
+    /// Beside its result, the response says what the action wrote, which is how a working set holding the row
+    /// learns the version the action left: the row, the version written and the one it was written against, and
+    /// the values.
+    @Test
+    @SuppressWarnings("unchecked")
+    void tellsWhatItWrote()
+    {
+        final String id = newBar("Action #1", "described");
+        final String seen = version(id);
+
+        final ExecutionResult result = execute(APPROVE_BAR, Map.of(
+            "bar", ref(id, seen),
+            "comment", "fine",
+            "notify", false
+        ));
+
+        assertThat(result.getErrors(), is(empty()));
+        final List<Map<String, Object>> written =
+            (List<Map<String, Object>>) result.getExtensions().get(DefaultActionExecutor.WRITTEN);
+        assertThat(written, hasSize(1));
+
+        final Map<String, Object> entry = written.get(0);
+        assertThat(entry.get("type"), is("Bar"));
+        assertThat(entry.get("id"), is(id));
+        assertThat(entry.get("version"), is(version(id)));
+        assertThat(entry.get("prev"), is(seen));
+        assertThat(entry.get("deleted"), is(false));
+        assertThat(entry.get("links"), is(List.of()));
+
+        final Map<String, Object> approved = ((Map<String, Map<String, Object>>) entry.get("fields")).get("approved");
+        assertThat(approved.get("type"), is("Timestamp"));
+        assertThat(approved.get("value") instanceof String, is(true));
+
+        // a refusal writes nothing, and says so by saying nothing
+        final ExecutionResult refused = execute(APPROVE_BAR, Map.of(
+            "bar", ref(id, seen),
+            "comment", "fine",
+            "notify", false
+        ));
+        assertThat(refused.getErrors(), hasSize(1));
+        assertThat(refused.getExtensions(), is(nullValue()));
+    }
+
+
     /// A rule over the subject's stored field, evaluated against the database. A null description is no proof
     /// the rule holds, and neither is an empty one.
     @Test

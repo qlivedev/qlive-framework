@@ -23,8 +23,8 @@ import java.util.function.Supplier;
 /// An `@QLiveAction` method: a mutation the framework guards with rules.
 ///
 /// Its data fetcher hands the arguments to the {@link ActionExecutor} the runtime bound to it, which loads the
-/// subjects, checks versions and rules and calls the method. A refusal becomes one GraphQL error per reason and no
-/// data.
+/// subjects, checks versions and rules and calls the method. The method's result is the data, and what the executor
+/// adds goes to the response's top-level `extensions`. A refusal becomes one GraphQL error per reason and no data.
 public class Action
     extends Mutation
 {
@@ -108,7 +108,12 @@ public class Action
 
         try
         {
-            return executor.execute(this, provideParameters(env));
+            final ActionResult result = executor.execute(this, provideParameters(env));
+
+            return DataFetcherResult.newResult()
+                .data(result.data())
+                .extensions(result.extensions())
+                .build();
         }
         catch (ActionRefusedException e)
         {

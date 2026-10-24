@@ -12,8 +12,8 @@ public interface ActionExecutor
     /// @param action       the action
     /// @param arguments    one value per method parameter; a subject's is its {@link SubjectRef} or list of them
     ///
-    /// @return what the action method returned
+    /// @return what the action method returned, and what the response carries beside it
     ///
     /// @throws io.github.qlivedev.qlive.api.action.ActionRefusedException where the action refuses
-    Object execute(Action action, Object[] arguments);
+    ActionResult execute(Action action, Object[] arguments);
 }

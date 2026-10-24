@@ -2,7 +2,8 @@
 
 Status: concept settled, details open. Written 2026-10-18, revised
 2026-10-22 to define actions as GraphQL mutations declared by Java
-methods, and 2026-10-23 for actions in a view. The server path, issuing from the client and writing from
+methods, 2026-10-23 for actions in a view, and 2026-10-24 for
+invariants. The server path, issuing from the client and writing from
 Java are built (see "What is built"). The companion concept is
 `layouts.md`.
 
@@ -47,6 +48,54 @@ the browser (`evaluate.ts`) and in the database (jOOQ), plus the field
 it blames, if any, a message key and, optionally, an error class a
 layout can check on. Invariants and action rules are both rules in this
 sense.
+
+### Invariants (decided 2026-10-24)
+
+**An invariant is a rule on a type.** The same `RuleFactory` and
+`Rule` as for actions, named in one of two places:
+
+- **`@Rules` on the class** of a POJO that isn't backed by a table, or
+  of a type override, a hand-written POJO named like a table-backed
+  type. It sits on the type rather than on a getter for the reason
+  `@Rules` sits on the method: "end is not before start" belongs to
+  neither field, and the rule names its fields anyway.
+- **`QLiveDomainBuilder`**, for any type, the generated ones included,
+  so that nobody has to write a type override only to attach a rule.
+  It takes `RuleFactory` instances rather than classes: an existing
+  rule class constructed, or a lambda.
+
+The rules of both places add up.
+
+**Paths start at the type's own fields**: `description`, `end`. A type
+has no parameters, so the first segment is a field, and `RuleContext`
+knows the type instead of an action. Relation fields are out, so an
+invariant reads one row and nothing else; a foreign key column is a
+field of its own and may be read. A path naming no field of the type,
+or a relation field, fails at startup, naming the type and the rule
+class. With paths rooted differently, a rule class serves actions or
+types, not both: `DescriptionRequired` reads `bar.description`, its
+invariant twin `description`.
+
+**The merge checks invariants in memory, before storing**, on the row as
+the change sends it. On insert every rule of the type applies, and a
+field one reads that is absent fails like SQL's unknown. On update
+only the rules reading a field the change touches apply; one touching
+none of them can't change their outcome. A change has to carry every
+field those rules read, changed or not, or the write is refused at
+runtime: the client sends the unchanged ones from the row's base, and a
+view whose query doesn't select them can't save such a change. That a
+field carried unchanged was changed by somebody else in the meantime
+is left to the merge's existing safety.
+
+**The client shows what it can evaluate, when the user has done
+something.** A rule over a field the user edited shows its error as
+soon as the client evaluates it, as text that doesn't parse does. A
+rule failing only over fields a new row hasn't had set shows nothing
+until a save: `merge()` refuses, and the errors appear at their fields,
+as a refusal does after issuing. A new form doesn't open full of errors.
+
+**Invariants travel in the bootstrap**, next to the action model, and
+their message keys count as used tags, as the actions' do.
 
 ## An action is a method
 
@@ -766,6 +815,13 @@ Not built yet:
 
 ## Open items
 
+- **Invariants**, decided (2026-10-24, see "Invariants") and not built:
+  `@Rules` on a type and the rules `QLiveDomainBuilder` attaches, the
+  startup check of their paths, the merge's in-memory check and its
+  refusal, the client's evaluation in the working set with the errors
+  at their fields, and the delivery in the bootstrap. The merge's
+  refusal has no shape yet: which change it blames, and how it reaches
+  the field.
 - **Paths into a `DomainObject` parameter**, shelved (2026-10-23).
   `DomainObject` is a scalar carrying a domain object of any type in
   `_type`, so a parameter of it is input already, set whole. Paths into

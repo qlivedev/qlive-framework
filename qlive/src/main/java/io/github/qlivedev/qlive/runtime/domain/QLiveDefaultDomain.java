@@ -12,6 +12,7 @@ import io.github.qlivedev.qlive.graphql.meta.MetadataProvider;
 import io.github.qlivedev.qlive.graphql.scalar.BigDecimalScalar;
 import io.github.qlivedev.qlive.graphql.scalar.BigIntegerScalar;
 import io.github.qlivedev.qlive.model.QueryConfig;
+import io.github.qlivedev.qlive.runtime.meta.AnnotatedRulesProvider;
 import io.github.qlivedev.qlive.runtime.scalar.ComputedValueCoercing;
 import io.github.qlivedev.qlive.runtime.scalar.ComputedValue;
 import io.github.qlivedev.qlive.runtime.scalar.ConditionScalar;
@@ -74,6 +75,9 @@ public class QLiveDefaultDomain
                     )
                     .build()
             )
+
+            // the invariants POJOs name with @Rules on their class, before any the application attaches
+            .withMetadataProviders(new AnnotatedRulesProvider())
 
             .withMetadataProviders(
                 metadataProviders.toArray(new MetadataProvider[0])

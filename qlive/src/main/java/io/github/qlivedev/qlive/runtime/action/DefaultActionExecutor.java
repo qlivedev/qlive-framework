@@ -344,7 +344,7 @@ public class DefaultActionExecutor
         {
             final RuleContext ctx = new RuleContext(domain, action, ruleClass);
 
-            final Rule rule = instantiate(action, ruleClass).create(ctx);
+            final Rule rule = Invariants.instantiate(ruleClass, action.toString()).create(ctx);
             if (rule == null)
             {
                 throw ctx.fail("The rule factory returned no rule");
@@ -357,7 +357,7 @@ public class DefaultActionExecutor
 
             // the factory may have built paths without the context, so every one of them is checked again
             final Set<String> paths = new LinkedHashSet<>();
-            collectPaths(rule.getCondition(), paths);
+            Invariants.collectPaths(rule.getCondition(), paths);
 
             ActionSubject anchor = null;
             final Map<String, InputPath> inputPaths = new HashMap<>();
@@ -396,26 +396,6 @@ public class DefaultActionExecutor
             compiled.add(new CompiledRule(ruleClass, rule, anchor, Map.copyOf(inputPaths)));
         }
         return List.copyOf(compiled);
-    }
-
-
-    private static RuleFactory instantiate(Action action, Class<?> ruleClass)
-    {
-        if (!RuleFactory.class.isAssignableFrom(ruleClass))
-        {
-            throw new QLiveException(action + ": @Rules names " + ruleClass.getName() + ", which is no " +
-                RuleFactory.class.getSimpleName());
-        }
-
-        try
-        {
-            return (RuleFactory) ruleClass.getConstructor().newInstance();
-        }
-        catch (ReflectiveOperationException e)
-        {
-            throw new QLiveException(action + ": Cannot instantiate rule " + ruleClass.getName() + ". A rule " +
-                "factory is public, top-level or static nested, with a public no-arg constructor.", e);
-        }
     }
 
 
@@ -670,20 +650,6 @@ public class DefaultActionExecutor
     // -----------------------------------------------------------------------------------------------------
     // condition walks
     // -----------------------------------------------------------------------------------------------------
-
-    private static void collectPaths(CNode node, Set<String> paths)
-    {
-        switch (node)
-        {
-            case null -> { }
-            case FieldReference ref -> paths.add(ref.getName());
-            case Condition c -> nullSafe(c.getOperands()).forEach(operand -> collectPaths(operand, paths));
-            case Operation o -> nullSafe(o.getOperands()).forEach(operand -> collectPaths(operand, paths));
-            case Component component -> collectPaths(component.getCondition(), paths);
-            default -> { }
-        }
-    }
-
 
     /// A copy of the condition with every field reference replaced.
     private static CNode substitute(CNode node, Function<FieldReference, CNode> replace)

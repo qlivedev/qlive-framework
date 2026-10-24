@@ -15,18 +15,24 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-/// What a {@link RuleFactory} builds its rule with: field references into the action's parameters, each checked
-/// when it is asked for.
+/// What a {@link RuleFactory} builds its rule with: field references, each checked when it is asked for.
 ///
-/// Every path starts with a parameter name. Into a subject it continues with the stored fields of its type,
-/// relations included, as a query document's paths do: `bar.owner.login`. Into input it continues with the
-/// properties of the parameter's Java type, positionally: `bazs.0.name`. A path naming no parameter, or no
-/// field, fails right here, at startup, naming the action and the rule class.
+/// For an action, every path starts with a parameter name. Into a subject it continues with the stored fields of
+/// its type, relations included, as a query document's paths do: `bar.owner.login`. Into input it continues with
+/// the properties of the parameter's Java type, positionally: `bazs.0.name`.
+///
+/// For a type, the rule is an invariant and a path is one of the type's own fields: `end`. A relation field is
+/// none of them, so an invariant reads one row and nothing else; a foreign key is a field of its own.
+///
+/// A path naming no parameter, or no field, fails right here, at startup, naming the action or the type and the
+/// rule.
 public final class RuleContext
 {
     private final QLiveDomain domain;
 
     private final Action action;
+
+    private final String typeName;
 
     private final Class<?> ruleClass;
 
@@ -35,20 +41,50 @@ public final class RuleContext
     {
         this.domain = domain;
         this.action = action;
+        this.typeName = null;
         this.ruleClass = ruleClass;
     }
 
 
-    /// The name of the action the rule is created for.
-    public String getActionName()
+    private RuleContext(QLiveDomain domain, String typeName, Class<?> ruleClass)
     {
-        return action.getName();
+        this.domain = domain;
+        this.action = null;
+        this.typeName = typeName;
+        this.ruleClass = ruleClass;
     }
 
 
-    /// A reference to a field of the action's parameters.
+    /// The context of an invariant of the given type.
     ///
-    /// @param path     dotted path starting with a parameter name
+    /// @param domain       the domain
+    /// @param typeName     GraphQL name of the type
+    /// @param ruleClass    class of the factory, for messages
+    ///
+    /// @return context
+    public static RuleContext forType(QLiveDomain domain, String typeName, Class<?> ruleClass)
+    {
+        return new RuleContext(domain, typeName, ruleClass);
+    }
+
+
+    /// The name of the action the rule is created for, `null` for an invariant.
+    public String getActionName()
+    {
+        return action != null ? action.getName() : null;
+    }
+
+
+    /// The name of the type the invariant is created for, `null` for an action's rule.
+    public String getTypeName()
+    {
+        return typeName;
+    }
+
+
+    /// A reference to a field of the action's parameters, or of the type.
+    ///
+    /// @param path     dotted path starting with a parameter name, or a field of the type
     ///
     /// @return field reference to build the condition with
     public FieldReference field(String path)
@@ -58,12 +94,18 @@ public final class RuleContext
     }
 
 
-    /// Checks a path against the action's parameters.
+    /// Checks a path against the action's parameters, or against the type's own fields.
     void check(String path)
     {
         if (path == null || path.isEmpty())
         {
             throw fail("A rule path can't be empty");
+        }
+
+        if (typeName != null)
+        {
+            checkOwnField(path);
+            return;
         }
 
         final List<String> segments = Arrays.asList(path.split("\\.", -1));
@@ -124,6 +166,24 @@ public final class RuleContext
     }
 
 
+    /// An invariant's path: a field of the type that is no relation.
+    private void checkOwnField(String path)
+    {
+        final GraphQLObjectType objectType = (GraphQLObjectType) domain.getGraphQLSchema().getType(typeName);
+        final GraphQLFieldDefinition definition = objectType.getFieldDefinition(path);
+        if (definition == null)
+        {
+            throw fail("Path '" + path + "' names no field of '" + typeName + "'. An invariant reads the type's own " +
+                "fields, without a parameter name before them.");
+        }
+        if (GraphQLTypeUtil.unwrapAll(definition.getType()) instanceof GraphQLObjectType)
+        {
+            throw fail("Path '" + path + "' names a relation. An invariant reads the type's own fields alone; " +
+                "a rule over related rows belongs to an action.");
+        }
+    }
+
+
     private ActionSubject subject(String name)
     {
         for (ActionSubject subject : action.getSubjects())
@@ -139,6 +199,9 @@ public final class RuleContext
 
     QLiveException fail(String message)
     {
-        return new QLiveException(action + ", rule " + ruleClass.getName() + ": " + message);
+        return new QLiveException(
+            (action != null ? action.toString() : "Type '" + typeName + "'") + ", rule " + ruleClass.getName() +
+                ": " + message
+        );
     }
 }

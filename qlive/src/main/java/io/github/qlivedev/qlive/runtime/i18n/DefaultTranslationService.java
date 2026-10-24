@@ -10,6 +10,7 @@ import io.github.qlivedev.qlive.graphql.util.JSONHolder;
 import io.github.qlivedev.qlive.model.ts.ModuleFunctionReferences;
 import io.github.qlivedev.qlive.model.ts.TrackUsageData;
 import io.github.qlivedev.qlive.runtime.QLiveException;
+import io.github.qlivedev.qlive.runtime.action.Invariants;
 import io.github.qlivedev.qlive.runtime.service.StaticAnalysisProvider;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -201,9 +202,9 @@ public class DefaultTranslationService
 
 
     /// Every tag there is: the static first argument of every recorded i18n() call, every type the domain has a
-    /// table for, by itself and with each of its fields, each value of an enum such a field holds, and the tags of
-    /// the actions the frontend uses: those it names in a `useActionDraft()` or `issueAction()` call, or all of them
-    /// where there is no analysis yet.
+    /// table for, by itself and with each of its fields, each value of an enum such a field holds, the message keys
+    /// of every type's invariants, and the tags of the actions the frontend uses: those it names in a
+    /// `useActionDraft()` or `issueAction()` call, or all of them where there is no analysis yet.
     ///
     /// @param analysis     the frontend's static analysis, or `null` where there is none yet
     /// @param actionTags   the tags the actions bring, see `DefaultActionExecutor.getActionTags()`
@@ -233,6 +234,9 @@ public class DefaultTranslationService
                 }
             }
         }
+
+        // the invariants' messages, which the client shows for rules it evaluates itself
+        tags.addAll(Invariants.messageKeys(domain));
 
         for (String typeName : domain.getTypeRegistry().getJooqTables().keySet())
         {

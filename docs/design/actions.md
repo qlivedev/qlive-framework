@@ -59,10 +59,15 @@ sense.
   type. It sits on the type rather than on a getter for the reason
   `@Rules` sits on the method: "end is not before start" belongs to
   neither field, and the rule names its fields anyway.
-- **`QLiveDomainBuilder`**, for any type, the generated ones included,
-  so that nobody has to write a type override only to attach a rule.
-  It takes `RuleFactory` instances rather than classes: an existing
-  rule class constructed, or a lambda.
+- **A `RulesMetadataProvider`** handed to `QLiveDomainBuilder`'s
+  `withMetadataProviders()`, for any type, the generated ones
+  included, so that nobody has to write a type override only to attach
+  a rule. It takes `RuleFactory` instances rather than classes: an
+  existing rule class constructed, or a lambda. A provider rather than
+  a method of the builder because the builder lives in `qlive-graphql`,
+  which can't see `RuleFactory`; `MergeMetadataProvider` declares per
+  type the same way. The annotations are read by a provider of the
+  framework's own, which `QLiveDefaultDomain` registers first.
 
 The rules of both places add up.
 
@@ -85,7 +90,20 @@ field those rules read, changed or not, or the write is refused at
 runtime: the client sends the unchanged ones from the row's base, and a
 view whose query doesn't select them can't save such a change. That a
 field carried unchanged was changed by somebody else in the meantime
-is left to the merge's existing safety.
+is left to the merge's existing safety: the field is in the change, so
+a concurrent write to it is a conflict like any other.
+
+**A broken invariant refuses the merge**, with a third `MergeStatus`,
+`REFUSED`, and one `MergeRefusal` per rule and row: the row's type and
+id, the blamed field, the message key and the error class. Data like a
+conflict, since it is the user's input that broke it; a change leaving
+out a field a rule reads is the client's mistake and stays a GraphQL
+error. Nothing is written before the check, so a refused merge carries
+no conflicts. Written through `EntityWriter`, a refusal is a
+`MergeRefusedException`, and inside an action a `RULE` refusal blaming
+the field within the subject the row is, `bar.description`; the
+writer sends the fields an invariant reads besides the written ones
+from the POJO.
 
 **The client shows what it can evaluate, when the user has done
 something.** A rule over a field the user edited shows its error as
@@ -93,6 +111,10 @@ soon as the client evaluates it, as text that doesn't parse does. A
 rule failing only over fields a new row hasn't had set shows nothing
 until a save: `merge()` refuses, and the errors appear at their fields,
 as a refusal does after issuing. A new form doesn't open full of errors.
+The working set evaluates them over `evaluate.ts` and sends nothing
+while one breaks; `MergeField.refusals` holds those blaming a field,
+`MergeAccessor.refusals` all of the row's, and a `Field` lists them
+with an action's refusals.
 
 **Invariants travel in the bootstrap**, next to the action model, and
 their message keys count as used tags, as the actions' do.
@@ -770,6 +792,15 @@ plugin records the action name of every `useActionDraft()` and
 `issueAction()` call, and the translations offer the tags of those
 actions alone, all of them while there is no analysis.
 
+Invariants, 2026-10-24: `@Rules` on a type and
+`RulesMetadataProvider`, `Invariants` checking their paths at startup
+and holding them in the type meta data, the merge's check and
+`REFUSED`, the `EntityWriter` and the action executor passing the
+refusal on, the translations offering their message keys, and the
+working set's check with the refusals at the fields. Covered by
+`InvariantTest` and `invariants.test.tsx`; `/app/form/invariants` shows
+Quux's two.
+
 Not built yet:
 
 - **The reached-versions argument.** Only the subjects' versions are
@@ -815,13 +846,13 @@ Not built yet:
 
 ## Open items
 
-- **Invariants**, decided (2026-10-24, see "Invariants") and not built:
-  `@Rules` on a type and the rules `QLiveDomainBuilder` attaches, the
-  startup check of their paths, the merge's in-memory check and its
-  refusal, the client's evaluation in the working set with the errors
-  at their fields, and the delivery in the bootstrap. The merge's
-  refusal has no shape yet: which change it blames, and how it reaches
-  the field.
+- **Invariants over input**: an `@Input` parameter of a type with
+  invariants is not held to them; the action's own rules are all that
+  run.
+- **Values in delivered invariants**: a rule's condition reaches the
+  client as the meta data serializes it, which is right for numbers,
+  strings and booleans. A date or timestamp literal in an invariant is
+  untried.
 - **Paths into a `DomainObject` parameter**, shelved (2026-10-23).
   `DomainObject` is a scalar carrying a domain object of any type in
   `_type`, so a parameter of it is input already, set whole. Paths into

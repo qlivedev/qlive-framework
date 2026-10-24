@@ -942,6 +942,13 @@ export class WorkingSet
                     return this
                 }
 
+                // the version the working set holds the row to, which moves past the one it was read with when
+                // a write it learns of lands -- what an action sends for its subject has to be that one
+                if (name === MergeMeta.VERSION && entity.version !== null)
+                {
+                    return entity.version
+                }
+
                 return typeof name === "string" && (entity.changes.has(name) || entity.stored.has(name))
                     ? valueOf(entity, name, this.viewFlag)
                     : Reflect.get(target, name, receiver)

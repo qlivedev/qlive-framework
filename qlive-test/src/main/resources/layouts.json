@@ -6,5 +6,52 @@
             { "field": "num" },
             { "field": "owner", "mode": "text" }
         ]
+    },
+    "fooReactions": {
+        "domainType": "Foo",
+        "nodes": [
+            { "field": "name" },
+            { "field": "flag" },
+            { "field": "fooType" },
+            { "field": "description", "widget": "textarea" },
+            { "field": "num" }
+        ],
+        "reactions": [
+            {
+                "on": [ { "init": true }, { "change": "flag" } ],
+                "when": {
+                    "type": "Condition", "name": "eq", "operands": [
+                        { "type": "FieldReference", "name": "flag" },
+                        { "type": "Value", "scalarType": "Boolean", "value": true }
+                    ]
+                },
+                "effects": [ { "field": "description", "mode": "normal" } ],
+                "otherwise": [ { "field": "description", "mode": "disabled" } ]
+            },
+            {
+                "on": [ { "change": "flag" } ],
+                "when": {
+                    "type": "Condition", "name": "and", "operands": [
+                        {
+                            "type": "Condition", "name": "eq", "operands": [
+                                { "type": "FieldReference", "name": "flag" },
+                                { "type": "Value", "scalarType": "Boolean", "value": true }
+                            ]
+                        },
+                        {
+                            "type": "Condition", "name": "eq", "operands": [
+                                { "type": "FieldReference", "name": "type" },
+                                { "type": "Value", "scalarType": "String", "value": "TYPE_D" }
+                            ]
+                        }
+                    ]
+                },
+                "effects": [ { "field": "fooType", "value": { "type": "Value", "scalarType": "String", "value": "TYPE_A" } } ]
+            },
+            {
+                "on": [ { "change": "num" } ],
+                "effects": [ { "field": "description", "effect": "describeNum" } ]
+            }
+        ]
     }
 }

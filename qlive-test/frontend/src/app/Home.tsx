@@ -26,6 +26,7 @@ const FORMS = [
     {href: "/app/form/named", title: "A named layout", text: "a layout the server delivers, changed by the application"},
     {href: "/app/form/manytomany", title: "A many-to-many field", text: "associated rows listed, removed and searched to add"},
     {href: "/app/form/invariants", title: "Rules on a type", text: "invariants checked before a save sends a row, and shown at the field they blame"},
+    {href: "/app/form/reactions", title: "Reactions", text: "a form setting modes and values when a field changes, loses focus, or breaks a rule"},
     {href: "/app/bar/edit", title: "A hand-written form", text: "the application's own choice of fields, with the conflict buttons"}
 ];
 

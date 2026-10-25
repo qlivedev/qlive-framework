@@ -1,8 +1,8 @@
 # Layouts (design)
 
 Status: concept settled, client building blocks built, details open.
-Written 2026-10-18, revised 2026-10-20, and 2026-10-23 for forms over
-an action. Field modes, input conversion
+Written 2026-10-18, revised 2026-10-20, 2026-10-23 for forms over
+an action, and 2026-10-25 for reactions. Field modes, input conversion
 and the client building blocks are built (`qlive-ts/src/form/`), and
 so are the to-one picker and the related-rows endpoint; forms over an
 action, catalog types, field conditions, server layouts and rules are not.
@@ -822,9 +822,60 @@ concept settled:
 - **Sections** such as "delivery address" hold on any device; where
   they are placed depends on the device.
 
-## Rules that act (raw notes)
+## Reactions
 
-Thinking aloud, not a design. Collected 2026-10-19.
+### Reactions (decided 2026-10-25)
+
+**Rules and reactions are apart.** The type and the action carry
+rules, which the server enforces (`actions.md`, "Merge and
+invariants"). The layout carries reactions: what a form does when a
+field changes or loses focus, or an error appears, to help the user
+bring the client state into compliance. A reaction is enforced
+nowhere; it reaches the server only through the values it sets, which
+the merge checks like any edit.
+
+**Reactions are data in the layout**, evaluated by the form that
+renders it: trees for conditions and values, string references for
+fields, error classes and modes, as in the rest of a layout. Server
+layouts are data the client renders, so the server's layout model
+holds reactions too, checks their references at startup, and never
+runs them.
+
+**A reaction is an event wired to an effect.** The events to start
+with:
+
+- `init`, when the form renders the layout, so that what the row opens
+  with holds from the start: a "different delivery address" checkbox
+  that is already set enables the address fields without anyone
+  touching it.
+- `change` and `blur` of a field.
+- An error appearing or clearing, by error class or at a field, from
+  the early check and a server refusal alike.
+
+The effects set a field's mode or value. A continuous binding, gross
+following net, is `init` and a `change` of each field it reads, wired
+to the same effect. A binding form that derives those events from its
+references would be the same thing at a higher level, and waits until
+the events have been tried.
+
+**Effects are asynchronous.** Every effect resolves a promise, a
+synchronous one through `Promise.resolve()`, so that a lookup, postal
+code to city, is an effect like any other.
+
+**What a reaction set is the form's to know.** The value goes into the
+working set as an ordinary change, since the merge needs no
+difference. The form remembers which values it set, so that a prefill
+yields to what the user types and comes back when its source changes,
+and forgets them with the working set's `undo()`.
+
+**Chains and cycles are looked at once reactions exist** to try them
+on: whether the framework can order or refuse them, or the application
+has to wire them so that they settle.
+
+### Raw notes
+
+Thinking aloud, collected 2026-10-19; "Reactions" above holds what was
+decided since.
 
 **What is assumed so far.** Rules change field modes and field values.
 The FilterDSL value operations (`add`, `mul`, `concat`, `upper`, ...)
@@ -867,10 +918,9 @@ checks it there like any other. Marking some validations client-only
 stays an option; the start is without it. Sinks may not be needed; errors
 could be one.
 
-**Form rules come from two places**: the layout, situational to one
-form, and the type, as invariants are. A type's rules apply to every
-form over it; its validations hold for every writer, its actions only
-where a form runs them.
+**Rules and reactions come from different places**: rules from the
+type and the action, which the server enforces, reactions from the
+layout, which the form runs (see "Reactions" above).
 
 **The editor is half a contradiction** with "The format on the server",
 which says an editor serves a user group QLive doesn't have. QLive
@@ -974,7 +1024,19 @@ the ambiguity.
 
 ## Open items
 
-- **Rules that act**: see the raw notes above.
+- **Reactions in a hand-written form.** A `Form` with `Field` children
+  has no layout to carry them. The proposal is a `reactions` prop in
+  the layout's shape, as a `Field` gives a mode a layout node would.
+- **Invariants over a value a reaction set.** An invariant shows its
+  error once a field it reads is among the row's changes, so a
+  reaction setting one shows errors the user didn't cause. Either that
+  is acceptable, or the working set learns to tell what was typed from
+  what was set, and the difference stops being the form's alone.
+- **Pending effects.** A field waiting for an effect's result needs a
+  state of its own; the latest trigger wins and an older result is
+  dropped. Whether a save waits, refuses or goes ahead while one is
+  pending is open.
+- **Chains and cycles** of reactions: see "Reactions".
 - **Asynchronous checks** and their pending state.
 - **Enum example**, held until actions (2026-10-21). jOOQ generates no
   enums, so one only occurs in a hand-written POJO, which isn't written

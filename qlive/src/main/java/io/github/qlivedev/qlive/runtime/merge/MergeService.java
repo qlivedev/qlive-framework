@@ -11,7 +11,8 @@ import java.util.List;
 
 /// Stores a working set: any number of rows, of any number of types, in one transaction.
 ///
-/// The write side of what {@link io.github.qlivedev.qlive.runtime.query.QueryDocumentService} is on the read
+/// This is the central service for QLive's MVCC implementation for entities. it is write side of what
+/// {@link io.github.qlivedev.qlive.runtime.query.QueryDocumentService} is on the read
 /// side. One generic path rather than a mutation and an input type per operation, and the same reason it
 /// works: a change travels as field names and `GenericScalar` values, and the domain is what says which
 /// column and which Java type each of those is.

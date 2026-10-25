@@ -8,6 +8,11 @@ import {FilterExpression, RawValue, toJSON} from "./FilterDSL";
 const PUSH_URI = "/push"
 
 /**
+ * Role of the anonymous account, mirroring AppAuthentication.ROLE_ANONYMOUS on the Java side.
+ */
+const ROLE_ANONYMOUS = "ROLE_ANONYMOUS"
+
+/**
  * First reconnect waits about this long, and every further attempt doubles the window until it reaches
  * RECONNECT_MAX_MS.
  */
@@ -91,6 +96,12 @@ let idCounter = 0
 let listeners: (() => void)[] = []
 
 let snapshot: PubSubConnectionSnapshot | null = null
+
+/**
+ * Whether connect() has said once that it won't connect for the anonymous user, so a page subscribing to several
+ * topics says it only once.
+ */
+let anonymousReported = false
 
 
 function notify(): void
@@ -282,11 +293,25 @@ function onMessage(event: MessageEvent): void
  *
  * Called on the first subscription and on every reconnect, never by application code: what a subscriber
  * asks for is messages, and the connection carrying them is this module's business.
+ *
+ * Not for the anonymous user, whose handshake the server refuses: the socket stays shut and the connection idle.
+ * The subscriptions stay registered all the same, and a login reloads the page, which starts over with a user the
+ * server accepts.
  */
 function connect(): void
 {
     if (socket)
     {
+        return
+    }
+
+    if (config().authentication?.roles.includes(ROLE_ANONYMOUS))
+    {
+        if (!anonymousReported)
+        {
+            anonymousReported = true
+            console.info("Push: websockets are disabled for anonymous access")
+        }
         return
     }
 
@@ -424,6 +449,7 @@ export function initPubSub(): void
 
     subscriptions = new Map()
     idCounter = 0
+    anonymousReported = false
     setStatus("idle", 0)
 }
 

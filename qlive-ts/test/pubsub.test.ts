@@ -41,6 +41,29 @@ describe("connecting", () => {
     })
 
 
+    it("opens no socket for an anonymous user, by role and whatever the login, and says so once", async () => {
+
+        await init({
+            config: {...testConfig, contextPath: CONTEXT_PATH},
+            csrfToken: testCsrfToken(),
+            authentication: {login: "guest", roles: ["ROLE_ANONYMOUS"], id: "3f7c1a10-0000-4000-8000-000000000000"},
+            data: {}
+        })
+        initPubSub()
+        const info = vi.spyOn(console, "info").mockImplementation(() => {})
+
+        subscribeToTopic("Foo", () => {})
+        subscribeToTopic("Bar", () => {})
+
+        expect(FakeWebSocket.instances).toHaveLength(0)
+        expect(PubSubConnection.getSnapshot().status).toBe("idle")
+        expect(info).toHaveBeenCalledTimes(1)
+        expect(info).toHaveBeenCalledWith("Push: websockets are disabled for anonymous access")
+
+        info.mockRestore()
+    })
+
+
     it("opens the push URI under the application's context path", () => {
 
         subscribeToTopic("Foo", () => {})

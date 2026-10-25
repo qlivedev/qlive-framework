@@ -3,13 +3,15 @@ import type {ComponentType} from "react";
 import type {QueryConfigDelta} from "./QueryDocument";
 import type {MergeTypeMeta} from "./merge/meta";
 import type {Invariant} from "./merge/invariants";
-import type {Layout} from "./form/layout";
+import {Layout, LayoutNode, namedComponent} from "./form/layout";
 import type {WidgetOverride} from "./form/widgets";
 
 import {GraphQLSchema, GraphQLType} from "./GraphQLSchema";
 import {addData, initData} from "./data";
 import {initConverters} from "./converter";
 import DefaultErrorView, {ErrorViewProps} from "./component/ErrorView";
+import {decompileFilter} from "./util/decompileFilter";
+import {Reaction, ReactionEffect, ReactionEvent} from "./form/reactions";
 
 /**
  * Meta-information about types that are generic types on the Java side.
@@ -615,7 +617,8 @@ const notLogged = new Set([
     "queryDocumentTypes",
     // is derived and just another way of looking at schema.types
     "typesByName",
-    "csrfToken"
+    "csrfToken",
+    "layouts"
 ])
 
 function initializeDerivedConfig(theConfig: QLiveConfig)
@@ -804,6 +807,100 @@ export function isFixture(): boolean
     return onFixture
 }
 
+function printNode(node: LayoutNode) : string {
+    if ("field" in node) {
+        return node.widget ? "[" + node.widget + ":" + node.field + "]" : "[" + node.field + "]"
+    }
+    if ("status" in node) {
+        return "Status"
+    }
+    if ("section" in node) {
+        return "Section " + node.section
+    }
+    return typeof node.component === "string" ? "Component '" + node.component + "'" : "<" + (node.component.name || "Unnamed") + "/>"
+}
+
+function printEvent(event: ReactionEvent) {
+
+    if ("init" in event)
+    {
+        return "init";
+    }
+    else if ("change" in event)
+    {
+        return "change on '" + event.change + "'";
+    }
+    else if ("blur" in event)
+    {
+        return "blur on '" + event.blur + "'";
+    }
+    else if ("error" in event)
+    {
+        return "error class " + event.error + ", cleared = " + event.cleared
+    }
+    else if ("errorAt" in event)
+    {
+        return "error on '" + event.errorAt + "', cleared = " + event.cleared
+    }
+}
+
+
+function printEffect(reaction: ReactionEffect) {
+
+    const { field } = reaction
+    if ("mode" in reaction)
+    {
+        return "Set FieldMode for '" + field + "' to " + reaction.mode
+    }
+    else if ("value" in reaction)
+    {
+        return "Set Value of '" + field + "' to " + decompileFilter(reaction.value, -10)
+    }
+    else if ("effect" in reaction)
+    {
+        return "Call " + reaction.effect + " on " + field
+    }
+}
+
+function logReaction(reaction: Reaction) {
+    const {on, when, effects, otherwise} = reaction;
+    let onJSON = on.map(printEvent).join(", ");
+    let effectsOut = effects.map(printEffect).join(", ")
+    if (when) {
+        let whenSrc = decompileFilter(when, -10);
+        if (otherwise) {
+            let otherwiseOut = otherwise.map(printEffect).join(", ")
+            console.log("  On", onJSON, "\n  When ", whenSrc, "\n  Then ", effectsOut, "\n  Otherwise ", otherwiseOut)
+        } else {
+            console.log("  On", onJSON, "\n  When ", whenSrc, "\n  Then ", effectsOut)
+        }
+    } else {
+        console.log("  On", onJSON, "\n  Then ", effectsOut)
+    }
+}
+
+function logLayout(name: string, layout: Layout) {
+
+    const { action, domainType, nodes, reactions } = layout
+
+    console.log(
+        "Layout", name, " for ",
+        action ? "Action " + action : "Domain Type "+ domainType,
+        ": ",
+        nodes.map(printNode).join(", ")
+    )
+
+    if (reactions)
+    {
+        console.log("Reactions")
+
+        for (let i = 0; i < reactions.length; i++) {
+            let reaction = reactions[i];
+            logReaction(reaction);
+        }
+    }
+}
+
 /**
  * Logs the config and the injections the page started with.
  *
@@ -836,6 +933,12 @@ export function logStartup(bs : QLiveBoostrap)
         "INJECTED",
         bs.data,
         (data, key) => console.log(key, data[key].data, "( type = \"" + data[key].type+ "\" )", "meta = ", data[key].meta),
+    );
+
+    logObject(
+        "LAYOUTS",
+        bs.layouts as {[key : string] : any},
+        (data, name) => logLayout(name, data[name] as Layout),
     );
 }
 

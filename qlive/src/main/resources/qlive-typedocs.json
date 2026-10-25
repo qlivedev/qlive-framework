@@ -484,6 +484,13 @@
         "paramDocs":[
           
         ]
+      },
+      {
+        "description":"What the form does when a field changes or loses focus, or an error appears; null for nothing.",
+        "name":"reactions",
+        "paramDocs":[
+          
+        ]
       }
     ],
     "name":"Layout"
@@ -967,6 +974,40 @@
       }
     ],
     "name":"QueryDocument"
+  },
+  {
+    "description":"An event wired to effects: what a form does when a field changes or loses focus, or an error appears, to help\nthe user bring the row into compliance with the rules. The frontend's `Reaction`, in the same JSON.\n\nThe server never runs a reaction. It reaches the server only through the values it sets, which the merge checks\nlike any edit.",
+    "fieldDocs":[
+      {
+        "description":"What the reaction does, in order.",
+        "name":"effects",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"The events the reaction answers, any of them.",
+        "name":"on",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"What the reaction does where `when` doesn't hold.",
+        "name":"otherwise",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "description":"The condition on the form's row under which the reaction has its `effects`; where it doesn't hold, the\nreaction has those `otherwise`. A reaction without a condition always has its `effects`.",
+        "name":"when",
+        "paramDocs":[
+          
+        ]
+      }
+    ],
+    "name":"Reaction"
   },
   {
     "description":"Abstract base class for the messages the server sends to a client.",

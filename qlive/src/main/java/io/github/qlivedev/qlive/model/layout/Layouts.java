@@ -81,7 +81,113 @@ public final class Layouts
         final Layout layout = new Layout();
         layout.setDomainType(string(map, "domainType", "Layout " + name));
         layout.setNodes(nodes(map.get("nodes"), "Layout " + name, conditionParser));
+        if (map.get("reactions") != null)
+        {
+            layout.setReactions(reactions(map.get("reactions"), "Layout " + name, conditionParser));
+        }
         return layout;
+    }
+
+
+    private static List<Reaction> reactions(Object value, String where, ConditionParser conditionParser)
+    {
+        final List<?> list = list(value, where + ", reactions");
+        final List<Reaction> reactions = new ArrayList<>(list.size());
+        for (int i = 0; i < list.size(); i++)
+        {
+            final String at = where + ", reaction " + i;
+            final Map<String, Object> map = object(list.get(i), at);
+
+            final List<ReactionEvent> on = new ArrayList<>();
+            for (Object event : list(map.get("on"), at + ", on"))
+            {
+                on.add(event(event, at));
+            }
+            final Reaction reaction = new Reaction(on, effects(map.get("effects"), at + ", effects", conditionParser));
+            final Object when = map.get("when");
+            if (when != null)
+            {
+                reaction.setWhen(conditionParser.parseCondition(JSONUtil.DEFAULT_GENERATOR.forValue(when)));
+            }
+            if (map.get("otherwise") != null)
+            {
+                reaction.setOtherwise(effects(map.get("otherwise"), at + ", otherwise", conditionParser));
+            }
+            reactions.add(reaction);
+        }
+        return reactions;
+    }
+
+
+    private static ReactionEvent event(Object value, String where)
+    {
+        final Map<String, Object> map = object(value, where + ", event");
+        final boolean cleared = Boolean.TRUE.equals(map.get("cleared"));
+        if (Boolean.TRUE.equals(map.get("init")))
+        {
+            return new ReactionEvent.Init();
+        }
+        if (map.containsKey("change"))
+        {
+            return new ReactionEvent.Change(string(map, "change", where));
+        }
+        if (map.containsKey("blur"))
+        {
+            return new ReactionEvent.Blur(string(map, "blur", where));
+        }
+        if (map.containsKey("error"))
+        {
+            return new ReactionEvent.ErrorClass(string(map, "error", where), cleared);
+        }
+        if (map.containsKey("errorAt"))
+        {
+            return new ReactionEvent.ErrorAt(string(map, "errorAt", where), cleared);
+        }
+        throw new QLiveException(
+            where + " has no event: an event has init true, a change, a blur, an error or an errorAt. " + map.keySet()
+        );
+    }
+
+
+    private static List<ReactionEffect> effects(Object value, String where, ConditionParser conditionParser)
+    {
+        final List<?> list = list(value, where);
+        final List<ReactionEffect> effects = new ArrayList<>(list.size());
+        for (int i = 0; i < list.size(); i++)
+        {
+            final String at = where + " " + i;
+            final Map<String, Object> map = object(list.get(i), at);
+            final String field = string(map, "field", at);
+            if (map.containsKey("mode"))
+            {
+                effects.add(new ReactionEffect.Mode(field, string(map, "mode", at)));
+            }
+            else if (map.get("value") != null)
+            {
+                effects.add(new ReactionEffect.Expression(
+                    field, conditionParser.parse(JSONUtil.DEFAULT_GENERATOR.forValue(map.get("value")))
+                ));
+            }
+            else if (map.containsKey("effect"))
+            {
+                effects.add(new ReactionEffect.FunctionReference(field, string(map, "effect", at)));
+            }
+            else
+            {
+                throw new QLiveException(at + " is no effect: an effect has a mode, a value or an effect. " + map.keySet());
+            }
+        }
+        return effects;
+    }
+
+
+    private static List<?> list(Object value, String where)
+    {
+        if (!(value instanceof List<?> list))
+        {
+            throw new QLiveException(where + " is no JSON list: " + value);
+        }
+        return list;
     }
 
 

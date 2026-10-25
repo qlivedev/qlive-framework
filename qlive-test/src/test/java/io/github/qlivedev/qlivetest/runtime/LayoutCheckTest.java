@@ -9,6 +9,9 @@ import io.github.qlivedev.qlive.model.layout.LayoutFieldNode;
 import io.github.qlivedev.qlive.model.layout.LayoutNode;
 import io.github.qlivedev.qlive.model.layout.LayoutSectionNode;
 import io.github.qlivedev.qlive.model.layout.Layouts;
+import io.github.qlivedev.qlive.model.layout.Reaction;
+import io.github.qlivedev.qlive.model.layout.ReactionEffect;
+import io.github.qlivedev.qlive.model.layout.ReactionEvent;
 import io.github.qlivedev.qlive.runtime.QLiveException;
 import io.github.qlivedev.qlive.runtime.layout.LayoutCheck;
 import org.junit.jupiter.api.Test;
@@ -97,6 +100,69 @@ class LayoutCheckTest
             )
         );
         assertThat(problems("Nope"), is(List.of("Layout test: Nope is no domain type.")));
+    }
+
+
+    private List<String> reactionProblems(Reaction... reactions)
+    {
+        final Layout layout = new Layout("Foo", List.of());
+        layout.setReactions(List.of(reactions));
+        return new LayoutCheck(domain).problems("test", layout);
+    }
+
+
+    @Test
+    void acceptsReactionsOnWhatAFormEdits()
+    {
+        final Reaction toggle = new Reaction(
+            List.of(new ReactionEvent.Init(), new ReactionEvent.Change("flag")),
+            List.of(new ReactionEffect.Mode("description", "normal"))
+        );
+        toggle.setWhen(reads("owner.login"));
+        toggle.setOtherwise(List.of(new ReactionEffect.Mode("description", "disabled")));
+        final Reaction other = new Reaction(
+            List.of(
+                new ReactionEvent.Blur("name"),
+                new ReactionEvent.ErrorClass("anything", false),
+                new ReactionEvent.ErrorAt("owner", true)
+            ),
+            List.of(
+                new ReactionEffect.Expression("description", new FieldReference("name")),
+                new ReactionEffect.FunctionReference("fooType", "lookup")
+            )
+        );
+
+        assertThat(reactionProblems(toggle, other), is(List.of()));
+    }
+
+
+    @Test
+    void namesEveryReactionReferenceThatDoesNotHold()
+    {
+        final Reaction reaction = new Reaction(
+            List.of(new ReactionEvent.Change("nope"), new ReactionEvent.Blur("owner.login")),
+            List.of(
+                new ReactionEffect.Mode("name", "hidden"),
+                new ReactionEffect.Expression("description", new FieldReference("owner.nope")),
+                new ReactionEffect.FunctionReference("foos", "lookup")
+            )
+        );
+        reaction.setWhen(reads("flag.x"));
+
+        assertThat(
+            reactionProblems(reaction, new Reaction(List.of(), List.of())),
+            contains(
+                "Layout test, reaction 0, event on nope of Foo: no such field.",
+                "Layout test, reaction 0, event on owner.login of Foo: a form edits its own row's fields; a related " +
+                    "row's are a field group's.",
+                "Layout test, reaction 0: the condition reads flag.x, but flag is no to-one relation of Foo.",
+                "Layout test, reaction 0, effect on name of Foo: no mode hidden, only normal, disabled, readOnly, text.",
+                "Layout test, reaction 0, effect on description of Foo: the value reads owner.nope, but AppUser has " +
+                    "no field nope.",
+                "Layout test, reaction 0, effect on foos of Foo: no such field.",
+                "Layout test, reaction 1: answers no event."
+            )
+        );
     }
 
 

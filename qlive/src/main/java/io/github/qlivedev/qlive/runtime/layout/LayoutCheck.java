@@ -8,6 +8,7 @@ import io.github.qlivedev.qlive.graphql.QLiveDomain;
 import io.github.qlivedev.qlive.graphql.config.ManyToManyEnd;
 import io.github.qlivedev.qlive.graphql.config.ManyToManyModel;
 import io.github.qlivedev.qlive.graphql.config.RelationModel;
+import io.github.qlivedev.qlive.model.condition.CNode;
 import io.github.qlivedev.qlive.model.condition.ConditionVisitor;
 import io.github.qlivedev.qlive.model.condition.FieldReference;
 import io.github.qlivedev.qlive.model.layout.Layout;
@@ -17,6 +18,9 @@ import io.github.qlivedev.qlive.model.layout.LayoutNode;
 import io.github.qlivedev.qlive.model.layout.LayoutSectionNode;
 import io.github.qlivedev.qlive.model.layout.LayoutStatusNode;
 import io.github.qlivedev.qlive.model.layout.Layouts;
+import io.github.qlivedev.qlive.model.layout.Reaction;
+import io.github.qlivedev.qlive.model.layout.ReactionEffect;
+import io.github.qlivedev.qlive.model.layout.ReactionEvent;
 import io.github.qlivedev.qlive.runtime.QLiveException;
 
 import java.util.ArrayList;
@@ -29,6 +33,11 @@ import java.util.List;
 /// goes with a to-one relation only, and reads fields of the form's row, through its to-one relations. The rules are
 /// those of the frontend's `useField()`; what a widget, component or section name stands for is the frontend's
 /// alone and isn't checked.
+///
+/// A reaction answers at least one event. The fields its events and effects name are fields a form can edit, by
+/// the same rules, a mode is one there is, and its condition and values read the form's row as a field condition
+/// does. Error classes aren't checked: a refusal of the application's own may carry any, as may a rule of an action
+/// the layout doesn't name. Nor are effect names, which are the frontend's.
 public final class LayoutCheck
 {
     private final static List<String> MODES = List.of("normal", "disabled", "readOnly", "text");
@@ -69,6 +78,10 @@ public final class LayoutCheck
             return problems;
         }
         nodes(name, type, layout.getNodes(), problems);
+        if (layout.getReactions() != null)
+        {
+            reactions(name, type, layout.getReactions(), problems);
+        }
         return problems;
     }
 
@@ -106,70 +119,161 @@ public final class LayoutCheck
             problems.add(where + "no mode " + node.getMode() + ", only " + String.join(", ", MODES) + ".");
         }
 
-        if (path.startsWith("input."))
+        final String problem = fieldProblem(type, path);
+        if (problem != null)
         {
-            problems.add(where + "action input isn't supported yet.");
+            problems.add(where + problem);
             return;
-        }
-        if (path.contains("."))
-        {
-            problems.add(where + "a form edits its own row's fields; a related row's are a field group's.");
-            return;
-        }
-        final GraphQLFieldDefinition definition = objectType(type).getFieldDefinition(path);
-        if (definition == null)
-        {
-            problems.add(where + "no such field.");
-            return;
-        }
-
-        final GraphQLType fieldType = GraphQLTypeUtil.unwrapNonNull(definition.getType());
-        boolean toOne = false;
-        if (GraphQLTypeUtil.isList(fieldType))
-        {
-            if (!isManyToMany(type, path))
-            {
-                problems.add(where + "a list, and not a many-to-many field.");
-            }
-        }
-        else if (GraphQLTypeUtil.unwrapAll(fieldType) instanceof GraphQLObjectType)
-        {
-            final RelationModel relation = toOneRelation(type, path);
-            if (relation == null)
-            {
-                problems.add(where + "an object, and not a to-one relation.");
-            }
-            else if (relation.getSourceFields().size() != 1)
-            {
-                problems.add(where + "a relation over a key of several fields, which a form can't edit yet.");
-            }
-            else
-            {
-                toOne = true;
-            }
         }
 
         if (node.getCondition() != null)
         {
-            if (!toOne)
+            if (!isToOne(type, path))
             {
                 problems.add(where + "a condition narrows the rows a to-one relation offers, and this is none.");
                 return;
             }
-            node.getCondition().accept(new ConditionVisitor<Void>()
-            {
-                @Override
-                public Object visit(FieldReference field, Void data)
-                {
-                    final String problem = conditionPathProblem(type, field.getName());
-                    if (problem != null)
-                    {
-                        problems.add(where + "the condition reads " + field.getName() + ", " + problem);
-                    }
-                    return null;
-                }
-            }, null);
+            readProblems(type, node.getCondition(), where + "the condition", problems);
         }
+    }
+
+
+    private void reactions(String name, String type, List<Reaction> reactions, List<String> problems)
+    {
+        for (int i = 0; i < reactions.size(); i++)
+        {
+            final Reaction reaction = reactions.get(i);
+            final String where = "Layout " + name + ", reaction " + i;
+
+            if (reaction.getOn().isEmpty())
+            {
+                problems.add(where + ": answers no event.");
+            }
+            for (ReactionEvent event : reaction.getOn())
+            {
+                final String path = switch (event)
+                {
+                    case ReactionEvent.Change change -> change.getChange();
+                    case ReactionEvent.Blur blur -> blur.getBlur();
+                    case ReactionEvent.ErrorAt errorAt -> errorAt.getErrorAt();
+                    case ReactionEvent.Init ignored -> null;
+                    case ReactionEvent.ErrorClass ignored -> null;
+                };
+                final String problem = path == null ? null : fieldProblem(type, path);
+                if (problem != null)
+                {
+                    problems.add(where + ", event on " + path + " of " + type + ": " + problem);
+                }
+            }
+            if (reaction.getWhen() != null)
+            {
+                readProblems(type, reaction.getWhen(), where + ": the condition", problems);
+            }
+            effects(type, reaction.getEffects(), where, problems);
+            if (reaction.getOtherwise() != null)
+            {
+                effects(type, reaction.getOtherwise(), where, problems);
+            }
+        }
+    }
+
+
+    private void effects(String type, List<ReactionEffect> effects, String where, List<String> problems)
+    {
+        for (ReactionEffect effect : effects)
+        {
+            final String path = effect.getField();
+            final String at = where + ", effect on " + path + " of " + type + ": ";
+            final String problem = fieldProblem(type, path);
+            if (problem != null)
+            {
+                problems.add(at + problem);
+                continue;
+            }
+            switch (effect)
+            {
+                case ReactionEffect.Mode mode ->
+                {
+                    if (!MODES.contains(mode.getMode()))
+                    {
+                        problems.add(at + "no mode " + mode.getMode() + ", only " + String.join(", ", MODES) + ".");
+                    }
+                }
+                case ReactionEffect.Expression expression ->
+                    readProblems(type, expression.getValue(), at + "the value", problems);
+                case ReactionEffect.FunctionReference ignored ->
+                {
+                }
+            }
+        }
+    }
+
+
+    /// What is wrong with a field path for a form, null for one it can edit: a field of the type, which is a list only
+    /// as a many-to-many field and an object only as a to-one relation over a single key.
+    private String fieldProblem(String type, String path)
+    {
+        if (path.startsWith("input."))
+        {
+            return "action input isn't supported yet.";
+        }
+        if (path.contains("."))
+        {
+            return "a form edits its own row's fields; a related row's are a field group's.";
+        }
+        final GraphQLFieldDefinition definition = objectType(type).getFieldDefinition(path);
+        if (definition == null)
+        {
+            return "no such field.";
+        }
+
+        final GraphQLType fieldType = GraphQLTypeUtil.unwrapNonNull(definition.getType());
+        if (GraphQLTypeUtil.isList(fieldType))
+        {
+            return isManyToMany(type, path) ? null : "a list, and not a many-to-many field.";
+        }
+        if (GraphQLTypeUtil.unwrapAll(fieldType) instanceof GraphQLObjectType)
+        {
+            final RelationModel relation = toOneRelation(type, path);
+            if (relation == null)
+            {
+                return "an object, and not a to-one relation.";
+            }
+            if (relation.getSourceFields().size() != 1)
+            {
+                return "a relation over a key of several fields, which a form can't edit yet.";
+            }
+        }
+        return null;
+    }
+
+
+    /// Whether a field a form can edit is a to-one relation.
+    private boolean isToOne(String type, String path)
+    {
+        return !GraphQLTypeUtil.isList(GraphQLTypeUtil.unwrapNonNull(objectType(type).getFieldDefinition(path).getType())) &&
+            toOneRelation(type, path) != null;
+    }
+
+
+    /// The field references of a condition or value the form's row can't be read along.
+    ///
+    /// @param what     what reads them, for the messages
+    private void readProblems(String type, CNode node, String what, List<String> problems)
+    {
+        node.accept(new ConditionVisitor<Void>()
+        {
+            @Override
+            public Object visit(FieldReference field, Void data)
+            {
+                final String problem = conditionPathProblem(type, field.getName());
+                if (problem != null)
+                {
+                    problems.add(what + " reads " + field.getName() + ", " + problem);
+                }
+                return null;
+            }
+        }, null);
     }
 
 

@@ -16,6 +16,8 @@ public class Layout
 
     private List<LayoutNode> nodes = new ArrayList<>();
 
+    private List<Reaction> reactions;
+
 
     public Layout()
     {
@@ -68,5 +70,19 @@ public class Layout
     public void setNodes(List<LayoutNode> nodes)
     {
         this.nodes = nodes;
+    }
+
+
+    /// What the form does when a field changes or loses focus, or an error appears; null for nothing.
+    @JSONProperty(ignoreIfNull = true)
+    public List<Reaction> getReactions()
+    {
+        return reactions;
+    }
+
+
+    public void setReactions(List<Reaction> reactions)
+    {
+        this.reactions = reactions;
     }
 }

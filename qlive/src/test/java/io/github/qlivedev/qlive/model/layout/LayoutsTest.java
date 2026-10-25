@@ -13,6 +13,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -95,6 +96,70 @@ class LayoutsTest
 
         assertThat(layouts.get("foo"), is(sameInstance(second)));
         assertThat(layouts.asMap().keySet(), contains("foo", "bar"));
+    }
+
+
+    private final static String REACTIONS = "{\"fooEdit\":{\"domainType\":\"Foo\",\"nodes\":[]," +
+        "\"reactions\":[" +
+        "{\"on\":[{\"init\":true},{\"change\":\"flag\"}]," +
+        "\"when\":{\"type\":\"Condition\",\"name\":\"isTrue\",\"operands\":[" +
+        "{\"type\":\"FieldReference\",\"name\":\"flag\"}]}," +
+        "\"effects\":[{\"field\":\"description\",\"mode\":\"normal\"}]," +
+        "\"otherwise\":[{\"field\":\"description\",\"mode\":\"disabled\"}]}," +
+        "{\"on\":[{\"blur\":\"name\"},{\"error\":\"large\"},{\"errorAt\":\"num\",\"cleared\":true}]," +
+        "\"effects\":[" +
+        "{\"field\":\"description\",\"value\":{\"type\":\"FieldReference\",\"name\":\"name\"}}," +
+        "{\"field\":\"num\",\"effect\":\"lookup\"}" +
+        "]}" +
+        "]}}";
+
+
+    @Test
+    void readsReactions()
+    {
+        final List<Reaction> reactions = Layouts.parse(REACTIONS).get("fooEdit").getReactions();
+
+        final Reaction toggle = reactions.get(0);
+        assertThat(toggle.getOn().get(0), instanceOf(ReactionEvent.Init.class));
+        assertThat(((ReactionEvent.Change) toggle.getOn().get(1)).getChange(), is("flag"));
+        assertThat(toggle.getWhen().getName(), is("isTrue"));
+        assertThat(((ReactionEffect.Mode) toggle.getEffects().get(0)).getMode(), is("normal"));
+        assertThat(((ReactionEffect.Mode) toggle.getOtherwise().get(0)).getMode(), is("disabled"));
+
+        final Reaction other = reactions.get(1);
+        assertThat(((ReactionEvent.Blur) other.getOn().get(0)).getBlur(), is("name"));
+        assertThat(((ReactionEvent.ErrorClass) other.getOn().get(1)).getError(), is("large"));
+        assertThat(((ReactionEvent.ErrorAt) other.getOn().get(2)).getCleared(), is(true));
+        assertThat(((ReactionEffect.Expression) other.getEffects().get(0)).getValue(), instanceOf(FieldReference.class));
+        assertThat(((ReactionEffect.FunctionReference) other.getEffects().get(1)).getEffect(), is("lookup"));
+        assertThat(other.getWhen(), is(nullValue()));
+    }
+
+
+    @Test
+    void writesTheReactionsItReads()
+    {
+        final String written = json(Layouts.parse(REACTIONS));
+
+        assertThat(json(Layouts.parse(written)), is(written));
+        assertThat(written, containsString("{\"init\":true}"));
+        // an error appearing has no cleared key
+        assertThat(written, containsString("{\"error\":\"large\"}"));
+        assertThat(written, containsString("{\"cleared\":true,\"errorAt\":\"num\"}"));
+        // a layout without reactions has no key for them
+        assertThat(json(Layouts.parse(JSON)), not(containsString("reactions")));
+    }
+
+
+    @Test
+    void namesWhatIsNoEvent()
+    {
+        final QLiveException e = assertThrows(
+            QLiveException.class,
+            () -> Layouts.parse("{\"x\":{\"domainType\":\"Foo\",\"nodes\":[],\"reactions\":[" +
+                "{\"on\":[{\"focus\":\"name\"}],\"effects\":[]}]}}")
+        );
+        assertThat(e.getMessage(), containsString("Layout x, reaction 0 has no event"));
     }
 
 

@@ -33,10 +33,11 @@ export type ReactionEvent =
 
 /**
  * An effect computing a field's value, for what a FilterDSL expression can't say: a lookup, postal code to city. It
- * reads what it needs through the form's context, and returns the value or a promise of it. Of several triggered for
- * one field, the latest wins, and the result of an earlier one still pending is dropped.
+ * reads what it needs through the form's context, is given the path of the field it sets, so that one function can
+ * serve several fields, and returns the value or a promise of it. Of several triggered for one field, the latest
+ * wins, and the result of an earlier one still pending is dropped.
  */
-export type ReactionFunction = (form: FormContext) => unknown | PromiseLike<unknown>
+export type ReactionFunction = (form: FormContext, path: string) => unknown | PromiseLike<unknown>
 
 /**
  * What a reaction does to one field, by path as useField() takes it.
@@ -92,7 +93,8 @@ const effectRegistry = new Map<string, ReactionFunction>()
  * needs no name.
  *
  * @param name      effect name
- * @param effect    the function, given the form's context, returning a field's value or a promise of it
+ * @param effect    the function, given the form's context and the field's path, returning the field's value or a
+ *                  promise of it
  */
 export function registerEffect(name: string, effect: ReactionFunction): void
 {
@@ -343,7 +345,7 @@ export class FormReactions
         else
         {
             const fn = typeof effect.effect === "string" ? namedEffect(effect.effect) : effect.effect
-            result = fn(this.form)
+            result = fn(this.form, path)
         }
 
         const run = (this.runs.get(path) ?? 0) + 1

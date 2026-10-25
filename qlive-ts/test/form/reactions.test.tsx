@@ -298,6 +298,20 @@ describe("an effect", () => {
         expect(bar.description).toBe("LOUD")
     })
 
+    it("is given the path of the field it sets", async () => {
+
+        const {bar} = await editableBar()
+        const reaction: Reaction = {
+            on: [{change: "name"}],
+            effects: [{field: "description", effect: (form, path) => path + " of " + (form.row as any).name}]
+        }
+        render(<Form row={ bar } layout={ layout(reaction) }/>)
+
+        type("name", "x")
+
+        expect(bar.description).toBe("description of x")
+    })
+
     it("may take its time, and the latest one started wins", async () => {
 
         const {bar} = await editableBar()

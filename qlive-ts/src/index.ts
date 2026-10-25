@@ -409,6 +409,13 @@ export type {
  *                                       working set that made it. An
  *                                       application holds the working set it
  *                                       made and needs no way back to it
+ *   merge/WorkingSet.takeWritten/WrittenRow
+ *                                       what an action's response says it
+ *                                       wrote, handed to every working set by
+ *                                       the action itself. WorkingSet#written()
+ *                                       names the type; a row handed in by
+ *                                       hand would move versions past writes
+ *                                       the working set never saw
  *   QueryDocument.documentOf            how a store gets from the snapshot it
  *                                       was handed to the document behind it.
  *                                       An application passes the snapshot it

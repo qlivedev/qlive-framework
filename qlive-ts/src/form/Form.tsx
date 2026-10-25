@@ -8,6 +8,7 @@ import {
     useCallback,
     useEffect,
     useId,
+    useLayoutEffect,
     useMemo,
     useRef,
     useState,
@@ -27,6 +28,7 @@ import {rowName} from "./fieldText";
 import {Announcement, FieldEdit, FormState, FormStateContext} from "./FormContext";
 import {FormStatus, StatusRegion} from "./FormStatus";
 import {deriveLayout, Layout, LayoutNode, namedComponent, namedLayout} from "./layout";
+import {FormReactions, formErrors, Reaction} from "./reactions";
 
 /**
  * Props of Form.
@@ -52,6 +54,8 @@ export interface FormProps
     layout?: Layout | string
     /** the application's own fields, in place of a layout */
     children?: ReactNode
+    /** the reactions of a form with children or a derived layout; a layout given carries its own (Layout.reactions) */
+    reactions?: Reaction[]
 }
 
 /** the modes a layout's field nodes give */
@@ -273,13 +277,18 @@ function markedOf(row: object, merge: MergeAccessor): Marked
  * wraps every widget in the conflict buttons (ConflictResolution). With children, it only provides the context, and
  * the application's fields and components render inside it as they are; useFormContext() reads it.
  *
+ * The form runs the reactions of its layout, or those given as `reactions` where it has children or derives its
+ * layout: when it first shows a row, when a field changes or loses focus, when an error appears or clears (Reaction).
+ *
  * Either way the form has a live region telling a screen reader what somebody else changed (FormStatus): at its top,
  * unless a FormStatus inside it places it. That region is the one markup a form with children adds of its own.
  *
- * @throws Error for a form given both a layout and children, for a layout name config().layouts doesn't have, and for
- *         a layout of another type than the row's
+ * @throws Error for a form given both a layout and children, or a layout and reactions, for a layout name
+ *         config().layouts doesn't have, and for a layout of another type than the row's
  */
-export function Form({row: givenRow, action: givenAction, subject: givenSubject, layout, children}: FormProps): JSX.Element
+export function Form(
+    {row: givenRow, action: givenAction, subject: givenSubject, layout, children, reactions}: FormProps
+): JSX.Element
 {
     const row = givenRow ?? null
     const action = givenAction ?? null
@@ -292,6 +301,10 @@ export function Form({row: givenRow, action: givenAction, subject: givenSubject,
     if (layout && children !== undefined)
     {
         throw new Error("A form renders a layout or its children, not both.")
+    }
+    if (layout && reactions)
+    {
+        throw new Error("A layout carries its reactions; a form given one takes none of its own.")
     }
     const subject = subjectOf(action, row, givenSubject)
 
@@ -369,7 +382,7 @@ export function Form({row: givenRow, action: givenAction, subject: givenSubject,
     }, [])
 
     const setMode = useCallback((path: string, mode: FieldMode) => {
-        setModes(current => new Map(current).set(path, mode))
+        setModes(current => current.get(path) === mode ? current : new Map(current).set(path, mode))
     }, [])
     const setEdit = useCallback((path: string, edit: FieldEdit | null) => {
         setEdits(current => {
@@ -383,6 +396,9 @@ export function Form({row: givenRow, action: givenAction, subject: givenSubject,
         })
     }, [])
 
+    const [formReactions] = useState(() => new FormReactions())
+    formReactions.reactions = resolvedLayout?.reactions ?? reactions ?? []
+
     const state = useMemo((): FormState => {
         const invalid = new Map<string, string>()
         for (const [path, edit] of edits)
@@ -394,13 +410,20 @@ export function Form({row: givenRow, action: givenAction, subject: givenSubject,
         }
         const layoutName = resolvedLayout?.name ?? null
         return {
-            row, domainType: type, action, subject, layoutName, merge, invalid, modes, setMode, edits, setEdit,
-            idPrefix, fromLayout, announcement, registerStatus, registerField
+            row, domainType: type, action, subject, layoutName, merge, invalid, modes, setMode,
+            reacted: formReactions.holds, edits, setEdit, idPrefix, fromLayout, announcement, registerStatus,
+            registerField, fieldReacted: formReactions.holdsValue, fieldChanged: formReactions.changed,
+            fieldBlurred: formReactions.blurred
         }
     }, [
-        row, type, action, subject, resolvedLayout, merge, modes, setMode, edits, setEdit, idPrefix, fromLayout,
-        announcement, registerStatus, registerField
+        row, type, action, subject, resolvedLayout, merge, modes, setMode, formReactions, edits, setEdit, idPrefix,
+        fromLayout, announcement, registerStatus, registerField
     ])
+    formReactions.form = state
+
+    // init when the form shows a row, before the errors present then appear
+    useLayoutEffect(() => formReactions.init(), [formReactions, row])
+    useLayoutEffect(() => formReactions.errors(formErrors(formReactions.form)))
 
     const status = !statusPlaced && <StatusRegion announcement={ announcement }/>
     return (

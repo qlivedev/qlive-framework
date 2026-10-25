@@ -77,6 +77,9 @@ function widgetOf(form: FormContext, field: FieldState, given: Widget | string |
  * and not by color alone; after it a visually hidden text naming the state, which the widget's input is described
  * by (`field.descriptionId`, see Widget).
  *
+ * Focus leaving the field, the widget and whatever the decorator adds, is its blur (FieldState.blurred()). A field
+ * holding the value a reaction set carries `qlive-field-reacted`.
+ *
  * @param props     the field path, and the options of useField()
  */
 export function Field(props: { path: string } & FieldOptions): JSX.Element
@@ -101,7 +104,10 @@ export function Field(props: { path: string } & FieldOptions): JSX.Element
         : findOverride("decorator", form, field) ?? (form.fromLayout ? ConflictResolution : null)
 
     return (
-        <div className={ "qlive-field qlive-field-mode-" + field.mode }>
+        <div
+            className={ "qlive-field qlive-field-mode-" + field.mode + (field.reacted ? " qlive-field-reacted" : "") }
+            onBlur={ event => !event.currentTarget.contains(event.relatedTarget as Node | null) && field.blurred() }
+        >
             <label id={ field.labelId } htmlFor={ field.mode === "text" ? undefined : field.id }>{ field.label }</label>
             <div className="qlive-field-body">
                 <span className={ ("qlive-field-mark " + markClass).trim() } aria-hidden="true"/>

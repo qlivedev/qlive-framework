@@ -8,6 +8,7 @@ import {GraphQLQuery} from "../../src/GraphQLQuery";
 import {QueryDocument} from "../../src/QueryDocument";
 import {WorkingSet} from "../../src/merge/WorkingSet";
 import {Form} from "../../src/form/Form";
+import type {Reaction} from "../../src/form/reactions";
 import {Field} from "../../src/form/Field";
 import {ActionRefusals} from "../../src/form/ActionRefusals";
 import type {FieldState} from "../../src/form/useField";
@@ -271,6 +272,28 @@ describe("a form with an action", () => {
         expect(sign.unclaimed).toEqual([refusal("Bar.tooMany", null)])
         expect(Array.from(container.querySelectorAll(":scope > .qlive-refusals li"), li => li.textContent))
             .toEqual(["[Bar.tooMany]"])
+    })
+
+    it("sets off the reactions to the refusals at the fields they blame", async () => {
+        const {bar} = await editableBar()
+        const reactions: Reaction[] = [
+            {on: [{errorAt: "description"}], effects: [{field: "comment", mode: "readOnly"}]},
+            {on: [{errorAt: "comment"}], effects: [{field: "description", mode: "disabled"}]}
+        ]
+        function ReactingView()
+        {
+            sign = useActionDraft("signBar")
+            return <Form row={ bar } action={ sign } reactions={ reactions }/>
+        }
+        render(<ReactingView/>)
+        type(input("comment"), "ok")
+
+        // the subject's name is stripped from the refusal blaming its field
+        refuseWith(refusal("Bar.descriptionRequired", "bar.description"))
+        await act(() => sign.issue())
+
+        expect(input("comment").readOnly).toBe(true)
+        expect(input("description").disabled).toBe(false)
     })
 
     it("names a field inside an input object by its path", async () => {

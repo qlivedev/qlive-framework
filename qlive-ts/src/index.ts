@@ -164,6 +164,7 @@ export {
     MissingWidget
 } from "./form/widgets";
 export { deriveLayout, namedLayout, registerComponent } from "./form/layout";
+export { registerEffect } from "./form/reactions";
 export { RowPicker } from "./form/RowPicker";
 export { RowSet } from "./form/RowSet";
 export { relatedRows } from "./form/relatedRows"
@@ -228,6 +229,7 @@ export type { FieldOptions, FieldState } from "./form/useField";
 export type { Widget, WidgetProps, FieldDecorator, FieldDecoratorProps, WidgetOverride } from "./form/widgets";
 export type { Layout, LayoutNode, LayoutFieldNode, LayoutSectionNode, LayoutComponentNode, LayoutStatusNode } from "./form/layout";
 export type { RelatedRows } from "./form/relatedRows";
+export type { Reaction, ReactionEvent, ReactionEffect, ReactionFunction } from "./form/reactions";
 export type { GraphQLParams, GraphQLError, GraphQLErrorLocation } from "./util/graphql";
 export type {
     Actions,

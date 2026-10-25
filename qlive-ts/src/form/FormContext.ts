@@ -37,6 +37,11 @@ export interface FormContext
     modes: ReadonlyMap<string, FieldMode>
     /** changes a field's mode */
     setMode(path: string, mode: FieldMode): void
+    /**
+     * Whether the field holds the value one of the form's reactions set: until the user changes it, and while it is
+     * among the row's changes, which the working set's undo() and a save end.
+     */
+    reacted(path: string): boolean
 }
 
 /**
@@ -87,6 +92,12 @@ export interface FormState extends FormContext
      * where no element has that id; returns what tells it the field is gone. What the live region names.
      */
     registerField(name: string, labelId: string, label: string): () => void
+    /** whether a field holds the value a reaction set, given its value and the merge's name for it, null for none */
+    fieldReacted(path: string, value: unknown, mergeName: string | null): boolean
+    /** tells the form's reactions the form changed a field's value */
+    fieldChanged(path: string): void
+    /** tells the form's reactions focus left a field */
+    fieldBlurred(path: string): void
 }
 
 /** @internal */

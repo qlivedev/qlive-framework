@@ -88,6 +88,8 @@ export interface FieldState
     value: unknown
     /** writes a value to the draft, and drops text the field held */
     setValue(value: unknown): void
+    /** whether the value is the one a reaction of the form set, see FormContext.reacted() */
+    reacted: boolean
 
     /** what a text input shows: the text being typed, else the input text of the value */
     text: string
@@ -95,6 +97,8 @@ export interface FieldState
     setText(text: string): void
     /** why the text didn't parse, a message for the user; null where it did */
     error: string | null
+    /** tells the form focus left the field, for its blur reactions; what Field calls when focus leaves it */
+    blurred(): void
 
     /** the merge state of the field the value is in; for a field of an action's parameters, that of no row's */
     merge: MergeField
@@ -306,7 +310,12 @@ export function fieldState(form: FormState, path: string, options: FieldOptions 
         setValue: next => {
             form.setEdit(path, null)
             write(next)
+            if (!scalarEqual(next, value))
+            {
+                form.fieldChanged(path)
+            }
         },
+        reacted: form.fieldReacted(path, value, parameter ? null : merge.name),
 
         text,
         setText: next => {
@@ -326,8 +335,13 @@ export function fieldState(form: FormState, path: string, options: FieldOptions 
             }
             form.setEdit(path, {text: next, value: parsed, error: null})
             write(parsed)
+            if (!scalarEqual(parsed, value))
+            {
+                form.fieldChanged(path)
+            }
         },
         error: edit?.error ?? null,
+        blurred: () => form.fieldBlurred(path),
 
         merge,
         refusals: [

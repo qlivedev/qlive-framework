@@ -9,6 +9,7 @@ import {actionParameters, ActionName} from "../action";
 import {manyToManyField} from "../merge/meta";
 import {findType, isListType, objectFields, unwrapAll} from "../type-utils";
 import type {FieldMode} from "./fieldMode";
+import type {Reaction} from "./reactions";
 import type {Widget} from "./widgets";
 
 /**
@@ -23,6 +24,8 @@ export interface Layout
     /** the action whose parameters the layout's fields include, by name */
     action?: string
     nodes: LayoutNode[]
+    /** what the form does when a field changes or loses focus, or an error appears; see Reaction */
+    reactions?: Reaction[]
 }
 
 /**

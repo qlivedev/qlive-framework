@@ -49,6 +49,14 @@ it blames, if any, a message key and, optionally, an error class a
 layout can check on. Invariants and action rules are both rules in this
 sense.
 
+**The server alone enforces rules** (decided 2026-10-25). The merge and
+the action executor decide, and refuse what doesn't fit. The client
+evaluates the same rules only to predict that decision, and its
+reactions -- messages at fields, modes, values a reaction sets -- help
+the user bring the client state into compliance. Nothing the client
+lets through is trusted: the server checks it again, and a rule the
+client can't evaluate is the server's alone.
+
 ### Invariants (decided 2026-10-24)
 
 **An invariant is a rule on a type.** The same `RuleFactory` and
@@ -109,10 +117,12 @@ from the POJO.
 something.** A rule over a field the user edited shows its error as
 soon as the client evaluates it, as text that doesn't parse does. A
 rule failing only over fields a new row hasn't had set shows nothing
-until a save: `merge()` refuses, and the errors appear at their fields,
-as a refusal does after issuing. A new form doesn't open full of errors.
-The working set evaluates them over `evaluate.ts` and sends nothing
-while one breaks; `MergeField.refusals` holds those blaming a field,
+until a save: `merge()` predicts the refusal, and the errors appear at
+their fields, as a refusal does after issuing. A new form doesn't open
+full of errors. The working set evaluates them over `evaluate.ts` and
+doesn't send a change the server is certain to refuse; what it sends
+the merge checks again, and the server's refusals show the same way.
+`MergeField.refusals` holds those blaming a field,
 `MergeAccessor.refusals` all of the row's, and a `Field` lists them
 with an action's refusals.
 
@@ -433,9 +443,10 @@ refusal's errors as a normal outcome, not as an exception.
 **The browser evaluates an action's rules on the drafts** before
 anything is saved (decided 2026-10-20). Usability needs it: a user
 should see that an approval will be refused while still filling the
-form, not after saving. Rules warn in the browser and are enforced only
-on the server, and the shared condition model is what keeps them from
-being written twice. The client therefore gets the action's rules with
+form, not after saving. The browser's check predicts the server's
+decision and enforces nothing; the server evaluates the rules again
+when the action is issued, and its refusal is what counts. The shared
+condition model is what keeps them from being written twice. The client therefore gets the action's rules with
 its definition (see "The model").
 
 **The browser can evaluate only what it holds.** A rule reading

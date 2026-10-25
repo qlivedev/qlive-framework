@@ -831,7 +831,8 @@ The FilterDSL value operations (`add`, `mul`, `concat`, `upper`, ...)
 are enough for a first implementation of values, and a validation rule
 is already node data in `actions.md`: a condition, the fields it
 blames, a message key. The model holds no functions, which is what
-lets one rule run on the server and in the browser.
+lets the browser evaluate a validation the server enforces, to predict
+the server's decision.
 
 **Rules are trees, as layouts are** (revised 2026-10-20; the first
 take was a node DAG like Blender's editors). Each condition is a tree,

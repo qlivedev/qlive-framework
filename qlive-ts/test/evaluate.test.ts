@@ -13,7 +13,7 @@ import {
     value,
     values
 } from "../src/FilterDSL";
-import {conditionPredicate, evaluateQuery, sortComparator} from "../src/evaluate";
+import {conditionPredicate, evaluateQuery, expressionValue, sortComparator} from "../src/evaluate";
 import {dateRangeFilter} from "../src/grid/dateRangeFilter";
 import {numberContainsFilter} from "../src/grid/numberContainsFilter";
 import {patternFilter} from "../src/grid/patternFilter";
@@ -218,6 +218,32 @@ describe("sortComparator", () => {
 
     it("says a sort field is wrong, not a condition", () => {
         expect(() => sortComparator("Foo", ["!nope"])).toThrow('Sort on Foo: Foo has no field "nope".');
+    });
+});
+
+describe("expressionValue", () => {
+
+    const [alpha, beta] = ROWS;
+
+    it("reads a field, a value, and operations on them", () => {
+        expect(expressionValue("Foo", field("owner.login"))(alpha)).toBe("admin");
+        expect(expressionValue("Foo", value("x"))(alpha)).toBe("x");
+        expect(expressionValue("Foo", field("num").add(value(3)))(alpha)).toBe(15);
+        expect(expressionValue("Foo", field("name").upper().concat(value("!")))(alpha)).toBe("ALPHA!");
+    });
+
+    it("is null where an operand is", () => {
+        expect(expressionValue("Foo", field("ratio").mul(value(2)))(beta)).toBeNull();
+        expect(expressionValue("Foo", field("owner.login"))(beta)).toBeNull();
+    });
+
+    it("reads a value as the type it is given", () => {
+        expect(expressionValue("Foo", value("2026-09-01T08:00:00Z"), "Timestamp")(alpha))
+            .toEqual(Temporal.Instant.from("2026-09-01T08:00:00Z"));
+    });
+
+    it("refuses a path through a to-many relation", () => {
+        expect(() => expressionValue("Foo", field("tags.name"))).toThrow("Value on Foo: a value cannot follow a to-many relation");
     });
 });
 

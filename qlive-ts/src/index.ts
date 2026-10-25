@@ -74,7 +74,7 @@ export { default as QuickLogin } from "./component/QuickLogin";
 export { decompileFilter } from "./util/decompileFilter";
 
 // The FilterDSL evaluated in the browser, over rows it holds.
-export { conditionPredicate, sortComparator } from "./evaluate";
+export { conditionPredicate, expressionValue, sortComparator } from "./evaluate";
 
 // What the schema and the type meta data say about merging a type. Namespaced
 // the way FilterDSL is: manyToManyField, versionedTypes and ignoredFields say what

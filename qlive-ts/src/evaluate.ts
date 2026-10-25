@@ -813,6 +813,33 @@ export function sortComparator<R extends object = any>(type: string, sortFields:
 }
 
 /**
+ * Compiles a value expression into what it is for a row: a field, a value, or an operation on them.
+ *
+ *     const gross = expressionValue("Invoice", field("net").add(field("tax")));
+ *     draft.gross = gross(draft);
+ *
+ * It is the operand of a condition on its own, and is read as one: an operation has the type of its first operand,
+ * and is null where any operand is. A value is read as the given type, where there is one, the way the SQL path binds
+ * it as the field it is set to. Paths through a to-many relation are refused, since a set of rows has no one value.
+ *
+ * @param type          GraphQL type name of the rows
+ * @param expression    FilterDSL field reference, value or operation
+ * @param valueType     scalar type a value is read as, null for its own
+ *
+ * @returns the value for a row, in live form
+ */
+export function expressionValue<R extends object = any>(type: string, expression: CNode, valueType: string | null = null): (row: R) => unknown
+{
+    const ctx: Context = {rowType: type, subject: "Value on " + type, scopes: new Map()};
+    const operand = compileOperand(ctx, expression, valueType);
+    if (ctx.scopes.size)
+    {
+        throw compileError(ctx.subject, "a value cannot follow a to-many relation: a set of rows has no one value.");
+    }
+    return row => operand.read(new Map([["", row]]));
+}
+
+/**
  * What a query with the config returns from the rows: the page of the matching rows in order, and how many match.
  *
  * @internal

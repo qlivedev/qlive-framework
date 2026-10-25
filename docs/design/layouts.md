@@ -4,8 +4,9 @@ Status: concept settled, client building blocks built, details open.
 Written 2026-10-18, revised 2026-10-20, 2026-10-23 for forms over
 an action, and 2026-10-25 for reactions. Field modes, input conversion
 and the client building blocks are built (`qlive-ts/src/form/`), and
-so are the to-one picker and the related-rows endpoint; forms over an
-action, catalog types, field conditions, server layouts and rules are not.
+so are the to-one picker, the related-rows endpoint and reactions
+(2026-10-25); forms over an action, catalog types, field conditions,
+server layouts and rules are not.
 The companion concept is `actions.md`.
 
 The auto-form. A layout says which fields a form shows, how they are
@@ -872,6 +873,70 @@ and forgets them with the working set's `undo()`.
 on: whether the framework can order or refuse them, or the application
 has to wire them so that they settle.
 
+### Reactions as built (2026-10-25)
+
+`Layout.reactions` in qlive-ts (`form/reactions.ts`), and the same JSON
+on the server (`Reaction`, `ReactionEvent`, `ReactionEffect` in
+`model.layout`):
+
+```ts
+interface Reaction
+{
+    on: ReactionEvent[]                 // any of them
+    when?: FilterExpression | null      // on the row; effects where it holds,
+    effects: ReactionEffect[]           // otherwise where it doesn't
+    otherwise?: ReactionEffect[]
+}
+
+type ReactionEvent =
+    { init: true } | { change: string } | { blur: string } |
+    { error: string, cleared?: boolean } |      // by error class
+    { errorAt: string, cleared?: boolean }      // at a field or below it
+
+type ReactionEffect =
+    { field: string, mode: FieldMode } |
+    { field: string, value: CNode } |                     // FilterDSL expression
+    { field: string, effect: ReactionFunction | string }  // registerEffect()
+```
+
+- **Events are keys, as layout nodes are**: `{init: true}` follows
+  `{status: true}`, so the server tells them apart without a
+  discriminator. No `then` key: an object with one is a thenable.
+- **`change` is the form's own**: a field's `setValue()`/`setText()`
+  and a reaction's value, not a remote change or `undo()`. A value
+  `scalarEqual` to the one there is fires nothing, so a two-way link
+  settles; a chain is stopped with a console error after 16 steps.
+- **Errors** are the row's refusals (`merge.refusals`, the early check
+  and the server's) and the action's last issue, the subject's name
+  stripped. An event fires on a transition; errors present when the form
+  shows the row appear after the `init` reactions. Parse errors are not
+  among them.
+- **`value`** is evaluated by `expressionValue()`, new next to
+  `conditionPredicate()`, a value read as the target field's type.
+  `when` and `value` read the row, so a form without one takes neither.
+- **Effects**: a function returns a value or a promise of one. A plain
+  value is applied at once rather than through `Promise.resolve()`, so
+  `init` shows no frame in the layout's modes. Of effects started for
+  one field, the latest wins and an earlier result is dropped.
+- **What a reaction set** holds while the field keeps that value and is
+  among the row's changes: the user typing, `undo()` and a save end it.
+  `FormContext.reacted(path)`, `FieldState.reacted`, and the class
+  `qlive-field-reacted` on the field.
+- **Blur** is focus leaving `Field`'s element; `FieldState.blurred()`
+  for a field rendered without `Field`.
+- **`Form` takes `reactions`** where it has children or derives its
+  layout (see Open items); with a layout given it is an error.
+  Reactions are read as of each event, `init` runs per row shown.
+- **`LayoutCheck`** checks the fields events and effects name by the
+  rules of a field node, modes, and the paths `when` and `value` read.
+  Error classes are not checked: an application's own refusal may carry
+  any. Effect names are the frontend's, as widget names are.
+
+qlive-test's `app/form/Reactions.tsx` shows a server layout
+(`fooReactions`: mode toggle, reset, an asynchronous lookup registered
+as `describeNum`) and a hand-written form (Quux: blur, error at a
+field).
+
 ### Raw notes
 
 Thinking aloud, collected 2026-10-19; "Reactions" above holds what was
@@ -1024,19 +1089,21 @@ the ambiguity.
 
 ## Open items
 
-- **Reactions in a hand-written form.** A `Form` with `Field` children
-  has no layout to carry them. The proposal is a `reactions` prop in
-  the layout's shape, as a `Field` gives a mode a layout node would.
+- **Reactions in a hand-written form.** Built as proposed, a
+  `reactions` prop in the layout's shape (see "Reactions as built");
+  open whether that is the final form.
 - **Invariants over a value a reaction set.** An invariant shows its
   error once a field it reads is among the row's changes, so a
   reaction setting one shows errors the user didn't cause. Either that
   is acceptable, or the working set learns to tell what was typed from
   what was set, and the difference stops being the form's alone.
-- **Pending effects.** A field waiting for an effect's result needs a
-  state of its own; the latest trigger wins and an older result is
-  dropped. Whether a save waits, refuses or goes ahead while one is
+- **Pending effects.** The latest trigger wins and an older result is
+  dropped (built). A field waiting for a result has no state of its own
+  yet, and whether a save waits, refuses or goes ahead while one is
   pending is open.
-- **Chains and cycles** of reactions: see "Reactions".
+- **Chains and cycles** of reactions: a cycle settles where a value
+  comes back equal; anything else is stopped after 16 steps with a
+  console error. No ordering or refusal ahead of time yet.
 - **Asynchronous checks** and their pending state.
 - **Enum example**, held until actions (2026-10-21). jOOQ generates no
   enums, so one only occurs in a hand-written POJO, which isn't written

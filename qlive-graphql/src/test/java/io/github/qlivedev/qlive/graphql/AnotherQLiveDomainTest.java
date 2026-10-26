@@ -25,6 +25,7 @@ import io.github.qlivedev.qlive.graphql.logicimpl.GenericDomainLogic;
 import io.github.qlivedev.qlive.graphql.logicimpl.GenericDomainOutputLogic;
 import io.github.qlivedev.qlive.graphql.logicimpl.IgnoredPropsLogic;
 import io.github.qlivedev.qlive.graphql.logicimpl.ImplicitOverrideLogic;
+import io.github.qlivedev.qlive.graphql.logicimpl.InterfacedLogic;
 import io.github.qlivedev.qlive.graphql.logicimpl.ImplicitOverrideNonInputLogic;
 import io.github.qlivedev.qlive.graphql.logicimpl.ListReturningLogic;
 import io.github.qlivedev.qlive.graphql.logicimpl.LogicWithAnnotated;
@@ -66,6 +67,7 @@ import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLTypeUtil;
 import graphql.schema.idl.SchemaPrinter;
+import org.springframework.aop.framework.ProxyFactory;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -890,6 +892,37 @@ public class AnotherQLiveDomainTest
     
         });
     }
+
+    @Test
+    public void testInterfaceProxiedLogic()
+    {
+        final Object proxy = new ProxyFactory(new InterfacedLogic()).getProxy();
+
+        final QLiveDomainException e = assertThrows(QLiveDomainException.class, () ->
+            QLiveDomainBuilder.newDomain(null)
+                .objectTypes(Public.PUBLIC)
+                .logicBeans(Collections.singleton(proxy))
+                .buildGraphQLSchema()
+        );
+        assertThat(e.getMessage(), containsString(InterfacedLogic.class.getName()));
+    }
+
+
+    @Test
+    public void testClassProxiedLogic()
+    {
+        final ProxyFactory factory = new ProxyFactory(new InterfacedLogic());
+        factory.setProxyTargetClass(true);
+
+        final GraphQLSchema schema = QLiveDomainBuilder.newDomain(null)
+            .objectTypes(Public.PUBLIC)
+            .logicBeans(Collections.singleton(factory.getProxy()))
+            .buildGraphQLSchema();
+
+        final GraphQLObjectType queryType = (GraphQLObjectType) schema.getType("QueryType");
+        assertThat(queryType.getFieldDefinition("query"), is(notNullValue()));
+    }
+
 
     @Test
     public void testGenericDomainObjectOutput()

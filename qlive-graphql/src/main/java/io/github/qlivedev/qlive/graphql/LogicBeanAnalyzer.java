@@ -30,6 +30,7 @@ import org.apache.commons.beanutils.ConvertUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.framework.AopProxyUtils;
+import org.springframework.aop.support.AopUtils;
 
 import jakarta.validation.constraints.NotNull;
 import java.lang.annotation.Annotation;
@@ -118,6 +119,16 @@ class LogicBeanAnalyzer
 
     private void discover(Object logicBean)
     {
+        // the methods are called through accessors compiled against the target class, which a JDK proxy isn't
+        if (AopUtils.isJdkDynamicProxy(logicBean))
+        {
+            throw new QLiveDomainException(
+                AopProxyUtils.ultimateTargetClass(logicBean).getName() + ": A logic bean is proxied through its " +
+                "interfaces. Proxy it by its class instead, e.g. with proxyTargetClass = true on the @Enable... " +
+                "annotation that proxies it."
+            );
+        }
+
         final Class<?> cls = AopProxyUtils.ultimateTargetClass(logicBean);
         log.debug("Analyzing logic bean {}", cls.getName());
 

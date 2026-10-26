@@ -1,13 +1,13 @@
 package io.github.qlivedev.qlive.model.layout;
 
+import io.github.qlivedev.qlive.model.condition.CNode;
 import io.github.qlivedev.qlive.model.condition.ConditionParser;
 import io.github.qlivedev.qlive.runtime.QLiveException;
 import io.github.qlivedev.qlive.api.json.JSONUtil;
+import io.github.qlivedev.qlive.runtime.util.ShapeBinder;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /// Named layouts, in one namespace: what a `LayoutProvider` returns, and what the bootstrap sends as the JSON map
@@ -56,10 +56,10 @@ public final class Layouts
 
 
     /// Reads named layouts from the JSON the frontend reads, keeping their order: a map of name to layout, the
-    /// nodes told apart by the key each one has -- `field`, `section`, `component`, `status`. A layout's own name
+    /// nodes, events and effects told apart by the key each one has, see {@link ShapeBinder}. A layout's own name
     /// is ignored; the key names it.
     ///
-    /// @throws QLiveException for JSON that is no such map, naming the layout and node that isn't
+    /// @throws QLiveException for JSON that is no such map, naming the path to the part that isn't
     public static Layouts parse(String json)
     {
         final Object parsed = JSONUtil.DEFAULT_PARSER.parse(json);
@@ -69,198 +69,15 @@ public final class Layouts
         }
 
         final ConditionParser conditionParser = new ConditionParser();
+        final ShapeBinder binder = new ShapeBinder()
+            .withParser(CNode.class, value -> conditionParser.parse(JSONUtil.DEFAULT_GENERATOR.forValue(value)));
+
         final Layouts layouts = new Layouts();
-        map.forEach((name, value) -> layouts.put((String) name, layout((String) name, value, conditionParser)));
+        map.forEach((name, value) -> {
+            final Layout layout = binder.bind(Layout.class, value, "Layout " + name);
+            layout.setName(null);
+            layouts.put((String) name, layout);
+        });
         return layouts;
-    }
-
-
-    private static Layout layout(String name, Object value, ConditionParser conditionParser)
-    {
-        final Map<String, Object> map = object(value, "Layout " + name);
-        final Layout layout = new Layout();
-        layout.setDomainType(string(map, "domainType", "Layout " + name));
-        layout.setNodes(nodes(map.get("nodes"), "Layout " + name, conditionParser));
-        if (map.get("reactions") != null)
-        {
-            layout.setReactions(reactions(map.get("reactions"), "Layout " + name, conditionParser));
-        }
-        return layout;
-    }
-
-
-    private static List<Reaction> reactions(Object value, String where, ConditionParser conditionParser)
-    {
-        final List<?> list = list(value, where + ", reactions");
-        final List<Reaction> reactions = new ArrayList<>(list.size());
-        for (int i = 0; i < list.size(); i++)
-        {
-            final String at = where + ", reaction " + i;
-            final Map<String, Object> map = object(list.get(i), at);
-
-            final List<ReactionEvent> on = new ArrayList<>();
-            for (Object event : list(map.get("on"), at + ", on"))
-            {
-                on.add(event(event, at));
-            }
-            final Reaction reaction = new Reaction(on, effects(map.get("effects"), at + ", effects", conditionParser));
-            final Object when = map.get("when");
-            if (when != null)
-            {
-                reaction.setWhen(conditionParser.parseCondition(JSONUtil.DEFAULT_GENERATOR.forValue(when)));
-            }
-            if (map.get("otherwise") != null)
-            {
-                reaction.setOtherwise(effects(map.get("otherwise"), at + ", otherwise", conditionParser));
-            }
-            reactions.add(reaction);
-        }
-        return reactions;
-    }
-
-
-    private static ReactionEvent event(Object value, String where)
-    {
-        final Map<String, Object> map = object(value, where + ", event");
-        final boolean cleared = Boolean.TRUE.equals(map.get("cleared"));
-        if (Boolean.TRUE.equals(map.get("init")))
-        {
-            return new ReactionEvent.Init();
-        }
-        if (map.containsKey("change"))
-        {
-            return new ReactionEvent.Change(string(map, "change", where));
-        }
-        if (map.containsKey("blur"))
-        {
-            return new ReactionEvent.Blur(string(map, "blur", where));
-        }
-        if (map.containsKey("error"))
-        {
-            return new ReactionEvent.ErrorClass(string(map, "error", where), cleared);
-        }
-        if (map.containsKey("errorAt"))
-        {
-            return new ReactionEvent.ErrorAt(string(map, "errorAt", where), cleared);
-        }
-        throw new QLiveException(
-            where + " has no event: an event has init true, a change, a blur, an error or an errorAt. " + map.keySet()
-        );
-    }
-
-
-    private static List<ReactionEffect> effects(Object value, String where, ConditionParser conditionParser)
-    {
-        final List<?> list = list(value, where);
-        final List<ReactionEffect> effects = new ArrayList<>(list.size());
-        for (int i = 0; i < list.size(); i++)
-        {
-            final String at = where + " " + i;
-            final Map<String, Object> map = object(list.get(i), at);
-            final String field = string(map, "field", at);
-            if (map.containsKey("mode"))
-            {
-                effects.add(new ReactionEffect.Mode(field, string(map, "mode", at)));
-            }
-            else if (map.get("value") != null)
-            {
-                effects.add(new ReactionEffect.Expression(
-                    field, conditionParser.parse(JSONUtil.DEFAULT_GENERATOR.forValue(map.get("value")))
-                ));
-            }
-            else if (map.containsKey("effect"))
-            {
-                effects.add(new ReactionEffect.FunctionReference(field, string(map, "effect", at)));
-            }
-            else
-            {
-                throw new QLiveException(at + " is no effect: an effect has a mode, a value or an effect. " + map.keySet());
-            }
-        }
-        return effects;
-    }
-
-
-    private static List<?> list(Object value, String where)
-    {
-        if (!(value instanceof List<?> list))
-        {
-            throw new QLiveException(where + " is no JSON list: " + value);
-        }
-        return list;
-    }
-
-
-    private static List<LayoutNode> nodes(Object value, String where, ConditionParser conditionParser)
-    {
-        if (!(value instanceof List<?> list))
-        {
-            throw new QLiveException(where + " has no list of nodes.");
-        }
-        final List<LayoutNode> nodes = new ArrayList<>(list.size());
-        for (int i = 0; i < list.size(); i++)
-        {
-            nodes.add(node(list.get(i), where + ", node " + i, conditionParser));
-        }
-        return nodes;
-    }
-
-
-    private static LayoutNode node(Object value, String where, ConditionParser conditionParser)
-    {
-        final Map<String, Object> map = object(value, where);
-
-        if (map.containsKey("field"))
-        {
-            final LayoutFieldNode node = new LayoutFieldNode(string(map, "field", where));
-            node.setWidget((String) map.get("widget"));
-            node.setMode((String) map.get("mode"));
-            node.setLabel((String) map.get("label"));
-            final Object condition = map.get("condition");
-            if (condition != null)
-            {
-                node.setCondition(conditionParser.parseCondition(JSONUtil.DEFAULT_GENERATOR.forValue(condition)));
-            }
-            return node;
-        }
-        if (map.containsKey("section"))
-        {
-            return new LayoutSectionNode(string(map, "section", where), nodes(map.get("nodes"), where, conditionParser));
-        }
-        if (map.containsKey("component"))
-        {
-            final LayoutComponentNode node = new LayoutComponentNode(string(map, "component", where));
-            node.setProps(map.get("props") == null ? null : object(map.get("props"), where + ", props"));
-            node.setNodes(map.get("nodes") == null ? null : nodes(map.get("nodes"), where, conditionParser));
-            return node;
-        }
-        if (Boolean.TRUE.equals(map.get("status")))
-        {
-            return new LayoutStatusNode();
-        }
-        throw new QLiveException(
-            where + " is no node: a node has a field, a section, a component or status true. " + map.keySet()
-        );
-    }
-
-
-    @SuppressWarnings("unchecked")
-    private static Map<String, Object> object(Object value, String where)
-    {
-        if (!(value instanceof Map<?, ?>))
-        {
-            throw new QLiveException(where + " is no JSON object: " + value);
-        }
-        return (Map<String, Object>) value;
-    }
-
-
-    private static String string(Map<String, Object> map, String key, String where)
-    {
-        if (!(map.get(key) instanceof String text))
-        {
-            throw new QLiveException(where + " has no " + key + ".");
-        }
-        return text;
     }
 }

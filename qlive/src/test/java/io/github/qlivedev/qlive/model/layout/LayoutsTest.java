@@ -159,7 +159,7 @@ class LayoutsTest
             () -> Layouts.parse("{\"x\":{\"domainType\":\"Foo\",\"nodes\":[],\"reactions\":[" +
                 "{\"on\":[{\"focus\":\"name\"}],\"effects\":[]}]}}")
         );
-        assertThat(e.getMessage(), containsString("Layout x, reaction 0 has no event"));
+        assertThat(e.getMessage(), containsString("Layout x.reactions[0].on[0] is no ReactionEvent"));
     }
 
 
@@ -177,6 +177,6 @@ class LayoutsTest
             QLiveException.class,
             () -> Layouts.parse("{\"x\":{\"domainType\":\"Foo\",\"nodes\":[{\"field\":\"a\"},{\"widget\":\"w\"}]}}")
         );
-        assertThat(e.getMessage(), containsString("Layout x, node 1 is no node"));
+        assertThat(e.getMessage(), containsString("Layout x.nodes[1] is no LayoutNode"));
     }
 }

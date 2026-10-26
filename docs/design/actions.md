@@ -278,10 +278,16 @@ sees a bind parameter and never a positional path.
   It would change `concat` in every evaluator, which today all take
   exactly two operands.
 
-A rule reading the stored fields of two subjects has no single anchor,
-and binding one side fails where neither is a single row: "every
-`bars.num` below some `bazs.limit`". How such a rule is evaluated is
-open (see "Open items").
+**A rule reading the stored fields of two subjects** gets nothing
+special (decided 2026-10-26). It is anchored at one subject, and the
+other is bound like any reference above: a single row's field to a
+value, a list subject's to a list, valid as the operand of `in`. Where
+that doesn't express the rule -- "every `bars.num` below some
+`bazs.limit`" -- it fails at startup. The relational and positional
+readings of a to-many path differ, so any evaluation found for such a
+rule would hold on one side and not the other. The application avoids
+these rules; where one is needed, a subject that is one row, such as
+the parent the lists belong to, can give it its anchor.
 
 A rule reading no stored field at all, `notify` and `comment`, is
 evaluated in memory on the server, by the backend pub/sub filters use
@@ -309,7 +315,8 @@ to every action: the versions of rows the paths reach beyond the
 subjects, as far as the view's queries hold them (see "Versions"). Its
 name is open.
 
-The framework stands between GraphQL and the method. It opens **one
+The framework stands between GraphQL and the method. It checks that
+the caller may issue the action (see "Authorization"), then opens **one
 transaction on committed data** and, inside it:
 
 1. Loads the subjects' rows, which is also their version check: a row
@@ -438,6 +445,40 @@ action wrote becomes a conflict, as it would from anybody's write.
 Since the second case follows a normal save, the client handles the
 refusal's errors as a normal outcome, not as an exception.
 
+### Authorization (decided 2026-10-26)
+
+**Who may issue an action is Spring Security's.** An action is a
+GraphQL mutation, and every mutation shares one endpoint, so security
+by request path can't tell actions apart; annotations on the method
+can. QLive favors `@Secured` with the roles it names, since roles are
+data the client can be given, where a `@PreAuthorize` expression is
+not.
+
+**The framework reads `@Secured` itself** and checks it before the
+transaction opens. Through the method security proxy alone, the check
+would run when the method is called, after the subjects were loaded
+and their versions checked, so a caller without the role could learn
+of a conflict before being turned away. The framework's check refuses
+first, as a refusal with a code of its own, `FORBIDDEN`, blaming no
+field, with the key `Action.forbidden`, so the client meets the shape
+it handles for every refusal. Method security enabled by the
+application, `@EnableMethodSecurity(securedEnabled = true)`, checks
+the same roles once more and changes nothing; other method security
+annotations work through the proxy alone, in their usual place.
+
+**Logic beans are proxied by class.** The framework calls their
+methods through accessors compiled against the bean's class, which a
+JDK interface proxy isn't, so the analyzer refuses such a bean at
+startup, naming it and `proxyTargetClass = true` as the fix.
+
+**The roles reach the client** with the action model, so a view can
+hold back an action its user can't issue. Like the early check, that
+predicts and enforces nothing.
+
+**Permissions are not rules.** Rules are about the data an action
+reads, and the browser checks them on drafts; roles are about the
+caller and are fixed for a request.
+
 ### The early check on the client
 
 **The browser evaluates an action's rules on the drafts** before
@@ -449,12 +490,14 @@ when the action is issued, and its refusal is what counts. The shared
 condition model is what keeps them from being written twice. The client therefore gets the action's rules with
 its definition (see "The model").
 
-**The browser can evaluate only what it holds.** A rule reading
-references deeper than the form's query, or rows the form never
-fetched, meets the same boundary field conditions meet on the
-related-rows endpoint. Whether the browser then checks what is loaded
-and leaves the rest to the server, or an action's references become
-part of what a form over it loads, is open.
+**The browser checks only what the view loaded** (decided
+2026-10-26). A rule reading references deeper than the form's query,
+or rows the form never fetched, meets the same boundary field
+conditions meet on the related-rows endpoint; the browser leaves it to
+the server, and a form over an action loads nothing for it. A view
+whose queries miss what its action's rules read gets its refusal when
+issuing; the queries are the application's to fix (see "Actions,
+queries and layouts").
 
 **Errors from either side have one shape**, GraphQL's (`layouts.md`,
 "Layouts react to errors"): the rule's message, the blamed field's path
@@ -669,6 +712,16 @@ does `useRefusals()` for a part of the application's, a selected row
 showing `bars.2`; `ActionRefusals` shows what nobody claimed, once per
 action.
 
+**A subject picked in a form is a `RowPicker`** (decided 2026-10-26).
+A field whose path names a subject parameter, `project`, picks a row of
+that subject's type the way a to-one field picks a related row, and
+differs in three things: it sets the action's argument rather than a
+foreign key, so it has no relation and no field condition to narrow the
+rows; the argument needs the row's version, which the related-rows
+endpoint doesn't return; and the early check needs the fields the
+action's rules read of it. How the picked row comes with those is open
+(see "Open items").
+
 **A subject is a stored row.** The arguments are references to rows as
 the user saw them, so a subject can't carry changes that aren't saved:
 while a form filling a subject has unsaved changes, the action isn't
@@ -683,7 +736,10 @@ a table-backed type marked `@Input` is input, not a subject:
 takes a list of them. Being input of a Java type, the paths into it,
 `draft.num`, are checked at startup like any other input's, and its
 rules are evaluated in memory. What the action gives up is what a
-subject has: no version check, and no rules over stored fields. On the
+subject has: no version check, and no rules over stored fields. Nor
+is `@Input` held to its type's invariants (decided 2026-10-26): input
+may be incomplete on purpose, and an action wanting a check declares it
+among its own rules. On the
 client, a working set's draft carries more than the input
 type has -- relation objects, computed fields -- so issuing sends only
 the input type's fields.
@@ -703,7 +759,8 @@ An action can serve several views, and several queries can satisfy it.
 
 **The action model is a set of Java classes** in
 `io.github.qlivedev.qlive.model.action`, built from the methods at startup:
-name, parameters with their kinds and types, rules, result type. It is
+name, parameters with their kinds and types, rules, the roles of
+`@Secured`, result type. It is
 data, which is what reaches the browser, and what another source, an
 editor or files, would produce; none is planned, since the developers
 who write the server code are the ones defining actions.
@@ -812,12 +869,19 @@ working set's check with the refusals at the fields. Covered by
 `InvariantTest` and `invariants.test.tsx`; `/app/form/invariants` shows
 Quux's two.
 
+Logic beans proxied by class, 2026-10-26: `LogicBeanAnalyzer`
+refuses a JDK interface proxy at startup, covered by
+`AnotherQLiveDomainTest`.
+
 Not built yet:
 
 - **The reached-versions argument.** Only the subjects' versions are
   checked.
-- **Rules over two subjects' stored fields** fail at startup (see
-  "Open items").
+- **Binding a second subject.** Rules over two subjects' stored fields
+  all fail at startup (see "Rules that mix stored state and input").
+- **Authorization**: the framework's `@Secured` check, `FORBIDDEN`,
+  and the roles in the model.
+- **A subject picked in a form.**
 - **The cleanup hook**, the action model and its delivery in the
   bootstrap, and the early check on the client.
 
@@ -854,12 +918,19 @@ Not built yet:
   rules and refusals use, and it named a picked subject "input".
 - **An action context provider** wrapping the forms and fields of an
   action, see "Actions in a view".
+- **Holding `@Input` to its type's invariants.** Input may be
+  incomplete on purpose; an action's own rules say what it needs.
+- **An evaluation for rules over two list subjects**, in memory over
+  the rows the server loads. It meets the positional and the
+  relational reading of a to-many path, and no choice between them
+  holds on both sides.
+- **Loading what an action's rules read into a form over it**, so the
+  early check reaches further. The view's queries are the
+  application's, and the server's check is the one that counts.
+- **Permissions as rules.** See "Authorization".
 
 ## Open items
 
-- **Invariants over input**: an `@Input` parameter of a type with
-  invariants is not held to them; the action's own rules are all that
-  run.
 - **Values in delivered invariants**: a rule's condition reaches the
   client as the meta data serializes it, which is right for numbers,
   strings and booleans. A date or timestamp literal in an invariant is
@@ -871,10 +942,6 @@ Not built yet:
   are read, unchecked at startup; `@Input` covers unsaved data with a
   known type, checked. Until then, a form and the executor refuse such
   paths.
-- **Rules over two subjects' stored fields**: anchored at one subject
-  with the other bound, which fails where neither is a single row, or
-  evaluated in memory over the rows the server loads anyway, which meets
-  the positional and relational readings of a to-many path.
 - **The reached-versions argument**: its name, and its type of
   `(type, id, version)` entries.
 - **Replacing an action on purpose**, shelved (2026-10-22). A module
@@ -886,18 +953,10 @@ Not built yet:
   enum type, so its conversion is settled. jOOQ generates no enums, so
   an input POJO is the first place a form meets one; `layouts.md` holds
   its enum example until it is settled which widget picks the value.
-- **A subject picked in a form**: a field whose path names a subject
-  parameter, `project`, is a picker of that subject's type, holding
-  the picked row's id and version. Which widget, and how its query
-  selects the version.
-- **What the early check reaches**: only what the form loaded, or the
-  action's paths added to what a form over it loads.
+- **A subject picked in a form**: how the picked row comes with its
+  version and the fields the action's rules read, whether from the
+  related-rows endpoint or from a query of its own.
 - **The cleanup mechanism**: presumably a callback after the rollback,
   which the framework registers when the action refuses, and how the
   method names its hook.
-- **Authorization**: who may issue an action. The framework evaluates
-  an action's rules itself; whether permissions are rules or a separate
-  check is undecided.
 - **The variadic `concat`**, see "Rules that mix stored state and input".
-- **The client API** for holding input and checking completeness.
-  Issuing is built.

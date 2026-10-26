@@ -62,7 +62,7 @@ public final class Layouts
     /// @throws QLiveException for JSON that is no such map, naming the path to the part that isn't
     public static Layouts parse(String json)
     {
-        final Object parsed = JSONUtil.DEFAULT_PARSER.parse(json);
+        final Object parsed = JSONUtil.DEFAULT_PARSER.parse(Map.class, json);
         if (!(parsed instanceof Map<?, ?> map))
         {
             throw new QLiveException("Named layouts are a JSON map of name to layout, not " + json);

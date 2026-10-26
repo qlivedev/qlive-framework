@@ -99,6 +99,18 @@ class LayoutsTest
     }
 
 
+    @Test
+    void keepsTheOrderOfTheLayouts()
+    {
+        final Layouts layouts = Layouts.parse(
+            "{\"q\":{\"domainType\":\"Foo\",\"nodes\":[]},\"b\":{\"domainType\":\"Foo\",\"nodes\":[]}," +
+                "\"x\":{\"domainType\":\"Foo\",\"nodes\":[]},\"a\":{\"domainType\":\"Foo\",\"nodes\":[]}}"
+        );
+
+        assertThat(layouts.asMap().keySet(), contains("q", "b", "x", "a"));
+    }
+
+
     private final static String REACTIONS = "{\"fooEdit\":{\"domainType\":\"Foo\",\"nodes\":[]," +
         "\"reactions\":[" +
         "{\"on\":[{\"init\":true},{\"change\":\"flag\"}]," +

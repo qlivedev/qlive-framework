@@ -10,6 +10,13 @@ import org.svenson.info.JavaObjectSupport;
 import org.svenson.util.JSONBeanUtil;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /// QLive's entry point to svenson.
 ///
@@ -37,6 +44,8 @@ public class JSONUtil
 
     public final static JSON DEFAULT_GENERATOR;
 
+    /// The parser, with JSON objects parsed into maps in the order of their keys, where no type says otherwise.
+    /// Only a root parsed without any type is a `HashMap`, svenson's own choice: parse it as `Map.class` instead.
     public final static JSONParser DEFAULT_PARSER;
 
     public final static JSONBeanUtil DEFAULT_UTIL;
@@ -45,6 +54,12 @@ public class JSONUtil
     {
         final JSONParser parser = new JSONParser();
         parser.setObjectSupport(OBJECT_SUPPORT);
+        parser.setInterfaceMappings(Map.of(
+            Collection.class, ArrayList.class,
+            List.class, ArrayList.class,
+            Set.class, LinkedHashSet.class,
+            Map.class, LinkedHashMap.class
+        ));
         DEFAULT_PARSER = parser;
 
         final JSONBeanUtil util = new JSONBeanUtil();

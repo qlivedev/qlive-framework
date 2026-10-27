@@ -2,10 +2,10 @@
 
 Status: concept settled, details open. Written 2026-10-18, revised
 2026-10-22 to define actions as GraphQL mutations declared by Java
-methods, 2026-10-23 for actions in a view, and 2026-10-24 for
-invariants. The server path, issuing from the client and writing from
-Java are built (see "What is built"). The companion concept is
-`layouts.md`.
+methods, 2026-10-23 for actions in a view, 2026-10-24 for invariants,
+and 2026-10-27 for authorization and the transaction's settings. The
+server path, issuing from the client and writing from Java are built
+(see "What is built"). The companion concept is `layouts.md`.
 
 What a user does to stored data beyond editing it: approve, close,
 send. Editing is the merge. An action is something the application
@@ -331,6 +331,63 @@ transaction on committed data** and, inside it:
 
 The method's result is the mutation's data.
 
+### The transaction (decided 2026-10-27)
+
+**The framework owns what the action's guarantees rest on**: the
+boundary, one transaction from loading the subjects to the method's
+last write; rolling back on a refusal or any exception; and an
+isolation of at least repeatable read. That floor is what makes the
+version check hold: the subjects are loaded in the snapshot the
+method writes in, and a write committed in between fails the
+`UPDATE` with a serialization failure, which the executor turns into
+`CONFLICT` (see "A Java API for the merge"). This is PostgreSQL's
+repeatable read, a snapshot; other databases give the name other
+semantics.
+
+**The application owns the rest**, as attributes of `@QLiveAction`:
+
+```java
+@QLiveAction(timeout = 30, isolation = ActionIsolation.SERIALIZABLE)
+public ApproveResult approveBar(Bar bar, @NotNull String comment, boolean notify)
+```
+
+- `timeout`, in seconds. Only the application knows which actions
+  are slow.
+- `isolation`, raising the floor, never lowering it. `ActionIsolation`
+  is QLive's, in `io.github.qlivedev.qlive.api.action`, and holds
+  only `REPEATABLE_READ` and `SERIALIZABLE`, so a level below the
+  floor can't be written, and the API needs no Spring transaction
+  types. Repeatable read
+  doesn't prevent write skew: a rule reading rows other than the
+  subjects can be made false by a concurrent transaction without
+  either failing. Serializable catches it with the same serialization
+  failure, so it reaches the client as the same `CONFLICT`.
+- `transactionManager`, the bean name, for an application with more
+  than one.
+
+**An application-wide default** comes from an `ActionDefaults` bean
+the application may declare in its configuration, holding the same
+three. An attribute on the action overrides it. Without the bean, the
+timeout is the transaction manager's, the isolation the floor, and
+the manager the application's only `PlatformTransactionManager`.
+
+**`@Transactional` on an action fails at startup**, on the method or
+its class, naming the action and the attributes above. Its proxy would
+run around the method inside the framework's transaction: joining it,
+it changes nothing but looks as if its timeout and isolation applied;
+with `REQUIRES_NEW` or `NOT_SUPPORTED` it would split the action from
+its subjects' check. A logic bean whose plain mutations want
+`@Transactional` puts it on their methods.
+
+**An action never joins a surrounding transaction.** Issued while one
+is active, as from a test or a Java caller running GraphQL in its own
+transaction, it fails as an error, not a refusal, naming the action.
+Joining would put the boundary and the isolation in the caller's
+hands and let a caller's rollback undo an action the client was told
+had succeeded; suspending the caller's transaction instead would
+commit the action apart from it. A Java caller that wants an action's
+work in its own transaction writes through `EntityWriter`.
+
 ### Refusal
 
 **A refusal is an exception**, `ActionRefusedException` in
@@ -445,28 +502,53 @@ action wrote becomes a conflict, as it would from anybody's write.
 Since the second case follows a normal save, the client handles the
 refusal's errors as a normal outcome, not as an exception.
 
-### Authorization (decided 2026-10-26)
+### Authorization (decided 2026-10-26, revised 2026-10-27)
 
-**Who may issue an action is Spring Security's.** An action is a
-GraphQL mutation, and every mutation shares one endpoint, so security
-by request path can't tell actions apart; annotations on the method
-can. QLive favors `@Secured` with the roles it names, since roles are
-data the client can be given, where a `@PreAuthorize` expression is
-not.
+**Who may issue an action is named on the method**, with QLive's
+`@AllowedRoles` in `io.github.qlivedev.qlive.api.annotation`. An
+action is a GraphQL mutation, and every mutation shares one endpoint,
+so security by request path can't tell actions apart; an annotation on
+the method can. It names roles, since roles are data the client can be
+given, where an expression is not:
 
-**The framework reads `@Secured` itself** and checks it before the
-transaction opens. Through the method security proxy alone, the check
-would run when the method is called, after the subjects were loaded
-and their versions checked, so a caller without the role could learn
-of a conflict before being turned away. The framework's check refuses
-first, as a refusal with a code of its own, `FORBIDDEN`, blaming no
-field, with the key `Action.forbidden`, so the client meets the shape
-it handles for every refusal. Method security enabled by the
-application, `@EnableMethodSecurity(securedEnabled = true)`, checks
-the same roles once more and changes nothing; other method security
-annotations work through the proxy alone, in their usual place.
+```java
+@QLiveAction
+@AllowedRoles({ "ROLE_APPROVER", "ROLE_ADMIN" })
+public ApproveResult approveBar(Bar bar, @NotNull String comment, boolean notify)
+```
 
-**Logic beans are proxied by class.** The framework calls their
+Any one of the roles suffices. They are authorities as Spring
+Security holds them, prefix included, and checked against the
+caller's `Authentication` through Spring Security's authority check,
+so a `RoleHierarchy` bean of the application counts. An action without
+`@AllowedRoles` may be issued by whoever reaches the endpoint.
+
+**The framework checks it before the transaction opens.** Spring's
+method security runs in a proxy around the method, and the framework
+calls the method inside the action's transaction, after the subjects
+were loaded and their versions checked: a caller without the role
+could learn of a conflict before being turned away. The framework's
+check refuses first, as a refusal with a code of its own, `FORBIDDEN`,
+blaming no field, with the key `Action.forbidden`, so the client meets
+the shape it handles for every refusal.
+
+**Spring's method security annotations on an action fail at startup**:
+`@Secured`, `@PreAuthorize`, `@PostAuthorize`, `@PreFilter`,
+`@PostFilter` and `@RolesAllowed`, on the method or its class, naming
+the action and `@AllowedRoles`. Through the proxy each would check
+late, which is the leak above, and `@Secured` read by the framework
+as well would mean one thing on an action and another everywhere
+else. An application that wants a check `@AllowedRoles` can't
+express throws `ActionRefusedException` with `FORBIDDEN` from the
+method; it then runs late, like any check of the method's own.
+
+`@AllowedRoles` guards the action, not the method. A Java caller
+invoking the method directly skips the subjects' loading and the
+rules as well, so it isn't issuing the action, and the bean is its
+own business.
+
+**Logic beans are proxied by class.** Applications still proxy them
+for other concerns, caching or validation. The framework calls their
 methods through accessors compiled against the bean's class, which a
 JDK interface proxy isn't, so the analyzer refuses such a bean at
 startup, naming it and `proxyTargetClass = true` as the fix.
@@ -760,7 +842,7 @@ An action can serve several views, and several queries can satisfy it.
 **The action model is a set of Java classes** in
 `io.github.qlivedev.qlive.model.action`, built from the methods at startup:
 name, parameters with their kinds and types, rules, the roles of
-`@Secured`, result type. It is
+`@AllowedRoles`, result type. It is
 data, which is what reaches the browser, and what another source, an
 editor or files, would produce; none is planned, since the developers
 who write the server code are the ones defining actions.
@@ -879,8 +961,14 @@ Not built yet:
   checked.
 - **Binding a second subject.** Rules over two subjects' stored fields
   all fail at startup (see "Rules that mix stored state and input").
-- **Authorization**: the framework's `@Secured` check, `FORBIDDEN`,
-  and the roles in the model.
+- **Authorization**: `@AllowedRoles` and its check, `FORBIDDEN`,
+  refusing Spring's method security annotations on actions, and the
+  roles in the model.
+- **The transaction's settings**: `@QLiveAction`'s `timeout`,
+  `isolation` and `transactionManager`, `ActionDefaults`, refusing
+  `@Transactional` on actions, and refusing a surrounding
+  transaction. Every action runs repeatable read on the one
+  transaction manager, and joins a surrounding transaction.
 - **A subject picked in a form.**
 - **The cleanup hook**, the action model and its delivery in the
   bootstrap, and the early check on the client.
@@ -928,6 +1016,18 @@ Not built yet:
   early check reaches further. The view's queries are the
   application's, and the server's check is the one that counts.
 - **Permissions as rules.** See "Authorization".
+- **Reading `@Secured` in the framework** (2026-10-26), checking it
+  before the transaction and leaving method security to check it again
+  in the proxy. It left `@PreAuthorize` and the others checking late,
+  invited a proxy layer the framework works around, and gave a Spring
+  annotation a meaning of its own on actions. See "Authorization".
+- **Transaction settings fixed by the framework.** The boundary and the
+  floor are the action's; timeout, a stricter isolation and the
+  transaction manager are the application's. See "The transaction".
+- **Configuring an action's transaction through `@Transactional`**,
+  read by the framework like `@Secured` was to be. Its propagation and
+  the isolation levels below the floor would need refusing one by one,
+  and it would still look like a proxy's annotation.
 
 ## Open items
 
@@ -960,3 +1060,7 @@ Not built yet:
   which the framework registers when the action refuses, and how the
   method names its hook.
 - **The variadic `concat`**, see "Rules that mix stored state and input".
+- **`@AllowedRoles` on queries and plain mutations.** The check sits
+  where GraphQL meets the logic bean, so it could guard them too, with
+  the same refusal of Spring's method security annotations; whether
+  their roles reach the client as well is open.
